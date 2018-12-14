@@ -177,6 +177,7 @@ Adaptations of the previous methods to the case of nocodazole treated cells.
 ```
         python analysis/analysis_cytoD/search_enriched_quad.py
         python analysis/analysis_cytoD/main_cyt_spread.py
+	python analysis/analysis_cytoD/main_doc.py
         python analysis/analysis_cytoD/main_cyt_total.py
         python analysis/analysis_cytoD/main_periph_frac.py
         python analysis/analysis_cytoD/plot_figures_MTOC.py
