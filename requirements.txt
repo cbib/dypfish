@@ -1,0 +1,7 @@
+h5py
+numpy
+matplotlib
+scipy
+pandas
+scikit-image
+seaborn
