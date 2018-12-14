@@ -65,11 +65,11 @@ DypFISH takes HDF5 files as input. [Click here](https://www.hdfgroup.org/solutio
 
 ![Arhgdia H2](http://image.noelshack.com/fichiers/2018/50/3/1544607676-capture-du-2018-12-12-10-31-06.png)
 
-Examples of HDF5 encoding of image acquisitions can be found in DypFISH/analysis/example_hdf5/. These files are provided *only* as an example of data formatting. To download data and run the code please download HDF5 files avalaible on the [dypfish.org](http://dypfish.org).
+Examples of HDF5 encoding of image acquisitions can be found in `dypfish/analysis/example_hdf5/`. These files are provided *only* as an example of data formatting. To download data and run the code please download HDF5 files avalaible on the [dypfish.org](http://dypfish.org).
 
-In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data.zip), place the zip file in the root directory DypFISH/ and unzip it there. This creates the directory DypFISH/data/ containing HDF5 files and enables running the pipeline. 
+In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data.zip), place the zip file in the root directory `dypfish/` and unzip it there. This creates the directory `dypfish/data/` containing HDF5 files and enables running the pipeline. 
 
-If you wish to run the pipeline on your own data, place the HDF5 file in the DypFISH/data/ directory and modify the source code (see below).
+If you wish to run the pipeline on your own data, place the HDF5 file in the `dypfish/data/` directory and modify the source code (see below).
 
 
 # Using the Pipeline
@@ -185,11 +185,9 @@ Adaptations of the previous methods to the case of nocodazole treated cells.
 ###### Muscle analysis
 Adaptations of the previous methods to the case of muscle cells.
 ```
-        python analysis/analysis_muscle_data/search_enriched_quad.py
-        python analysis/analysis_muscle_data/main_cyt_spread.py
-        python analysis/analysis_muscle_data/main_cyt_total.py
-        python analysis/analysis_muscle_data/main_periph_frac.py
-        python analysis/analysis_muscle_data/plot_figures_MTOC.py
+        python analysis/analysis_muscle_data/compute_z_line_distance.py
+        python analysis/analysis_muscle_data/quadrat_analysis_graph.py
+        python analysis/analysis_muscle_data/quadrat_analysis_heatmap.py
 ```
 
 ## Outputs:
