@@ -10,12 +10,14 @@ from scipy import interpolate
 import pandas as pd
 import os
 import os.path
+import src.plot as plot
 
 import src.acquisition_descriptors as adsc
 import src.image_descriptors as idsc
 import src.path as path
 import src.statistical_analysis as stan
 import src.helpers as helps
+from src.utils import check_dir
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -32,7 +34,7 @@ logger.info("Running %s", sys.argv[0])
 def cytoplasmic_spread(file_handler, molecule_type,genes,path_data,colors,y_lim):
     cyt_spreads = []
     #dfname = path.analysis_dir + "analysis_cytoplasmic_spread/df/"+ molecule_type[0] +"_cyt_spread.csv"
-    figname = path.analysis_dir + '/analysis_nocodazole/figures/cyt_spread/' + molecule_type[0].split('/')[1] + '_cytoplasmic_spread.png'
+    figname = check_dir(path.analysis_dir + '/analysis_nocodazole/figures/cyt_spread/') + molecule_type[0].split('/')[1] + '_cytoplasmic_spread.png'
 
     for gene in genes:
         image_list = helps.preprocess_image_list2(file_handler, molecule_type[0], gene)

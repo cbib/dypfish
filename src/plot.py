@@ -154,7 +154,7 @@ def fraction_profile(fractions,fraction,genes,figname,colors):
     # plt.legend([gene for gene in genes], loc='upper right')
     # ax.legend(rects1, genes)
     plt.savefig(figname)
-    plt.show()
+    #plt.show()
     plt.close()
 
 def histogram_noise_measured(nm_arhgdia,nm_arhgdia_cultured):
@@ -258,7 +258,7 @@ def profile(profiles, genes, slice_number, figname,figtitle,colors,save=False):
     #plt.legend(genes, loc='upper right')
     if save:
         plt.savefig(figname)
-    plt.show()
+    #plt.show()
     plt.close()
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: Benjamin Dartigues
 
 import logging
 import sys
@@ -39,9 +40,17 @@ def main(is_periph=False):
         print ('Periph mode')
 
 
-    df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_' if is_periph else '' + 'global_mtoc_file_all_mrna.csv'
+    if is_periph:
+
+        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna.csv'
+        df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein.csv'
+
+    else:
+        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna.csv'
+        df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein.csv'
+
+
     mrnas = ["arhgdia", "beta_actin", "gapdh", "pard3", "pkp4", "rab13"]
-    df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_' if is_periph else '' + 'global_mtoc_file_all_protein.csv'
     proteins = ["arhgdia", "beta_actin", "gapdh", "pard3"]
 
 
@@ -55,15 +64,29 @@ def main(is_periph=False):
 
     # plot bar plot cytoplasmic mpi
     mpis,err=compute_mpis(df_sorted)
-    figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_' if is_periph else '' + 'mrna_paired_mpis.png'
+
+    if is_periph:
+
+        figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_mrna_paired_mpis.png'
+    else:
+        figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'mrna_paired_mpis.png'
+
 
 
     bar_profile_median(mpis,mrnas,'mrna',figname,err)
 
+
+
+
     # plot boxplot cytoplasmic mpi
     dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'], var_name='Quadrants')
     my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#003366", "MTOC leading edge": "#0080ff"}
-    figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_' if is_periph else '' + 'mrna_boxplot_MTOC_enrichment.png'
+
+    if is_periph:
+
+        figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_mrna_boxplot_MTOC_enrichment.png'
+    else:
+        figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'mrna_boxplot_MTOC_enrichment.png'
 
     sns_boxplot(dd,my_pal,figname)
 
@@ -77,7 +100,12 @@ def main(is_periph=False):
 
     # plot bar plot cytoplasmic mpi
     mpis,err=compute_mpis(df_sorted)
-    figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_' if is_periph else '' + 'protein_paired_mpis.png'
+    if is_periph:
+
+        figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_protein_paired_mpis.png'
+    else:
+        figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'protein_paired_mpis.png'
+
 
 
     bar_profile_median(mpis,proteins,'protein',figname,err)
@@ -85,7 +113,14 @@ def main(is_periph=False):
 
     # plot boxplot cytoplasmic mpi
     dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'],var_name='Quadrants')
-    figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_' if is_periph else '' + 'protein_boxplot_MTOC_enrichment.png'
+
+    if is_periph:
+
+        figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_protein_boxplot_MTOC_enrichment.png'
+    else:
+        figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'protein_boxplot_MTOC_enrichment.png'
+
+
 
     sns_boxplot(dd,my_pal,figname)
 
@@ -156,6 +191,12 @@ def main(is_periph=False):
 
 
         figname = check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_' if is_periph else '' + 'MPI_' + mrnas[i] + '.png'
+        if is_periph:
+
+            figname = check_dir(
+                path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_MPI_' + mrnas[i] + '.png'
+        else:
+            figname = check_dir(path.analysis_dir + 'analysis_MTOC/figures/')+ 'MPI_' + mrnas[i] + '.png'
 
         dynamic_profiles(mrna_data, protein_data, mrnas[i], plot_colors[i], '', '', figname)
 
@@ -163,7 +204,7 @@ def main(is_periph=False):
 
 
 if __name__ == "__main__":
-    main(is_periph=True)
+    main(is_periph=False)
 
 
 

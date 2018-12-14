@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: Benjamin Dartigues
 
 import logging
 import sys
@@ -17,6 +18,8 @@ import src.image_descriptors as idsc
 import src.path as path
 import src.statistical_analysis as stan
 import src.helpers as helps
+import src.plot as plot
+from src.utils import enable_logger, check_dir
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -62,7 +65,6 @@ def get_quantized_grid(q, Qx, Qy):
     # print qys
     return qxs, qys
 
-
 def get_variance(test):
     print(test)
 
@@ -72,7 +74,6 @@ def get_variance(test):
     for elem in var:
         tot += math.pow(elem, 2)
     return (tot / N)
-
 
 def compute_cell_mask_between_nucleus_centroid(cell_mask,nucleus_centroid,nuc_dist,cell_masks,nucs_dist):
     #x_nuc = []
@@ -117,7 +118,6 @@ def search_best_centroid(nucleus_centroid):
     # right_nuc = x_nuc[1]
     # cell_width = right_nuc - left_nuc
 
-
 def show_descriptors(cell_mask,spots,nucleus_mask):
 
     plt.imshow(cell_mask)
@@ -132,7 +132,6 @@ def show_descriptors(cell_mask,spots,nucleus_mask):
 
     plt.show()
 
-
 def compute_cell_mask_3d(cell_mask,z_lines):
     x_dim=cell_mask.shape[0]
     y_dim = cell_mask.shape[1]
@@ -142,7 +141,6 @@ def compute_cell_mask_3d(cell_mask,z_lines):
         cell_mask_3d[:, :, slice] = cell_mask
 
     return cell_mask_3d
-
 
 def reject_outliers(data):
     index_cpt=0
@@ -161,12 +159,7 @@ def reject_outliers(data):
                 indexes.append(index_cpt)
         index_cpt += 1
 
-    #filtered = [e for e in data if (np.mean(data)-200 < e < np.mean(data)+200)]
-    #print(data[filtered])
     return indexes
-
-    #return data[abs(np.mean(data)-200 < data  < np.mean(data)+200)]
-
 
 def compute_degree_of_clustering(spots_reduced,mask,z_lines):
     cell_mask_3d = compute_cell_mask_3d(mask, z_lines)
@@ -175,6 +168,82 @@ def compute_degree_of_clustering(spots_reduced,mask,z_lines):
     return d
 
 
+def reduce_z_line_mask(z_lines,spots):
+    cpt_z = 1
+    z_lines_idx=[]
+    for z_line_mask in z_lines:
+        spots_reduced = spots[spots[:, 2] == cpt_z]
+        xs = spots_reduced[:, 0]
+        ys = spots_reduced[:, 1]
+        if len(spots_reduced) > 25:
+            z_lines_idx.append(cpt_z)
+            #print("zline: "+ str(cpt_z))
+            #print("number of spots: " + str(len(spots_reduced)))
+        cpt_z += 1
+    return z_lines_idx
+
+
+def compute_zline_distance(file_handler,muscle_file_handler,molecule_type,genes,timepoints):
+    all_median_profiles = []
+    base = math.log(0.5)
+    #mrna_median = []
+    #mrna_err = []
+    for gene in genes:
+        #image_list = []
+        #h_star_l = []
+        for timepoint in timepoints:
+            #total_image = 0
+            image_counter = 0
+            total_profile = []
+            #z_lines = []
+            for im in muscle_file_handler[molecule_type[0] + '/' + gene + '/' + timepoint]:
+                sec_image = molecule_type[0] + '/' + gene + '/' + timepoint + '/' + im
+                image_number = im.split("_")[0]
+                image = molecule_type[0] + '/' + gene + '/' + timepoint + '/' + image_number
+                print("computing " + image + " .....")
+                spots = idsc.get_spots(muscle_file_handler, sec_image)
+                z_lines = idsc.get_z_lines_masks(file_handler, image)
+                image_spots_min_distance = np.zeros(len(spots))
+                z_lines_idx = reduce_z_line_mask(z_lines, spots)
+                spots_reduced = spots[z_lines_idx[0] <= spots[:, 2]]
+                spots_reduced = spots_reduced[spots_reduced[:, 2] <= z_lines_idx[len(z_lines_idx) - 1]]
+                spots_count = 0
+                for spot in spots_reduced:
+                    z_line_mask = z_lines[int(spot[2])]
+                    if z_line_mask[spot[1], spot[0]] == 0:
+                        cst.Z_LINE_SPACING
+                        total_segment = np.zeros((360, cst.Z_LINE_SPACING))
+                        for degree in range(360):
+                            z_line_segment = np.zeros(cst.Z_LINE_SPACING)
+                            line = np.zeros((cst.Z_LINE_SPACING, 2))
+                            angle = degree * 2 * math.pi / 360
+                            x_slope, y_slope = math.sin(angle), math.cos(angle)
+                            for point in range(cst.Z_LINE_SPACING):
+                                x = int(round(spot[0] + point * x_slope))
+                                y = int(round(spot[1] + point * y_slope))
+                                line[point, 0] = x
+                                line[point, 1] = y
+                                if (x >= 0 and x < z_line_mask.shape[1] and y >= 0 and y < z_line_mask.shape[0]):
+                                    z_line_segment[point] = z_line_mask[y, x]
+                                    total_segment[degree, point] = z_line_mask[y, x]
+                                else:
+                                    z_line_segment[point] = 0
+                                    total_segment[degree, point] = 0
+                        distance = compute_minimal_distance(np.sum(total_segment, axis=0))
+                        image_spots_min_distance[spots_count] = distance
+                    else:
+                        image_spots_min_distance[spots_count] = 0
+                    spots_count += 1
+                z_line_distance_profile = np.zeros(cst.Z_LINE_SPACING)
+                for i in range(cst.Z_LINE_SPACING):
+                    z_line_distance_profile[i] = float(len(np.where(image_spots_min_distance == i)[0])) / float(
+                        len(image_spots_min_distance))
+                total_profile.append(z_line_distance_profile)
+                image_counter += 1
+            total_profile = np.array(total_profile).reshape((image_counter, cst.Z_LINE_SPACING))
+            all_median_profiles.append(np.median(total_profile, axis=0))
+    return all_median_profiles
+
 if __name__ == "__main__":
 
     # Required descriptors: cell_area (built from cell_mask), spots
@@ -182,160 +251,68 @@ if __name__ == "__main__":
     # This import script takes username and password arguments to connect to remote server bb8
 
     basic_file_path = path.analysis_data_dir + 'basics_muscle_data.h5'
+    muscle_rebuild_file_path = path.analysis_data_dir + 'secondary_muscle_data.h5'
+
     molecule_type = ['/mrna']
     genes=['actn2','gapdh']
-    timepoints=['immature']
+    timepoints=['mature']
     colors = ['#0A3950', '#1E95BB', '#A1BA6D']
 
 
-    #compute quadrat
+
+    with h5py.File(basic_file_path, "a") as file_handler, h5py.File(muscle_rebuild_file_path, "a") as muscle_file_handler:
+        all_median_profiles=compute_zline_distance(file_handler,muscle_file_handler,molecule_type,genes,timepoints)
+        df=pd.DataFrame(all_median_profiles)
+        df.to_csv(check_dir(path.analysis_dir + 'analysis_muscle_data/dataframe/') + "all_median_profiles_by_slice_mature_remove_bad_slice.csv")
+
+    genes = ['actn2']
+    timepoints = ['immature']
+    colors = ['#0A3950', '#1E95BB', '#A1BA6D']
+
+    with h5py.File(basic_file_path, "a") as file_handler, h5py.File(muscle_rebuild_file_path,"a") as muscle_file_handler:
+        all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes,timepoints)
+        df = pd.DataFrame(all_median_profiles)
+        df.to_csv(check_dir(path.analysis_dir + 'analysis_muscle_data/dataframe/') +"all_median_profiles_by_slice_immature_remove_bad_slice.csv")
+
+
 
     all_median_profiles=[]
+    plot_name =  check_dir(path.analysis_dir + 'analysis_muscle_data/figures/')+'z_line_distance' + str(cst.Z_LINE_SPACING) + 'contours_mature_remove_bad_slice.png'
+    figure_title = 'z line spots distance profile'
+    genes=["actn2 mature","gapdh mature","actn2 immature"]
 
-    with h5py.File(basic_file_path, "a") as file_handler:
-        base = math.log(0.5)
-        mrna_median = []
-        mrna_err = []
+    df=pd.read_csv(path.analysis_dir + "analysis_muscle_data/dataframe/all_median_profiles_by_slice_mature_remove_bad_slice.csv",index_col=0)
+    df_im = pd.read_csv(path.analysis_dir + "analysis_muscle_data/dataframe/all_median_profiles_by_slice_immature_remove_bad_slice.csv", index_col=0)
 
+    all_median_profiles.append(df.ix[0].values)
+    all_median_profiles.append(df.ix[1].values)
+    all_median_profiles.append(df_im.ix[0].values)
 
-        for gene in genes:
-            image_list=[]
-            h_star_l = []
-            for timepoint in timepoints:
-                total_image=0
-                nuc_dist = []
-                cell_masks=[]
-                nucs_dist=[]
-                # compute new cell mask and cell mask width
-                for im in file_handler[molecule_type[0] + '/' + gene + '/' + timepoint]:
-                    image = molecule_type[0] + '/' + gene + '/' + timepoint + '/' + im
-                    print(image)
-                    cell_mask = idsc.get_cell_mask(file_handler, image)
-                    nucleus_mask = idsc.get_nucleus_mask(file_handler, image)
-                    nucleus_centroid = idsc.get_multiple_nucleus_centroid(file_handler, image)
-                    spots = idsc.get_spots(file_handler, image)
-                    nuc_dist, nucs_dist,cell_masks = compute_cell_mask_between_nucleus_centroid(cell_mask, nucleus_centroid,nuc_dist,cell_masks,nucs_dist)
-                    total_image+=1
-                u=np.mean(np.array(nuc_dist))
-                image_counter=0
-                total_profile = []
+    plot.profile(all_median_profiles, genes, cst.Z_LINE_SPACING, plot_name, figure_title, colors, True)
 
-                for im in file_handler[molecule_type[0] + '/' + gene + '/' + timepoint]:
-                    image = molecule_type[0] + '/' + gene + '/' + timepoint + '/' + im
-                    print(image)
-                    nucleus_mask = idsc.get_nucleus_mask(file_handler, image)
-                    nucleus_centroid = idsc.get_multiple_nucleus_centroid(file_handler, image)
-                    spots = idsc.get_spots(file_handler, image)
-                    z_lines=idsc.get_z_lines_masks(file_handler, image)
-                    cell_masks_im = cell_masks[image_counter]
-                    nuc_dist_im = nucs_dist[image_counter]
-
-
-
-                    cpt_z=1
-                    fig = plt.figure(figsize=(40, 10))
-                    for z_line_mask in z_lines:
-                        plt.imshow(z_line_mask)
-                        from skimage import measure
-
-                        contours = measure.find_contours(nucleus_mask, 0.8)
-                        for n, contour in enumerate(contours):
-                            plt.plot(contour[:, 1], contour[:, 0], color='red', linewidth=2)
-                        spots_reduced=spots[spots[:, 2]==cpt_z]
-                        print(spots_reduced)
-                        xs = spots_reduced[:, 0]
-                        ys = spots_reduced[:, 1]
-                        if spots_reduced != []:
-                            plt.scatter(xs, ys, color='white', marker=".", facecolors='none', linewidths=0.5)
-                        plt.show()
-                        cpt_z+=1
-
-
-                    mask_count=0
-                    for i in range(len(cell_masks_im)):
-                        mask = cell_masks_im[i]
-                        nuc_d = nuc_dist_im[i]
-                        if u - 200 < nuc_d < u + 200:
-                            #print(spots)
-                            spots_reduced = keep_cell_mask_spots(spots, mask, z_lines)
-                            spots_reduced = np.array(spots_reduced).reshape((len(spots_reduced), 3))
-                            print(spots_reduced)
-
-                            #spots_reduced=spots_reduced[(spots_reduced[:,2] > 15) & (spots_reduced[:,2] < (len(z_lines)-15))]
-                            spots_reduced = spots_reduced[spots_reduced[:,2] > 20]
-
-                            spots_reduced = spots_reduced[spots_reduced[:, 2] < (len(z_lines)-20)]
-
-                            #show_descriptors(mask,spots_reduced,nucleus_mask)
-                            #compute spots minimal distance to z-lines
-                            spots_count = 0
-                            image_spots_min_distance = np.zeros(len(spots_reduced))
-                            for spot in spots_reduced:
-                                print("spots " + str(spots_count))
-                                #if 15 < spot[2] < len(z_lines)-15:
-                                z_line_mask=z_lines[spot[2]]
-                                #print(spot[2])
-
-                                z_line_mask[mask==0]=0
-
-                                # plt.imshow(z_line_mask)
-                                # plt.show()
-                                if z_line_mask[spot[1], spot[0]] == 0:
-                                    total_segment = np.zeros((360, 15))
-                                    for degree in range(360):
-                                        z_line_segment = np.zeros(15)
-
-                                        line = np.zeros((15, 2))
-                                        angle = degree * 2 * math.pi / 360
-                                        x_slope, y_slope = math.sin(angle), math.cos(angle)
-                                        for point in range(15):
-                                            x = int(round(spot[0] + point * x_slope))
-                                            y = int(round(spot[1] + point * y_slope))
-
-                                            line[point, 0] = x
-                                            line[point, 1] = y
-
-                                            if (x >= 0 and x < z_line_mask.shape[1] and y >= 0 and y <z_line_mask.shape[0]):
-                                                z_line_segment[point] = z_line_mask[y, x]
-                                                total_segment[degree, point] = z_line_mask[y, x]
-                                            else:
-                                                z_line_segment[point] = 0
-                                                total_segment[degree, point] = 0
-
-                                                # print(z_line_segment)
-                                                # plt.figures(figsize=(20, 20))
-                                                # plt.imshow(z_lines_mask)
-                                                # straight_line_x=np.arange(1100)
-                                                # straight_line_y = []
-                                                # h_line=np.zeros(1100)
-                                                # for x in range(1100):
-                                                #     straight_line_y.append(100)
-                                                # for x in range(1100):
-                                                #     h_line[x]=z_lines_mask[straight_line_y[x], straight_line_x[x]]
-                                                # print(h_line)
-                                                # plt.plot(straight_line_x,straight_line_y,color='yellow')
-                                                # plt.show()
-
-                                    distance = compute_minimal_distance(np.sum(total_segment, axis=0))
-                                    image_spots_min_distance[spots_count] = distance
-                                else:
-                                    image_spots_min_distance[spots_count] = 0
-                                spots_count += 1
-                            print(image_spots_min_distance)
-                            z_line_distance_profile = np.zeros(15)
-                            for i in range(15):
-                                # print(len(np.where(image_spots_min_distance == i)[0])/float(len(image_spots_min_distance)))
-                                z_line_distance_profile[i] = float(len(np.where(image_spots_min_distance == i)[0])) / float(len(image_spots_min_distance))
-                            total_profile.append(z_line_distance_profile)
-                            print("mask " +str(mask_count))
-                            mask_count+=1
-                        total_profile = np.array(total_profile).reshape((mask_count, 15))
-                        print(np.median(total_profile, axis=0))
-                        all_median_profiles.append(np.median(total_profile, axis=0))
-                    image_counter+=1
-
-    df=pd.DataFrame(all_median_profiles)
-    df.to_csv("all_median_profiles_by_slice.csv")
-
+    # all_median_profiles=[]
+    # plot_name = path.analysis_dir + 'analysis_muscle_data/figures/z_line_distance' + str(15) + 'contours_immature_remove_bad_slice.png'
+    # figure_title = 'z line spots distance profile'
+    # genes=["actn2 immature"]
+    #
+    # df=pd.read_csv("all_median_profiles_by_slice_immature_remove_bad_slice.csv",index_col=0)
+    #
+    # all_median_profiles.append(df.ix[0].values)
+    # #all_median_profiles.append(df.ix[1].values)
+    # # all_cumul_median_profiles=[]
+    # # print(np.cumsum(all_median_profiles[0]))
+    # # for i in range(15):
+    # #     new_distance=all_median_profiles[0][i]
+    # #     if i==0:
+    # #         old_dist=0
+    # #     else:
+    # #         old_dist=all_median_profiles[0][i-1]
+    # #     print(dist+all_median_profiles[0][i-1])
+    # #
+    # #     all_cumul_median_profiles.append(all_median_profiles[0][i]+dist)
+    #
+    # # print(all_cumul_median_profiles)
+    # stan.plot_profile(all_median_profiles, genes, 15, plot_name, figure_title, colors, True)
+    # #stan.plot_profile([np.cumsum(all_median_profiles[0]),np.cumsum(all_median_profiles[1])], genes, 15, plot_name, figure_title, colors, True)
 
 

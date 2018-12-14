@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
-
+# author: benjamin Dartigues
 import numpy as np
 import h5py
 import math
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from src.utils import enable_logger, check_dir
 
 
-def reindex_quadrant_mask3(quad_mask, mtoc_quad):
+def reindex_quadrant_mask(quad_mask, mtoc_quad):
     import pandas as pd
     df = pd.DataFrame(quad_mask)
     df = df.applymap(lambda x: x - mtoc_quad + 1 if x >= mtoc_quad else (x + 8 - mtoc_quad + 1 if x > 0 else 0))
@@ -114,7 +114,7 @@ def main():
                     degree = degree_max_mrna[key][i].split("_")[1]
                     image = "/mrna/" + mrna + "/" + timepoint + "/" + image
                     quad_mask, mtoc_quad = compute_eight_quadrant_max(file_handler, image, degree)
-                    quad_mask = reindex_quadrant_mask3(quad_mask, mtoc_quad)
+                    quad_mask = reindex_quadrant_mask(quad_mask, mtoc_quad)
                     nucleus_mask = idsc.get_nucleus_mask(file_handler, image)
                     cell_mask = idsc.get_cell_mask(file_handler, image)
                     spots = idsc.get_spots(file_handler, image)
@@ -180,7 +180,7 @@ def main():
                     image = "/protein/" + protein + "/" + timepoint + "/" + image
 
                     quad_mask, mtoc_quad = compute_eight_quadrant_max(file_handler, image, degree)
-                    quad_mask = reindex_quadrant_mask3(quad_mask, mtoc_quad)
+                    quad_mask = reindex_quadrant_mask(quad_mask, mtoc_quad)
 
                     image_number = image.split("/")[4]
                     cell_mask = idsc.get_cell_mask(file_handler, image)
@@ -190,53 +190,19 @@ def main():
                     count = 0
                     IF[(cell_mask == 0)] = 0
                     IF[(nucleus_mask == 1)] = 0
-
                     cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
-                    #peripheral_binary_mask = (cell_mask_dist_map > 0) & (cell_mask_dist_map <= cst.PERIPHERAL_FRACTION_THRESHOLD).astype(int)
-                    #plt.imshow(peripheral_binary_mask)
-                    #plt.show()
-
-                    # for i in range(1, 9):
-                    #
-                    #     #value = int(np.floor(i / cst.STRIPE_NUM))
-                    #     #value = (int(value) * 8) + int(j - 1)
-                    #     #print(value)
-                    #
-                    #     if np.sum(cell_mask[((cell_mask_dist_map >= 1) & (cell_mask_dist_map < 30)) & (quad_mask == i)]) == 0:
-                    #         h_array[image_count, i-1] = 0.0
-                    #     else:
-                    #         h_array[image_count, i-1] = (float(
-                    #             np.sum(IF[((cell_mask_dist_map >= 1) & (cell_mask_dist_map < 30)) & (quad_mask == i)])) / float(
-                    #             np.sum(IF[((cell_mask_dist_map >= 1) & (cell_mask_dist_map < 30))]))) / float(np.sum(cell_mask[((cell_mask_dist_map >= 1) & (cell_mask_dist_map < 30)) & (quad_mask == i)])* math.pow(
-                    #                 (1 / cst.SIZE_COEFFICIENT), 2))
-
-
                     cpt_stripes=0
 
                     for i in range((limit/cst.STRIPE_NUM), limit+1, (limit/cst.STRIPE_NUM)):
                         print("i",i)
                         for j in range(1, 9):
-                            #print("j",j)
-
-                            # value = int(np.floor(i / cst.STRIPE_NUM))
-                            # value = (int(value) * 8) + int(j - 1)
-                            # print(value)
-                            #print(np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-10)) & (cell_mask_dist_map < i)) & (quad_mask == j)]))
                             if np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) == 0:
                                 h_array[image_count, cpt_stripes] = 0.0
                             else:
-                                #h_array[image_count, cpt_stripes] = (float(np.sum(IF[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)])) / float(np.sum(IF[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i))]))) / float(np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) * math.pow((1 / cst.SIZE_COEFFICIENT), 2))
                                 IF_relative=float(np.sum(IF[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)])) / np.sum(IF[cell_mask==1])/np.sum(IF[cell_mask==1])
                                 surface_relative=np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) * math.pow((1 / cst.SIZE_COEFFICIENT), 2) / np.sum(cell_mask[cell_mask==1])* math.pow((1 / cst.SIZE_COEFFICIENT), 2)
                                 h_array[image_count, cpt_stripes] =IF_relative/surface_relative
-
-                                #h_array[image_count, cpt_stripes] = (float(np.sum(IF[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)])) / np.sum(IF[cell_mask==1])) / np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) * math.pow((1 / cst.SIZE_COEFFICIENT), 2)
-
-                                #h_array[image_count, cpt_stripes] = (float(np.sum(IF[((cell_mask_dist_map >= 1 + (i - (limit / cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)])) / float(np.sum(cell_mask[((cell_mask_dist_map >= 1 + (i - (limit / cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) * math.pow((1 / cst.SIZE_COEFFICIENT), 2)))
-
                             cpt_stripes+=1
-                            #print("cpt_sripes",cpt_stripes)
-
                         count += 1
                     image_count += 1
                 prot_tp_df = pd.DataFrame(h_array)

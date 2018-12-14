@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: benjamin Dartigues
 
 import numpy as np
 import itertools

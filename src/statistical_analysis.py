@@ -445,9 +445,6 @@ def calculate_mpi(MTOC,nMTOC):
     #tmp = np.subtract(np.array(MTOC),np.array(nMTOC))
     tmp = MTOC - np.nanmedian(nMTOC)
 
-
-
-    #print(tmp)
     for elem in tmp.flatten():
         scores.append(elem)
     scores = np.array(scores)
@@ -458,15 +455,8 @@ def calculate_mpi(MTOC,nMTOC):
             nneg += 1
         else:
             npos += 1
-    # print((float(npos) / len(scores)) * 2 - 1)
-    # s,p=stats.wilcoxon(scores)
-    # s,p=stats.ttest_1samp(scores,0)
-    # print((npos / len(scores)) * 2 - 1)
     mpi = (float(npos) / len(scores)) * 2 - 1
     p = binom.cdf(nneg, len(scores), 0.5)
-    # print(mpi)
-    # print(p)
-
     return (mpi, p)
 
 

@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: Benjamin Dartigues
+
 
 import numpy as np
 import h5py

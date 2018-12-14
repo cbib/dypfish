@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: Benjamin Dartigues
 
 import numpy as np
 import h5py
@@ -77,8 +78,11 @@ def main(is_periph=False):
             {'Image': global_image, 'Gene': global_mrna, 'timepoint': global_timepoint, 'Non MTOC': global_nmtoc,
              'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading}, index=global_index)
 
-        df.to_csv(path.analysis_dir + 'analysis_MTOC/dataframe/' + 'periph_global_mtoc_file_all_mrna.csv' if is_periph else '' +'global_mtoc_file_all_mrna.csv')
+        if is_periph:
 
+            df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna.csv')
+        else:
+            df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna.csv')
         # protein part
         molecule_type = ['/protein']
         proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
@@ -102,7 +106,7 @@ def main(is_periph=False):
 
                     intensity_by_quad = idsc.search_periph_protein_quadrants(
                         file_handler, sec_file_handler, protein, image, path.path_data) if is_periph else\
-                        idsc.search_protein_quadrants(file_handler, mtoc_file_handler, protein, image, path.path_data)
+                        idsc.search_protein_quadrants(file_handler, mtoc_file_handler, protein, image)
 
 
                     mtoc_intensity = intensity_by_quad[:, :, 1] == 1
@@ -130,9 +134,12 @@ def main(is_periph=False):
                            'Non MTOC': global_nmtoc, 'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading},
                           index=global_index)
 
-        df.to_csv(path.analysis_dir + 'analysis_MTOC/dataframe/' + 'periph_global_mtoc_file_all_protein.csv' if is_periph else '' +'global_mtoc_file_all_protein.csv')
+        if is_periph:
 
+            df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein.csv')
+        else:
+            df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein.csv')
 
 if __name__ == "__main__":
     #main()
-    main(is_periph=False)
+    main(is_periph=True)

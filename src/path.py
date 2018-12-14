@@ -13,17 +13,12 @@ root_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__
 log_dir = get_or_create_dir(os.path.join(root_dir, 'logs'))
 src_dir = get_or_create_dir(os.path.join(root_dir, 'src'))
 analysis_dir = get_or_create_dir(os.path.join(root_dir, 'analysis/'))
-analysis_data_dir = get_or_create_dir(os.path.join(analysis_dir, 'data/'))
-#analysis_figure_dir = get_or_create_dir(os.path.join(analysis_dir, 'figures/'))
-#result_dir = get_or_create_dir(os.path.join(root_dir, 'result/'))
-#figure_dir = get_or_create_dir(os.path.join(result_dir, 'figures/'))
+analysis_data_dir = get_or_create_dir(os.path.join(root_dir, 'data/'))
 data_dir = get_or_create_dir(os.path.join(root_dir, 'data/'))
 
 
 test_data_dir = get_or_create_dir(os.path.join(root_dir, 'test_data/'))
 raw_data_dir = '/home/ben/dypfish/dypFISH_data/raw_image_data'
-#raw_data_dir = '/home/ben/dypfish/Basics_Descriptors/supp_data/raw_data'
-#raw_data_dir = '/home/clem/PycharmProjects/dypfish/python_version/raw_image_data'  # TODO
 scratch_data_dir = '/home/ben/dypfish/Basics_Descriptors/preprocessed_data/new_scratch_data/scratch_if'  # TODO
 basic_file_basename = 'basic'
 sec_file_basename = 'secondary'

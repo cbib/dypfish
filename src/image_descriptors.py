@@ -747,7 +747,6 @@ def set_spots_peripheral_distance(file_handler, output_file_handler, image):
     spots = get_spots(file_handler, image)
     if len(spots)==0:
         return
-    print(spots)
     height_map = get_height_map(file_handler, image)
     zero_level = get_zero_level(file_handler, image)
     periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
@@ -763,7 +762,6 @@ def set_spots_peripheral_distance(file_handler, output_file_handler, image):
         test_index = find_nearest(isoline_area, slice_area)
         spots_in_slice = spots[np.around(spots[:, 2]) == n]
 
-        print(spots_in_slice)
         for j in range(len(spots_in_slice)):
             if is_in_cytoplasm(file_handler, image, [spots_in_slice[j][1], spots_in_slice[j][0]]):
                 old_periph_distance = periph_dist_map[spots_in_slice[j][1], spots_in_slice[j][0]]
@@ -782,7 +780,6 @@ def set_spots_peripheral_distance(file_handler, output_file_handler, image):
                     spots_peripheral_distance.append(int(np.around(new_periph_distance)))
 
     descriptor = image + '/spots_peripheral_distance'
-    print(spots_peripheral_distance)
     #file_handler[descriptor][:]=spots_peripheral_distance
 
     output_file_handler.create_dataset(descriptor, data=spots_peripheral_distance, dtype=np.uint8)
@@ -943,7 +940,7 @@ def set_quadrants(file_handler, image):
 
 
 # Calculates the quadrant mask for the MTOC
-def search_protein_quadrants(file_handler, mtoc_file_handler,protein,image,path_data):
+def search_protein_quadrants(file_handler, mtoc_file_handler,protein,image):
     print(image)
     image_number = image.split("/")[4]
     timepoint = image.split("/")[3]
@@ -1016,11 +1013,6 @@ def search_mrna_quadrants(file_handler, image):
         quadrant_mask[quadrant_mask == 5]=4
         quadrant_mask[cell_mask == 0] = 0
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-        #import matplotlib.pyplot as plt
-        #plt.imshow(quadrant_mask)
-        #plt.scatter(mtoc_position[0], mtoc_position[1], color='black', marker="d", linewidths=3)
-
-        #plt.show()
         # assign each spot to the corresponding quadrant
         for spot in spots:
             if nucleus_mask[spot[1], spot[0]]==1:
@@ -1035,6 +1027,44 @@ def search_mrna_quadrants(file_handler, image):
 
     return spot_by_quad
 
+
+# Create a map with concentric isolines subdividing the cytoplasm into slices NUM_CONTOURS
+# Each isoline is built by constructing a polygone from 360 points (one point per degree)
+def set_cell_mask_distance_map(file_handler, output_file_handler, image):
+
+    cell_mask_distance_map = get_cell_mask_distance_map(file_handler, image)
+    assert (not cell_mask_distance_map.size), 'cell_mask_distance_map already defined for %r' % image
+    cell_mask = get_cell_mask(file_handler, image).astype(int)
+    nucleus_mask = get_nucleus_mask(file_handler, image).astype(int)
+    nucleus_centroid = get_nucleus_centroid(file_handler, image).transpose()
+    contour_points = np.zeros((360, 100, 2))
+    cytoplasm_mask = (cell_mask == 1) & (nucleus_mask == 0)
+
+    # for each degree, analyse the line segment between the nucleus and the periphery
+    for degree in range(360):
+        angle = degree * 2 * math.pi / 360
+        x_slope, y_slope = math.sin(angle), math.cos(angle)
+        nucleus_segment, cytoplasm_segment = compute_line_segments(nucleus_mask, cytoplasm_mask, nucleus_centroid,
+                                                                   x_slope, y_slope)
+        nucleus_edge_point, cytoplasm_edge_point = compute_edge_points(nucleus_segment, cytoplasm_segment)
+        segment_length = cytoplasm_edge_point - nucleus_edge_point
+
+
+        for index in range(constants.NUM_CONTOURS):
+            point = nucleus_edge_point + segment_length * index / constants.NUM_CONTOURS
+            x = int(round(nucleus_centroid[0] + point * x_slope))
+            y = int(round(nucleus_centroid[1] + point * y_slope))
+            contour_points[degree, index, :] = [x, y]
+
+    # end = time.time()
+    # print(end - start)
+    # sys.exit()
+    cell_mask_distance_map = compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points)
+    # cell_mask_distance_map[(cell_mask == 1) & (cell_mask_distance_map == 0)] = 1
+    # cell_mask_distance_map[nucleus_mask == 1] = 0
+
+    descriptor = image + '/cell_mask_distance_map'
+    output_file_handler.create_dataset(descriptor, data=cell_mask_distance_map, dtype=np.int)
 
 # Calculates the quadrant mask for the MTOC
 def search_periph_mrna_quadrants(file_handler,second_file_handler, image):
@@ -1082,7 +1112,6 @@ def search_periph_mrna_quadrants(file_handler,second_file_handler, image):
         spot_by_quad[i, mtoc_quad - 1, 1] += 1
         for quad_num in range(1,5):
             spot_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[(peripheral_binary_mask==1) & (quadrant_mask == quad_num)]) * constants.VOLUME_COEFFICIENT
-    sys.exit()
     return spot_by_quad
 
 

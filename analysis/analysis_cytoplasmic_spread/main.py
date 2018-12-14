@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: Benjamin Dartigues
 
 import h5py
 import src.plot as plot
@@ -9,15 +10,15 @@ import src.helpers as helps
 from src.utils import enable_logger, plot_colors, cell_type_micropatterned, check_dir
 
 
-def cytoplasmic_spread(file_handler, genes, path_data, cell_type, molecule_type):  # TODO argument genes vs proteins ?
+def cytoplasmic_spread(file_handler, genes, path_data, molecule_type):  # TODO argument genes vs proteins ?
     # for each gene in genes list, compute cytoplasmic spread
     cyt_spreads = []
-    plot_filename = check_dir(path.analysis_dir + 'analysis_cytoplasmic_spread/figures/' + cell_type + '/') + \
+    plot_filename = check_dir(path.analysis_dir + 'analysis_cytoplasmic_spread/figures/') + \
                     molecule_type + '_cytoplasmic_spread.png'
     for gene in genes:
         image_list = helps.preprocess_image_list2(file_handler, '/' + molecule_type, gene)
         cyt_spreads.append(adsc.compute_cytoplasmic_spread(image_list, file_handler, path_data))
-    plot.bar_profile(cyt_spreads, genes, 1.60, 'Cytoplasmic spread', plot_filename, plot_colors)
+    plot.bar_profile(cyt_spreads, genes, plot_filename)
 
 
 def cytoplasmic_spread_dynamic_profiles(file_handler, genes, proteins):
@@ -40,8 +41,8 @@ def main():
     proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
 
     with h5py.File(path.basic_file_path, "r") as file_handler:
-        cytoplasmic_spread(file_handler, genes, path.path_data, cell_type_micropatterned, molecule_type='mrna')
-        cytoplasmic_spread(file_handler, proteins, path.path_data, cell_type_micropatterned, molecule_type='protein')
+        cytoplasmic_spread(file_handler, genes, path.path_data, molecule_type='mrna')
+        cytoplasmic_spread(file_handler, proteins, path.path_data, molecule_type='protein')
         cytoplasmic_spread_dynamic_profiles(file_handler, genes, proteins)
 
 

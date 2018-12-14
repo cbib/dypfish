@@ -107,8 +107,8 @@ def build_histogram_periph_fraction(sec_file_handler,image_list,fraction,path_da
         else:
             nucleus_mask = image_descriptors.get_nucleus_mask(basic_file_handler, image)
 
-            IF = helpers.get_IF_image_z_summed(image.split("/")[2], image.split("/")[1], image.split("/")[3],
-                                       image.split("/")[4], path_data)
+            IF= image_descriptors.get_IF(basic_file_handler,image)
+            #IF = helpers.get_IF_image_z_summed(image.split("/")[2], image.split("/")[1], image.split("/")[3],image.split("/")[4], path_data)
 
             cell_mask_distance_map = image_descriptors.get_cell_mask_distance_map(sec_file_handler, image)
             IF_periph = IF[(cell_mask_distance_map <= fraction) & (cell_mask_distance_map > 0)]
@@ -244,6 +244,7 @@ def compute_degree_of_clustering(file_handler,mtoc_file_handler, image_list):
         mtoc_quad=image_descriptors.get_mtoc_quad(mtoc_file_handler,image)
         if mtoc_quad == 1.0:
             h_star_l.append(d)
+
     return h_star_l
 
 

@@ -11,6 +11,7 @@ import src.path as path
 import src.helpers as helps
 import src.constants as cst
 import matplotlib.pyplot as plt
+from src.utils import check_dir
 
 from src.utils import enable_logger, check_dir
 

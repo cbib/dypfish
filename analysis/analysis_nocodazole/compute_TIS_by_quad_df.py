@@ -21,6 +21,7 @@ import src.path as path
 import src.statistical_analysis as stan
 import src.helpers as helps
 import src.constants as cst
+from src.utils import check_dir
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -223,7 +224,9 @@ if __name__ == "__main__":
     # Q = 512 / q; # voxels per image width
     # qxs,qys=helps.get_quantized_grid(q,Q)
 
-    df = pd.read_csv('global_mtoc_file_all_mrna_nocodazole')
+    #df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/global_mtoc_file_all_mrna_nocodazole")
+    df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/global_mtoc_file_mrna_all.csv")
+
     df_sorted = df.sort('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
 
     degree_max_mrna={}
@@ -231,7 +234,9 @@ if __name__ == "__main__":
         key=gene[0]+"_"+gene[1]
         degree_max_mrna[key]=line['Unnamed: 0'].values
 
-    df = pd.read_csv('global_mtoc_file_all_protein_nocodazole')
+    #df = pd.read_csv('global_mtoc_file_all_protein_nocodazole')
+    df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/global_mtoc_file_protein_all.csv")
+
     df_sorted = df.sort('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
 
     degree_max_protein = {}
@@ -243,7 +248,9 @@ if __name__ == "__main__":
     with h5py.File(basic_file_path, "r") as file_handler,h5py.File(secondary_file_path, "r") as second_file_handler,h5py.File(mtoc_file_path, "r") as mtoc_file_handler:
         molecule_type=['/mrna']
         #mrnas = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-        mrnas = ["arhgdia_nocodazole","pard3_nocodazole"]
+        #mrnas = ["arhgdia_nocodazole","pard3_nocodazole"]
+        mrnas = ["arhgdia","pard3"]
+
         #mrnas = ["pard3"]
         mrna_timepoints = ["3h","5h"]
         #h_mrna = np.empty((4, 4), dtype=object)
@@ -257,7 +264,7 @@ if __name__ == "__main__":
 
                 h_array = np.zeros((len(degree_max_mrna[key]), cst.STRIPE_NUM*8))
                 for i in range(len(degree_max_mrna[key])):
-                    print(degree_max_mrna[key][i])
+                    #print(degree_max_mrna[key][i])
                     image = degree_max_mrna[key][i].split("_")[0]
                     degree = degree_max_mrna[key][i].split("_")[1]
                     image = "/mrna/" + mrna + "/" + timepoint + "/" + image
@@ -309,11 +316,10 @@ if __name__ == "__main__":
 
             gene_count += 1
 
-        proteins = ["arhgdia_nocodazole","pard3_nocodazole"]
+        #proteins = ["arhgdia_nocodazole","pard3_nocodazole"]
+        proteins = ["arhgdia","pard3"]
 
-        #proteins = ["pard3"]
         prot_timepoints = ["3h", "5h"]
-        #h_prot = np.empty((len(mrnas), len(prot_timepoints)), dtype=object)
         gene_count = 0
         for protein in proteins:
             print(protein)
@@ -322,19 +328,15 @@ if __name__ == "__main__":
                 key = protein + "_" + timepoint
 
                 image_count = 0
-                #h_array = np.zeros((len(image_list), 10))
                 h_array = np.zeros((len(degree_max_protein[key]), 8*cst.STRIPE_NUM))
 
                 for i in range(len(degree_max_protein[key])):
-                    print(degree_max_protein[key][i])
+                    #print(degree_max_protein[key][i])
                     image = degree_max_protein[key][i].split("_")[0]
                     degree = degree_max_protein[key][i].split("_")[1]
                     image = "/protein/" + protein + "/" + timepoint + "/" + image
-
                     quad_mask, mtoc_quad = compute_eight_quadrant_max(file_handler, image, degree)
                     quad_mask = reindex_quadrant_mask3(quad_mask, mtoc_quad)
-
-
                     image_number = image.split("/")[4]
                     cell_mask = idsc.get_cell_mask(file_handler, image)
                     nucleus_mask = idsc.get_nucleus_mask(file_handler, image)
@@ -345,41 +347,17 @@ if __name__ == "__main__":
                     nucleus_centroid = idsc.get_nucleus_centroid(file_handler, image)
                    # mtoc_quad = quad_mask[mtoc_position[1], mtoc_position[0]]
                     mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)
-                    IF = helps.get_IF_image_z_summed(protein, 'protein', timepoint, image_number,path_data)
+                    IF = idsc.get_IF(file_handler, image)
                     count=0
                     IF[(cell_mask == 0)] = 0
                     IF[(nucleus_mask == 1)] = 0
-
                     cell_mask_dist_map[(cell_mask==1) & (cell_mask_dist_map==0)]=1
-                    #cell_mask_dist_map[(nucleus_mask == 1)] = 0
-                    # if "/protein/pard3/2h/9" in image:
-                    #     plt.imshow(cell_mask_dist_map)
-                    #     plt.show()
-                    #     plt.imshow(quad_mask)
-                    #     plt.show()
-
                     for i in range(1,99):
-                        #print(np.sum(IF))
-                        #plt.imshow(IF)
-                        #plt.show()
-
                         for j in range (1,9):
 
                             value = int(np.floor(i / (100.0 / cst.STRIPE_NUM)))
                             value = (int(value) * 8) + int(j - 1)
-                            #print(float(np.sum(IF[(cell_mask_dist_map>i) & (cell_mask_dist_map < i+9)]))/float(np.sum(IF)))
-                            # IF[(cell_mask_dist_map == i) & (quad_mask == j)]=10000000000
-                            # plt.imshow(IF)
-                            # plt.show()
 
-                            # print(i)
-                            # print(j)
-                            #
-                            # print(np.sum(cell_mask[(cell_mask_dist_map == i) & (quad_mask == 1)]))
-                            # print(np.sum(cell_mask[(cell_mask_dist_map == i) & (quad_mask == 2)]))
-                            # print(np.sum(cell_mask[(cell_mask_dist_map == i) & (quad_mask == 3)]))
-                            # print(np.sum(cell_mask[(cell_mask_dist_map == i) & (quad_mask == 4)]))
-                            # print(np.sum(cell_mask[(cell_mask_dist_map==i) & (quad_mask==j)]))
                             if np.sum(cell_mask[(cell_mask_dist_map==i) & (quad_mask==j)])==0:
                                 h_array[image_count, value] =0.0
                             else:
@@ -387,17 +365,12 @@ if __name__ == "__main__":
 
                         count+=1
                     image_count += 1
-                    # print(spots_peripheral_distance/len(spots))
-                    # h_array.append(spots_peripheral_distance/len(spots))
-                #print(h_array)`
-                #print(np.mean(h_array,axis=0))
+
                 prot_tp_df = pd.DataFrame(h_array)
                 prot_tp_df.to_csv(path.analysis_dir+"analysis_nocodazole/df/"+protein + '_' + timepoint + "_protein.csv")
-                #h_prot[gene_count, time_count] = np.mean(h_array,axis=0)
                 time_count += 1
 
             gene_count += 1
-        #print(h_prot)
 
 
 

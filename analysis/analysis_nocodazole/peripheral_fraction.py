@@ -16,6 +16,7 @@ import src.image_descriptors as idsc
 import src.path as path
 import src.statistical_analysis as stan
 import src.helpers as helps
+from src.utils import check_dir
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -139,14 +140,14 @@ def peripheral_profile_by_gene(file_handler,molecule_type,genes,colors,cell_type
         plot.profile(norm_plus_medium, genes, constants.NUM_CONTOURS, plot_name, figure_title, colors, True)
 
 
-def peripheral_fraction_profile(file_handler,molecule_type,genes,fraction,colors,cell_type,image_type,gene_root_name,basic_file_handler):
+def peripheral_fraction_profile(file_handler,molecule_type,genes,fraction,colors,image_type,gene_root_name,basic_file_handler):
     if len(image_type) == 0:
         fractions = []
         for gene in genes:
             print(gene)
             image_list = helps.preprocess_image_list2(file_handler, molecule_type[0], gene)
             fractions.append(adsc.build_histogram_periph_fraction(file_handler, image_list, fraction,path_data,basic_file_handler))
-        figname = path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/'+cell_type+'/'+molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
+        figname = path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/'+molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
         plot.fraction_profile(fractions, fraction, genes, figname,colors)
     else:
         for image_t in image_type:
@@ -154,7 +155,7 @@ def peripheral_fraction_profile(file_handler,molecule_type,genes,fraction,colors
             for gene in genes:
                 image_list = helps.preprocess_image_list5(file_handler, molecule_type[0], gene,image_t)
                 fractions.append(adsc.build_histogram_periph_fraction(file_handler, image_list, fraction,path_data,basic_file_handler))
-            figname = path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/' + cell_type +'/'+gene_root_name+'_peripheral_fraction_' +image_t+'_'+ str(fraction) + '.png'
+            figname = path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/' +gene_root_name+'_peripheral_fraction_' +image_t+'_'+ str(fraction) + '.png'
             plot.fraction_profile(fractions, fraction, genes, figname, colors)
 
 
@@ -485,63 +486,18 @@ if __name__ == "__main__":
 
     basic_file_path = path.analysis_data_dir + basic_file_basename+'.h5'
     secondary_file_path = path.analysis_data_dir + sec_file_basename+ '.h5'
-    basic_md5_path = path.analysis_data_dir + basic_file_basename+ '.md5'
-    secondary_md5_path = path.analysis_data_dir + sec_file_basename+ '.md5'
-    # pwd_path = path.analysis_data_dir + 'password.txt'
-    # f = open(pwd_path, 'r')
-    # loginpwd = f.readline()
-    # login = loginpwd.split(":")[0]
-    # pwd = loginpwd.split(":")[1]
-    # helps.check_data(basic_file_path, basic_file_basename, login, pwd)
-    # helps.check_data(secondary_file_path, sec_file_basename, login, pwd)
-    ## Build peripheral profile plot either for each or for all timepoint
 
 
     ## Figures and analysis
-    molecule_type = ['/protein']
-
-    # micropatterned data
-    #colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B', '#C02A18', '#E9CB45']
-    #colors = ['#1E95bb', '#1ec5d4']
+    molecule_type = ['/mrna']
     colors = ['#F16c1b', '#f1bc1b']
-    #colors = ['#f16c1b', '#f16c1b']
-
-    #, '#bde7f4', '#efcb1b', '#f8eaa0', '#fcf4cf']
-    #genes = ["arhgdia", "arhgdia_nocodazole", "arhgdia_cytod"]
-    #colors = ['#efcb1b', '#f8eaa0']
-    #genes = ["pard3","pard3_nocodazole"]
-    #genes = ["arhgdia", "arhgdia_nocodazole", "arhgdia_cytod", "pard3", "pard3_nocodazole"]
-    #proteins = ["arhgdia", "arhgdia_nocodazole", "arhgdia_cytod", "pard3", "pard3_nocodazole", "pard3_cytod"]
-
-    #genes = ["arhgdia", "arhgdia_nocodazole"]
     genes = ["pard3", "pard3_nocodazole"]
-    #proteins = ["arhgdia", "arhgdia_nocodazole"]
     proteins=["pard3", "pard3_nocodazole"]
-
-    #genes = ["arhgdia_nocodazole","arhgdia","pard3_nocodazole","pard3"]
-    gene_root_name = ""
-    #genes = ["pard3_nocodazole","pard3"]
-    #gene_root_name="pard3"
-    #genes = ["arhgdia_nocodazole","arhgdia"]
-    #gene_root_name="arhgdia"
-
-
-    #molecule_type = ['/protein']
-
     gene_root_name = ""
     timepoints = ["3h","5h"]
-    #timepoints_protein = ["3h","5h"]
     cell_type = 'micropatterned'
     image_type = []
 
-    #scratch data
-    # genes = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-    # proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-    # timepoints = ["1h", "3h", "5h"]
-    # timepoints_protein = ["1h", "3h",'7h']
-    # colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B']
-    # cell_type='cultured'
-    # image_type=['NoStimulation','PlusLPA','PlusMedium']
 
     with h5py.File(basic_file_path, "r") as basic_file_handler, h5py.File(secondary_file_path, "r") as secondary_file_handler:
 
@@ -552,9 +508,9 @@ if __name__ == "__main__":
         #peripheral_profile_by_gene(secondary_file_handler, molecule_type, genes,colors,cell_type,gene_root_name,image_type)
         # #
         # # # # Section to build peripheral profile fraction 10 and 30
-        peripheral_fraction_profile(secondary_file_handler, molecule_type, genes, 10,colors, cell_type, image_type,gene_root_name,basic_file_handler)
+        peripheral_fraction_profile(secondary_file_handler, molecule_type, genes, 10,colors, image_type,gene_root_name,basic_file_handler)
 
-        peripheral_fraction_profile(secondary_file_handler, molecule_type, genes, 30,colors, cell_type, image_type,gene_root_name,basic_file_handler)
+        peripheral_fraction_profile(secondary_file_handler, molecule_type, genes, 30,colors, image_type,gene_root_name,basic_file_handler)
         #
         # # # Section to build histogram and plot for specific fraction
         #peripheral_fractions_profile(secondary_file_handler, molecule_type, genes,image_type)
@@ -576,6 +532,7 @@ if __name__ == "__main__":
     #timepoints_protein = ["3h","5h"]
     cell_type = 'micropatterned'
     image_type = []
+
     with h5py.File(basic_file_path, "r") as basic_file_handler, h5py.File(secondary_file_path,"r") as secondary_file_handler:
         # # Section to build peripheral profile for each timepoint separately
         # peripheral_profile_by_timepoint(secondary_file_handler,molecule_type,genes,timepoints,colors,cell_type,image_type)
@@ -584,9 +541,9 @@ if __name__ == "__main__":
         # peripheral_profile_by_gene(secondary_file_handler, molecule_type, genes,colors,cell_type,gene_root_name,image_type)
         # #
         # # # # Section to build peripheral profile fraction 10 and 30
-        peripheral_fraction_profile(secondary_file_handler, molecule_type, proteins, 10, colors, cell_type, image_type,gene_root_name, basic_file_handler)
+        peripheral_fraction_profile(secondary_file_handler, molecule_type, proteins, 10, colors, image_type,gene_root_name, basic_file_handler)
 
-        peripheral_fraction_profile(secondary_file_handler, molecule_type, proteins, 30,colors, cell_type, image_type,gene_root_name,basic_file_handler)
+        peripheral_fraction_profile(secondary_file_handler, molecule_type, proteins, 30,colors, image_type,gene_root_name,basic_file_handler)
         #
         # # # Section to build histogram and plot for specific fraction
         # peripheral_fractions_profile(secondary_file_handler, molecule_type, genes,image_type)

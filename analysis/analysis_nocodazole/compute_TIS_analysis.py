@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: benjamin Dartigues
+
 
 import logging
 import sys
@@ -21,6 +23,7 @@ import src.path as path
 import src.statistical_analysis as stan
 import src.helpers as helps
 import src.constants
+from src.utils import check_dir
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -79,7 +82,7 @@ def permutations_test(interactions,fwdints):
     rs0=np.sum(indx_matrix[fwdints[:]])
     rs1 = np.sum(indx_matrix[fwdints[:]==0])
 
-    perms = [x for x in itertools.permutations([0, 1], 4)]
+    perms = [x for x in itertools.permutations([0, 1], 2)]
     print(perms)
     nps = len(perms)
     print(nps)
@@ -88,18 +91,24 @@ def permutations_test(interactions,fwdints):
     for p1 in range(nps):
         for p2 in range(nps):
             test=indx_matrix.copy()
-            for i in range(4):
+            for i in range(2):
                 np.random.shuffle(test[:, i])
+            #print(np.sum(test[fwdints[:]]))
             rs.append(np.sum(test[fwdints[:]]))
-    print(rs)
+    #print(rs)
     count=0
+    #print(rs)
     for score in rs:
         if score> rs0:
             count+=1
+    #print(float(len(rs)))
+
+    p = float(count / float(len(rs)))
+    print(p)
     p=0
     stat=rs1
-    print(stat)
-    print(ranking)
+    #print(stat)
+    #print(ranking)
 
     return (p, stat,ranking)
 
@@ -136,7 +145,7 @@ def calculate_temporal_interaction_score(mrna_data, protein_data):
             interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
     (p, stat,ranking) = permutations_test(interactions, S1)
     tis = (100 - stat) / 64.0;
-    #print(tis)
+    print(p)
 
 
 
@@ -201,10 +210,13 @@ if __name__ == "__main__":
     path_data = path.raw_data_dir
 
 
-    mrnas = [ "arhgdia_nocodazole","pard3_nocodazole"]
+    #mrnas = [ "arhgdia_nocodazole","pard3_nocodazole"]
+    mrnas = ["arhgdia", "pard3"]
     mrna_timepoints = [ "3h", "5h"]
 
-    proteins = ["arhgdia_nocodazole","pard3_nocodazole"]
+    #proteins = ["arhgdia_nocodazole","pard3_nocodazole"]
+    proteins = ["arhgdia","pard3"]
+
     prot_timepoints = [ "3h", "5h"]
     colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B']
 
@@ -231,6 +243,7 @@ if __name__ == "__main__":
         #ranks[:,:,count_gene]=ranking
         print(mrna)
         print(ranking)
+        print (p_vals)
 
         # print(np.kron(ranking, np.ones((10, 10))))
         im = np.flipud(np.kron(ranking, np.ones((10, 10))))

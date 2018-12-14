@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: Benjamin Dartigues
 
 import matplotlib.pyplot as plt
 import h5py
@@ -23,12 +24,11 @@ def degree_of_clustering_dynamic_profile(input_file_handler,mtoc_file_handler,ge
 
         data_generator = plot.data_extractor(genes, genes, input_file_handler,
                                              adsc.compute_degree_of_clustering, input_file_handler, mtoc_file_handler)
+        print(data_generator)
     # TODO bad bad bad arguments to data_extractor function
         for mrna_data, protein_data, i in data_generator:
-            figpath = check_dir(
-                path.analysis_dir + 'analysis_degree_of_clustering/figures/') + '/dof_' + genes[i] + '.png'
-            plot.dynamic_profiles(mrna_data, protein_data, genes[i], plot_colors[i], 'Time(hrs)', 'Degree of clustering(*)',
-                                  figpath)
+            figpath = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + '/dof_' + genes[i] + '.png'
+            plot.dynamic_profiles(mrna_data, protein_data, genes[i], plot_colors[i], 'Time(hrs)', 'Degree of clustering(*)',figpath)
 
 
 def main():
@@ -68,13 +68,14 @@ def main():
 
         #plot figures
         figname = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + 'mrna_degree_of_clustering.png'
+
         plot.bar_profile_median(mrna_median, genes, 'mrna', figname, mrna_err)
 
-        #figname = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + 'protein_degree_of_clustering.png'
-        #plot.bar_profile_median(protein_median, proteins, 'protein', figname, protein_err)
+        figname = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + 'protein_degree_of_clustering.png'
+        plot.bar_profile_median(protein_median, proteins, 'protein', figname, protein_err)
 
         # produce plot interpolation of degree of clustering by timepoint
-        #degree_of_clustering_dynamic_profile(input_file_handler,mtoc_file_handler,proteins)
+        degree_of_clustering_dynamic_profile(input_file_handler,mtoc_file_handler,proteins)
 
 
 if __name__ == "__main__":

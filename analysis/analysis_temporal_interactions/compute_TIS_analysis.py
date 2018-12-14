@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: benjamin Dartigues
 
 import numpy as np
 import itertools
@@ -63,35 +64,8 @@ def permutations_test(interactions, fwdints):
     for p1 in range(nps):
         for p2 in range(nps):
             test = indx_matrix.copy()
-            #print(test)
-            #np.take(test,np.random.permutation(test.shape[0]),axis=1,out=test)
-            #print(test)
-            #np.take(test, np.random.rand(test.shape[0]).argsort(), axis=0, out=test)
-            #print(test)
-            import sys
-            test_flatten=[]
             for i in range(4):
                 np.random.shuffle(test[:,i])
-                #np.random.shuffle(test[:, :])
-
-                # for j in range(4):
-                #     #print(test[i, j])
-                #     test_flatten.append(test[i, j])
-                    #print(fwdints[i,j])
-            # print(test)
-            # print(fwdints)
-            # print(np.sum(test[fwdints[:]]))
-            # print(rs0)
-            #sys.exit()
-
-            #print(test_flatten)
-           # perms = [x for x in itertools.permutations(test_flatten, 16)]
-
-
-            #np.random.shuffle(test_flatten)
-            #print(test_flatten)
-            #test=np.array(test_flatten).reshape((4,4))
-            #print(test)
             rs.append(np.sum(test[fwdints[:]]))
     count = 0
     #print(rs)
@@ -201,14 +175,14 @@ def main():
         for timepoint in mrna_timepoints:
             print(mrna, timepoint)
             mrna_df = pd.read_csv(
-                path.analysis_dir + "analysis_temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_100_mrna.csv",
+                path.analysis_dir + "analysis_temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_10_mrna.csv",
                 index_col=0)
             #print((mrna_df.median(axis=0).values))
             mrna_list.append(mrna_df.median(axis=0).values)
 
         for timepoint in prot_timepoints:
             prot_df = pd.read_csv(
-                path.analysis_dir + "analysis_temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_100_protein.csv",
+                path.analysis_dir + "analysis_temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_10_protein.csv",
                 index_col=0)
             prot_list.append(prot_df.median(axis=0).values)
         (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list)

@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # encoding: UTF-8
+# author: Benjamin Dartigues
+
 
 import h5py
 import src.plot as plot
@@ -21,7 +23,7 @@ def cytoplasmic_total_count(file_handler,molecule_type,genes,y_lim):
         image_list = helps.preprocess_image_list2(file_handler, molecule_type, gene)
         cytoplasmic_total.append(adsc.compute_cytoplasmic_total(image_list, file_handler, path.path_data))
     figname = check_dir(path.analysis_dir + 'analysis_cytoplasmic_total_count/figures/') + molecule_type+'_total_cytoplasmic_transcript.png'
-    plot.bar_profile(cytoplasmic_total, genes, y_lim, "Cytoplasmic total transcript", figname, plot_colors)
+    plot.bar_profile(cytoplasmic_total, genes, figname)
 
 
 def main():
@@ -35,8 +37,8 @@ def main():
 
     with h5py.File(path.basic_file_path, "r") as file_handler:
 
-        #cytoplasmic_total_count(file_handler,'/mrna',genes,1200)
-        #cytoplasmic_total_count(file_handler,'/protein',proteins,1000000000)
+        cytoplasmic_total_count(file_handler,'/mrna',genes,1200)
+        cytoplasmic_total_count(file_handler,'/protein',proteins,1000000000)
         cytoplasmic_total_dynamic_profiles(file_handler,genes,proteins)
 
 

@@ -22,6 +22,10 @@ import src.path as path
 import src.statistical_analysis as stan
 import src.helpers as helps
 import src.constants
+from src.utils import check_dir
+
+
+
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
@@ -179,17 +183,7 @@ if __name__ == "__main__":
     basic_file_path = path.analysis_data_dir + 'basic.h5'
     secondary_file_path = path.analysis_data_dir + 'secondary.h5'
     mtoc_file_path = path.analysis_data_dir + 'mtoc.h5'
-    basic_md5_path=path.analysis_data_dir + 'basic.md5'
-    secondary_md5_path=path.analysis_data_dir + 'secondary.md5'
-    mtoc_md5_path = path.analysis_data_dir + 'mtoc.md5'
-    # pwd_path = path.analysis_data_dir + 'password.txt'
-    # path_data = path.raw_data_dir
-    # f = open(pwd_path, 'r')
-    # loginpwd = f.readline()
-    # login = loginpwd.split(":")[0]
-    # pwd = loginpwd.split(":")[1]
-    # helps.check_data(basic_file_path, 'basic', login, pwd)
-    # helps.check_data(mtoc_file_path, 'mtoc', login, pwd)
+
 
 
     with h5py.File(basic_file_path, "r") as file_handler,h5py.File(secondary_file_path, "r") as second_file_handler,h5py.File(mtoc_file_path, "r") as mtoc_file_handler:
@@ -231,8 +225,6 @@ if __name__ == "__main__":
 
 
                 for image in image_list:
-                    # if not "/mrna/rab13/5h/4" in image:
-                    #        continue
 
                     #spot_by_quad= idsc.search_periph_mrna_quadrants(file_handler, second_file_handler, image)
                     spot_by_quad = idsc.search_mrna_quadrants(file_handler, image)
@@ -240,30 +232,9 @@ if __name__ == "__main__":
                     mtoc_spot = spot_by_quad[:, :, 1] == 1
                     #spots_mtoc_all.append(spot_by_quad[mtoc_spot][:,0])
                     non_mtoc_spot = spot_by_quad[:, :, 1] == 0
-                    #spots_non_mtoc_all.append(spot_by_quad[non_mtoc_spot][:,0])
-                    # needed for final boxplot
-                    # global_image.append(image.split("/")[4])
-                    # global_mrna.append(mrna)
-                    # global_timepoint.append(timepoint)
-                    #
-                    # # global_mean_mtoc.append(np.mean(spot_by_quad[mtoc_spot][:,0]))
-                    # # if mtoc_quad_j==1:
-                    # #     global_mean_mtoc_leading.append(np.mean(spot_by_quad[mtoc_spot][:,0]))
-                    # # else:
-                    # #     global_mean_mtoc_leading.append(np.nan)
-                    # # global_mean_non_mtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:,0]))
-                    #
-                    # global_max_mtoc.append(np.max(spot_by_quad[mtoc_spot][:, 0]))
-                    # if mtoc_quad_j == 1:
-                    #     global_max_mtoc_leading.append(np.max(spot_by_quad[mtoc_spot][:, 0]))
-                    # else:
-                    #     global_max_mtoc_leading.append(np.nan)
-                    # global_mean_non_mtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:, 0]))
 
                     for i in range(90):
 
-                        # needed for final boxplot
-                        #global_degree.append(i)
                         global_index.append(image.split("/")[4]+"_"+str(i+1))
                         global_image.append(image.split("/")[4])
 
@@ -271,13 +242,10 @@ if __name__ == "__main__":
                         global_timepoint.append(timepoint)
 
                     global_mtoc.extend(spot_by_quad[mtoc_spot][:,0].flatten())
-                    #print(len(spot_by_quad[non_mtoc_spot][:,0].flatten()))
                     for i in range(0,270,3):
                         global_nmtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:,0].flatten()[i:i+2]))
-                    #global_nmtoc.extend(spot_by_quad[non_mtoc_spot][:,0].flatten())
 
                     if mtoc_quad_j == 1:
-                        #print(spot_by_quad[mtoc_spot][:,0].flatten())
                         global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:,0].flatten())
                     else:
                         for i in range(90):
@@ -285,76 +253,9 @@ if __name__ == "__main__":
 
 
         df = pd.DataFrame({'Image': global_image,'Gene': global_mrna, 'timepoint': global_timepoint, 'Non MTOC': global_nmtoc,'MTOC': global_mtoc,
-                            'MTOC in leading edge': global_mtoc_leading},
+                            'MTOC leading edge': global_mtoc_leading},
                           index=global_index)
         df.to_csv(path.analysis_dir + 'analysis_nocodazole/df/' +'global_mtoc_file_mrna_all.csv')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # df = pd.read_csv(path.analysis_dir + 'analysis_MTOC/df/' +'global_mtoc_file_mrna_all')
-        # df_sorted=df.sort('MTOC', ascending=False).groupby(['Gene','timepoint','Image'], as_index=False).first()
-        #
-        # mpis=[]
-        # for gene, line in df_sorted.groupby(['Gene']):
-        #     mpi,p=stan.calculate_mpi(line['MTOC'].values,line['Non MTOC'].values)
-        #     print(gene)
-        #     print(mpi,p)
-        #     mpis.append(mpi)
-        #
-        # figname = path.analysis_dir + 'analysis_nocodazole/figures/' + molecule_type[0] + '_paired_mpis.svg'
-        # plot_bar_profile(mpis, mrnas, 0.7, 'MPIS', figname,colors)
-        #
-        #
-        #
-        # random_mpis=[]
-        # for gene, line in df_sorted.groupby(['Gene']):
-        #     gene_random_mpis = []
-        #     print(gene)
-        #
-        #     for i in range(100):
-        #         mpi,p=stan.calculate_random_mpi(line['MTOC'].values,line['Non MTOC'].values)
-        #         #print(line['MTOC'].values)
-        #         # print(gene)
-        #         # print(mpi,p)
-        #         gene_random_mpis.append(mpi)
-        #
-        #
-        #     print(np.median(np.array(gene_random_mpis)))
-        #     random_mpis.append(np.median(np.array(gene_random_mpis)))
-        # #mrnas = ["arhgdia", "beta_actin", "gapdh", "pard3", "pkp4", "rab13"]
-        # mrnas = ["arhgdia", "arhgdia_nocodazole","pard3","pard3_nocodazole"]
-        #
-        # figname = path.analysis_dir + 'analysis_nocodazole/figures/' + molecule_type[0] + '_bootstrap_mpis.svg'
-        # plot_bar_profile(random_mpis, mrnas, 0.7, 'MPIS', figname,colors)
-        #
-        #
-        #
-        # import seaborn as sns
-        # dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'], var_name='Quadrants')
-        # box = sns.boxplot(x='Gene', y='value', data=dd, hue='Quadrants')
-        # box.set(ylim=(0,3.5))
-        #
-        # figname = path.analysis_dir + 'analysis_nocodazole/figures/' + molecule_type[0] + '_boxplot_MTOC_enrichment.svg'
-        #
-        # plt.savefig(figname, format='svg')
-        # plt.show()
-
-
-
 
 
         # #protein part
@@ -397,7 +298,7 @@ if __name__ == "__main__":
 
                 for image in image_list:
 
-                    intensity_by_quad = idsc.search_protein_quadrants(file_handler, mtoc_file_handler,protein, image,path_data)
+                    intensity_by_quad = idsc.search_protein_quadrants(file_handler, mtoc_file_handler,protein, image)
                     mtoc_intensity = intensity_by_quad[:, :, 1] == 1
 
                     non_mtoc_intensity = intensity_by_quad[:, :, 1] == 0
@@ -454,53 +355,7 @@ if __name__ == "__main__":
         df.to_csv(path.analysis_dir + 'analysis_nocodazole/df/' +'global_mtoc_file_protein_all.csv')
 
 
-        # df = pd.read_csv(path.analysis_dir + 'analysis_nocodazole/df/' +'global_mtoc_file_all_protein_nocodazole')
-        # mrnas_noc = ["arhgdia_nocodazole", "pard3_nocodazole"]
-        # df_sorted_noc = df.sort('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
 
-        # mpis_noc = []
-        # for gene, line in df_sorted_noc.groupby(['Gene']):
-        #     mpi, p = stan.calculate_mpi(line['MTOC'].values, line['Non MTOC'].values)
-        #     # print(line['MTOC'].values)
-        #     print(gene)
-        #     print(mpi, p)
-        #     mpis_noc.append(mpi)
-        #
-        # mrnas = ["arhgdia", "pard3"]
-        #
-        # df = pd.read_csv('global_mtoc_file_mrna_all')
-        # df_sorted = df.sort('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
-        #
-        # mpis = []
-        # for gene, line in df_sorted.groupby(['Gene']):
-        #     if gene == "arhgdia" or gene == "pard3":
-        #         print(gene)
-        #         mpi, p = stan.calculate_mpi(line['MTOC'].values, line['Non MTOC'].values)
-        #         # print(line['MTOC'].values)
-        #         print(gene)
-        #         print(mpi, p)
-        #         mpis.append(mpi)
-        #
-        # print(mpis_noc, mpis)
-        #
-        # figname = path.analysis_dir + 'analysis_nocodazole/figures/' + molecule_type[0] + '_proteins_paired_mpis_nocodazole.svg'
-        # plot_bar_profile_2_series(mpis, mpis_noc, mrnas_noc, mrnas, 0.7, 'Cytoplasmic MPI', figname, colors)
-
-
-
-
-
-
-
-        # import seaborn as sns
-        # dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'], var_name='Quadrants')
-        # box = sns.boxplot(x='Gene', y='value', data=dd, hue='Quadrants')
-        # box.set(ylim=(0,3.5))
-        #
-        # figname = path.analysis_dir + 'analysis_nocodazole/figures/' + molecule_type[0] + '_protein_boxplot_MTOC_enrichment.svg'
-        #
-        # plt.savefig(figname, format='svg')
-        # plt.show()
 
 
 

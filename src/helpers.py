@@ -272,6 +272,19 @@ def count_nucleus(file_handler, image):
         count = 1
     return count
 
+def preprocess_image(file_handler):
+    """build path from preliminar h5 files with basic descriptors"""
+    image_path_list = []
+    for molecule in file_handler:
+        for gene_name in file_handler[molecule]:
+            for timepoint in file_handler[molecule + '/' + gene_name]:
+                for image in file_handler[molecule + '/' + gene_name + '/' + timepoint]:
+                    image_path = molecule + '/' + gene_name + '/' + timepoint + '/' + image
+                    image_path_list.append(image_path)
+                    # spots_file=raw_data_dir+gene_name+'/mrna_'+timepoint+'/image_'+image+'/saveDetections_noforce_8080/FISH.tif.csv'
+                    # spots_file_path.append(spots_file)
+    return image_path_list  # ,spots_file_path
+
 
 def preprocess_image_list(file_handler, molecule_type):
     """build path from preliminar h5 files with basic descriptors"""
