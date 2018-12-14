@@ -43,7 +43,7 @@ Clone the repository from [github](https://github.com/cbib/DypFISH)
 
 Go to the DypFISH root folder
 
-`cd DypFISH/`
+`cd dypfish/`
     
 Then install python dependencies :
 
@@ -74,131 +74,131 @@ In order to run DypFISH, HDF5 representation of images should be stored in the d
 
 DypFish runs in a command line environment.
 The package contains one main script by analysis called main.py that coordinates the execution of the whole analysis. 
-This section describes how the user must call it.
+This section describes how the user must call it from the DypFISH root folder `dypfish/`.
 
 DypFish implements several analysis:
 
 ###### Cytoplasmic total count analysis
 The cytoplasmic total count descriptor was calculated as the number of transcripts or protein within the cytoplasm.
 ```
-        python DypFISH/analysis/analysis_cytoplasmic_total_count/main.py
+        python analysis/analysis_cytoplasmic_total_count/main.py
 ```
 
 ###### Peripheral fraction analysis 
 Based on the cell masks, we calculated the peripheral fraction of mRNA and proteins at a given percent p of the radial distance.
 ```
-        python DypFISH/analysis/analysis_peripheral_fraction_profile/main.py
+        python analysis/analysis_peripheral_fraction_profile/main.py
 ```
 
 ###### Volume corrected noise measure (Spots density analysis) 
 In order to measure gene expression noise while accounting for cell volume, we computed the volume corrected noise measure Nm for micropatterned and standardly cultured cells.
 ```
-        python DypFISH/analysis/analysis_spots_density/main.py
+        python analysis/analysis_spots_density/main.py
 ```
 
 ###### Cytoplasmic spread analysis
 Measures how evenly a molecule is spread across the cell
 ```
-        python DypFISH/analysis/analysis_cytoplasmic_spread/main.py
+        python analysis/analysis_cytoplasmic_spread/main.py
 ```
 
 ###### Stability analysis 
 Compares the reproducibility of distributions in standard cultured and micropatterned cells
 ```
-        python DypFISH/analysis/analysis_stability/main.py
-        python DypFISH/analysis/analysis_stability/compute_TIS_by_quad_df.py
-        python DypFISH/analysis/analysis_stability/search_enriched_quad.py
-        python DypFISH/analysis/analysis_stability/stability_analysis_by_fraction_profile.py
-        python DypFISH/analysis/analysis_stability/stability_analysis_cyt_spread.py
+        python analysis/analysis_stability/main.py
+        python analysis/analysis_stability/compute_TIS_by_quad_df.py
+        python analysis/analysis_stability/search_enriched_quad.py
+        python analysis/analysis_stability/stability_analysis_by_fraction_profile.py
+        python analysis/analysis_stability/stability_analysis_cyt_spread.py
 ```
 
 ###### MTOC Polarity Index 
 Defines a polarity index that measures the enrichment of mRNA or protein signal for a given image acquisition series
 ```
-        python DypFISH/analysis/analysis_MTOC/search_enriched_quad.py
+        python analysis/analysis_MTOC/search_enriched_quad.py
 
-        python DypFISH/analysis/analysis_MTOC/plot_figures.py
+        python analysis/analysis_MTOC/plot_figures.py
 ```
 
 ###### mRNA / Protein distribution profile (Correlation profile analysis) 
 Defines a spatial distribution profile of mRNAs and proteins for images acquired at a given time point
 ```
-        python DypFISH/analysis/analysis_correlation_profile/main.py
+        python analysis/analysis_correlation_profile/main.py
 ```
 
 ###### Temporal interaction analysis
 Measures the interdependence between the mRNA and protein dynamics. **This analysis needs the results of the MTOC Polarity Index analysis to be performed.**
 For the cytoplasmique analysis: 
 ```
-        python DypFISH/analysis/analysis_degree_of_clustering/compute_TIS_by_quad_df.py
+        python analysis/analysis_degree_of_clustering/compute_TIS_by_quad_df.py
 
-        python DypFISH/analysis/analysis_temporal_interactions/compute_TIS_analysis.py
+        python analysis/analysis_temporal_interactions/compute_TIS_analysis.py
 ```
 
 For the peripheral analysis:
 ```
-        python DypFISH/analysis/analysis_degree_of_clustering/compute_TIS_by_periph_quad_df.py
+        python analysis/analysis_degree_of_clustering/compute_TIS_by_periph_quad_df.py
         
-        python DypFISH/analysis/analysis_degree_of_clustering/compute_TIS_periph_analysis.py
+        python analysis/analysis_degree_of_clustering/compute_TIS_periph_analysis.py
 ```
 
 ###### Degree of clustering analysis 
 The degree of clustering is a unitless measure that can be used to compare clustering between different molecules and conditions.
 ```
-        python DypFISH/analysis/analysis_degree_of_clustering/compute_TIS_analysis.py
+        python analysis/analysis_degree_of_clustering/compute_TIS_analysis.py
 ```
 
 ###### Muscle analysis
 Adaptations of the previous methods to the case of muscle cells.
 ```
-        python DypFISH/analysis/analysis_muscle_data/main.py
+        python analysis/analysis_muscle_data/main.py
 ```
 
 ###### Nocodazole analysis
 Adaptations of the previous methods to the case of nocodazole treated cells.
 ```
-        python DypFISH/analysis/analysis_nocodazole/cytoplasmic_spread.py
-        python DypFISH/analysis/analysis_nocodazole/cytoplasmic_total_count.py
-        python DypFISH/analysis/analysis_nocodazole/peripheral_fraction.py
-        python DypFISH/analysis/analysis_nocodazole/search_enriched_quad.py
-        python DypFISH/analysis/analysis_nocodazole/compute_TIS_by_quad_df.py
-        python DypFISH/analysis/analysis_nocodazole/compute_TIS_by_periph_quad_df.py
-        python DypFISH/analysis/analysis_nocodazole/compute_TIS_analysis.py
-        python DypFISH/analysis/analysis_nocodazole/compute_TIS_periph_analysis.py
-        python DypFISH/analysis/analysis_nocodazole/plot_figures_MTOC.py
+        python analysis/analysis_nocodazole/cytoplasmic_spread.py
+        python analysis/analysis_nocodazole/cytoplasmic_total_count.py
+        python analysis/analysis_nocodazole/peripheral_fraction.py
+        python analysis/analysis_nocodazole/search_enriched_quad.py
+        python analysis/analysis_nocodazole/compute_TIS_by_quad_df.py
+        python analysis/analysis_nocodazole/compute_TIS_by_periph_quad_df.py
+        python analysis/analysis_nocodazole/compute_TIS_analysis.py
+        python analysis/analysis_nocodazole/compute_TIS_periph_analysis.py
+        python analysis/analysis_nocodazole/plot_figures_MTOC.py
 ```
 ###### CytoD analysis
 Adaptations of the previous methods to the case of nocodazole treated cells.
 ```
-        python DypFISH/analysis/analysis_cytoD/search_enriched_quad.py
-        python DypFISH/analysis/analysis_cytoD/main_cyt_spread.py
-        python DypFISH/analysis/analysis_cytoD/main_cyt_total.py
-        python DypFISH/analysis/analysis_cytoD/main_periph_frac.py
-        python DypFISH/analysis/analysis_cytoD/plot_figures_MTOC.py
+        python analysis/analysis_cytoD/search_enriched_quad.py
+        python analysis/analysis_cytoD/main_cyt_spread.py
+        python analysis/analysis_cytoD/main_cyt_total.py
+        python analysis/analysis_cytoD/main_periph_frac.py
+        python analysis/analysis_cytoD/plot_figures_MTOC.py
 ```
 
 ###### Muscle analysis
 Adaptations of the previous methods to the case of muscle cells.
 ```
-        python DypFISH/analysis/analysis_muscle_data/search_enriched_quad.py
-        python DypFISH/analysis/analysis_muscle_data/main_cyt_spread.py
-        python DypFISH/analysis/analysis_muscle_data/main_cyt_total.py
-        python DypFISH/analysis/analysis_muscle_data/main_periph_frac.py
-        python DypFISH/analysis/analysis_muscle_data/plot_figures_MTOC.py
+        python analysis/analysis_muscle_data/search_enriched_quad.py
+        python analysis/analysis_muscle_data/main_cyt_spread.py
+        python analysis/analysis_muscle_data/main_cyt_total.py
+        python analysis/analysis_muscle_data/main_periph_frac.py
+        python analysis/analysis_muscle_data/plot_figures_MTOC.py
 ```
 
 ## Outputs:
 The output files produced by DypFish will be stored in the corresponding analysis figures and dataframe folders. 
 As an example here are the outputs produced by the cytoplasmic spread analysis :
 ```
-        DypFISH/analysis/analysis_cytoplasmic_spread/figures/cyt_spread_arhgdia.png
-        DypFISH/analysis/analysis_cytoplasmic_spread/figures/cyt_spread_beta_actin_.png
-        DypFISH/analysis/analysis_cytoplasmic_spread/figures/cyt_spread_gapdh.png
-        DypFISH/analysis/analysis_cytoplasmic_spread/figures/cyt_spread_pard3.png
-        DypFISH/analysis/analysis_cytoplasmic_spread/figures/cyt_spread_pkp4.png
-        DypFISH/analysis/analysis_cytoplasmic_spread/figures/cyt_spread_rab13.png
-        DypFISH/analysis/analysis_cytoplasmic_spread/figures/micropatterned/mrna_cytoplamsic_spread.png
-        DypFISH/analysis/analysis_cytoplasmic_spread/figures/micropatterned/protein_cytoplamsic_spread.png
+        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_arhgdia.png
+        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_beta_actin_.png
+        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_gapdh.png
+        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_pard3.png
+        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_pkp4.png
+        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_rab13.png
+        analysis/analysis_cytoplasmic_spread/figures/micropatterned/mrna_cytoplamsic_spread.png
+        analysis/analysis_cytoplasmic_spread/figures/micropatterned/protein_cytoplamsic_spread.png
 ```
 
 # LICENSE
