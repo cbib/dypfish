@@ -72,7 +72,10 @@ In order to run DypFISH, HDF5 representation of images should be stored in the d
 
 # Using the Pipeline
 
-DypFish runs in a command line environment.
+DypFish runs in a command line environment. 
+
+If you wish to run DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/all_dypfish_data.zip) and the code will be executable as is. To run it on your own data, first the data as to be compiled in the HDF5 file format and second, the code has to be modified to include your own gene names. Version 2.0 will include automatic parsing of gene names.
+
 The package contains one main script by analysis called main.py that coordinates the execution of the whole analysis. 
 This section describes how the user must call it from the DypFISH root folder `dypfish/`.
 
