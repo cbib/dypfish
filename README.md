@@ -14,7 +14,6 @@ Using hdf5 files, users can run spatial and temporal statistics on mRNA and prot
 
 
 # Getting help
-****
 
 For any information or help running DypFISH, you can get in touch with: 
 
@@ -24,12 +23,11 @@ For any information or help running DypFISH, you can get in touch with:
 
 
 # Datasets
-****
+
 Datasets corresponding to the data analyzed in the manuscript are available on the [accompanying website](http://dypfish.org)
 
 
 # Installation
-****
 
 ## System Requirements
 DypFISH installation requires an Unix environment with [python 2.7](python 2.7 (http://www.python.org/))
@@ -201,9 +199,8 @@ As an example here are the outputs produced by the cytoplasmic spread analysis :
         DypFISH/analysis/analysis_cytoplasmic_spread/figures/micropatterned/protein_cytoplamsic_spread.png
 ```
 
-
 # LICENSE
-****
+
     Copyright (c) 2018 Macha Nikolski (1,2) (macha.nikolski@u-bordeaux.fr) 
     Benjamin Dartigues (1) (benjamin.dartigues@u-bordeaux.fr) 
     Emmanuel Bouilhol (1,2) (emmanuel.bouilhol@u-bordeaux.fr)
