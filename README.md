@@ -65,16 +65,18 @@ DypFISH takes HDF5 files as input. [Click here](https://www.hdfgroup.org/solutio
 
 ![Arhgdia H2](http://image.noelshack.com/fichiers/2018/50/3/1544607676-capture-du-2018-12-12-10-31-06.png)
 
-Examples of HDF5 encoding of image acquisitions can be found in DypFISH/analysis/data/. These files are provided *only* as an example of data formatting. To download data and run the code please download HDF5 files avalaible on the [dypfish.org](http://dypfish.org)
+Examples of HDF5 encoding of image acquisitions can be found in DypFISH/analysis/example_hdf5/. These files are provided *only* as an example of data formatting. To download data and run the code please download HDF5 files avalaible on the [dypfish.org](http://dypfish.org).
 
-In order to run DypFISH, HDF5 representation of images should be stored in the directory DypFISH/analysis/data/
+In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data.zip), place the zip file in the root directory DypFISH/ and unzip it there. This creates the directory DypFISH/data/ containing HDF5 files and enables running the pipeline. 
+
+If you wish to run the pipeline on your own data, place the HDF5 file in the DypFISH/data/ directory and modify the source code (see below).
 
 
 # Using the Pipeline
 
-DypFish runs in a command line environment. 
+DypFISH runs in a command line environment. 
 
-If you wish to run DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/all_dypfish_data.zip) and the code will be executable as is. To run it on your own data, first the data as to be compiled in the HDF5 file format and second, the code has to be modified to include your own gene names. Version 2.0 will include automatic parsing of gene names.
+If you wish to run DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) and the code will be executable as is. To run it on your own data, first the data has to be compiled in the HDF5 file format and second, the code has to be modified to include your own gene names. Version 2.0 will include automatic parsing of gene names.
 
 The package contains one main script by analysis called main.py that coordinates the execution of the whole analysis. 
 This section describes how the user must call it from the DypFISH root folder `dypfish/`.
