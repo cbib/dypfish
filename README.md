@@ -1,9 +1,8 @@
 DypFISH : Dynamic Patterned FISH
 ===
 
-
 # Introduction
-****
+
 By : Macha Nikolski, Benjamin Dartigues and Emmanuel Bouilhol
 
 A large number of mRNAs exhibit tightly controlled localization patterns specific to particular cell types, which can act as determinants of protein localization patterns through processes such as local translation. Here we describe DypFISH, an approach to investigate the relationship between mRNA and corresponding protein distributions over time by combining micropatterning of cells with Nipkow disk confocal microscopy at high resolution. 
@@ -214,7 +213,7 @@ As an example here are the outputs produced by the cytoplasmic spread analysis :
         146, rue Leo Saignat, 33076 Bordeaux, France
 
         (2) CNRS, LaBRI - University of Bordeaux,
-        351 cours de la Libération, 33400 Talence, France
+        351 cours de la LibÃ©ration, 33400 Talence, France
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
