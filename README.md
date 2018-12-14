@@ -39,7 +39,9 @@ In order to run DypFISH your installation should include [pip](https://pypi.org/
 
 Clone the repository from [github](https://github.com/cbib/DypFISH)
 
-`git clone https://github.com/cbib/DypFISH`
+`git clone https://github.com/cbib/dypfish.git`
+
+Go to the DypFISH root folder
 
 `cd DypFISH/`
     
