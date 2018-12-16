@@ -3,24 +3,12 @@ DypFISH : Dynamic Patterned FISH
 
 # Introduction
 
-By : Macha Nikolski, Benjamin Dartigues and Emmanuel Bouilhol
-
 A large number of mRNAs exhibit tightly controlled localization patterns specific to particular cell types, which can act as determinants of protein localization patterns through processes such as local translation. Here we describe DypFISH, an approach to investigate the relationship between mRNA and corresponding protein distributions over time by combining micropatterning of cells with Nipkow disk confocal microscopy at high resolution. 
 We introduce a range of analytical techniques for quantitatively interrogating single molecule RNA FISH data in combination with protein immunolabeling. Strikingly, our results show that micropatterning of cells reduces variation in subcellular mRNA and protein distributions, allowing the characterization of their localization and dynamics with high reproducibility.
 The method reveals patterns of clustering, strong dependency of mRNA-protein localization on MTOC orientation and interdependent dynamics globally and at specific subcellular locations. We establish a robust approach that is broadly applicable to a wide range of systems.
 
 DypFISH is a python library designed to analysis confocal microscopy image.
 Using hdf5 files, users can run spatial and temporal statistics on mRNA and protein signals
-
-
-# Getting help
-
-For any information or help running DypFISH, you can get in touch with: 
-
-* [Macha Nikolski](mailto:macha.nikolski[AT]u-bordeaux.fr)
-* [Benjamin Dartigues](mailto:benjamin.dartigues[AT]u-bordeaux.fr)
-* [Emmanuel Bouilhol](mailto:emmanuel.bouilhol[AT]u-bordeaux.fr)
-
 
 # Datasets
 
@@ -205,11 +193,22 @@ As an example here are the outputs produced by the cytoplasmic spread analysis :
         analysis/analysis_cytoplasmic_spread/figures/micropatterned/protein_cytoplamsic_spread.png
 ```
 
+# Getting help
+
+For any information or help running DypFISH, you can get in touch with: 
+
+* [Macha Nikolski](mailto:macha.nikolski[AT]u-bordeaux.fr)
+* [Benjamin Dartigues](mailto:benjamin.dartigues[AT]u-bordeaux.fr)
+* [Emmanuel Bouilhol](mailto:emmanuel.bouilhol[AT]u-bordeaux.fr)
+
 # LICENSE
 
-    Copyright (c) 2018 Macha Nikolski (1,2) (macha.nikolski@u-bordeaux.fr) 
-    Benjamin Dartigues (1) (benjamin.dartigues@u-bordeaux.fr) 
+    Copyright (c) 2018 
     Emmanuel Bouilhol (1,2) (emmanuel.bouilhol@u-bordeaux.fr)
+    Benjamin Dartigues (1) (benjamin.dartigues@u-bordeaux.fr) 
+    Hayssam Soueidan (1)
+    Macha Nikolski (1,2) (macha.nikolski@u-bordeaux.fr) 
+    
                 
     
         (1) CBiB - University of Bordeaux,
