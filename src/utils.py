@@ -6,10 +6,6 @@ import os
 plot_colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B', '#C02A18', '#E9CB45']
 cell_type_micropatterned = 'micropatterned'
 
-
-
-# TODO fonction d'extractions des timepoints depuis les h5
-
 def enable_logger():
     logger = logging.getLogger('DYPFISH_HELPERS')
     logger.setLevel(logging.DEBUG)
