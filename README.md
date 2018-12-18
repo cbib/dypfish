@@ -32,7 +32,12 @@ Clone the repository from [github](https://github.com/cbib/DypFISH)
 Go to the DypFISH root folder
 
 `cd dypfish/`
-    
+
+Install pip and system dependicies (debian-like system, else replace apt-get with appropriate package manager):
+
+`chmod +x apt-install.sh ; ./apt-install.sh`
+
+
 Then install python dependencies :
 
 `sudo pip install -r requirements.txt`
