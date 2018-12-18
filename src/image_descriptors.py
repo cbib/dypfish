@@ -4,7 +4,6 @@
 from __future__ import print_function
 from __future__ import print_function
 
-from skimage.draw import circle
 
 from helpers import *
 np.set_printoptions(threshold=np.nan)
@@ -50,14 +49,8 @@ def get_z_lines_masks(file_handler, image):
         return np.empty(shape=(0, 0))
     z_lines=[]
     for zmask_n in range(1,len(file_handler[descriptor])+1):
-        #print(zmask_n)
         z_linemask=np.array(file_handler[descriptor+'/'+str(zmask_n)]).astype(int)
         z_lines.append(z_linemask)
-        # plt.imshow(z_linemask)
-        # plt.show()
-    # print(z_lines[2])
-    # plt.imshow(z_lines[2])
-    # plt.show()
     return z_lines
 
 
@@ -83,16 +76,9 @@ def get_multiple_nucleus_centroid(file_handler, image):
     nucleus_centroid_l=[]
     for dataset in file_handler[image]:
         if 'nucleus_centroid' in dataset:
-             #print(dataset)
              descriptor = image + '/'+dataset
-             #print(descriptor)
              nucleus_centroid = np.around(file_handler[descriptor]).flatten().astype(np.int)
-             #print(nucleus_centroid)
              nucleus_centroid_l.append(nucleus_centroid)
-    #     else:
-    #         return np.empty(shape=(0, 0))
-    #
-    #print(nucleus_centroid_l)
     return nucleus_centroid_l
 
 # Returns integer coordinates of the nucleus
@@ -132,7 +118,6 @@ def set_h_star_protein(file_handler, output_file_handler, image):
     IF = IF * cell_mask_3d
     h_star = clustering_index_random_measure(IF, cell_mask_3d)
     descriptor = image + '/h_star'
-    # output_file_handler[descriptor][:] = h_star
     output_file_handler.create_dataset(descriptor, data=h_star, dtype=np.float32)
 
 
@@ -163,15 +148,10 @@ def set_h_star_mrna(file_handler, output_file_handler, image):
     H_star = get_h_star(file_handler, image)
     assert (not H_star.size), 'H_star already defined for %r' % image
     # get descriptors
-    height_map=get_height_map(file_handler, image)
-    zero_level=get_zero_level(file_handler, image)
-    cell_mask = get_cell_mask(file_handler, image)
     spots = get_spots(file_handler, image)
     cell_mask_3d=compute_cell_mask_3d(file_handler,image)
-    #spots[:, 2]=spots[:, 2]
     h_star=clustering_index_point_process(spots, cell_mask_3d)
     descriptor = image + '/h_star'
-    #output_file_handler[descriptor][:] = h_star
     output_file_handler.create_dataset(descriptor, data=h_star, dtype=np.float32)
 
 
@@ -223,20 +203,14 @@ def compute_line_segments(nucleus_mask, cytoplasm_mask, nucleus_centroid, x_slop
     nucleus_segment = np.zeros(constants.MAX_CELL_RADIUS)
 
     # check for each point of the line (length MAX_CELL_RADIUS) if it falls within the nucleus or the cytoplasm
-    #print(x_slope)
-    #print(y_slope)
-
     for point in range(constants.MAX_CELL_RADIUS):
         x = int(round(nucleus_centroid[0] + point * x_slope))
-        #print(x)
         y = int(round(nucleus_centroid[1] + point * y_slope))
-        #print(y)
         if not (x < 0 or x > 511 or y < 0 or y > 511):
             cytoplasm_segment[point] = cytoplasm_mask[y, x]
             nucleus_segment[point] = nucleus_mask[y, x]
         else:
             logger.info('Warning: spot coordinates out of image bounds', '(', x, ',', y, ')')
-    #sys.exit()
     return nucleus_segment, cytoplasm_segment
 
 
@@ -303,8 +277,6 @@ def set_cell_mask_dist_map_meshgrid(file_handler, image):
     cytoplasm_mask = (cell_mask == 1) & (nucleus_mask == 0)
     nucleus_centroid = get_nucleus_centroid(file_handler, image).transpose()
 
-    #angle=np.arange(360)
-    #angle_rad=np.array((angle*2*math.pi/360))
     angle_slopex = (np.sin((np.arange(360)*2*math.pi/360)))
     angle_slopey = (np.cos((np.arange(360)*2*math.pi/360)))
     cell_radiusx = np.arange(400)
@@ -319,21 +291,8 @@ def set_cell_mask_dist_map_meshgrid(file_handler, image):
     test[:, 1] = line_segmenty
     test_reshape = test.reshape((360, 400, 2))
 
-    #print(test_reshape[0, 0, :])
-
     end = time.time()
-    print(end - start)
-
-    # segments = np.zeros((360, 400, 2))
-    # for i in range(360):
-    #     print(tuple(test_reshape[i,:,:]))
-
-
     start = time.time()
-    print("hello")
-    #print(cytoplasm_mask[tuple(test[0, :])])
-    #testx = (test[:, 0] < 512) & (test[:, 0] > 1)
-    #testy = (test[:, 0] < 512) & (test[:, 0] > 1)
     cyt_segments = np.zeros((144000, 1))
     nuc_segments = np.zeros((144000, 1))
 
@@ -348,23 +307,7 @@ def set_cell_mask_dist_map_meshgrid(file_handler, image):
         else:
             cyt_segments[i, :] = 0
             nuc_segments[i, :] = 0
-    #print(nuc_segments[3600:4000,:])
-    #nucleus_points = np.where(nuc_segments[3600:4000,:] == 1.0)
-    #print(len(nucleus_points))
-    #print(cytoplasm_mask.shape)
-    #print(map(add100,cytoplasm_mask, tuple(test[:, :])))
 
-    cyt_segments = cyt_segments.reshape((360, 400, 1))
-    nuc_segments = nuc_segments.reshape((360, 400, 1))
-    #print(nuc_segments[90,:,:])
-    #print(cyt_segments[90, :, :])
-    #print(np.ma.array(test[90,:,:],mask=cell_mask))
-
-
-    # ndx = (test[:,:, :] < 512) & ( test[:,:, :] > 1)
-    # ndx[ndx == False] = 0
-    # ndx[ndx == True] = 1
-    #print(ndx[90,:,:])
     plt.imshow(cell_mask, cmap='gray')
     contours = measure.find_contours(nucleus_mask, 0.8)
     for n, contour in enumerate(contours):
@@ -375,40 +318,6 @@ def set_cell_mask_dist_map_meshgrid(file_handler, image):
     end = time.time()
     print(end - start)
 
-    start = time.time()
-    # print("meshgrid")
-    #print(test[:, 0])
-    #ti3 = f3(*np.meshgrid(np.arange(360), np.arange(400), test_reshape, cytoplasm_mask, sparse=True))
-    #print(ti3)
-    #
-    end = time.time()
-    print(end - start)
-    cytoplasm_segment = np.zeros(constants.MAX_CELL_RADIUS)
-    nucleus_segment = np.zeros(constants.MAX_CELL_RADIUS)
-    # for i in range(400):
-    #     x=int(test[0,i,0])
-    #     y=int(test[0,i,1])
-    #     if not (x < 0 or x > 511 or y < 0 or y > 511):
-    #         cytoplasm_segment[i] = cytoplasm_mask[y, x]
-    #         nucleus_segment[i] = nucleus_mask[y, x]
-    #vecfunc = np.vectorize(my_func)
-    #print(vecfunc(cytoplasm_mask,int(test[0,:,1]), int(test[0,:,0])))
-    #cytoplasm_segment= cytoplasm_mask[int(test[0,:,1]), int(test[0,:,0])]
-    #nucleus_segment= nucleus_mask[int(test[0,:,1]), int(test[0,:,0])]
-
-    #print(cytoplasm_segment)
-    #print(nucleus_segment)
-
-    # start = time.time()
-    # print("hello")
-    # tis = np.zeros((400, 360, 2))
-    # ti = f(*np.meshgrid(angle_slopex, cell_radiusx, int(round(nucleus_centroid[0])), sparse=True))
-    # ti2 = f(*np.meshgrid(angle_slopey, cell_radiusy, int(round(nucleus_centroid[1])), sparse=True))
-    # tis[:, :, 0] = ti[:, :, 0]
-    # tis[:, :, 1] = ti2[:, :, 0]
-    # print(tis[0, 0, :])
-    # end = time.time()
-    # print(end - start)
 
     start = time.time()
     print("hello")

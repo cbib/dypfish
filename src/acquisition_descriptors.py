@@ -2,22 +2,14 @@
 # encoding: UTF-8
 
 
-import logging
-import sys
 import matplotlib.pyplot as plt
 import numpy as np
-import helpers
 from scipy.interpolate import interp1d
 
 import image_descriptors
+from src.utils import enable_logger
 
-logger = logging.getLogger('ACQUISITION_DESCRIPTORS')
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(filename)s - %(message)s', "%Y-%m-%d %H:%M:%S")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logger = enable_logger()
 
 def compute_fraction_profile(file_handler, image_list, isoline):
     gene_array = []

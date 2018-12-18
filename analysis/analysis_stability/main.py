@@ -4,21 +4,10 @@
 import numpy as np
 import pandas as pd
 from random import *
-import h5py
-import sys
-from skimage import draw
-from skimage import measure
-from skimage import io
 import matplotlib.pyplot as plt
-from statsmodels import robust
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import median_absolute_error
 
 import src.path as path
-import src.statistical_analysis as stan
-import src.helpers as helps
-import src.image_descriptors as idsc
 
 
 from src.utils import enable_logger, check_dir
