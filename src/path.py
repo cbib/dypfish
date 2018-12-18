@@ -15,11 +15,10 @@ src_dir = get_or_create_dir(os.path.join(root_dir, 'src'))
 analysis_dir = get_or_create_dir(os.path.join(root_dir, 'analysis/'))
 analysis_data_dir = get_or_create_dir(os.path.join(root_dir, 'data/'))
 data_dir = get_or_create_dir(os.path.join(root_dir, 'data/'))
-
-
+raw_data_dir = get_or_create_dir(os.path.join(root_dir, 'raw_image_data/'))
+scratch_data_dir = get_or_create_dir(os.path.join(root_dir, 'Basics_Descriptors/preprocessed_data/new_scratch_data/scratch_if'))
 test_data_dir = get_or_create_dir(os.path.join(root_dir, 'test_data/'))
-raw_data_dir = '/home/ben/dypfish/dypFISH_data/raw_image_data'
-scratch_data_dir = '/home/ben/dypfish/Basics_Descriptors/preprocessed_data/new_scratch_data/scratch_if'  # TODO
+
 basic_file_basename = 'basic'
 sec_file_basename = 'secondary'
 path_data = raw_data_dir
