@@ -12,7 +12,7 @@ import sys
 
 logger = logging.getLogger('DYPFISH IMAGE DESCRIPTORS')
 
-# TODO defactoriser certaines fonctions utilisees seulement dans certaines analyses
+# TODO re merge some function used only once, in parent
 
 # logger = logging.getLogger('DYPFISH_HELPERS')
 
