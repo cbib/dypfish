@@ -236,7 +236,7 @@ def init_acquisition_descriptors_macha(h5_file, molecule_type):
             plt.show()
 
 
-def compute_degree_of_clustering(file_handler,mtoc_file_handler, image_list):
+def compute_degree_of_clustering(image_list,file_handler,mtoc_file_handler):
     h_star_l=[]
     for image in image_list:
         h_star = image_descriptors.get_h_star(file_handler, image)
