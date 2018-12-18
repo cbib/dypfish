@@ -34,9 +34,6 @@ def mad(data, axis=None):
 
 def get_spots_peripheral_distance_2D(spots,nucleus_mask,cell_mask,periph_dist_map):
 
-    # plt.imshow(periph_dist_map)
-    # plt.show()
-
     spots_peripheral_distance_2D = []
     for spot in spots:
 
@@ -46,15 +43,6 @@ def get_spots_peripheral_distance_2D(spots,nucleus_mask,cell_mask,periph_dist_ma
             else:
                 spots_peripheral_distance_2D.append(periph_dist_map[spot[1], spot[0]])
     print(spots_peripheral_distance_2D)
-    # xs = spots[:, 0]
-    # ys = spots[:, 1]
-    # plt.imshow(periph_dist_map, cmap='hot')
-    # contours = measure.find_contours(nucleus_mask, 0.8)
-    #
-    # for n, contour in enumerate(contours):
-    #     plt.plot(contour[:, 1], contour[:, 0], color='red', linewidth=2)
-    # plt.scatter(xs, ys, color='blue', marker="o", facecolors='none', linewidths=0.5)
-    # plt.show()
     return spots_peripheral_distance_2D
 
 
@@ -78,7 +66,6 @@ def main():
         print "Maybe MTOC analysis hasn't been launched prior to this one"
         exit(1)
 
-    #print(arhgdia_df)
     total_mads_arhgdia = []
     total_mads_arhgdia_cultured=[]
     for j in range(500):
@@ -90,29 +77,12 @@ def main():
 
             arr=np.array(arhgdia_df.ix[:,:])
             arr = arr[np.random.choice(arr.shape[0], i, replace=True)]
-
-
-            # else:
-            #     sys.exit()
-            #print(len(arr))
-            #sys.exit()
             mean_arr=np.mean(arr,axis=0)
-            #print(mean_arr)
             rand_arr=arr[randint(0, len(arr)-1)]
             mse = mean_squared_error(mean_arr, rand_arr)
-            #mse = mean_absolute_error(mean_arr, arr[randint(0, len(arr)-1)])
-            #mse = median_absolute_error(mean_arr, arr[randint(0, arr.shape[0]-1),:])
-            #mes=mad(rand_arr)
 
             if (i > 1):
                 mads.append(mse)
-            # if (i == 1):
-            #     #print(i)
-            #     #print(arr)
-            #     #print(arr[randint(0, arr.shape[0] - 1), :])
-            #     print(mean_arr)
-            #     print(rand_arr)
-            #     print(mse)
 
         total_mads_arhgdia.append(mads)
 
@@ -127,17 +97,10 @@ def main():
             rand_arr=arr[randint(0, len(arr)-1)]
 
             mse = mean_squared_error(mean_arr, rand_arr)
-            #mse = mean_absolute_error(mean_arr, arr[randint(0, len(arr)-1)])
-            #mse = mean_absolute_error(mean_arr, arr[randint(0, arr.shape[0] - 1),:])
-            #mse = median_absolute_error(mean_arr, arr[randint(0, arr.shape[0] - 1),:])
-
-            #mse=mad(rand_arr)
             if (i > 1):
                 mads.append(mse)
         total_mads_arhgdia_cultured.append(mads)
 
-        #print(np.random.choice(np.array(arhgdia_df.loc[i::]), 1))
-    #print(mads[::])
     plt.figure()
     ax = plt.axes()
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')

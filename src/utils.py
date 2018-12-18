@@ -14,9 +14,8 @@ def enable_logger():
     formatter = logging.Formatter('%(asctime)s - %(filename)s - %(message)s', "%Y-%m-%d %H:%M:%S")
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    # if "log" not in globals():
-    # logger = Logger.init_logger('REFORMAT_%s'%(cfg.language_code), load_config())
     logger.info("Running %s", sys.argv[0])
+    return logger
 
 
 def check_dir(path):

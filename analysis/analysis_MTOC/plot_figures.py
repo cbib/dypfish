@@ -204,7 +204,7 @@ def main(is_periph=False):
 
 
 if __name__ == "__main__":
-    main(is_periph=False)
+    main(is_periph=True)
 
 
 

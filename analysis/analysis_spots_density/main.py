@@ -68,7 +68,6 @@ def main():
             image_list = helps.preprocess_image_list2(file_handler, molecule_type[0], genes[i])
             nm = stan.compute_volume_corrected_nm(file_handler, image_list)
             nms.append(nm)
-        #print(nms)
 
 
 

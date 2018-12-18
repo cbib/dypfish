@@ -4,7 +4,6 @@
 
 import numpy as np
 import h5py
-import matplotlib.pyplot as plt
 import pandas as pd
 import src.image_descriptors as idsc
 import src.path as path
@@ -18,17 +17,9 @@ pd.set_option('display.max_rows', 500)
 
 
 def main(is_periph=False):
-    #dir=path.analysis_dir + 'analysis_MTOC/dataframe/'
-    #filename=path.analysis_dir + 'analysis_MTOC/dataframe/' + 'periph_global_mtoc_file_all_protein.csv' if is_periph else '' +'global_mtoc_file_all_protein.csv'
-    #print(dir+filename)
-    #print(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein.csv' if is_periph else '' +'global_mtoc_file_all_protein.csv')
-    #import sys
-    #sys.exit()
-    #check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/')
     enable_logger()
-    #if is_periph:
-    #    print ('Periph mode')
     check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/')
+
     # Required descriptors: spots, IF, cell mask an height_map
     with h5py.File(path.basic_file_path, "r") as file_handler, \
             h5py.File(path.secondary_file_path, "r") as sec_file_handler, \
@@ -54,7 +45,8 @@ def main(is_periph=False):
 
                 for image in image_list:
 
-                    spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, sec_file_handler, image) if is_periph else idsc.search_mrna_quadrants(file_handler, image)
+                    spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, sec_file_handler, image) \
+                        if is_periph else idsc.search_mrna_quadrants(file_handler, image)
                     mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)
                     mtoc_spot = spot_by_quad[:, :, 1] == 1
                     non_mtoc_spot = spot_by_quad[:, :, 1] == 0
@@ -80,7 +72,8 @@ def main(is_periph=False):
 
         if is_periph:
 
-            df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna.csv')
+            df.to_csv(
+                check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna.csv')
         else:
             df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna.csv')
         # protein part
@@ -105,9 +98,8 @@ def main(is_periph=False):
                 for image in image_list:
 
                     intensity_by_quad = idsc.search_periph_protein_quadrants(
-                        file_handler, sec_file_handler, protein, image, path.path_data) if is_periph else\
+                        file_handler, sec_file_handler, protein, image, path.path_data) if is_periph else \
                         idsc.search_protein_quadrants(file_handler, mtoc_file_handler, protein, image)
-
 
                     mtoc_intensity = intensity_by_quad[:, :, 1] == 1
                     non_mtoc_intensity = intensity_by_quad[:, :, 1] == 0
@@ -136,10 +128,12 @@ def main(is_periph=False):
 
         if is_periph:
 
-            df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein.csv')
+            df.to_csv(
+                check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein.csv')
         else:
             df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein.csv')
 
+
 if __name__ == "__main__":
-    #main()
+    # main()
     main(is_periph=True)

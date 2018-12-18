@@ -14,7 +14,7 @@ import src.helpers as helps
 from src.utils import enable_logger, plot_colors, cell_type_micropatterned, check_dir
 
 
-def cytoplasmic_spread(file_handler, genes, path_data, cell_type,plot_colors, molecule_type):  # TODO argument genes vs proteins ?
+def cytoplasmic_spread(file_handler, genes, path_data, cell_type, plot_colors, molecule_type):  # TODO argument genes vs proteins ?
     cyt_spreads = []
     plot_filename = check_dir(path.analysis_dir + 'analysis_cytoD/figures/') + \
                     molecule_type + '_cytoplasmic_spread_arhgdia_ctrl_vs_cytod.png'

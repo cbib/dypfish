@@ -3,24 +3,13 @@
 
 import numpy as np
 import h5py
-from scipy import interpolate
 import src.plot as plot
 import src.constants as constants
 import src.acquisition_descriptors as adsc
 import src.path as path
-import src.statistical_analysis as stan
 import src.helpers as helps
 from src.utils import enable_logger, cell_type_micropatterned, plot_colors, check_dir
 
-
-
-
-
-# TODO export as csv
-# import pandas as pd
-# df = pd.DataFrame({"beta_actin": mean_profiles[0], 'arhgdia': mean_profiles[1], 'gapdh': mean_profiles[2],
-#                   'pard3': mean_profiles[3], 'pkp4': mean_profiles[4], "rab13": mean_profiles[5]})
-# df.to_csv(path.analysis_dir + "analysis_peripheral_fraction_profile/dataframe/peripheral_fraction_profile.csv")
 
 def peripheral_profile(mean_profiles, timepoint, genes, colors):
     timepoint = timepoint if timepoint else 'All'
@@ -86,33 +75,11 @@ def peripheral_fraction_dynamic_profile(basic_file_handler,secondary_file_handle
         plot.dynamic_profiles(mrna_data, protein_data, genes[i], plot_colors[i], 'Time(hrs)', 'Peripheral fraction',
                               figpath)
 
-# def build_metadata(molecule_list,id_list,tps_list):
-#     molecules=[]
-#     genes=[]
-#     tps=[]
-#     with h5py.File(path.basic_file_path, "r") as file_handler:
-#         for molecule in file_handler:
-#             if molecule in molecule_list:
-#                 molecules.append(str(molecule))
-#                 for gene in file_handler[molecule + '/']:
-#                     if gene in id_list:
-#                         genes.append(str(gene))
-#                         for tp in file_handler[molecule + '/' + gene + '/']:
-#                             if tp in tps_list:
-#                                 tps.append(str(tp))
-#     print(molecules)
-#     print(genes)
-#     print(tps)
-
 
 def main():
     # Required descriptors: spots_peripheral_distance, height_map, zero_level and spots
     enable_logger()
 
-
-    # build_metadata(["mrna"],["arhgdia"],["2h","3h"])
-    # import sys
-    # sys.exit()
     ## Build peripheral profile plot either for each or for all timepoint
     ## Figures and analysis
     molecule_type = ['/mrna']
