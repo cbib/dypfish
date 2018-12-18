@@ -48,7 +48,7 @@ def main():
         mrna_err = []
         for gene in genes:
             image_list = helps.preprocess_image_list2(input_file_handler, molecule_type[0], gene)
-            dof = adsc.compute_degree_of_clustering(input_file_handler, mtoc_file_handler, image_list)
+            dof = adsc.compute_degree_of_clustering(image_list,input_file_handler, mtoc_file_handler)
             mrna_median.append(math.log(np.median(dof)) - base)
             err = np.median(np.abs(np.tile(np.median(dof), (1, len(dof))) - dof))
             mrna_err.append(math.log(np.median(dof) + err) - math.log(np.median(dof)) - base)
@@ -61,7 +61,7 @@ def main():
         protein_err = []
         for protein in proteins:
             image_list = helps.preprocess_image_list2(input_file_handler, molecule_type[0], protein)
-            dof = adsc.compute_degree_of_clustering(input_file_handler, mtoc_file_handler, image_list)
+            dof = adsc.compute_degree_of_clustering(image_list,input_file_handler, mtoc_file_handler)
             protein_median.append(math.log(np.median(dof)) - base)
             err = np.median(np.abs(np.tile(np.median(dof), (1, len(dof))) - dof))
             protein_err.append(math.log(np.median(dof) + err) - math.log(np.median(dof)) - base)
