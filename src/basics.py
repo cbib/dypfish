@@ -2,11 +2,8 @@
 
 import os
 import socket
-
 from configobj import ConfigObj
-
 from path import config_dir
-
 
 def get_hostname():
     """
@@ -14,7 +11,6 @@ def get_hostname():
     :return: host name in lower case
     """
     return socket.gethostname().lower()
-
 
 def load_config(filepath=None):
     """

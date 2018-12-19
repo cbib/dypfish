@@ -3,8 +3,6 @@
 
 from __future__ import print_function
 from __future__ import print_function
-
-
 from helpers import *
 np.set_printoptions(threshold=np.nan)
 import logging
@@ -12,20 +10,13 @@ import sys
 
 logger = logging.getLogger('DYPFISH IMAGE DESCRIPTORS')
 
-# TODO re merge some function used only once, in parent
-
-# logger = logging.getLogger('DYPFISH_HELPERS')
-
-
-################################# Primary descriptors #################################
+####### Primary descriptors ########
 def get_spots(file_handler, image):
     descriptor = image + '/spots'
     if descriptor not in file_handler:
         return np.empty(shape=(0, 0))
     spots = np.around(np.array(file_handler[descriptor])).astype(np.int)
     return spots
-
-
 
 def get_IF(file_handler, image):
     descriptor = image + '/IF'
@@ -34,14 +25,12 @@ def get_IF(file_handler, image):
     IF = np.array(file_handler[descriptor])
     return IF
 
-
 def get_nucleus_mask(file_handler, image):
     descriptor = image + '/nucleus_mask'
     if descriptor not in file_handler:
         return np.empty(shape=(0, 0))
     nucleus_mask = np.array(file_handler[descriptor])
     return nucleus_mask
-
 
 def get_z_lines_masks(file_handler, image):
     descriptor = image + '/z_lines'
@@ -53,8 +42,6 @@ def get_z_lines_masks(file_handler, image):
         z_lines.append(z_linemask)
     return z_lines
 
-
-
 def get_cell_mask(file_handler, image):
     descriptor = image + '/cell_mask'
     if descriptor not in file_handler:
@@ -62,14 +49,12 @@ def get_cell_mask(file_handler, image):
     cell_mask = np.array(file_handler[descriptor]).astype(int)
     return cell_mask
 
-
 def get_z_lines_mask(file_handler, image):
     descriptor = image + '/z_lines_mask'
     if descriptor not in file_handler:
         return np.empty(shape=(0, 0))
     z_lines_mask = np.array(file_handler[descriptor]).astype(int)
     return z_lines_mask
-
 
 # Returns integer coordinates of the nucleus
 def get_multiple_nucleus_centroid(file_handler, image):
@@ -89,7 +74,6 @@ def get_nucleus_centroid(file_handler, image):
     nucleus_centroid = np.around(file_handler[descriptor]).flatten().astype(np.int)
     return nucleus_centroid
 
-
 # Returns integer coordinates of the MTOC
 def get_mtoc_position(file_handler, image):
     descriptor = image + '/mtoc_position'
@@ -98,17 +82,13 @@ def get_mtoc_position(file_handler, image):
     mtoc_position = np.around(file_handler[descriptor]).flatten().astype(np.int)
     return mtoc_position
 
-
-################################# Secondary descriptors #################################
-
+####### Secondary descriptors #######
 def get_h_star(file_handler, image):
     descriptor = image + '/h_star'
     if descriptor not in file_handler:
         return np.empty(shape=(0, 0))
     h_star = np.array(file_handler[descriptor])
     return h_star
-
-
 
 def set_h_star_protein(file_handler, output_file_handler, image):
 
@@ -144,16 +124,13 @@ def compute_cell_mask_3d(file_handler,image):
 
 """compute h_star"""
 def set_h_star_mrna(file_handler, output_file_handler, image):
-
     H_star = get_h_star(file_handler, image)
     assert (not H_star.size), 'H_star already defined for %r' % image
-    # get descriptors
     spots = get_spots(file_handler, image)
     cell_mask_3d=compute_cell_mask_3d(file_handler,image)
     h_star=clustering_index_point_process(spots, cell_mask_3d)
     descriptor = image + '/h_star'
     output_file_handler.create_dataset(descriptor, data=h_star, dtype=np.float32)
-
 
 def get_peripheral_mask(file_handler, image):
     descriptor = image + '/peripheral_mask'
@@ -162,14 +139,11 @@ def get_peripheral_mask(file_handler, image):
     peripheral_mask = np.array(file_handler[descriptor])
     return peripheral_mask
 
-
 def set_peripheral_mask(file_handler, image):
     """compute nucleus surface in pixel using nucleus mask"""
     peripheral_mask = get_peripheral_mask(file_handler, image)
     assert (not peripheral_mask.size), 'peripheral_mask already defined for %r' % image
     cell_mask_distance_map = get_cell_mask_distance_map(file_handler, image)
-    # to complete....
-
 
 def get_cell_mask_distance_map(file_handler, image):
     descriptor = image + '/cell_mask_distance_map'
@@ -177,7 +151,6 @@ def get_cell_mask_distance_map(file_handler, image):
         return np.empty(shape=(0, 0))
     cell_mask_distance_map = np.array(file_handler[descriptor])
     return cell_mask_distance_map
-
 
 def compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points):
     cell_mask_distance_map = np.zeros((512, 512), dtype=np.int)
@@ -221,7 +194,6 @@ def compute_edge_points(nucleus_segment, cytoplasm_segment):
         nucleus_edge_point = nucleus_points[0][-1]
     else:
         nucleus_edge_point = 1
-
     cytoplasm_points = np.where(cytoplasm_segment == 1)
     if len(cytoplasm_points[0]) > 0:
         cytoplasm_edge_point = cytoplasm_points[0][-1]
@@ -234,15 +206,12 @@ def compute_edge_points(nucleus_segment, cytoplasm_segment):
 def my_func(cytoplasm_mask,x,y):
     return cytoplasm_mask[y,x]
 
-
 def add100(cytoplasm_mask,tup):
     tup=tuple(tup)
     return cytoplasm_mask[tup[0],tup[1]]
 
-
 def f2(x, y):
     return np.exp(-0.5 * np.abs(x - y))
-
 
 def f(x, y, nuc_centroid):
     return x*y + nuc_centroid
@@ -255,10 +224,8 @@ def f4(x, y, nuc_centroidx,nuc_centroidy):
     b=x*y + nuc_centroidy
     return [a,b]
 
-
 def f3(x, y, test,cyt):
     print(x.flatten())
-
     print(y.flatten())
     print(test[x,y,0])
     if not (test[x,y,0] < 0 or test[x,y,0] > 511 or test[x,y,1] < 0 or test[x,y,1] > 511):
@@ -267,10 +234,8 @@ def f3(x, y, test,cyt):
 
 def set_cell_mask_dist_map_meshgrid(file_handler, image):
     import time
-
     start = time.time()
     print("hello")
-
 
     cell_mask = get_cell_mask(file_handler, image)
     nucleus_mask = get_nucleus_mask(file_handler, image)
@@ -296,12 +261,10 @@ def set_cell_mask_dist_map_meshgrid(file_handler, image):
     cyt_segments = np.zeros((144000, 1))
     nuc_segments = np.zeros((144000, 1))
 
-
     for i in range(144000):
         x = test[i,0]
         y = test[i,1]
         if not (x < 0 or x > 511 or y < 0 or y > 511):
-            #print(cytoplasm_mask[tuple(v)])
             cyt_segments[i, :] = cytoplasm_mask[y,x]
             nuc_segments[i, :] = nucleus_mask[y,x]
         else:
@@ -314,10 +277,8 @@ def set_cell_mask_dist_map_meshgrid(file_handler, image):
         plt.plot(contour[:, 1], contour[:, 0], color='red', linewidth=2)
     plt.plot(test_reshape[90,:,0], test_reshape[90,:,1], color='red', linewidth=2)
     plt.show()
-
     end = time.time()
     print(end - start)
-
 
     start = time.time()
     print("hello")
@@ -329,20 +290,16 @@ def set_cell_mask_dist_map_meshgrid(file_handler, image):
     tis[:, :, 1] = ti5y
 
     print(tuple(tis[0, 0, :]))
-
     plt.imshow(cytoplasm_mask, cmap='gray')
     contours = measure.find_contours(nucleus_mask, 0.8)
     for n, contour in enumerate(contours):
         plt.plot(contour[:, 1], contour[:, 0], color='red', linewidth=2)
-    #for i in range(360):
-    #    plt.plot(test_reshape[:, i, 0], test_reshape[:, i, 1], color='red', linewidth=2)
     plt.show()
 
     print(cytoplasm_mask[tis[0, 0, 1],tis[0, 0, 0]])
     print(nucleus_mask[tis[0, 0, 1], tis[0, 0, 0]])
     end = time.time()
     print(end - start)
-
     start = time.time()
     print("hello")
 
@@ -351,8 +308,6 @@ def set_cell_mask_dist_map_meshgrid(file_handler, image):
     cell_contoury = np.arange(100)
     contours_pointx = np.kron(angle_slopex, cell_contourx)
     contours_pointy = np.kron(angle_slopey, cell_contoury)
-    # point = nucleus_edge_point + segment_length * index / constants.NUM_CONTOURS
-    # x = int(round(nucleus_centroid[0] + point * x_slope))
     contours_pointx += int(round(nucleus_centroid[0]))
     contours_pointy += int(round(nucleus_centroid[1]))
     test_contour[:, 0] = contours_pointx
@@ -367,15 +322,12 @@ def set_cell_mask_dist_map_meshgrid(file_handler, image):
 
 
 def set_height_map(file_handler, image, tubulin_image_path):
-    #from skimage.feature import canny
-    # get attributes
     cell_mask = get_cell_mask(file_handler, image)
     zero_level = get_zero_level(file_handler, image)
     spots=get_spots(file_handler,image)
 
     # get tubulin stacked image
     image3D = io.imread(tubulin_image_path, plugin='tifffile')
-    # z_size, x_size, y_size = image3D.shape
 
     if "gapdh" in image:
         percentile = 7
@@ -396,137 +348,43 @@ def set_height_map(file_handler, image, tubulin_image_path):
     else:
         percentile = 9
 
-    #print percentile
-    #print(zero_level)
     height_map = np.zeros((512, 512))
     test_counter=0
     for n in range(zero_level, -1, -1):
-
-
         fig,((ax1,ax2),(ax3,ax4))=plt.subplots(2,2,figsize=(20,10))
-        #fig,(ax1,ax2)=plt.subplots(2,1,figsize=(20,10))
-        #fig=plt.figures(1,figsize=(20,10))
         slice = np.array(image3D[n, :, :] , copy=True)
-        #spots_in_slice = spots[np.around(spots[:, 2]) == n]
-
-
-        # slice = image3D[n, :, :]
         ax1.imshow(slice, cmap='gray')
-
-        #ax1.hist(np.array(image3D[n, :, :]).flatten().tolist(), bins=np.arange(0, 1020))
-
-        #plt.show()
-        #print("slice: " + str(n) )
         bins_percent=[1,10,20,30,40,50,55,60,70,80,85,90,95,100]
-        #bins_percent = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
         percent = np.percentile(slice, bins_percent)
-        #print(percent)
-        #print percent[percentile]
         threshold=percent[percentile]
         if "beta_actin" in image or "cultured" in image:
             threshold=percent[percentile]+test_counter
         elif "nocodazole" in image:
             threshold=percent[percentile]+24
-            #print threshold
         else:
             threshold = percent[percentile]
-
-        #threshold=350
         slice[slice <= threshold] = 0
         slice[slice > threshold] = 1
         slice[cell_mask == 0] = 0
         ax2.imshow(slice, cmap='gray')
-        # slice[(slice == 1) & cell_mask == 1] = 1
         from scipy import ndimage as ndi
         from skimage.restoration import denoise_nl_means
         slice = ndi.binary_fill_holes(slice)
-        # slice = denoise_nl_means(slice, 5, 6, 0.4, multichannel=True,fast_mode=True)
-        slice = denoise_nl_means(slice, 5, 6, 0.4, multichannel=True)#,fast_mode=True)
-        ax3.imshow(slice, cmap='gray')
+        slice = denoise_nl_means(slice, 5, 6, 0.4, multichannel=True)
         slice[slice < 1] = 0
         height_map[cell_mask == 0] = 0
         if n == zero_level:
             height_map[cell_mask==1]=1
-        #ax2.imshow(slice, cmap='gray')
-        #plt.imshow(slice, cmap='gray')
-
-        # ax4.hist(np.array(image3D[n, :, :]).flatten().tolist(), bins=np.arange(0, 512))
         height_map[slice > 0] = (zero_level + 1) - n
-
         ax4.imshow(height_map, cmap='hot')
-
-        # cmap = plt.cm.plasma
-        # cmap.set_under(color='white')
-        #ax2.imshow(height_map)
-        #plt.scatter(spots_in_slice[:, 0], spots_in_slice[:, 1], color='blue', marker="o", facecolors='none', linewidths=0.5)
-
-        #plt.show()
         test_counter+=4
-        # continue
-
     plt.imshow(height_map)
-    # if 'mrna' in image:
-    #     plt.scatter(spots[:, 0], spots[:, 1], color='blue', marker="o", facecolors='none', linewidths=0.5)
-    #
     plt.show()
-
-
-    # add or replace descriptor
-    #descriptor = image + '/height_map'
-    #file_handler[descriptor][:]=height_map
-    #file_handler.create_dataset(descriptor, data=height_map, dtype=np.uint8)
-
-
-    # ## Graphics part
-    # xs=[]
-    # ys=[]
-    # zs=[]
-    # for i in range(len(spots)):
-    #    xs.append(spots[i,0])
-    #    ys.append(spots[i,1])
-    #    zs.append(zero_level+2 -spots[i,2])
-    # #    for i in range(len(spots)):
-    # #        if nucleus_mask[spots[i,1],spots[i,0]]==0:
-    # #            xs.append(spots[i,0])
-    # #            ys.append(spots[i,1])
-    # #            zs.append(spots[i,2])
-    # #            height_map_spots[spots[i,1],spots[i,0]]=zero_level+1 -spots[i,2]
-    #
-    # # create the x and y coordinate arrays for each cell
-    # xx, yy = np.mgrid[0:height_map.shape[0], 0:height_map.shape[1]]
-    # fig = plt.figures()
-    # ax = fig.gca(projection='3d')
-    #
-    # #height_map[cell_mask==0]=np.nan
-    # #ax.scatter(ys, xs, zs, c='b', marker='^')#,depthshade=True)
-    # #ax.plot_surface(xx, yy, height_map, rstride=zero_level, cstride=zero_level, cmap=plt.cm.coolwarm,linewidth=0, antialiased=True)
-    #
-    # #    theCM = plt.cm.get_cmap()
-    # #    theCM._init()
-    # #    alphas = np.abs(np.linspace(-1.0, 1.0, theCM.N))
-    # #    theCM._lut[:-3,-1] = alphas
-    # #    ax.plot_surface(xx, yy, height_map, rstride=10, cstride=10, cmap=theCM,alpha=0.2,linewidth=0)
-    # ax.plot_surface(xx, yy, height_map, rstride=10, cstride=10, cmap=plt.cm.plasma, alpha=0.3, linewidth=0)
-    # ax.scatter(ys, xs, zs, c='black', marker='^',zorder=1)#,depthshade=True)
-    # ax.set_ylim([0, 512])
-    # ax.set_xlim([0, 512])
-    # ax.set_zlim([0, z_size])
-    # #ax.plot_wireframe(ys, xs, zs,  rstride=10, cstride=10)
-    # plt.show()
-    # plt.close()
-
 
 
 # Create a map with concentric isolines subdividing the cytoplasm into slices NUM_CONTOURS
 # Each isoline is built by constructing a polygone from 360 points (one point per degree)
 def set_cell_mask_distance_map(file_handler, output_file_handler, image):
-    # import time
-    #
-    # start = time.time()
-    # print("hello")
-    #descriptor = image + '/cell_mask_distance_map'
-    #assert (descriptor not in output_file_handler.keys(), 'cell_mask_distance_map already defined for %r' % image)
-
     cell_mask_distance_map = get_cell_mask_distance_map(file_handler, image)
     assert (not cell_mask_distance_map.size), 'cell_mask_distance_map already defined for %r' % image
     cell_mask = get_cell_mask(file_handler, image).astype(int)
@@ -543,26 +401,15 @@ def set_cell_mask_distance_map(file_handler, output_file_handler, image):
                                                                    x_slope, y_slope)
         nucleus_edge_point, cytoplasm_edge_point = compute_edge_points(nucleus_segment, cytoplasm_segment)
         segment_length = cytoplasm_edge_point - nucleus_edge_point
-
-
         for index in range(constants.NUM_CONTOURS):
             point = nucleus_edge_point + segment_length * index / constants.NUM_CONTOURS
             x = int(round(nucleus_centroid[0] + point * x_slope))
             y = int(round(nucleus_centroid[1] + point * y_slope))
             contour_points[degree, index, :] = [x, y]
 
-    # end = time.time()
-    # print(end - start)
-    # sys.exit()
     cell_mask_distance_map = compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points)
-    # cell_mask_distance_map[(cell_mask == 1) & (cell_mask_distance_map == 0)] = 1
-    # cell_mask_distance_map[nucleus_mask == 1] = 0
-
-    # plt.imshow(cell_mask_distance_map, cmap='hot')
-    # plt.show()
     descriptor = image + '/cell_mask_distance_map'
     output_file_handler.create_dataset(descriptor, data=cell_mask_distance_map, dtype=np.int)
-
 
 def get_peripheral_distance(file_handler, image):
     descriptor = image + '/peripheral_distance'
@@ -585,7 +432,6 @@ def get_spots_peripheral_distance_2D(file_handler, image):
     spots_peripheral_distance_2D = np.array(file_handler[descriptor])
     return spots_peripheral_distance_2D
 
-
 def set_scratch_peripheral_distance(file_handler, output_file_handler, image):
     spots_peripheral_distance = get_spots_peripheral_distance(output_file_handler, image)
     assert (not spots_peripheral_distance.size), 'spots_peripheral_distance already defined for %r' % image
@@ -593,40 +439,26 @@ def set_scratch_peripheral_distance(file_handler, output_file_handler, image):
     if len(spots) == 0:
         return
     periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
-    # plt.imshow(periph_dist_map)
-    # plt.show()
     spots_peripheral_distance = []
     for i in range(len(spots)):
         if is_in_cytoplasm(file_handler, image, [spots[i,1], spots[i,0]]):
             spots_peripheral_distance.append(periph_dist_map[spots[i,1],spots[i,0]])
     descriptor = image + '/spots_peripheral_distance'
-    # file_handler[descriptor][:]=spots_peripheral_distance
-
-
     output_file_handler.create_dataset(descriptor, data=spots_peripheral_distance, dtype=np.uint8)
-
-
 
 def set_protein_peripheral_distance(file_handler, output_file_handler, image):
     peripheral_distance = get_peripheral_distance(output_file_handler, image)
     assert (not peripheral_distance.size), 'peripheral_distance already defined for %r' % image
-
     height_map = get_height_map(file_handler, image)
-    # nucleus_mask = get_nucleus_mask(file_handler, image)
     zero_level = get_zero_level(file_handler, image)
     periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
-    spots_peripheral_distance = []
     for n in range(zero_level, -1, -1):
         height_map_copy = np.array(height_map, copy=True)
         height_map_copy[height_map >= zero_level + 1 - n] = 1
-
         slice_area = height_map_copy[height_map_copy == 1].sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)
         isoline_area = compute_isoline_area(file_handler, output_file_handler, image)
         test_index = find_nearest(isoline_area, slice_area)
-
-
         prot_in_slice = spots[np.around(spots[:, 2]) == n]
-
 
 def set_spots_peripheral_distance_2D(file_handler, output_file_handler, image):
     spots_peripheral_distance_2D = get_spots_peripheral_distance_2D(output_file_handler, image)
@@ -635,19 +467,16 @@ def set_spots_peripheral_distance_2D(file_handler, output_file_handler, image):
     if len(spots) == 0:
         return
     nucleus_mask = get_nucleus_mask(file_handler, image)
-
     cell_mask = get_cell_mask(file_handler, image)
     periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
     spots_peripheral_distance_2D = []
     for spot in spots:
-
         if nucleus_mask[spot[1],spot[0]]==0:
             if cell_mask[spot[1],spot[0]]==1 and periph_dist_map[spot[1],spot[0]] ==0:
                 spots_peripheral_distance_2D.append(int(1))
             else:
                 spots_peripheral_distance_2D.append(periph_dist_map[spot[1], spot[0]])
     descriptor = image + '/spots_peripheral_distance_2D'
-    #file_handler[descriptor][:]=spots_peripheral_distance_2D
     output_file_handler.create_dataset(descriptor, data=spots_peripheral_distance_2D, dtype=np.uint8)
 
 def set_spots_peripheral_distance(file_handler, output_file_handler, image):
@@ -660,21 +489,16 @@ def set_spots_peripheral_distance(file_handler, output_file_handler, image):
     zero_level = get_zero_level(file_handler, image)
     periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
     spots_peripheral_distance = []
-
-
     for n in range(zero_level, -1, -1):
         height_map_copy = np.array(height_map, copy=True)
         height_map_copy[height_map >= zero_level + 1 - n] = 1
-
         slice_area = height_map_copy[height_map_copy == 1].sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)
         isoline_area = compute_isoline_area(file_handler, output_file_handler, image)
         test_index = find_nearest(isoline_area, slice_area)
         spots_in_slice = spots[np.around(spots[:, 2]) == n]
-
         for j in range(len(spots_in_slice)):
             if is_in_cytoplasm(file_handler, image, [spots_in_slice[j][1], spots_in_slice[j][0]]):
                 old_periph_distance = periph_dist_map[spots_in_slice[j][1], spots_in_slice[j][0]]
-
                 if old_periph_distance < test_index:
                     old_periph_distance = test_index
                 if old_periph_distance == 100:
@@ -683,39 +507,11 @@ def set_spots_peripheral_distance(file_handler, output_file_handler, image):
                 new_periph_distance = (old_periph_distance - (100 - max_periph_tubulin)) * (100.0 / max_periph_tubulin)
                 if np.around(new_periph_distance) == 0.0:
                     spots_peripheral_distance.append(int(1))
-                    #print(np.around(new_periph_distance))
-
                 else:
                     spots_peripheral_distance.append(int(np.around(new_periph_distance)))
 
     descriptor = image + '/spots_peripheral_distance'
-    #file_handler[descriptor][:]=spots_peripheral_distance
-
     output_file_handler.create_dataset(descriptor, data=spots_peripheral_distance, dtype=np.uint8)
-
-
-# def set_spots_peripheral_distance(file_handler, image):
-#     logger.info('Set spots peripheral distance for image ' + image)
-#     spots_peripheral_distance = get_spots_peripheral_distance(file_handler, image)
-#     assert (not spots_peripheral_distance.size), 'spots_peripheral_distance already defined for %r' % image
-#     spots = get_spots(file_handler, image)
-#     spots_peripheral_distance = np.zeros(len(spots), dtype=np.int)
-#     peripheral_distance_map = get_cell_mask_distance_map(file_handler, image)
-#
-#     for i in range(len(spots)):
-#         x, y = spots[i, 0], spots[i, 1]
-#         if not (x < 0 or x > 511 or y < 0 or y > 511):
-#             # if not is_in_cytoplasm(file_handler,image,[x,y]):
-#             #     spots_peripheral_distance[i] = 100
-#             # else:
-#             if is_in_cytoplasm(file_handler,image,[x,y]):
-#                 spots_peripheral_distance[i] = peripheral_distance_map[y, x]
-#         else:
-#             logger.info('Warning: spot coordinates out of image bounds for %r', image, '(', x, ',', y, ')')
-#
-#     descriptor = image + '/spots_peripheral_distance'
-#     file_handler.create_dataset(descriptor, data=spots_peripheral_distance, dtype=np.int)
-
 
 def get_spots_peripheral_flags(file_handler, image):
     descriptor = image + '/spots_peripheral_flags'
@@ -733,11 +529,8 @@ def get_spots_cytoplasm_flags(file_handler, image):
 
 
 def set_spots_peripheral_flags(file_handler, output_file_handler, image):
-    #spots_peripheral_flags = get_spots_peripheral_flags(file_handler, image)
-    #assert (not spots_peripheral_flags.size), 'spots_peripheral_flags already defined for %r' % image
     spots = get_spots(file_handler, image)
     zero_level = get_zero_level(file_handler, image)
-
     num_spots = len(spots)
     spots_peripheral_distance = get_spots_peripheral_distance(output_file_handler, image)
     spots_peripheral_flags = np.zeros(num_spots, dtype=np.int)
@@ -751,57 +544,40 @@ def set_spots_peripheral_flags(file_handler, output_file_handler, image):
                 else:
                     spots_peripheral_flags[counter] = 1
                 counter += 1
-    #print(spots_peripheral_flags.sum())
     descriptor = image + '/spots_peripheral_flags'
     output_file_handler.create_dataset(descriptor, data=spots_peripheral_flags, dtype=np.int)
-    #file_handler[descriptor][:]=spots_peripheral_flags
-
 
 def get_cell_area(file_handler, image):
-    # descriptor = image + '/cell_area'
-    # if descriptor not in file_handler[image].attrs.keys():
-    #     return -1
-    # return file_handler[image].attrs['cell_area']
-
-
     descriptor = image + '/cell_area'
     attributes = file_handler[image].attrs.keys()
     if 'cell_area' not in attributes:
         return -1
     return file_handler[image].attrs['cell_area']
 
-
 def set_cell_area(file_handler, output_file_handler, image):
     """compute cell surface by pixel using cell mask"""
     cell_area = get_cell_area(output_file_handler, image)
     assert (cell_area == -1), 'cell_area already defined for %r' % image
-
-    #descriptor = image + '/cell_area'
-    #assert (descriptor not in output_file_handler.attrs.keys()), 'cell_area already defined for %r' % image
-
     cell_mask = get_cell_mask(file_handler, image)
-    area = cell_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)  # * by pixel dimensions
+    area = cell_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)
     output_file_handler[image].attrs['cell_area'] = area
 
 
 def get_nucleus_area(file_handler, image):
     """get nucleus_area from image descriptors file"""
-    descriptor = image + '/nucleus_area'
     attributes = file_handler[image].attrs.keys()
     if 'nucleus_area' not in attributes:
         return -1
     nucleus_area = file_handler[image].attrs['nucleus_area']
     return nucleus_area
 
-
 def set_nucleus_area(file_handler, output_file_handler, image):
     """compute nucleus surface in pixel using nucleus mask"""
     nucleus_area = get_nucleus_area(output_file_handler, image)
     assert (nucleus_area == -1), 'nucleus_area already defined for %r' % image
     nucleus_mask = get_nucleus_mask(file_handler, image)
-    area = nucleus_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)  # * by pixel dimensions
+    area = nucleus_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)
     output_file_handler[image].attrs['nucleus_area'] = area
-
 
 # return the mask for the quandrants
 def get_quadrants(file_handler, image):
@@ -810,7 +586,6 @@ def get_quadrants(file_handler, image):
         return np.empty(shape=(0, 0))
     quadrants = np.array(file_handler[descriptor])
     return quadrants
-
 
 # Calculates the quadrant mask for the MTOC
 def set_quadrants(file_handler, image):
@@ -823,38 +598,19 @@ def set_quadrants(file_handler, image):
     # the quadrant of MTOC is defined by two lines 45 degrees to the right
     right_point = rotate_point(nucleus_centroid, mtoc_position, 45)
     s = slope_from_points(nucleus_centroid, right_point)
-    corr = np.arctan(s)  # angle wrt to x axis
+    corr = np.arctan(s)
     xx, yy = np.meshgrid(np.array(range(0, 512)) - nucleus_centroid[0], np.array(range(0, 512)) - nucleus_centroid[1])
     rotated_xx, rotated_yy = rotate_meshgrid(xx, yy, -corr)
     sliceno = ((math.pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / (2 * math.pi)))
     sliceno = sliceno.astype(int)
-
     quadrant_mask = sliceno + cell_mask
     quadrant_mask[quadrant_mask == 5]=4
     quadrant_mask[cell_mask == 0] = 0
-
-    # # show quadrant mask
-    # fig, ax = plt.subplots()
-    # rr_m, cc_m = circle(mtoc_position[1], mtoc_position[0], 5, quadrant_mask.shape)
-    # quadrant_mask[rr_m, cc_m] = 0
-    # rr, cc = circle(nucleus_centroid[1], nucleus_centroid[0], 5, quadrant_mask.shape)
-    # quadrant_mask[rr, cc] = 0
-    # ax.imshow(quadrant_mask)
-    # plt.show()
-
     return quadrant_mask
-
-    #descriptor = image + '/quadrants'
-    #file_handler.create_dataset(descriptor, data=quadrant_mask, dtype=np.int)
-
 
 # Calculates the quadrant mask for the MTOC
 def search_protein_quadrants(file_handler, mtoc_file_handler,protein,image):
     print(image)
-    image_number = image.split("/")[4]
-    timepoint = image.split("/")[3]
-    #print(timepoint)
-    #print(image)
     quadrants = get_quadrants(file_handler, image)
     assert (not quadrants.size), 'mtoc_quadrant already defined for %r' % image
     mtoc_position = get_mtoc_position(file_handler, image)
@@ -870,9 +626,7 @@ def search_protein_quadrants(file_handler, mtoc_file_handler,protein,image):
     height_map = height_map.astype(float)
     height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
     height_map[cell_mask == 0] = 0
-
     for i in range(90):
-
         # the quadrant of MTOC is defined by two lines 45 degrees to the right
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
         s = slope_from_points(nucleus_centroid, right_point)
@@ -909,7 +663,6 @@ def search_mrna_quadrants(file_handler, image):
     height_map[nucleus_mask == 1] = 0
 
     for i in range(90):
-
         # the quadrant of MTOC is defined by two lines 45 degrees to the right
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
         s = slope_from_points(nucleus_centroid, right_point)
@@ -930,17 +683,14 @@ def search_mrna_quadrants(file_handler, image):
             spot_by_quad[i, spot_quad - 1, 0] += 1
         # mark leading edge quadrant
         spot_by_quad[i, mtoc_quad - 1, 1] = 1
-
         for quad_num in range(1,5):
             spot_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[quadrant_mask == quad_num]) * constants.VOLUME_COEFFICIENT
-
     return spot_by_quad
 
 
 # Create a map with concentric isolines subdividing the cytoplasm into slices NUM_CONTOURS
 # Each isoline is built by constructing a polygone from 360 points (one point per degree)
 def set_cell_mask_distance_map(file_handler, output_file_handler, image):
-
     cell_mask_distance_map = get_cell_mask_distance_map(file_handler, image)
     assert (not cell_mask_distance_map.size), 'cell_mask_distance_map already defined for %r' % image
     cell_mask = get_cell_mask(file_handler, image).astype(int)
@@ -948,7 +698,6 @@ def set_cell_mask_distance_map(file_handler, output_file_handler, image):
     nucleus_centroid = get_nucleus_centroid(file_handler, image).transpose()
     contour_points = np.zeros((360, 100, 2))
     cytoplasm_mask = (cell_mask == 1) & (nucleus_mask == 0)
-
     # for each degree, analyse the line segment between the nucleus and the periphery
     for degree in range(360):
         angle = degree * 2 * math.pi / 360
@@ -957,21 +706,12 @@ def set_cell_mask_distance_map(file_handler, output_file_handler, image):
                                                                    x_slope, y_slope)
         nucleus_edge_point, cytoplasm_edge_point = compute_edge_points(nucleus_segment, cytoplasm_segment)
         segment_length = cytoplasm_edge_point - nucleus_edge_point
-
-
         for index in range(constants.NUM_CONTOURS):
             point = nucleus_edge_point + segment_length * index / constants.NUM_CONTOURS
             x = int(round(nucleus_centroid[0] + point * x_slope))
             y = int(round(nucleus_centroid[1] + point * y_slope))
             contour_points[degree, index, :] = [x, y]
-
-    # end = time.time()
-    # print(end - start)
-    # sys.exit()
     cell_mask_distance_map = compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points)
-    # cell_mask_distance_map[(cell_mask == 1) & (cell_mask_distance_map == 0)] = 1
-    # cell_mask_distance_map[nucleus_mask == 1] = 0
-
     descriptor = image + '/cell_mask_distance_map'
     output_file_handler.create_dataset(descriptor, data=cell_mask_distance_map, dtype=np.int)
 
@@ -983,25 +723,17 @@ def search_periph_mrna_quadrants(file_handler,second_file_handler, image):
     height_map = get_height_map(file_handler, image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
     cell_mask = get_cell_mask(file_handler, image)
-    nucleus_mask = get_nucleus_mask(file_handler, image)
-
     peripheral_binary_mask =(cell_mask_dist_map > 0) & (cell_mask_dist_map <= constants.PERIPHERAL_FRACTION_THRESHOLD).astype(int)
-    #peripheral_binary_mask =(cell_mask_dist_map > 0) & (cell_mask_dist_map <= 30).astype(int)
-    #peripheral_binary_mask=peripheral_binary_mask.astype(int)
-    #peripheral_volume = np.sum(height_map[peripheral_binary_mask])
     spots = get_spots(file_handler, image)
     spot_by_quad = np.zeros((90, 4, 2))
     height_map = height_map.astype(float)
     height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
     height_map[cell_mask == 0] = 0
-    #height_map[nucleus_mask == 1] = 0
-
     for i in range(90):
-
         # the quadrant of MTOC is defined by two lines 45 degrees to the right
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
         s = slope_from_points(nucleus_centroid, right_point)
-        corr = np.arctan(s) # angle wrt to x axis
+        corr = np.arctan(s)
         xx, yy = np.meshgrid(np.array(range(0, 512)) - nucleus_centroid[0], np.array(range(0, 512)) - nucleus_centroid[1])
         rotated_xx, rotated_yy = rotate_meshgrid(xx, yy, -corr)
         sliceno = ((math.pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / (2 * math.pi)))
@@ -1010,19 +742,15 @@ def search_periph_mrna_quadrants(file_handler,second_file_handler, image):
         quadrant_mask[quadrant_mask == 5]=4
         quadrant_mask[cell_mask == 0] = 0
         quadrant_mask[peripheral_binary_mask==0]=0
-
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
         for spot in spots:
-
             if peripheral_binary_mask[spot[1], spot[0]]:
                 spot_quad = quadrant_mask[spot[1], spot[0]]
                 spot_by_quad[i, spot_quad - 1, 0] += 1
-
         spot_by_quad[i, mtoc_quad - 1, 1] += 1
         for quad_num in range(1,5):
             spot_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[(peripheral_binary_mask==1) & (quadrant_mask == quad_num)]) * constants.VOLUME_COEFFICIENT
     return spot_by_quad
-
 
 # Calculates the quadrant mask for the MTOC
 def search_periph_protein_quadrants(file_handler,second_file_handler, protein,image,path_data):
@@ -1031,7 +759,6 @@ def search_periph_protein_quadrants(file_handler,second_file_handler, protein,im
     assert (not quadrants.size), 'mtoc_quadrant already defined for %r' % image
     mtoc_position = get_mtoc_position(file_handler, image)
     cell_mask_dist_map = get_cell_mask_distance_map(second_file_handler, image)
-
     height_map = get_height_map(file_handler, image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
     cell_mask = get_cell_mask(file_handler, image)
@@ -1044,10 +771,7 @@ def search_periph_protein_quadrants(file_handler,second_file_handler, protein,im
     height_map[cell_mask == 0] = 0
     height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
     peripheral_binary_mask =(cell_mask_dist_map > 0) & (cell_mask_dist_map <= constants.PERIPHERAL_FRACTION_THRESHOLD).astype(int)
-
-
     for i in range(90):
-
         # the quadrant of MTOC is defined by two lines 45 degrees to the right
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
         s = slope_from_points(nucleus_centroid, right_point)
@@ -1061,20 +785,16 @@ def search_periph_protein_quadrants(file_handler,second_file_handler, protein,im
         quadrant_mask[quadrant_mask == 5] = 4
         quadrant_mask[cell_mask == 0] = 0
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-        #mtoc_quads.append(mtoc_quad)
-
         for quad_num in range(1, 5):
             intensity_by_quad[i, quad_num - 1, 0] = np.sum(IF[(peripheral_binary_mask==1) & (quadrant_mask == quad_num)])
             if quad_num == mtoc_quad:
                 intensity_by_quad[i, mtoc_quad - 1, 1] += 1
             intensity_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[(peripheral_binary_mask ==1) & (quadrant_mask == quad_num)]) * constants.VOLUME_COEFFICIENT
-
     return intensity_by_quad
 
 
 def get_mtoc_quad(file_handler, image):
     """get mtoc quadrant from image descriptors of johnatan"""
-    descriptor = image + '/mtoc_quad'
     attributes = file_handler[image].attrs.keys()
     if 'mtoc_quad' not in attributes:
         return -1
@@ -1085,22 +805,16 @@ def get_mtoc_quad(file_handler, image):
 def get_quadrant(file_handler, image, position):
     quadrants = get_quadrants(file_handler, image)
     assert quadrants.size, 'mtoc_quadrant not defined for %r' % image
-
     return quadrants[position[0], position[1]]
 
-
-# rewrite so that it works on arrays
 def is_in_cytoplasm(file_handler, image, position):
     cell_mask = get_cell_mask(file_handler, image)
     nucleus_mask = get_nucleus_mask(file_handler, image)
     return (cell_mask[position[0], position[1]] == 1) and (nucleus_mask[position[0], position[1]] == 0)
-    # return 1
 
 def is_in_z_lines(file_handler, image, position):
     z_lines_mask = get_z_lines_mask(file_handler, image)
     return (z_lines_mask[position[0], position[1]] == 1)
-    # return 1
-
 
 def get_height_map(file_handler, image):
     descriptor = image + '/height_map'
@@ -1108,7 +822,6 @@ def get_height_map(file_handler, image):
         return np.empty(shape=(0, 0))
     height_map = np.array(file_handler[descriptor])
     return height_map
-
 
 def get_cell_volume(file_handler, image):
     descriptor = image + '/cell_volume'
@@ -1118,7 +831,6 @@ def get_cell_volume(file_handler, image):
     cell_volume = file_handler[descriptor]
     return cell_volume
 
-
 def set_cell_volume(file_handler, image):
     cell_volume = get_cell_volume(file_handler, image)
     assert (cell_volume == -1), 'cell_volume already defined for %r' % image
@@ -1127,7 +839,6 @@ def set_cell_volume(file_handler, image):
     height_map = height_map + constants.VOLUME_OFFSET
     file_handler[image].attrs['cell_volume'] = height_map[np.where(cell_mask[:] == 1)].sum()
 
-
 def get_nucleus_volume(file_handler, image):
     descriptor = image + '/nucleus_volume'
     attributes = file_handler[image].attrs.keys()
@@ -1135,7 +846,6 @@ def get_nucleus_volume(file_handler, image):
         return -1
     nucleus_volume = np.array(file_handler[descriptor])
     return nucleus_volume
-
 
 # need height map to compute, still in progress
 # returns the nucleus volume in pixels
@@ -1146,7 +856,6 @@ def set_nucleus_volume(file_handler, image):
     height_map = get_height_map(file_handler, image)
     height_map = height_map + constants.VOLUME_OFFSET
     file_handler[image].attrs['nucleus_volume'] = height_map[np.where(nucleus_mask[:] == 1)].sum()
-
 
 def set_protein_cytoplasmic_spread(file_handler, image):
     cell_mask = get_cell_mask(file_handler, image)
@@ -1163,7 +872,6 @@ def set_protein_cytoplasmic_spread(file_handler, image):
     tmp = I * dsAll
     val = tmp.sum() / I.sum() * S
     print(val)
-    #file_handler[image].attrs['cytoplasmic_spread'] = val
 
 def compute_protein_cytoplasmic_spread(file_handler, image,path_data):
     cell_mask = get_cell_mask(file_handler, image)
@@ -1196,9 +904,7 @@ def compute_protein_cytoplasmic_spread_2D(file_handler, image,path_data):
     val = dist_IF.sum() / (IF.sum() * S)
     return val
 
-
 def compute_mrna_cytoplasmic_total(file_handler, image):
-
     spots = get_spots(file_handler, image)
     counter=0
     for i in range(len(spots)):
@@ -1216,20 +922,16 @@ def compute_protein_cytoplasmic_total(file_handler, image,path_data):
         IF = get_IF_image_z_summed(molecule,gene,type,image_n,path_data)
     else:
         IF = get_IF(file_handler,image)
-        #IF = get_IF_image_z_summed(image.split("/")[2],image.split("/")[1],image.split("/")[3],image.split("/")[4],path_data)
     cell_mask=get_cell_mask(file_handler, image)
     nucleus_mask= get_nucleus_mask(file_handler,image)
     return IF[(cell_mask==1) & (nucleus_mask==0)].sum()
 
-
 # Compare cytoplasmic spread cell with 3D cytoplasmic mrna spread
 # to evaluate degree of spread
-
 def compute_mrna_cytoplasmic_spread(file_handler, image):
 
     cell_mask = get_cell_mask(file_handler, image)
     height_map = get_height_map(file_handler, image)
-    zero_level= get_zero_level(file_handler,image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
     height_map += 1
     spots = get_spots(file_handler, image)
@@ -1251,8 +953,6 @@ def compute_mrna_cytoplasmic_spread(file_handler, image):
                     dist+=(spots[i, j] - nucleus_centroid[0])**2
                 elif j == 1:
                     dist += (spots[i, j] - nucleus_centroid[1]) ** 2
-                #else:
-                    #dist += (spots[i, j] - zero_level/2) ** 2
             points_dist_list.append(math.sqrt(dist))
             counter+=1
     points_dists = np.matrix(points_dist_list)
@@ -1267,13 +967,11 @@ def compute_mrna_cytoplasmic_spread(file_handler, image):
     # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
     # distributed across the cytoplasm).
     normalized_average_2d_distance = np.mean(points_dists) / S
-
     return normalized_average_2d_distance
 
 # Compare cytoplasmic spread cell with 2D cytoplasmic mrna spread
 # to evaluate degree of spread
 def compute_mrna_cytoplasmic_spread_2D(file_handler, image):
-
     cell_mask = get_cell_mask(file_handler, image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
     spots = get_spots(file_handler, image)
@@ -1293,12 +991,10 @@ def compute_mrna_cytoplasmic_spread_2D(file_handler, image):
                     dist+=(spots[i, j] - nucleus_centroid[0])**2
                 elif j == 1:
                     dist += (spots[i, j] - nucleus_centroid[1]) ** 2
-
             points_dist_list.append(math.sqrt(dist))
             counter+=1
     points_dists = np.matrix(points_dist_list)
     points_dists = points_dists.reshape((counter, 1))
-    #height_map = np.multiply(height_map, cell_mask)
     plane_map_dist=np.multiply(cell_mask,dsAll)
 
     # S : Average distance of a cytoplasmic voxel from the nucleus centroid
@@ -1308,18 +1004,13 @@ def compute_mrna_cytoplasmic_spread_2D(file_handler, image):
     # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
     # distributed across the cytoplasm).
     normalized_average_distance = np.mean(points_dists) / S
-
     return normalized_average_distance
-
-
-
 
 def set_mrna_cytoplasmic_spread(file_handler, image):
     cell_mask = get_cell_mask(file_handler, image)
     height_map = get_height_map(file_handler, image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
     height_map += 1
-    spots_cytoplasm_flags = get_spots_cytoplasm_flags(file_handler, image)
     spots = get_spots(file_handler, image)
     ds1 = np.matlib.repmat(range(0, 512), 512, 1) - nucleus_centroid[0]
     ds2=ds1.transpose()
@@ -1340,7 +1031,6 @@ def set_mrna_cytoplasmic_spread(file_handler, image):
 
 
 def get_zero_level(file_handler, image):
-    descriptor = image + '/zero_level'
     attributes = file_handler[image].attrs.keys()
     if 'zero_level' not in attributes:
         return -1
@@ -1353,34 +1043,17 @@ def compute_isoline_area(file_handler, output_file_handler, image):
     periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
     cell_mask = get_cell_mask(file_handler, image)
     nucleus_mask = get_nucleus_mask(file_handler, image)
-    # modif in periph_dist_map, last contour equal to 0, now equal to 1
     periph_dist_map[(periph_dist_map == 0) & (cell_mask == 1) & (nucleus_mask == 0)] = 1
-
     nucleus_area = get_nucleus_area(output_file_handler, image)
     for i in range(101):
         tmp_mask = np.array(periph_dist_map, copy=True)
         tmp_mask[tmp_mask <= i] = 0
         tmp_mask[(tmp_mask > i) & (tmp_mask <= 100)] = 1
-        # print tmp_mask.sum()
         isoline_area.append(tmp_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2) + nucleus_area)
-
     return isoline_area
 
-
 def compute_cell_volume(file_handler,image):
-
     height_map=get_height_map(file_handler,image)
-    cell_mask = get_cell_mask(file_handler, image)
-    #nucleus_mask = get_nucleus_mask(file_handler, image)
-    #height_map[cell_mask == 0] = 0
-    #height_map[nucleus_mask == 1] = 0
-    # print(np.sum(height_map))
-    # print(image)
-    # if 'cultured' in image:
-    #     plt.imshow(height_map, cmap='hot')
-    #     plt.show()
-    #     plt.close()
-
     return np.sum(height_map) * constants.VOLUME_COEFFICIENT
 
 

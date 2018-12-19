@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import h5py
 import math
 import numpy
-
 import src.acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps
@@ -47,13 +46,10 @@ def main():
         N = len(genes)
         ind = numpy.arange(N)
         width = 0.35
-
-        ## the bars
         rects1 = ax.bar(ind, mrna_median, width,
                         color=plot_colors,
                         yerr=mrna_err,
                         error_kw=dict(elinewidth=1, ecolor='black'))
-        # axes and labels
         ax.set_xlim(-width, len(ind) + width)
         ax.set_ylim(0, 20)
         ax.set_ylabel('Degree of clustering(log)')
@@ -61,7 +57,6 @@ def main():
         ax.set_xticks(ind)
         plt.legend([gene for gene in genes], loc='upper right')
         ax.legend(rects1, genes)
-
         figname = check_dir(path.analysis_dir + 'analysis_cytoD/figures/') + 'mrna_degree_of_clustering.svg'
         fig.savefig(figname)
 
@@ -77,21 +72,16 @@ def main():
             protein_median.append(math.log(numpy.median(dof)) - base)
             err = numpy.median(numpy.abs(numpy.tile(numpy.median(dof), (1, len(dof))) - dof))
             protein_err.append(math.log(numpy.median(dof) + err) - math.log(numpy.median(dof)) - base)
-
         fig = plt.figure()
         ax = plt.axes()
         ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-        ## the data
         N = len(genes)
         ind = numpy.arange(N)
-        width = 0.35  # the width of the bars
-
-        ## the bars
+        width = 0.35
         rects1 = ax.bar(ind, protein_median, width,
                         color=plot_colors,
                         yerr=protein_err,
                         error_kw=dict(elinewidth=1, ecolor='black'))
-        # axes and labels
         ax.set_xlim(-width, len(ind) + width)
         ax.set_ylim(0, 20)
         ax.set_ylabel('Degree of clustering(log)')
@@ -107,7 +97,6 @@ def main():
                                                                                    "a") as mtoc_file_handler:
         molecule_type = ['/mrna']
         genes = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-
         for i in range(len(genes)):
             x_mrna = numpy.arange(2, 5, 0.01)
             x_protein = numpy.arange(2, 7, 0.01)
@@ -126,7 +115,6 @@ def main():
                 test[2, counter] = low_env
                 counter += 1
             test = test / numpy.mean(test[0, :])
-
             spl = interpolate.UnivariateSpline([2, 3, 4, 5], test[0, :])
             spl_upp = interpolate.UnivariateSpline([2, 3, 4, 5], test[1, :])
             spl_low = interpolate.UnivariateSpline([2, 3, 4, 5], test[2, :])
@@ -148,26 +136,22 @@ def main():
                 test[2, counter] = low_env
                 counter += 1
             test = test / numpy.mean(test[0, :])
-
             spl = interpolate.UnivariateSpline([2, 3, 5, 7], test[0, :])
             spl_upp = interpolate.UnivariateSpline([2, 3, 5, 7], test[1, :])
             spl_low = interpolate.UnivariateSpline([2, 3, 5, 7], test[2, :])
             p_y_new = spl(x_protein)
             p_y_new_upp = spl_upp(x_protein)
             p_y_new_down = spl_low(x_protein)
-
             fig = plt.figure()
             ax = plt.axes()
             ax.set_xlim(0, 8)
             ax.set_ylim(-2, 8)
-
             dashed_protein, = plt.plot(x_protein, p_y_new, linestyle="--", label="Protein", color=plot_colors[i],
                                        linewidth=2)
             plt.plot(x_protein, p_y_new_upp, linestyle="--", label="Mrna", color=plot_colors[i])
             plt.plot(x_protein, p_y_new_down, linestyle="--", color=plot_colors[i])
             ax.fill_between(x_protein, p_y_new_upp, p_y_new_down, facecolor=plot_colors[i], alpha=0.25,
                             interpolate=False)
-
             solid_mrna, = plt.plot(x_mrna, m_y_new, linestyle="-", color=plot_colors[i], linewidth=2)
             plt.plot(x_mrna, m_y_new_upp, linestyle="-", color=plot_colors[i])
             plt.plot(x_mrna, m_y_new_down, linestyle="-", color=plot_colors[i])
@@ -178,8 +162,6 @@ def main():
             plt.legend([dashed_protein, solid_mrna], ['Protein', 'Mrna'])
             plt.savefig(path.analysis_dir + 'analysis_degree_of_clustering/figures/dof_' + genes[i] + '.svg',
                         format='svg')
-
-
 
 if __name__ == "__main__":
     main()

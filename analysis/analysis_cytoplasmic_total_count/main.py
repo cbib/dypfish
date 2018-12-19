@@ -20,7 +20,6 @@ def cytoplasmic_total_dynamic_profiles(file_handler, genes, proteins):
         plot.dynamic_profiles(mrna_data, protein_data, genes[i], plot_colors[i], 'Time(hrs)', 'Cytoplasmic total',
                               figpath)
 
-
 def cytoplasmic_total_count(file_handler, molecule_type, genes):
     cytoplasmic_total = []
     for gene in genes:
@@ -30,16 +29,13 @@ def cytoplasmic_total_count(file_handler, molecule_type, genes):
         path.analysis_dir + 'analysis_cytoplasmic_total_count/figures/') + molecule_type + '_total_cytoplasmic_transcript.png'
     plot.bar_profile(cytoplasmic_total, genes, figname)
 
-
 def main():
     enable_logger()
 
     # Required descriptors: spots, IF, cell mask an height_map
     # Compute bar plot cytoplasmic total transcripts
-
     genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
     proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-
     with h5py.File(path.basic_file_path, "r") as file_handler:
         cytoplasmic_total_count(file_handler, '/mrna', genes)
         cytoplasmic_total_count(file_handler, '/protein', proteins)

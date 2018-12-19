@@ -6,23 +6,14 @@ import logging
 import sys
 import numpy as np
 import h5py
-import os
 import matplotlib.pyplot as plt
-import matplotlib.patches as pct
 from matplotlib.patches import Ellipse
 from matplotlib import gridspec
-
 from numpy import matlib
 import math
-import pandas as pd
 from scipy import interpolate
-import src.constants as cst
-import src.acquisition_descriptors as adsc
 import src.image_descriptors as idsc
 import src.path as path
-import src.statistical_analysis as stan
-import src.plot as plot
-import src.helpers as helps
 from src.utils import check_dir
 
 logger = logging.getLogger('DYPFISH_HELPERS')
@@ -40,9 +31,7 @@ def compute_minimal_distance(segment_summed):
         if segment_summed[i]!=0:
             return i
 
-
 def keep_cell_mask_spots(spots,cell_mask):
-    ##print(len(spots))
     new_spots_list=[]
     for spot in spots:
         if cell_mask[spot[1],spot[0]]==1:
@@ -51,7 +40,6 @@ def keep_cell_mask_spots(spots,cell_mask):
 
 
 def get_quantized_grid(q, Qx, Qy):
-
     tmp_x = np.matrix(np.arange(Qx))
     tmp_y = np.matrix(np.arange(Qy))
     qxs = matlib.repmat(tmp_x.transpose(), 1, Qx)
@@ -90,18 +78,14 @@ def compute_cell_mask_between_nucleus_centroid(cell_mask,nucleus_centroid,nuc_di
     cell_masks.append(im_mask)
     return nuc_dist,cell_masks
 
-
 def search_best_centroid(nucleus_centroid):
     x_nuc = []
     nucleus_centroid=np.sort(nucleus_centroid,axis=0)
     x_nuc.append(nucleus_centroid[0][0])
     x_nuc.append(nucleus_centroid[len(nucleus_centroid)-1][0])
-
     return x_nuc
 
-
 def show_descriptors(cell_mask,spots,nucleus_mask):
-    fig1 = plt.figure()
     plt.imshow(cell_mask)
     xs = spots[:, 0]
     ys = spots[:, 1]
@@ -111,12 +95,10 @@ def show_descriptors(cell_mask,spots,nucleus_mask):
     for n, contour in enumerate(contours):
         plt.plot(contour[:, 1], contour[:, 0], color='red', linewidth=2)
     plt.scatter(xs, ys, color='white', marker=".", facecolors='none', linewidths=0.5)
-
     plt.show()
     plt.close()
 
 def reduce_z_line_mask(z_lines,spots):
-
     cpt_z = 1
     z_lines_idx=[]
     for z_line_mask in z_lines:
@@ -125,13 +107,10 @@ def reduce_z_line_mask(z_lines,spots):
         ys = spots_reduced[:, 1]
         if len(spots_reduced) > 25:
             z_lines_idx.append(cpt_z)
-
         cpt_z += 1
     return z_lines_idx
 
-
 def get_cell_mask_width(cell_mask):
-
     inx=[]
     for i in range(cell_mask.shape[1]):
         pix_val=cell_mask[int(cell_mask.shape[0]/2),i]
@@ -141,7 +120,6 @@ def get_cell_mask_width(cell_mask):
 def get_cell_area(cell_mask):
     cell_area=np.sum(cell_mask==1)
     return cell_area
-
 
 def create_circle():
 	circle= plt.Circle((0,0), radius= 5)
@@ -159,14 +137,13 @@ if __name__ == "__main__":
     # Required descriptors: cell_area (built from cell_mask), spots
     # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
     # This import script takes username and password arguments to connect to remote server bb8
-
     basic_file_path = path.analysis_data_dir + 'basics_muscle_data.h5'
     muscle_rebuild_file_path = path.analysis_data_dir + 'secondary_muscle_data.h5'
     colors = ['#0A3950', '#A1BA6D','#1E95BB']
     molecule_type = ['/mrna']
     genes=['actn2-mature','gapdh-mature','actn2-immature']
 
-    #compute quadrat
+    #compute quadrant
     with h5py.File(basic_file_path, "a") as file_handler, h5py.File(muscle_rebuild_file_path, "a") as muscle_file_handler:
         vmr_values_sig = []
         for gene in genes:
@@ -192,10 +169,10 @@ if __name__ == "__main__":
                 spots_reduced = idsc.get_spots(muscle_file_handler, sec_image)
                 nucleus_mask = idsc.get_nucleus_mask(muscle_file_handler, sec_image)
                 cell_mask = idsc.get_cell_mask(muscle_file_handler, sec_image)
-
             vmr_values = []
             gs = gridspec.GridSpec(total_image * 6,1)
             mean_y=[]
+
             for im in muscle_file_handler[molecule_type[0] + '/' + gene + '/' + timepoint]:
                 fig = plt.figure()
                 sec_image = molecule_type[0] + '/' + gene + '/' + timepoint + '/' + im
@@ -204,6 +181,7 @@ if __name__ == "__main__":
                 spots_reduced = idsc.get_spots(muscle_file_handler, sec_image)
                 z_lines = idsc.get_z_lines_masks(file_handler, image)
                 sums = np.zeros((len(z_lines), 1))
+
                 for n in range(len(z_lines)):
                     slice = z_lines[n]
                     sums[n] = slice.sum()
@@ -217,25 +195,22 @@ if __name__ == "__main__":
                 spot_surfacic_density = len(spots_reduced) / float(cell_area)
                 cell_width=cell_mask.shape[1] -240
                 band_n = 100.0
-
                 quadrat_edge = cell_width / band_n
-
                 grid_1d = np.zeros((int(band_n)))
+
                 for spot in spots_reduced:
                     if spot[0] > 120 and spot[0]< cell_mask.shape[1]- 120:
                         x = int(np.floor((spot[0]-120)/ quadrat_edge))
                         grid_1d[x] += 1
                 grid = []
+
                 for val in grid_1d:
                     grid.append(val)
-
                 grid_mat = np.matrix(grid).reshape((1, len(grid)))
                 grid_mat/=quadrat_edge
                 grid_mat/=spot_surfacic_density
-
                 grid_list=list(np.array(grid_mat)[0])
                 var = compute_squared_diff_sum(grid_list)
-                # 30.144 is the value of chi-square for degree of freedom  19
                 vmr_values.append((var / np.mean(grid_list))-30.144)
                 ax1 = plt.subplot()
                 x_mrna = np.arange(0, band_n, 0.5)
@@ -251,7 +226,4 @@ if __name__ == "__main__":
                 ax1.set_xlim((0, band_n-1))
                 plt.savefig(check_dir(path.analysis_dir+"/analysis_muscle_data/graph/"+"bucket_"+ str(int(band_n)))+"/mrna_distribution_" + gene + "_" + timepoint +"_image_"+str(image_cpt)+ ".png")
                 plt.close()
-
                 image_cpt+=1
-
-

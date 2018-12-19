@@ -6,26 +6,16 @@ import pandas as pd
 from random import *
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
-
 import src.path as path
-
-
-from src.utils import enable_logger, check_dir
-
+from src.utils import enable_logger
 from numpy import mean, absolute
 
 def mad(data, axis=None):
-
     return mean(absolute(data - mean(data, axis)), axis)
 
-
-
-
 def get_spots_peripheral_distance_2D(spots,nucleus_mask,cell_mask,periph_dist_map):
-
     spots_peripheral_distance_2D = []
     for spot in spots:
-
         if nucleus_mask[spot[1], spot[0]] == 0:
             if cell_mask[spot[1], spot[0]] == 1 and periph_dist_map[spot[1], spot[0]] == 0:
                 spots_peripheral_distance_2D.append(int(1))
@@ -33,8 +23,6 @@ def get_spots_peripheral_distance_2D(spots,nucleus_mask,cell_mask,periph_dist_ma
                 spots_peripheral_distance_2D.append(periph_dist_map[spot[1], spot[0]])
     print(spots_peripheral_distance_2D)
     return spots_peripheral_distance_2D
-
-
 
 def main():
     # Required descriptors: cell_area (built from cell_mask), spots
@@ -60,31 +48,21 @@ def main():
     for j in range(500):
         print(j)
         mads = []
-
-
         for i in range(1,len(arhgdia_df.index.values)+1):
-
             arr=np.array(arhgdia_df.ix[:,:])
             arr = arr[np.random.choice(arr.shape[0], i, replace=True)]
             mean_arr=np.mean(arr,axis=0)
             rand_arr=arr[randint(0, len(arr)-1)]
             mse = mean_squared_error(mean_arr, rand_arr)
-
             if (i > 1):
                 mads.append(mse)
-
         total_mads_arhgdia.append(mads)
-
-
-
         mads = []
         for i in range(1,len(arhgdia_cultured_df.index.values)+1):
             arr = np.array(arhgdia_cultured_df.ix[:,:])
             arr = arr[np.random.choice(arr.shape[0], i, replace=True)]
-
             mean_arr=np.mean(arr,axis=0)
             rand_arr=arr[randint(0, len(arr)-1)]
-
             mse = mean_squared_error(mean_arr, rand_arr)
             if (i > 1):
                 mads.append(mse)
@@ -102,10 +80,7 @@ def main():
     plt.plot(np.mean(total_mads_arhgdia, axis=0), color='blue')
     plt.plot(np.mean(total_mads_arhgdia_cultured, axis=0),color='black')
     plt.savefig(path.analysis_dir + "/analysis_stability/figures/stability_analysis_mtoc_max_quadrant_median_mean_squared_error.png")
-
     plt.show()
-
-
 
 if __name__ == "__main__":
     main()

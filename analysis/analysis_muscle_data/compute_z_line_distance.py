@@ -21,14 +21,12 @@ def compute_minimal_distance(segment_summed):
         if segment_summed[i] != 0:
             return i
 
-
 def keep_cell_mask_spots(spots, cell_mask, z_lines):
     new_spots_list = []
     for spot in spots:
         if cell_mask[spot[1], spot[0]] == 1:
             new_spots_list.append(spot)
     return new_spots_list
-
 
 def get_quantized_grid(q, Qx, Qy):
     tmp_x = np.matrix(np.arange(Qx))
@@ -42,17 +40,14 @@ def get_quantized_grid(q, Qx, Qy):
     qys = np.kron(qys, np.ones((q, q)))
     return qxs, qys
 
-
 def get_variance(test):
     print(test)
-
     N = len(test) - 1
     var = test - np.mean(test)
     tot = 0
     for elem in var:
         tot += math.pow(elem, 2)
     return (tot / N)
-
 
 def compute_cell_mask_between_nucleus_centroid(cell_mask, nucleus_centroid, nuc_dist, cell_masks, nucs_dist):
     nucleus_centroid = np.sort(nucleus_centroid, axis=0)
@@ -70,14 +65,12 @@ def compute_cell_mask_between_nucleus_centroid(cell_mask, nucleus_centroid, nuc_
     cell_masks.append(im_mask)
     return nuc_dist, nucs_dist, cell_masks
 
-
 def search_best_centroid(nucleus_centroid):
     x_nuc = []
     nucleus_centroid = np.sort(nucleus_centroid, axis=0)
     x_nuc.append(nucleus_centroid[0][0])
     x_nuc.append(nucleus_centroid[len(nucleus_centroid) - 1][0])
     return x_nuc
-
 
 def show_descriptors(cell_mask, spots, nucleus_mask):
     plt.imshow(cell_mask)
@@ -87,17 +80,13 @@ def show_descriptors(cell_mask, spots, nucleus_mask):
     plt.scatter(xs, ys, color='white', marker=".", facecolors='none', linewidths=0.5)
     plt.show()
 
-
 def compute_cell_mask_3d(cell_mask, z_lines):
     x_dim = cell_mask.shape[0]
     y_dim = cell_mask.shape[1]
     cell_mask_3d = np.zeros((x_dim, y_dim, len(z_lines)))
-
     for slice in range(len(z_lines)):
         cell_mask_3d[:, :, slice] = cell_mask
-
     return cell_mask_3d
-
 
 def reject_outliers(data):
     index_cpt = 0
@@ -106,7 +95,6 @@ def reject_outliers(data):
     for i in data:
         for j in i:
             tmp_list.append(j)
-
     u = np.mean(tmp_list)
     for i in data:
         print(i)
@@ -114,16 +102,13 @@ def reject_outliers(data):
             if u - 200 < j < u + 200:
                 indexes.append(index_cpt)
         index_cpt += 1
-
     return indexes
-
 
 def compute_degree_of_clustering(spots_reduced, mask, z_lines):
     cell_mask_3d = compute_cell_mask_3d(mask, z_lines)
     h_star = helps.clustering_index_point_process(spots_reduced, cell_mask_3d)
     d = np.array(h_star[h_star > 1] - 1).sum()
     return d
-
 
 def reduce_z_line_mask(z_lines, spots):
     cpt_z = 1
@@ -134,7 +119,6 @@ def reduce_z_line_mask(z_lines, spots):
             z_lines_idx.append(cpt_z)
         cpt_z += 1
     return z_lines_idx
-
 
 def compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes, timepoints):
     all_median_profiles = []
@@ -190,22 +174,17 @@ def compute_zline_distance(file_handler, muscle_file_handler, molecule_type, gen
             all_median_profiles.append(np.median(total_profile, axis=0))
     return all_median_profiles
 
-
 if __name__ == "__main__":
     # Required descriptors: cell_area (built from cell_mask), spots
     # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
     # This import script takes username and password arguments to connect to remote server bb8
-
     enable_logger()
-
     basic_file_path = path.analysis_data_dir + 'basics_muscle_data.h5'
     muscle_rebuild_file_path = path.analysis_data_dir + 'secondary_muscle_data.h5'
-
     molecule_type = ['/mrna']
     genes = ['actn2', 'gapdh']
     timepoints = ['mature']
     colors = ['#0A3950', '#1E95BB', '#A1BA6D']
-
     with h5py.File(basic_file_path, "a") as file_handler,\
             h5py.File(muscle_rebuild_file_path, "a") as muscle_file_handler:
         all_median_profiles = compute_zline_distance(
@@ -213,10 +192,8 @@ if __name__ == "__main__":
         df = pd.DataFrame(all_median_profiles)
         df.to_csv(check_dir(
             path.analysis_dir + 'analysis_muscle_data/dataframe/') + "all_median_profiles_by_slice_mature_remove_bad_slice.csv")
-
     genes = ['actn2']
     timepoints = ['immature']
-
     with h5py.File(basic_file_path, "a") as file_handler, h5py.File(muscle_rebuild_file_path,
                                                                     "a") as muscle_file_handler:
         all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes,
@@ -224,22 +201,18 @@ if __name__ == "__main__":
         df = pd.DataFrame(all_median_profiles)
         df.to_csv(check_dir(
             path.analysis_dir + 'analysis_muscle_data/dataframe/') + "all_median_profiles_by_slice_immature_remove_bad_slice.csv")
-
     all_median_profiles = []
     plot_name = check_dir(path.analysis_dir + 'analysis_muscle_data/figures/') + 'z_line_distance' + str(
         cst.Z_LINE_SPACING) + 'contours_mature_remove_bad_slice.png'
     figure_title = 'z line spots distance profile'
     genes = ["actn2 mature", "gapdh mature", "actn2 immature"]
-
     df = pd.read_csv(
         path.analysis_dir + "analysis_muscle_data/dataframe/all_median_profiles_by_slice_mature_remove_bad_slice.csv",
         index_col=0)
     df_im = pd.read_csv(
         path.analysis_dir + "analysis_muscle_data/dataframe/all_median_profiles_by_slice_immature_remove_bad_slice.csv",
         index_col=0)
-
     all_median_profiles.append(df.ix[0].values)
     all_median_profiles.append(df.ix[1].values)
     all_median_profiles.append(df_im.ix[0].values)
-
     plot.profile(all_median_profiles, genes, cst.Z_LINE_SPACING, plot_name, figure_title, colors, True)

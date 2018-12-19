@@ -54,11 +54,8 @@ def compute_periph_fraction(image_list,basic_file_handler,secondary_file_handler
             spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance_2D(secondary_file_handler, image)
             arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
         else:
-
-
             cell_mask=image_descriptors.get_cell_mask(basic_file_handler,image)
             nucleus_mask=image_descriptors.get_nucleus_mask(basic_file_handler,image)
-
             cell_mask_distance_map=image_descriptors.get_cell_mask_distance_map(secondary_file_handler,image)
             if "tp" in image:
                 molecule = image.split("/")[1]
@@ -78,15 +75,10 @@ def compute_periph_fraction(image_list,basic_file_handler,secondary_file_handler
 
             IF=np.multiply(IF,cell_mask)
             IF_periph=IF[(cell_mask_distance_map<=10) & (cell_mask_distance_map >0)]
-
             IF_summed=IF[nucleus_mask==0].sum()
             IF_summed_periph=IF_periph.sum()
             periph_frac=float(IF_summed_periph)/float(IF_summed)
             arr.append(periph_frac)
-
-
-
-
     return arr
 
 
@@ -98,17 +90,13 @@ def build_histogram_periph_fraction(sec_file_handler,image_list,fraction,path_da
             arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
         else:
             nucleus_mask = image_descriptors.get_nucleus_mask(basic_file_handler, image)
-
             IF= image_descriptors.get_IF(basic_file_handler,image)
-            #IF = helpers.get_IF_image_z_summed(image.split("/")[2], image.split("/")[1], image.split("/")[3],image.split("/")[4], path_data)
-
             cell_mask_distance_map = image_descriptors.get_cell_mask_distance_map(sec_file_handler, image)
             IF_periph = IF[(cell_mask_distance_map <= fraction) & (cell_mask_distance_map > 0)]
             IF_summed = IF[nucleus_mask == 0].sum()
             IF_summed_periph = IF_periph.sum()
             periph_frac = float(IF_summed_periph) / float(IF_summed)
             arr.append(periph_frac)
-
     return arr
 
 def compute_nm(h5_file, image_path_list):
@@ -152,17 +140,13 @@ def init_acquisition_descriptors(h5_file, molecule_type):
                 if attribute_path1 in h5_file[image_path].attrs.keys() and attribute_path2 in h5_file[
                     image_path].attrs.keys():
                     image_path_list.append(image_path)
-            # logger.info(len(image_path_list))
             if len(image_path_list) != 0:
                 nms.append(compute_nm(h5_file, image_path_list))
         if len(nms) > 0:
-            # fig = plt.figures(figsize=(10, 10))
             xi = np.arange(2, 5, 0.01)
             yi = interp1d(np.arange(2, 6), nms)(xi)
-            # yi=splev(np.arange(2,6),Nms, der=0)(xi)
             # Create linear regression object
             plt.plot(xi, yi, '--')
-            # plt.axis([200, 800, 0, 800])
             plt.xlabel('Time (hrs)')
             plt.ylabel('Nm')
             plt.show()
@@ -213,16 +197,13 @@ def init_acquisition_descriptors_macha(h5_file, molecule_type):
                 if attribute_path1 in h5_file[image_path].attrs.keys() and attribute_path2 in h5_file[
                     image_path].attrs.keys():
                     image_path_list.append(image_path)
-            # logger.info(len(image_path_list))
             if len(image_path_list) != 0:
                 Nms.append(volume_corrected_noise_measure(h5_file, image_path_list))
         if len(Nms) > 0:
-            # fig = plt.figures(figsize=(10, 10))
             xi = np.arange(2, 5, 0.01)
             yi = interp1d(np.arange(2, 6), Nms)(xi)
             # Create linear regression object
             plt.plot(xi, yi, '--')
-            # plt.axis([200, 800, 0, 800])
             plt.xlabel('Time (hrs)')
             plt.ylabel('Nm')
             plt.show()
@@ -236,14 +217,12 @@ def compute_degree_of_clustering(image_list,file_handler,mtoc_file_handler):
         mtoc_quad=image_descriptors.get_mtoc_quad(mtoc_file_handler,image)
         if mtoc_quad == 1.0:
             h_star_l.append(d)
-
     return h_star_l
 
 
 def compute_cytoplasmic_spread_2D(file_handler, image_list,path_data):
     cyt_spreads=[]
     for image in image_list:
-
         print(image)
         if 'mrna' in image:
             cyt_spread=image_descriptors.compute_mrna_cytoplasmic_spread_2D(file_handler,image)

@@ -8,7 +8,7 @@ import h5py
 from src import acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps
-from src.utils import enable_logger, plot_colors, cell_type_micropatterned, check_dir
+from src.utils import enable_logger, check_dir
 import src.plot as plot
 
 def pearsoncorr(vec1, vec2):
@@ -18,7 +18,6 @@ def pearsoncorr(vec1, vec2):
     vec2b = vec2 - mu2
     val = np.mean(vec1b * vec2b) / (np.std(vec1) * np.std(vec2))
     return val
-
 '''this analysis aims to compare normalized profile of different descriptors peripheral fraction, cytoplasmic spread, cytoplasmic total count
 and degree of clustering. We investigate correlations between pairs of such normaized distributions using the Pearson Correlation Coefficient'''
 
@@ -30,7 +29,6 @@ def main():
     proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
 
     with h5py.File(path.basic_file_path, "r") as file_handler,h5py.File(path.h_star_file_path, "r") as hstar_file_handler,h5py.File(path.mtoc_file_path, "r") as mtoc_file_handler,h5py.File(path.secondary_file_path, "r") as secondary_file_handler:
-
         molecule_type = ['/mrna']
         prof_m = np.zeros((4, 4, 4))
         cpt_g = 0
@@ -67,7 +65,6 @@ def main():
         prof_p = np.zeros((4, 4, 4))
         cpt_g = 0
         for i in range(len(genes)):
-
             timepoints = ["2h", "3h", "5h", "7h"]
             cpt_tp = 0
             for timepoint in timepoints:
@@ -104,7 +101,6 @@ def main():
                     vec_match.append(v)
                 else:
                     vec_non_match.append(v)
-
         figpath = check_dir(path.analysis_dir + 'analysis_correlation_profile/figures/') + 'profile_correlation.png'
         plot.boxplot(vec_match,vec_non_match,figpath)
 

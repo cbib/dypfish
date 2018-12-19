@@ -1,6 +1,5 @@
 import logging
 import sys
-
 import os
 
 plot_colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B', '#C02A18', '#E9CB45']
@@ -17,9 +16,7 @@ def enable_logger():
     logger.info("Running %s", sys.argv[0])
     return logger
 
-
 def check_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
-
     return path

@@ -2,16 +2,13 @@
 # encoding: UTF-8
 # author: Benjamin Dartigues
 
-import matplotlib.pyplot as plt
 import h5py
 import math
 import numpy as np
-import sys
 import src.acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps
 import src.plot as plot
-from scipy import interpolate
 from src.utils import enable_logger, plot_colors, check_dir
 
 ''' 
@@ -21,11 +18,9 @@ from src.utils import enable_logger, plot_colors, check_dir
 
 
 def degree_of_clustering_dynamic_profile(input_file_handler,mtoc_file_handler,genes):
-
         data_generator = plot.data_extractor(genes, genes, input_file_handler,
                                              adsc.compute_degree_of_clustering, input_file_handler, mtoc_file_handler)
         print(data_generator)
-    # TODO bad bad bad arguments to data_extractor function
         for mrna_data, protein_data, i in data_generator:
             figpath = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + '/dof_' + genes[i] + '.png'
             plot.dynamic_profiles(mrna_data, protein_data, genes[i], plot_colors[i], 'Time(hrs)', 'Degree of clustering(*)',figpath)
@@ -35,7 +30,6 @@ def main():
     # Required descriptors: cell_mask, height_map, zero_level and spots
     # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
     # This import script takes username and password arguments to connect to remote server bb8
-
     enable_logger()
 
     # produce bar plot for degree of clustering
@@ -68,9 +62,7 @@ def main():
 
         #plot figures
         figname = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + 'mrna_degree_of_clustering.png'
-
         plot.bar_profile_median(mrna_median, genes, 'mrna', figname, mrna_err)
-
         figname = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + 'protein_degree_of_clustering.png'
         plot.bar_profile_median(protein_median, proteins, 'protein', figname, protein_err)
 
