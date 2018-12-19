@@ -244,7 +244,7 @@ def process_data(file_handler, timepoints, molecule_type, gene, calc_function, *
 
 def data_extractor(genes,proteins, secondary_file_handler, calc_function, *args):
     mrna_tp= ["2h", "3h", "4h", "5h"]
-    protein_tp= ["2h", "3h", "5h", "7h"] # TODO test
+    protein_tp= ["2h", "3h", "5h", "7h"]
     for i in range(len(genes)):
         mrna_data=process_data(secondary_file_handler,mrna_tp,['/mrna'],genes[i], calc_function, *args)
         if genes[i] in proteins:

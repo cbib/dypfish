@@ -8,8 +8,7 @@ import src.statistical_analysis as stan
 import src.helpers as helps
 from src.utils import enable_logger, cell_type_micropatterned, check_dir
 
-
-def cytoplasmic_spread(file_handler, genes, path_data, plot_colors, molecule_type):  # TODO argument genes vs proteins ?
+def cytoplasmic_spread(file_handler, genes, path_data, plot_colors, molecule_type):
     cyt_spreads = []
     plot_filename = check_dir(path.analysis_dir + 'analysis_cytoD/figures/') + \
                     molecule_type + '_cytoplasmic_spread_arhgdia_ctrl_vs_cytod.png'
