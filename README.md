@@ -209,8 +209,8 @@ For any information or help running DypFISH, you can get in touch with:
 # LICENSE
 
     Copyright (c) 2018 
-    Emmanuel Bouilhol (1,2) (emmanuel.bouilhol@u-bordeaux.fr)
-    Benjamin Dartigues (1)  (benjamin.dartigues@u-bordeaux.fr) 
+    Benjamin Dartigues (1)  (benjamin.dartigues@u-bordeaux.fr)
+    Emmanuel Bouilhol (1,2) (emmanuel.bouilhol@u-bordeaux.fr 
     Hayssam Soueidan (1)    (massyah@gmail.com)
     Macha Nikolski (1,2)    (macha.nikolski@u-bordeaux.fr) 
     
