@@ -4,7 +4,7 @@
 from __future__ import print_function
 from __future__ import print_function
 from helpers import *
-np.set_printoptions(threshold=np.nan)
+#np.set_printoptions(threshold=np.nan)
 import logging
 import sys
 
