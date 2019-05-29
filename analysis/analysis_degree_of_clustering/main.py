@@ -33,7 +33,12 @@ def main():
     enable_logger()
 
     # produce bar plot for degree of clustering
-    with h5py.File(path.h_star_file_path, "a") as input_file_handler, h5py.File(path.mtoc_file_path, "a") as mtoc_file_handler:
+    #with h5py.File(path.secondary_file_path, "a") as input_file_handler, h5py.File(path.mtoc_file_path, "a") as mtoc_file_handler:
+    with h5py.File("/home/clem/cbib/dypfish/data/secondary.h5", "a") as input_file_handler, h5py.File(path.mtoc_file_path,
+                                                                                   "a") as mtoc_file_handler:
+
+        print input_file_handler['/mrna/arhgdia/2h/1'].keys()
+
         # mrna part
         molecule_type = ['/mrna']
         genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
@@ -42,7 +47,10 @@ def main():
         mrna_err = []
         for gene in genes:
             image_list = helps.preprocess_image_list2(input_file_handler, molecule_type[0], gene)
+            print input_file_handler['/mrna/arhgdia/2h/1'].keys()
+
             dof = adsc.compute_degree_of_clustering(image_list,input_file_handler, mtoc_file_handler)
+            print dof, base
             mrna_median.append(math.log(np.median(dof)) - base)
             err = np.median(np.abs(np.tile(np.median(dof), (1, len(dof))) - dof))
             mrna_err.append(math.log(np.median(dof) + err) - math.log(np.median(dof)) - base)

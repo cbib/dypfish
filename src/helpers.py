@@ -228,6 +228,7 @@ def preprocess_image_list(file_handler, molecule_type):
     """build path from preliminar h5 files with basic descriptors"""
     image_path_list = []
     for molecule in molecule_type:
+        print (file_handler.keys(),molecule)
         for gene_name in file_handler[molecule]:
             for timepoint in file_handler[molecule + '/' + gene_name]:
                 for image in file_handler[molecule + '/' + gene_name + '/' + timepoint]:
@@ -377,87 +378,6 @@ def ripley_k_point_process(spots, my_lambda, nuw, r_max):
     return K
 
 
-def build_simulated_h_star():
-    df = pandas.read_csv('/home/ben/PycharmProjects/dypfish_git/python_version/analysis/analysis_degree_of_clustering/data/matrix.csv', index_col=None, header=None)
-    nuw = 100
-    mat = np.matrix(df)
-    print(mat.sum())
-    my_lambda = float(mat.sum()) / float(100)
-    dMap = np.zeros((10 * 2 - 1, 10 * 2 - 1))
-    for x in range(10 * 2 - 1):
-        for y in range(10 * 2 - 1):
-            d = (x - 10) ** 2 + (y - 10) ** 2;
-            dMap[x, y] = math.sqrt(d)
-    print(dMap)
-    sig = np.random.randn(1000,10,10,10)
-    print(sig[0,0,0])
-
-    print(mat)
-    plt.imshow(mat)
-    plt.show()
-    mat_rev = mat[::-1, ::-1]
-    plt.imshow(mat_rev)
-    plt.show()
-    P = signal.convolve2d(mat, mat_rev, mode='full')
-    P3D=signal.fftconvolve(mat,mat_rev,mode='full')
-
-    print(P3D)
-    print(P)
-    plt.imshow(P)
-    plt.show()
-    K = np.zeros((10, 1))
-    for m in range(10):
-        K[m] = P[dMap[:, :] <= m].sum()
-    K = K * (1 / (my_lambda ** 2 * nuw)) - (1 / my_lambda)
-    k_sim = np.zeros((50, 10))
-
-    for t in range(50):
-        rand_m = np.random.permutation(mat)
-        rand_m_rev = rand_m[::-1, ::-1]
-        P_rand = signal.convolve2d(rand_m, rand_m_rev, mode='full')
-        K_rand = np.zeros((10))
-        for m in range(10):
-            K_rand[m] = P_rand[dMap[:, :] <= m].sum()
-        K_rand = K_rand * (1 / (my_lambda ** 2 * nuw)) - (1 / my_lambda)
-        k_sim[t, :] = K_rand
-    h_star = np.zeros((10, 1))
-    h = K
-    h_sim = k_sim
-    h_sim_sorted = np.sort(h_sim)
-    h_sim_sorted = np.sort(h_sim_sorted, axis=0)
-    synth95 = h_sim_sorted[int(round(0.95 * 50)), :]
-    synth50 = h_sim_sorted[int(round(0.5 * 50)), :]
-    synth5 = h_sim_sorted[int(round(0.05 * 50)), :]
-
-    # Compute delta between .95 percentile against .5 percentile
-    delta1 = synth95 - synth50
-
-    # Compute delta between .5 percentile against .05 percentile
-    delta2 = synth50 - synth5
-
-    inds = np.where(h == synth50)
-    h_star[inds[0], :] = 0
-    idx_sup = []
-    for i in range(10):
-        if h[i, 0] > synth50[i]:
-            idx_sup.append(i)
-    if len(idx_sup) > 0:
-        tmp = np.subtract(h[idx_sup, 0].astype(float), synth50[idx_sup].astype(float))
-        tmp = tmp / delta1[idx_sup]
-        h_star[idx_sup, 0] = tmp
-
-    idx_inf = []
-    for i in range(10):
-        if h[i, 0] < synth50[i]:
-            idx_inf.append(i)
-    if len(idx_inf) > 0:
-        tmp = np.subtract(synth50[idx_inf].astype(float), h[idx_inf, 0].astype(float))
-        tmp = - tmp / delta2[idx_inf]
-        h_star[idx_inf, 0] = tmp
-    h_star[h_star == - np.inf] = 0
-    h_star[h_star == np.inf] = 0
-    print(h_star.flatten())
-
 
 def clustering_index_random_measure(IF, cell_mask_3d):
     nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * constants.PIXELS_IN_SLICE
@@ -589,10 +509,9 @@ def clustering_index_point_process_2d(spots, cell_mask_2d,cell_radius):
 
 def clustering_index_point_process(spots, cell_mask_3d):
     n_spots = len(spots)
-
     # Nuw is the whole volume of the cell
     nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * constants.PIXELS_IN_SLICE
-
+    print (spots.shape)
     # spots volumic density
     my_lambda = float(n_spots) / float(nuw)
     k = ripley_k_point_process(spots, my_lambda, nuw, constants.MAX_CELL_RADIUS)
@@ -808,6 +727,92 @@ def prune_intensities(image,zero_level):
         vol_block[:, :, c_slice] = IF[c_slice,:,:]
     return vol_block
 
+
+'''
+
+def build_simulated_h_star():
+    df = pandas.read_csv('/home/ben/PycharmProjects/dypfish_git/python_version/analysis/analysis_degree_of_clustering/data/matrix.csv', index_col=None, header=None)
+    nuw = 100
+    mat = np.matrix(df)
+    print(mat.sum())
+    my_lambda = float(mat.sum()) / float(100)
+    dMap = np.zeros((10 * 2 - 1, 10 * 2 - 1))
+    for x in range(10 * 2 - 1):
+        for y in range(10 * 2 - 1):
+            d = (x - 10) ** 2 + (y - 10) ** 2;
+            dMap[x, y] = math.sqrt(d)
+    print(dMap)
+    sig = np.random.randn(1000,10,10,10)
+    print(sig[0,0,0])
+
+    print(mat)
+    plt.imshow(mat)
+    plt.show()
+    mat_rev = mat[::-1, ::-1]
+    plt.imshow(mat_rev)
+    plt.show()
+    P = signal.convolve2d(mat, mat_rev, mode='full')
+    P3D=signal.fftconvolve(mat,mat_rev,mode='full')
+
+    print(P3D)
+    print(P)
+    plt.imshow(P)
+    plt.show()
+    K = np.zeros((10, 1))
+    for m in range(10):
+        K[m] = P[dMap[:, :] <= m].sum()
+    K = K * (1 / (my_lambda ** 2 * nuw)) - (1 / my_lambda)
+    k_sim = np.zeros((50, 10))
+
+    for t in range(50):
+        rand_m = np.random.permutation(mat)
+        rand_m_rev = rand_m[::-1, ::-1]
+        P_rand = signal.convolve2d(rand_m, rand_m_rev, mode='full')
+        K_rand = np.zeros((10))
+        for m in range(10):
+            K_rand[m] = P_rand[dMap[:, :] <= m].sum()
+        K_rand = K_rand * (1 / (my_lambda ** 2 * nuw)) - (1 / my_lambda)
+        k_sim[t, :] = K_rand
+    h_star = np.zeros((10, 1))
+    h = K
+    h_sim = k_sim
+    h_sim_sorted = np.sort(h_sim)
+    h_sim_sorted = np.sort(h_sim_sorted, axis=0)
+    synth95 = h_sim_sorted[int(round(0.95 * 50)), :]
+    synth50 = h_sim_sorted[int(round(0.5 * 50)), :]
+    synth5 = h_sim_sorted[int(round(0.05 * 50)), :]
+
+    # Compute delta between .95 percentile against .5 percentile
+    delta1 = synth95 - synth50
+
+    # Compute delta between .5 percentile against .05 percentile
+    delta2 = synth50 - synth5
+
+    inds = np.where(h == synth50)
+    h_star[inds[0], :] = 0
+    idx_sup = []
+    for i in range(10):
+        if h[i, 0] > synth50[i]:
+            idx_sup.append(i)
+    if len(idx_sup) > 0:
+        tmp = np.subtract(h[idx_sup, 0].astype(float), synth50[idx_sup].astype(float))
+        tmp = tmp / delta1[idx_sup]
+        h_star[idx_sup, 0] = tmp
+
+    idx_inf = []
+    for i in range(10):
+        if h[i, 0] < synth50[i]:
+            idx_inf.append(i)
+    if len(idx_inf) > 0:
+        tmp = np.subtract(synth50[idx_inf].astype(float), h[idx_inf, 0].astype(float))
+        tmp = - tmp / delta2[idx_inf]
+        h_star[idx_inf, 0] = tmp
+    h_star[h_star == - np.inf] = 0
+    h_star[h_star == np.inf] = 0
+    print(h_star.flatten())
+
+
+
 def autolabel(rects,ax):
     """
     Attach a text label above each bar displaying its height
@@ -822,3 +827,4 @@ def autolabel(rects,ax):
 
 
 
+'''
