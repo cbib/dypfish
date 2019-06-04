@@ -248,6 +248,38 @@ def set_nucleus_area(file_handler, output_file_handler, image):
     output_file_handler[image].attrs['nucleus_area'] = area
 
 
+from threading import Thread
+
+class Preprocess(Thread):
+
+    def __init__(self, img_list):
+        Thread.__init__(self)
+        self.img_list = img_list
+
+    def run(self):
+        for image in self.img_list:
+            print("Computing descriptors for " + image)
+
+            '''UPDATE BASIC.H5'''
+            set_zero_level(input_file_handler, image, path.raw_data_dir)
+
+            '''PREPROCESS'''
+            set_cell_mask_distance_map(input_file_handler, output_file_handler, image)
+            if 'mrna' in image:
+                set_3d_spots(input_file_handler, image)
+                set_spots_peripheral_distance(input_file_handler, output_file_handler, image)
+                set_spots_peripheral_distance_2D(input_file_handler, output_file_handler, image)
+            set_cell_area(input_file_handler, output_file_handler, image)
+            set_nucleus_area(input_file_handler, output_file_handler, image)
+            '''PREPROCESS'''
+
+            if 'mrna' in image:
+                set_h_star_mrna(input_file_handler, output_file_handler, image)
+            elif 'protein' in image:
+                set_h_star_protein(input_file_handler, output_file_handler, image)
+
+
+
 if __name__ == "__main__":
 
 
@@ -263,266 +295,14 @@ if __name__ == "__main__":
                                                                           "a") as output_file_handler:
 
         for molecule_type in (['mrna'], ['protein']):
-        #for molecule_type in ( [['protein']]):
-
+            THREAD_NUM = 4
+            thread_list = []
             image_list = helps.preprocess_image_list(input_file_handler, molecule_type)
-            for image in image_list:
-                print("Computing descriptors for " + image)
-                #if image != '/protein/arhgdia/2h/1':
-                #    continue
+            for sub_list in np.array_split(image_list, THREAD_NUM):
+                thread_list.append(Preprocess(sub_list))
 
-                '''UPDATE BASIC.H5'''
-                set_zero_level(input_file_handler, image, path.raw_data_dir)
+            for thread in thread_list:
+                thread.start()
 
-                '''PREPROCESS'''
-                set_cell_mask_distance_map(input_file_handler, output_file_handler, image)
-                if 'mrna' in image:
-                    set_3d_spots(input_file_handler, image)
-                    set_spots_peripheral_distance(input_file_handler, output_file_handler, image)
-                    set_spots_peripheral_distance_2D(input_file_handler, output_file_handler, image)
-                set_cell_area(input_file_handler, output_file_handler, image)
-                set_nucleus_area(input_file_handler, output_file_handler, image)
-                '''PREPROCESS'''
-                #set_cell_mask_distance_map(input_file_handler, output_file_handler, image)
-
-                if 'mrna' in image:
-                    set_h_star_mrna(input_file_handler, output_file_handler, image)
-                    #set_spots_peripheral_distance_2D(input_file_handler, output_file_handler, image)
-                elif 'protein' in image:
-                    set_h_star_protein(input_file_handler, output_file_handler, image)
-                #set_cell_area(input_file_handler, output_file_handler, image)
-                #set_nucleus_area(input_file_handler, output_file_handler, image)
-
-
-
-
-
-from threading import Thread
-import random
-import sys
-from threading import Thread
-import time
-
-class Preprocess(Thread):
-
-    def __init__(self, img_list):
-        Thread.__init__(self)
-        self.img_list = img_list
-
-    def run(self):
-        i = 0
-        while i < 20:
-            sys.stdout.write(self.lettre)
-            sys.stdout.flush()
-            attente = 0.2
-            attente += random.randint(1, 60) / 100
-            time.sleep(attente)
-            i += 1
-
-
-'''Zero level computation'''
-'''
-def add_zero_level(raw_data_dir,file_handler,image_list):
-    def set_zero_level(file_handler, image, tubulin_image_path):
-        molecule, gene, timepoint, number = image.split("/")
-        tubulin_image_path = raw_data_dir+gene+'/'+molecule+'_'+timepoint+"/image_"+number+"/tubulin.tif"
-
-        image_stacked = io.imread(tubulin_image_path, plugin='tifffile')
-        print(image_stacked.shape)
-
-        z_size, x_size, y_size = image_stacked.shape
-        sums = np.zeros((z_size, 1))
-        for n in range(z_size):
-            slice = image_stacked[n, :, :]
-            sums[n] = slice.sum()
-        file_handler[image].attrs['zero_level'] = sums.argmax()
-
-    for image in image_list:
-        print("computing basic descriptor zero level for " + image)
-        #image_folder=image.split("/")[3].split("_")[0]+'_'+image.split("/")[3].split("_")[1]
-        #logger.info(image_folder)
-        molecule, gene, timepoint, number = image.split("/")
-        #arhgdia/mrna_2h/image_1
-
-        tubulin_image_path = raw_data_dir+gene+'/'+molecule+'_'+timepoint+"/image_"+number+"/tubulin.tif"
-        logger.info(tubulin_image_path)
-        set_zero_level(file_handler, image, tubulin_image_path)
-'''
-
-
-'''
-    ## Start Analysis
-
-    with h5py.File(basic_file_path, "r") as input_file_handler, h5py.File(secondary_file_path,
-                                                                          "a") as output_file_handler:
-
-
-        #molecule_type = ['/protein']#or mrna
-        for molecule_type in (['/protein'], ['mrna']):
-            print (molecule_type)
-            image_list = helps.preprocess_image_list(input_file_handler, molecule_type)
-            for image in image_list:
-                print(image)
-                # output_file_handler.create_group(image)
-
-
-                print("Computing descriptors for " + image)
-                set_cell_mask_distance_map(input_file_handler, output_file_handler, image)
-                ## idsc.set_quadrants(input_file_handler,image)
-
-                if 'mrna' in image:
-                    #set_h_star_mrna(input_file_handler, output_file_handler, image)
-                    set_spots_peripheral_distance_2D(input_file_handler, output_file_handler, image)
-                #elif 'protein' in image:
-                #    set_h_star_protein(input_file_handler, output_file_handler, image)
-                set_cell_area(input_file_handler, output_file_handler, image)
-                set_nucleus_area(input_file_handler, output_file_handler, image)
-
-
-
-'''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # molecule_type = ['/mrna']
-    # #genes = ["arhgdia", "beta_actin", "gapdh", "pard3", "pkp4", "rab13"]
-    # genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
-    # timepoints = ["2h", "3h", "4h", "5h"]
-    # # degree of clustering
-    # dof = []
-    # base=math.log(0.5)
-    # mrna_median=[]
-    # mrna_err=[]
-    # for gene in genes:
-    #     print(gene)
-    #     image_list = helps.preprocess_image_list2(input_file_handler, molecule_type, gene)
-    #     dof=adsc.compute_degree_of_clustering(output_file_handler, image_list)
-    #     mrna_median.append(math.log(numpy.median(dof)))
-    #     err = numpy.median(numpy.abs(numpy.tile(numpy.median(dof), (1, len(dof))) - dof))
-    #     error_median=math.log(numpy.median(dof) + err)
-    #     error_median=error_median-math.log(numpy.median(dof))-base
-    #     print(error_median)
-    #     # print(math.log(numpy.median(dof)))
-    #     # print(error_median-math.log(numpy.median(dof)))
-    #     mrna_err.append(error_median)
-    #
-    # ## third technic
-    # fig = plt.figures()
-    # # ax = fig.add_subplot(111)
-    # ax = plt.axes()
-    # ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    #
-    # ## the data
-    # N = len(genes)
-    #
-    #
-    # ## necessary variables
-    # ind = numpy.arange(N)  # the x locations for the groups
-    # width = 0.35  # the width of the bars
-    # colors = ['blue', 'lightblue', 'lightgreen', 'orange', 'red', 'yellow']
-    # ## the bars
-    # rects1 = ax.bar(ind, mrna_median, width,
-    #                 color=colors,
-    #                 yerr=mrna_err,
-    #                 error_kw=dict(elinewidth=1, ecolor='black'))
-    #
-    # # axes and labels
-    # ax.set_xlim(-width, len(ind) + width)
-    # ax.set_ylim(0, 10)
-    # ax.set_ylabel('Degree of clustering(log)')
-    # ax.set_title('Mrna degree of clustering')
-    # xTickMarks = ["" for i in range(0, 6)]
-    # ax.set_xticks(ind)
-    # xtickNames = ax.set_xticklabels(xTickMarks)
-    # # plt.setp(xtickNames, rotation=90, fontsize=10)
-    #
-    # plt.legend([gene for gene in genes], loc='upper right')
-    # # ax.legend((rects1[0], rects1[1]), ('Men', 'Women'))
-    # ax.legend(rects1, genes)
-    # ## add a legend
-    # # ax.legend((rects1[0]), ('Men'))
-    #
-    # plt.show()
-    #
-    #
-    # molecule_type = ['/protein']
-    # genes = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-    # # genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
-    # timepoints = ["2h", "3h", "4h", "5h"]
-    # # degree of clustering
-    # dof = []
-    # protein_median = []
-    # protein_err = []
-    #
-    # for gene in genes:
-    #     image_list = helps.preprocess_image_list2(input_file_handler, molecule_type, gene)
-    #     dof = adsc.compute_degree_of_clustering(output_file_handler, image_list)
-    #     protein_median.append(math.log(numpy.median(dof)))
-    #     err = numpy.median(numpy.abs(numpy.tile(numpy.median(dof), (1, len(dof))) - dof))
-    #     protein_err.append(math.log(numpy.median(dof) + err)-math.log(numpy.median(dof))-base)
-    #
-    # ## third technic
-    # fig = plt.figures()
-    # # ax = fig.add_subplot(111)
-    # ax = plt.axes()
-    # ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    #
-    # ## the data
-    # N = len(genes)
-    #
-    # ## necessary variables
-    # ind = numpy.arange(N)  # the x locations for the groups
-    # width = 0.35  # the width of the bars
-    # colors = ['blue', 'lightblue', 'lightgreen', 'orange', 'red', 'yellow']
-    # ## the bars
-    # rects1 = ax.bar(ind, protein_median, width,
-    #                 color=colors,
-    #                 yerr=protein_err,
-    #                 error_kw=dict(elinewidth=1, ecolor='black'))
-    #
-    # # axes and labels
-    # ax.set_xlim(-width, len(ind) + width)
-    # ax.set_ylim(0, 10)
-    # ax.set_ylabel('Degree of clustering(log)')
-    # ax.set_title('Protein degree of clustering')
-    # xTickMarks = ["" for i in range(0, 6)]
-    # ax.set_xticks(ind)
-    # xtickNames = ax.set_xticklabels(xTickMarks)
-    # # plt.setp(xtickNames, rotation=90, fontsize=10)
-    #
-    # plt.legend([gene for gene in genes], loc='upper right')
-    # # ax.legend((rects1[0], rects1[1]), ('Men', 'Women'))
-    # ax.legend(rects1, genes)
-    # ## add a legend
-    # # ax.legend((rects1[0]), ('Men'))
-    #
-    # plt.show()
+            for thread in thread_list:
+                thread.join()

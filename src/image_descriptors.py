@@ -826,9 +826,6 @@ def compute_mrna_cytoplasmic_spread_2D(file_handler, image):
     return normalized_average_distance
 
 
-
-
-
 def compute_isoline_area(file_handler, output_file_handler, image):
     isoline_area = []
     periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
@@ -842,6 +839,7 @@ def compute_isoline_area(file_handler, output_file_handler, image):
         tmp_mask[(tmp_mask > i) & (tmp_mask <= 100)] = 1
         isoline_area.append(tmp_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2) + nucleus_area)
     return isoline_area
+
 
 def compute_cell_volume(file_handler,image):
     height_map=get_height_map(file_handler,image)
