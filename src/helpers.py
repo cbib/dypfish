@@ -312,8 +312,7 @@ def ripley_k_random_measure(IF,my_lambda,nuw,r_max):
     IF_2D=np.sum(IF,axis=2)
     IF_2D_rev = IF_2D[::-1,::-1]
     P=signal.convolve(IF_2D,IF_2D_rev)
-    plt.imshow(P)
-    plt.show()
+
 
     # distance map(dist from origin)
     dMap = np.zeros((512 * 2 - 1, 512 * 2 - 1))
@@ -321,14 +320,12 @@ def ripley_k_random_measure(IF,my_lambda,nuw,r_max):
         for y in range(512 * 2 - 1):
             d = (x - 512) ** 2 + (y - 512) ** 2;
             dMap[x, y] = math.sqrt(d)
-    plt.imshow(dMap)
-    plt.show()
+
 
     # sum convolution using dMap
     K = np.zeros((constants.MAX_CELL_RADIUS, 1))
     for m in range(constants.MAX_CELL_RADIUS):
         K[m] = P[dMap[:,:] <= m].sum()
-        print(K[m])
     K = K * (1 / (my_lambda ** 2 * nuw)) - (1 / my_lambda )
     return K
 
@@ -350,9 +347,7 @@ def ripley_k_point_process_2d(spots, my_lambda, nuw, r_max):
 
             for m in range(r_max):
                 K[m] = K[m] + ds[ds <= m].sum()
-    print(K)
     K = K * (1 / (my_lambda**2 * nuw))
-    print(K)
     return K
 
 def ripley_k_point_process(spots, my_lambda, nuw, r_max):
@@ -388,7 +383,7 @@ def clustering_index_random_measure(IF, cell_mask_3d):
     # simulate n list of random spots and run ripley_k
     indsAll = np.where(cell_mask_3d[:, :, :] == 1)
     for t in range(constants.RIPLEY_K_SIMULATION_NUMBER):
-        print('simulation ', t)
+        #print('simulation ', t)
         inds_permuted = np.random.permutation(range(len(indsAll[0])))
         I_samp=np.zeros(IF.shape)
         for u in range(len(inds_permuted)):
@@ -458,7 +453,7 @@ def clustering_index_point_process_2d(spots, cell_mask_2d,cell_radius):
     #simulate n list of random spots and run ripley_k
     indsAll = np.where(cell_mask_2d[:, :] == 1)
     for t in range(constants.RIPLEY_K_SIMULATION_NUMBER):
-        print("simulation" + str(t))
+        #print("simulation" + str(t))
         inds_permuted = np.random.permutation(range(len(indsAll[0])))
         indsT = inds_permuted[0:n_spots]
         spots_random = np.zeros(spots.shape)
@@ -511,7 +506,7 @@ def clustering_index_point_process(spots, cell_mask_3d):
     n_spots = len(spots)
     # Nuw is the whole volume of the cell
     nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * constants.PIXELS_IN_SLICE
-    print (spots.shape)
+    #print (spots.shape)
     # spots volumic density
     my_lambda = float(n_spots) / float(nuw)
     k = ripley_k_point_process(spots, my_lambda, nuw, constants.MAX_CELL_RADIUS)
@@ -520,7 +515,7 @@ def clustering_index_point_process(spots, cell_mask_3d):
     #simulate n list of random spots and run ripley_k
     indsAll = np.where(cell_mask_3d[:, :, :] == 1)
     for t in range(constants.RIPLEY_K_SIMULATION_NUMBER):
-        print("simulation"+str(t))
+        #print("simulation"+str(t))
         inds_permuted = np.random.permutation(range(len(indsAll[0])))
         indsT = inds_permuted[0:n_spots]
         spots_random = np.zeros(spots.shape)
@@ -567,7 +562,7 @@ def clustering_index_point_process(spots, cell_mask_3d):
         h_star[idx_inf, 0] = tmp
     h_star[h_star == - np.inf] = 0
     h_star[h_star == np.inf] = 0
-    print(h_star)
+    #print(h_star)
     return h_star
 
 
@@ -594,6 +589,87 @@ def rotate_meshgrid(xx, yy, radians=0):
     R = np.array([[np.cos(radians), np.sin(radians)],
                   [-np.sin(radians), np.cos(radians)]])
     return np.einsum('ji, mni -> jmn', R, np.dstack([xx, yy]))
+
+
+
+
+def sign(point1, point2, point3):
+    s = (point1[0] - point3[0]) * (point2[1] - point3[1]) - (point2[0] - point3[0]) * (point1[1] - point3[1])
+    return s
+
+def find_nearest(array, value):
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
+
+def prune_intensities(image,zero_level):
+    IF_image_path = path.raw_data_dir + '/' + image.split('/')[2] + '/' + image.split('/')[1] + '_' + \
+                         image.split('/')[3] + '/image_' + image.split('/')[4] + '/IF.tif'
+    IF = io.imread(IF_image_path, plugin='tifffile')
+    vol_block = np.zeros((512, 512, zero_level))
+    for c_slice in range(0, zero_level):
+        vol_block[:, :, c_slice] = IF[c_slice,:,:]
+    return vol_block
+
+
+'''
+
+def load_data(username, pwd, type, output_dir=path.analysis_data_dir):
+    command = ' sh ../../scripts/import_data.sh ' + username + ' '+ pwd +' '+ type + ' '+ output_dir
+    if os.system(command)==0:
+        return True
+    else:
+        return False
+
+def md5sum(filename, blocksize=65536):
+    hash = hashlib.md5()
+    with open(filename, "rb") as f:
+        for block in iter(lambda: f.read(blocksize), b""):
+            hash.update(block)
+    return hash.hexdigest()
+
+def check_file_integrity(h5_file_path,md5_sum_fpath):
+    new=md5sum(h5_file_path)
+    if os.path.isfile(md5_sum_fpath):
+        f = open(md5_sum_fpath, 'r')
+        old=f.read()
+        print(new,old)
+        return new == old
+    else:
+        return False
+
+
+def check_file_presence(file_path):
+    return os.path.isfile(file_path)
+
+
+def create_md5_sum_file(basic_file_path, md5_file_path):
+    md5=md5sum(basic_file_path)
+    f = open(md5_file_path, 'w')
+    f.write(md5)
+
+
+def check_data(file_path, filename, username, pwd):
+    load=False
+    data_loaded=False
+    md5sum_path = path.analysis_data_dir + filename+'.md5'
+    print(md5sum_path)
+    if check_file_presence(file_path):
+        if check_file_integrity(file_path, md5sum_path):
+            load = False
+        else:
+            print("file is corrupted, file will be removed and reload")
+            os.remove(file_path)
+            load = True
+    else:
+        load = True
+
+    if load:
+        # Run load data to invoke import_h5.sh script that upload basic descriptors file,
+        # need to pass username and password for ssh connection
+        data_loaded = load_data(username, pwd, desc_type)
+    return data_loaded
+
 
 
 # Compute  the intersection of line (pt1, pt2) and line (ptA, ptB)
@@ -651,84 +727,6 @@ def borders_intersect(point1, point2):
     valid_points = points[mask, :]
     assert (len(valid_points[:, [0, 1]]) == 2), 'Wrong number of intersections %r' % len(valid_points[:, [0, 1]])
     return valid_points[:, [0, 1]]
-
-def sign(point1, point2, point3):
-    s = (point1[0] - point3[0]) * (point2[1] - point3[1]) - (point2[0] - point3[0]) * (point1[1] - point3[1])
-    return s
-
-def find_nearest(array, value):
-    idx = (np.abs(array - value)).argmin()
-    return idx
-
-def load_data(username, pwd, type, output_dir=path.analysis_data_dir):
-    command = ' sh ../../scripts/import_data.sh ' + username + ' '+ pwd +' '+ type + ' '+ output_dir
-    if os.system(command)==0:
-        return True
-    else:
-        return False
-
-def md5sum(filename, blocksize=65536):
-    hash = hashlib.md5()
-    with open(filename, "rb") as f:
-        for block in iter(lambda: f.read(blocksize), b""):
-            hash.update(block)
-    return hash.hexdigest()
-
-
-def check_file_integrity(h5_file_path,md5_sum_fpath):
-    new=md5sum(h5_file_path)
-    if os.path.isfile(md5_sum_fpath):
-        f = open(md5_sum_fpath, 'r')
-        old=f.read()
-        print(new,old)
-        return new == old
-    else:
-        return False
-
-
-def check_file_presence(file_path):
-    return os.path.isfile(file_path)
-
-
-def create_md5_sum_file(basic_file_path, md5_file_path):
-    md5=md5sum(basic_file_path)
-    f = open(md5_file_path, 'w')
-    f.write(md5)
-
-
-def check_data(file_path, filename, username, pwd):
-    load=False
-    data_loaded=False
-    md5sum_path = path.analysis_data_dir + filename+'.md5'
-    print(md5sum_path)
-    if check_file_presence(file_path):
-        if check_file_integrity(file_path, md5sum_path):
-            load = False
-        else:
-            print("file is corrupted, file will be removed and reload")
-            os.remove(file_path)
-            load = True
-    else:
-        load = True
-
-    if load:
-        # Run load data to invoke import_h5.sh script that upload basic descriptors file,
-        # need to pass username and password for ssh connection
-        data_loaded = load_data(username, pwd, desc_type)
-    return data_loaded
-
-
-def prune_intensities(image,zero_level):
-    IF_image_path = path.raw_data_dir + '/' + image.split('/')[2] + '/' + image.split('/')[1] + '_' + \
-                         image.split('/')[3] + '/image_' + image.split('/')[4] + '/IF.tif'
-    IF = io.imread(IF_image_path, plugin='tifffile')
-    vol_block = np.zeros((512, 512, zero_level))
-    for c_slice in range(0, zero_level):
-        vol_block[:, :, c_slice] = IF[c_slice,:,:]
-    return vol_block
-
-
-'''
 
 def build_simulated_h_star():
     df = pandas.read_csv('/home/ben/PycharmProjects/dypfish_git/python_version/analysis/analysis_degree_of_clustering/data/matrix.csv', index_col=None, header=None)

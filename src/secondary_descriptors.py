@@ -26,7 +26,6 @@ def compute_cell_mask_3d(file_handler,image):
    reversed_height_map = zero_level-height_map+1
 
    # Create binary cell masks per slice
-   print ('zero_level', zero_level.shape)
 
    cell_masks = np.zeros((512,512,zero_level))
 
@@ -44,25 +43,16 @@ def set_h_star_mrna(file_handler, output_file_handler, image):
 
     H_star = get_h_star(file_handler, image)
     assert (not H_star.size), 'H_star already defined for %r' % image
-    # get descriptors
 
+    # get descriptors
     spots = get_spots(file_handler, image)
 
-    '''
-    cell_mask_3d=compute_cell_mask_3d(file_handler,image)
-    if cell_mask_3d is None:
-        print("[set_h_star_mrna] : Skipping hstar")
-        return False
-    '''
     cell_mask_3d = compute_cell_mask_3d(file_handler, image)
     if cell_mask_3d is None:
         print("[set_h_star_mrna] : Skipping hstar")
         return False
-    #print(cell_mask_3d)
-    #spots[:, 2]=spots[:, 2]
-    h_star=helps.clustering_index_point_process_2d(spots, cell_mask_3d)
-    #h_star=helps.clustering_index_point_process(spots, cell_mask_3d)
-
+    #h_star=helps.clustering_index_point_process_2d(spots, cell_mask_3d)
+    h_star=helps.clustering_index_point_process(spots, cell_mask_3d)
     descriptor = image + '/h_star'
     #output_file_handler[descriptor][:] = h_star
     output_file_handler.create_dataset(descriptor, data=h_star, dtype=np.float32)
@@ -71,8 +61,8 @@ def set_h_star_mrna(file_handler, output_file_handler, image):
 def set_h_star_protein(file_handler, output_file_handler, image):
 
     def prune_intensities(image, zero_level):
-        IF_image_path = path.raw_data_dir + '/' + image.split('/')[2] + '/' + image.split('/')[1] + '_' + \
-                        image.split('/')[3] + '/image_' + image.split('/')[4] + '/IF.tif'
+        molecule, gene, timepoint, number = image.split("/")
+        IF_image_path = path.raw_data_dir + gene + '/' + molecule + '_' + timepoint + "/image_" + number + '/IF.tif'
         IF = io.imread(IF_image_path, plugin='tifffile')
 
         vol_block = np.zeros((512, 512, zero_level))
@@ -100,11 +90,19 @@ def set_zero_level(file_handler, image, raw_data_dir):
 
     image_stacked = io.imread(tubulin_image_path, plugin='tifffile')
     #print(image_stacked.shape)
+    '''
     if len(image_stacked.shape)  == 2: #only one stack of image
         x_size, y_size = image_stacked.shape
         z_size = 1
     else:
         z_size, x_size, y_size = image_stacked.shape
+    '''
+    if len(image_stacked.shape) == 2:  # TODO find a way to make things generic here by adapting to both 2d and 3d cases
+        print ("This image is not a 3D one, removing it from basic.h5 to prevent further compatibility issues")
+        del file_handler[image]
+        return
+    z_size, x_size, y_size = image_stacked.shape
+
     #print(z_size, x_size, y_size)
     sums = np.zeros((z_size, 1))
     for n in range(z_size):
@@ -113,90 +111,15 @@ def set_zero_level(file_handler, image, raw_data_dir):
     file_handler[image].attrs['zero_level'] = sums.argmax()
 
 
-    
-'''spot peripheral distance 2D et 3D computation'''
-def set_spots_peripheral_distance_2D(file_handler, output_file_handler, image):
-    spots_peripheral_distance_2D = get_spots_peripheral_distance_2D(output_file_handler, image)
-    assert (not spots_peripheral_distance_2D.size), 'spots_peripheral_distance 2D already defined for %r' % image
-    spots = get_spots(file_handler, image)
-    if len(spots) == 0:
+def set_3d_spots(file_handler, image):
+    if file_handler[image]['spots'].shape[1] == 3:
         return
-    nucleus_mask = get_nucleus_mask(file_handler, image)
+    spots_3d = []
+    for spot in file_handler[image]['spots']:
+        spots_3d.append((spot[0],spot[1], file_handler[image]['height_map'][spot[0],spot[1]]))
 
-    cell_mask = get_cell_mask(file_handler, image)
-    periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
-    # plt.imshow(periph_dist_map)
-    # plt.show()
-    spots_peripheral_distance_2D = []
-    for spot in spots:
-
-        if nucleus_mask[spot[1],spot[0]]==0:
-            if cell_mask[spot[1],spot[0]]==1 and periph_dist_map[spot[1],spot[0]] ==0:
-                #print(periph_dist_map[spot[1], spot[0]])
-                spots_peripheral_distance_2D.append(int(1))
-            else:
-                spots_peripheral_distance_2D.append(periph_dist_map[spot[1], spot[0]])
-    #print(spots_peripheral_distance_2D)
-
-    descriptor = image + '/spots_peripheral_distance_2D'
-    #file_handler[descriptor][:]=spots_peripheral_distance_2D
-    output_file_handler.create_dataset(descriptor, data=spots_peripheral_distance_2D, dtype=np.uint8)
-
-def set_spots_peripheral_distance(file_handler, output_file_handler, image):
-    spots_peripheral_distance = get_spots_peripheral_distance(output_file_handler, image)
-    assert (not spots_peripheral_distance.size), 'spots_peripheral_distance already defined for %r' % image
-    spots = get_spots(file_handler, image)
-    if len(spots)==0:
-        return
-    height_map = get_height_map(file_handler, image)
-    #nucleus_mask = get_nucleus_mask(file_handler, image)
-    zero_level = get_zero_level(file_handler, image)
-    periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
-    spots_peripheral_distance = []
-
-
-    for n in range(zero_level, -1, -1):
-        height_map_copy = np.array(height_map, copy=True)
-        height_map_copy[height_map >= zero_level + 1 - n] = 1
-
-        slice_area = height_map_copy[height_map_copy == 1].sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)
-        isoline_area = compute_isoline_area(file_handler, output_file_handler, image)
-        test_index = helps.find_nearest(isoline_area, slice_area)
-        spots_in_slice = spots[np.around(spots[:, 2]) == n]
-        for j in range(len(spots_in_slice)):
-            if is_in_cytoplasm(file_handler, image, [spots_in_slice[j][1], spots_in_slice[j][0]]):
-
-
-
-                old_periph_distance = periph_dist_map[spots_in_slice[j][1], spots_in_slice[j][0]]
-
-                if old_periph_distance < test_index:
-                    old_periph_distance = test_index
-                if old_periph_distance == 100:
-                    test_index = 0
-                max_periph_tubulin = 100 - test_index
-                new_periph_distance = (old_periph_distance - (100 - max_periph_tubulin)) * (100.0 / max_periph_tubulin)
-
-                if np.around(new_periph_distance) == 0.0:
-                    spots_peripheral_distance.append(int(1))
-
-                else:
-                    spots_peripheral_distance.append(int(np.around(new_periph_distance)))
-
-
-                # plt.imshow(height_map_copy, cmap='hot')
-                # plt.scatter(spots_in_slice[j, 0], spots_in_slice[j, 1], color='blue', marker="o", facecolors='none',
-                #             linewidths=0.5)
-                # contours = measure.find_contours(nucleus_mask, 0.8)
-                # for n, contour in enumerate(contours):
-                #     plt.plot(contour[:, 1], contour[:, 0], color='red', linewidth=2)
-                # plt.show()
-
-    descriptor = image + '/spots_peripheral_distance'
-    #file_handler[descriptor][:]=spots_peripheral_distance
-
-    output_file_handler.create_dataset(descriptor, data=spots_peripheral_distance, dtype=np.uint8)
-
+    del file_handler[image]['spots']
+    file_handler.create_dataset(image+'/spots', data=spots_3d, dtype=np.float32)
 
 
 '''Cell mask distance map computation'''
@@ -272,7 +195,7 @@ def set_cell_mask_distance_map(file_handler, output_file_handler, image):
     contour_points = np.zeros((360, 100, 2))
     cytoplasm_mask = (cell_mask == 1) & (nucleus_mask == 0)
 
-    print(nucleus_centroid)
+    #print(nucleus_centroid)
 
     # for each degree, analyse the line segment between the nucleus and the periphery
     for degree in range(360):
@@ -339,34 +262,62 @@ if __name__ == "__main__":
     with h5py.File(basic_file_path, "a") as input_file_handler, h5py.File(secondary_file_path,
                                                                           "a") as output_file_handler:
 
+        for molecule_type in (['mrna'], ['protein']):
+        #for molecule_type in ( [['protein']]):
 
-        #molecule_type = ['/protein']#or mrna
-        #for molecule_type in (['/protein'], ['mrna']):
-        for molecule_type in (['mrna'], ['/protein']):
-        #for molecule_type in (['mrna']):
-            print (molecule_type)
             image_list = helps.preprocess_image_list(input_file_handler, molecule_type)
-            #add_zero_level(path.raw_data_dir, input_file_handler, image_list)
             for image in image_list:
-                print("image",image)
-                if image != 'mrna/pkp4/5h/17':
-                    continue
+                print("Computing descriptors for " + image)
+                #if image != '/protein/arhgdia/2h/1':
+                #    continue
+
+                '''UPDATE BASIC.H5'''
                 set_zero_level(input_file_handler, image, path.raw_data_dir)
 
-                print("Computing descriptors for " + image)
+                '''PREPROCESS'''
                 set_cell_mask_distance_map(input_file_handler, output_file_handler, image)
+                if 'mrna' in image:
+                    set_3d_spots(input_file_handler, image)
+                    set_spots_peripheral_distance(input_file_handler, output_file_handler, image)
+                    set_spots_peripheral_distance_2D(input_file_handler, output_file_handler, image)
+                set_cell_area(input_file_handler, output_file_handler, image)
+                set_nucleus_area(input_file_handler, output_file_handler, image)
+                '''PREPROCESS'''
+                #set_cell_mask_distance_map(input_file_handler, output_file_handler, image)
 
                 if 'mrna' in image:
-                    #set_zero_level(output_file_handler, image, tubulin_image_path)
                     set_h_star_mrna(input_file_handler, output_file_handler, image)
                     #set_spots_peripheral_distance_2D(input_file_handler, output_file_handler, image)
-                #elif 'protein' in image:
-                #    set_h_star_protein(input_file_handler, output_file_handler, image)
+                elif 'protein' in image:
+                    set_h_star_protein(input_file_handler, output_file_handler, image)
                 #set_cell_area(input_file_handler, output_file_handler, image)
                 #set_nucleus_area(input_file_handler, output_file_handler, image)
 
 
 
+
+
+from threading import Thread
+import random
+import sys
+from threading import Thread
+import time
+
+class Preprocess(Thread):
+
+    def __init__(self, img_list):
+        Thread.__init__(self)
+        self.img_list = img_list
+
+    def run(self):
+        i = 0
+        while i < 20:
+            sys.stdout.write(self.lettre)
+            sys.stdout.flush()
+            attente = 0.2
+            attente += random.randint(1, 60) / 100
+            time.sleep(attente)
+            i += 1
 
 
 '''Zero level computation'''

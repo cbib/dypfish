@@ -4,7 +4,6 @@
 from __future__ import print_function
 from __future__ import print_function
 from helpers import *
-#np.set_printoptions(threshold=np.nan)
 import logging
 import sys
 
@@ -163,21 +162,6 @@ def get_cell_mask_distance_map(file_handler, image):
     cell_mask_distance_map = np.array(file_handler[descriptor])
     return cell_mask_distance_map
 
-def compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points):
-    cell_mask_distance_map = np.zeros((512, 512), dtype=np.int)
-    for index in range(constants.NUM_CONTOURS):
-        if index == 0:
-            peripheral_mask = nucleus_mask
-        else:
-            contour_num = constants.NUM_CONTOURS - index
-            peripheral_mask = create_mask(contour_points[:, contour_num, 1], contour_points[:, contour_num, 0],
-                                          (512, 512))
-            peripheral_mask &= cytoplasm_mask
-        cell_mask_distance_map[(peripheral_mask == 1)] = index +1
-
-    cell_mask_distance_map[(cytoplasm_mask == 0)] = 0
-    return cell_mask_distance_map
-
 
 # Given the nucleus and cytoplasm mask and x, y slopes of a line, compute the segment
 # of the line that falls withing the nucleus and the segment that falls within the cytoplasm
@@ -213,34 +197,10 @@ def compute_edge_points(nucleus_segment, cytoplasm_segment):
     return nucleus_edge_point, cytoplasm_edge_point
 
 
-
-
-def add100(cytoplasm_mask,tup):
-    tup=tuple(tup)
-    return cytoplasm_mask[tup[0],tup[1]]
-
-def f2(x, y):
-    return np.exp(-0.5 * np.abs(x - y))
-
+'''
 def f(x, y, nuc_centroid):
     return x*y + nuc_centroid
-
-def f5(x, y):
-    return x*y
-
-def f4(x, y, nuc_centroidx,nuc_centroidy):
-    a=x*y + nuc_centroidx
-    b=x*y + nuc_centroidy
-    return [a,b]
-
-def f3(x, y, test,cyt):
-    print(x.flatten())
-    print(y.flatten())
-    print(test[x,y,0])
-    if not (test[x,y,0] < 0 or test[x,y,0] > 511 or test[x,y,1] < 0 or test[x,y,1] > 511):
-        return cyt[test[x,y,1],test[x,y,0]]
-
-
+'''
 
 
 def set_height_map(file_handler, image, tubulin_image_path):
@@ -304,35 +264,6 @@ def set_height_map(file_handler, image, tubulin_image_path):
     plt.show()
 
 
-# Create a map with concentric isolines subdividing the cytoplasm into slices NUM_CONTOURS
-# Each isoline is built by constructing a polygone from 360 points (one point per degree)
-def set_cell_mask_distance_map(file_handler, output_file_handler, image):
-    cell_mask_distance_map = get_cell_mask_distance_map(file_handler, image)
-    assert (not cell_mask_distance_map.size), 'cell_mask_distance_map already defined for %r' % image
-    cell_mask = get_cell_mask(file_handler, image).astype(int)
-    nucleus_mask = get_nucleus_mask(file_handler, image).astype(int)
-    nucleus_centroid = get_nucleus_centroid(file_handler, image).transpose()
-    contour_points = np.zeros((360, 100, 2))
-    cytoplasm_mask = (cell_mask == 1) & (nucleus_mask == 0)
-
-    # for each degree, analyse the line segment between the nucleus and the periphery
-    for degree in range(360):
-        angle = degree * 2 * math.pi / 360
-        x_slope, y_slope = math.sin(angle), math.cos(angle)
-        nucleus_segment, cytoplasm_segment = compute_line_segments(nucleus_mask, cytoplasm_mask, nucleus_centroid,
-                                                                   x_slope, y_slope)
-        nucleus_edge_point, cytoplasm_edge_point = compute_edge_points(nucleus_segment, cytoplasm_segment)
-        segment_length = cytoplasm_edge_point - nucleus_edge_point
-        for index in range(constants.NUM_CONTOURS):
-            point = nucleus_edge_point + segment_length * index / constants.NUM_CONTOURS
-            x = int(round(nucleus_centroid[0] + point * x_slope))
-            y = int(round(nucleus_centroid[1] + point * y_slope))
-            contour_points[degree, index, :] = [x, y]
-
-    cell_mask_distance_map = compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points)
-    descriptor = image + '/cell_mask_distance_map'
-    output_file_handler.create_dataset(descriptor, data=cell_mask_distance_map, dtype=np.int)
-
 def get_peripheral_distance(file_handler, image):
     descriptor = image + '/peripheral_distance'
     if descriptor not in file_handler:
@@ -382,6 +313,8 @@ def set_protein_peripheral_distance(file_handler, output_file_handler, image):
         test_index = find_nearest(isoline_area, slice_area)
         prot_in_slice = spots[np.around(spots[:, 2]) == n]
 
+
+'''spot peripheral distance 2D et 3D computation'''
 def set_spots_peripheral_distance_2D(file_handler, output_file_handler, image):
     spots_peripheral_distance_2D = get_spots_peripheral_distance_2D(output_file_handler, image)
     assert (not spots_peripheral_distance_2D.size), 'spots_peripheral_distance 2D already defined for %r' % image
@@ -389,17 +322,21 @@ def set_spots_peripheral_distance_2D(file_handler, output_file_handler, image):
     if len(spots) == 0:
         return
     nucleus_mask = get_nucleus_mask(file_handler, image)
+
     cell_mask = get_cell_mask(file_handler, image)
     periph_dist_map = get_cell_mask_distance_map(output_file_handler, image)
     spots_peripheral_distance_2D = []
     for spot in spots:
+
         if nucleus_mask[spot[1],spot[0]]==0:
             if cell_mask[spot[1],spot[0]]==1 and periph_dist_map[spot[1],spot[0]] ==0:
                 spots_peripheral_distance_2D.append(int(1))
             else:
                 spots_peripheral_distance_2D.append(periph_dist_map[spot[1], spot[0]])
+
     descriptor = image + '/spots_peripheral_distance_2D'
     output_file_handler.create_dataset(descriptor, data=spots_peripheral_distance_2D, dtype=np.uint8)
+
 
 def set_spots_peripheral_distance(file_handler, output_file_handler, image):
     spots_peripheral_distance = get_spots_peripheral_distance(output_file_handler, image)
@@ -610,32 +547,7 @@ def search_mrna_quadrants(file_handler, image):
     return spot_by_quad
 
 
-# Create a map with concentric isolines subdividing the cytoplasm into slices NUM_CONTOURS
-# Each isoline is built by constructing a polygone from 360 points (one point per degree)
-def set_cell_mask_distance_map(file_handler, output_file_handler, image):
-    cell_mask_distance_map = get_cell_mask_distance_map(file_handler, image)
-    assert (not cell_mask_distance_map.size), 'cell_mask_distance_map already defined for %r' % image
-    cell_mask = get_cell_mask(file_handler, image).astype(int)
-    nucleus_mask = get_nucleus_mask(file_handler, image).astype(int)
-    nucleus_centroid = get_nucleus_centroid(file_handler, image).transpose()
-    contour_points = np.zeros((360, 100, 2))
-    cytoplasm_mask = (cell_mask == 1) & (nucleus_mask == 0)
-    # for each degree, analyse the line segment between the nucleus and the periphery
-    for degree in range(360):
-        angle = degree * 2 * math.pi / 360
-        x_slope, y_slope = math.sin(angle), math.cos(angle)
-        nucleus_segment, cytoplasm_segment = compute_line_segments(nucleus_mask, cytoplasm_mask, nucleus_centroid,
-                                                                   x_slope, y_slope)
-        nucleus_edge_point, cytoplasm_edge_point = compute_edge_points(nucleus_segment, cytoplasm_segment)
-        segment_length = cytoplasm_edge_point - nucleus_edge_point
-        for index in range(constants.NUM_CONTOURS):
-            point = nucleus_edge_point + segment_length * index / constants.NUM_CONTOURS
-            x = int(round(nucleus_centroid[0] + point * x_slope))
-            y = int(round(nucleus_centroid[1] + point * y_slope))
-            contour_points[degree, index, :] = [x, y]
-    cell_mask_distance_map = compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points)
-    descriptor = image + '/cell_mask_distance_map'
-    output_file_handler.create_dataset(descriptor, data=cell_mask_distance_map, dtype=np.int)
+
 
 # Calculates the quadrant mask for the MTOC
 def search_periph_mrna_quadrants(file_handler,second_file_handler, image):
