@@ -7,10 +7,14 @@ import os
 import h5py
 from numpy import matlib
 
+import matplotlib
+matplotlib.use('Agg')
+# "required to fix the "No module named Tkinter" error on a headless Linux server
+import matplotlib.pyplot as plt
+
 import path, logger, constants
 import helpers as helps
 import numpy as np
-import matplotlib.pyplot as plt
 import math
 from image_descriptors import *
 
