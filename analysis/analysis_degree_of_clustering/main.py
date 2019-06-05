@@ -34,10 +34,10 @@ def main():
 
     # produce bar plot for degree of clustering
     #with h5py.File(path.secondary_file_path, "a") as input_file_handler, h5py.File(path.mtoc_file_path, "a") as mtoc_file_handler:
-    with h5py.File("/home/clem/cbib/dypfish/data/secondary.h5", "a") as input_file_handler, h5py.File(path.mtoc_file_path,
+    with h5py.File(path.secondary_file_path, "a") as input_file_handler, h5py.File(path.mtoc_file_path,
                                                                                    "a") as mtoc_file_handler:
 
-        print input_file_handler['/mrna/arhgdia/2h/1'].keys()
+        print input_file_handler['/mrna/'].keys()
 
         # mrna part
         molecule_type = ['/mrna']
