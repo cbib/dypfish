@@ -24,12 +24,7 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 logger.info("Running %s", sys.argv[0])
 
-def md5sum(filename, blocksize=65536):
-    hash = hashlib.md5()
-    with open(filename, "rb") as f:
-        for block in iter(lambda: f.read(blocksize), b""):
-            hash.update(block)
-    return hash.hexdigest()
+
 
 def peripheral_profile_by_timepoint(file_handler,molecule_type,genes,timepoints,colors,cell_type,image_type=[]):
     if len(image_type)==0:

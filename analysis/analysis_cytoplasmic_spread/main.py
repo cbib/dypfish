@@ -16,6 +16,7 @@ def cytoplasmic_spread(file_handler, genes, path_data, molecule_type):
     for gene in genes:
         image_list = helps.preprocess_image_list2(file_handler, '/' + molecule_type, gene)
         cyt_spreads.append(adsc.compute_cytoplasmic_spread(image_list, file_handler, path_data))
+
     plot.bar_profile(cyt_spreads, genes, plot_filename)
 
 def cytoplasmic_spread_dynamic_profiles(file_handler, genes, proteins):
