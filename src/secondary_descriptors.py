@@ -7,14 +7,10 @@ import os
 import h5py
 from numpy import matlib
 
-import matplotlib
-matplotlib.use('Agg')
-# "required to fix the "No module named Tkinter" error on headless Linux servers
-import matplotlib.pyplot as plt
-
 import path, logger, constants
 import helpers as helps
 import numpy as np
+import matplotlib.pyplot as plt
 import math
 from image_descriptors import *
 
@@ -92,7 +88,7 @@ def set_zero_level(file_handler, image, raw_data_dir):
     molecule, gene, timepoint, number = image.split("/")
     tubulin_image_path = raw_data_dir+gene+'/'+molecule+'_'+timepoint+"/image_"+number+"/tubulin.tif"
     if not os.path.exists(tubulin_image_path):
-        tubulin_image_path = raw_data_dir + gene + '/' + molecule + '_' + timepoint + number + "/tubulin.tif"
+        tubulin_image_path = raw_data_dir + gene + '/' + molecule + '_' + timepoint +"/"+ number + "/tubulin.tif"
 
     image_stacked = io.imread(tubulin_image_path, plugin='tifffile')
     #print(image_stacked.shape)
