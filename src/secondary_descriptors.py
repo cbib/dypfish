@@ -91,6 +91,8 @@ def set_h_star_protein(file_handler, output_file_handler, image):
 def set_zero_level(file_handler, image, raw_data_dir):
     molecule, gene, timepoint, number = image.split("/")
     tubulin_image_path = raw_data_dir+gene+'/'+molecule+'_'+timepoint+"/image_"+number+"/tubulin.tif"
+    if not os.path.exists(tubulin_image_path):
+        tubulin_image_path = raw_data_dir + gene + '/' + molecule + '_' + timepoint + number + "/tubulin.tif"
 
     image_stacked = io.imread(tubulin_image_path, plugin='tifffile')
     #print(image_stacked.shape)
