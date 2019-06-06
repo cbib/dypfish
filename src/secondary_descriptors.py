@@ -9,7 +9,7 @@ from numpy import matlib
 
 import matplotlib
 matplotlib.use('Agg')
-# "required to fix the "No module named Tkinter" error on a headless Linux server
+# "required to fix the "No module named Tkinter" error on headless Linux servers
 import matplotlib.pyplot as plt
 
 import path, logger, constants
