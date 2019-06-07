@@ -10,7 +10,15 @@ from numpy import matlib
 import path, logger, constants
 import helpers as helps
 import numpy as np
+
+import matplotlib
+try:
+    import Tkinter
+except:
+    matplotlib.use('Agg')
+    # required on headless Linux servers
 import matplotlib.pyplot as plt
+
 import math
 from image_descriptors import *
 
