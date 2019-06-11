@@ -21,7 +21,7 @@ def main():
 
         ###First part
         stan.compare_spots_density(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
-        stan.compare_cell_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
+        #stan.compare_cell_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_cell_volume(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_nucleus_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
 

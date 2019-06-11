@@ -158,7 +158,6 @@ def noise_measured_dynamic_profile(nms, gene, color):
     ax.yaxis.grid(color='gray', linestyle='dashed')
     ax.set_title(gene)
     plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/nm_profile_" + gene+".png", format='png')
-    plt.show()
 
 def profile(profiles, genes, slice_number, figname,figtitle,colors,save=False):
     fig = plt.figure(figsize=(15, 10))
