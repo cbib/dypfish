@@ -1,10 +1,12 @@
 from __future__ import print_function
 
 import matplotlib
-matplotlib.use('Agg')
-# "required to fix the "No module named Tkinter" error on headless Linux servers
+try:
+    import Tkinter
+except:
+    matplotlib.use('Agg')
+    # required on headless Linux servers
 import matplotlib.pyplot as plt
-
 
 from scipy.stats import *
 from scipy import interpolate
