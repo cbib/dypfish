@@ -70,7 +70,8 @@ If you wish to run the pipeline on your own data, place the HDF5 file in the `dy
 # Using the Pipeline
 
 DypFISH runs in a command line environment. 
-The runtime is depending from the hardware.
+
+The runtime is dependent on the hardware.
 
 If you wish to run DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) and the code will be executable as is. To run it on your own data, first the data has to be compiled in the HDF5 file format and second, the code has to be modified to include your own gene names. Version 2.0 will include automatic parsing of gene names.
 
