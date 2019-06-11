@@ -25,6 +25,8 @@ In order to run DypFISH your installation should include [pip](https://pypi.org/
          
 ## Installing DypFISH 
 
+The full installation process should take less than 15 minutes on a standard computer.
+
 Clone the repository from [github](https://github.com/cbib/DypFISH)
 
 `git clone https://github.com/cbib/dypfish.git`
@@ -68,6 +70,7 @@ If you wish to run the pipeline on your own data, place the HDF5 file in the `dy
 # Using the Pipeline
 
 DypFISH runs in a command line environment. 
+The runtime is depending from the hardware.
 
 If you wish to run DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) and the code will be executable as is. To run it on your own data, first the data has to be compiled in the HDF5 file format and second, the code has to be modified to include your own gene names. Version 2.0 will include automatic parsing of gene names.
 
@@ -185,8 +188,9 @@ Adaptations of the previous methods to the case of muscle cells.
 ```
 
 ## Outputs:
+
 The output files produced by DypFish will be stored in the corresponding analysis figures and dataframe folders. 
-As an example here are the outputs produced by the cytoplasmic spread analysis :
+As an example here are the outputs produced by the cytoplasmic spread analysis, based on the full data from the website, as described in the Data Input section :
 ```
         analysis/analysis_cytoplasmic_spread/figures/cyt_spread_arhgdia.png
         analysis/analysis_cytoplasmic_spread/figures/cyt_spread_beta_actin_.png
@@ -206,7 +210,7 @@ For any information or help running DypFISH, you can get in touch with:
 * [Benjamin Dartigues](mailto:benjamin.dartigues[AT]u-bordeaux.fr)
 * [Emmanuel Bouilhol](mailto:emmanuel.bouilhol[AT]u-bordeaux.fr)
 
-# LICENSE
+# LICENSE MIT
 
     Copyright (c) 2018 
     Benjamin Dartigues (1)  (benjamin.dartigues@u-bordeaux.fr)
