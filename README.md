@@ -44,7 +44,7 @@ Then install python dependencies :
 
 Add the current directory to the Python path:
 
-`export PYTHONPATH=$(pwd)`
+`export PYTHONPATH=${PYTHONPATH}:$(pwd)`
     
 ## Data input:
 DypFISH takes HDF5 files as input. [Click here](https://www.hdfgroup.org/solutions/hdf5/) for further informations on the HDF5 format.
