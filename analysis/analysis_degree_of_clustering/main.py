@@ -34,7 +34,7 @@ def main():
 
     # produce bar plot for degree of clustering
     #with h5py.File(path.secondary_file_path, "a") as input_file_handler, h5py.File(path.mtoc_file_path, "a") as mtoc_file_handler:
-    with h5py.File(path.secondary_file_path, "a") as input_file_handler, h5py.File(path.mtoc_file_path,
+    with h5py.File(path.h_star_file_path, "a") as input_file_handler, h5py.File(path.mtoc_file_path,
                                                                                    "a") as mtoc_file_handler:
 
         print input_file_handler['/mrna/'].keys()
@@ -47,10 +47,11 @@ def main():
         mrna_err = []
         for gene in genes:
             image_list = helps.preprocess_image_list2(input_file_handler, molecule_type[0], gene)
-            print input_file_handler['/mrna/arhgdia/2h/1'].keys()
+            #print(image_list)
+            #print input_file_handler['/mrna/arhgdia/2h/1'].keys()
 
             dof = adsc.compute_degree_of_clustering(image_list,input_file_handler, mtoc_file_handler)
-            print dof, base
+            #print dof, base
             mrna_median.append(math.log(np.median(dof)) - base)
             err = np.median(np.abs(np.tile(np.median(dof), (1, len(dof))) - dof))
             mrna_err.append(math.log(np.median(dof) + err) - math.log(np.median(dof)) - base)
@@ -59,11 +60,13 @@ def main():
         molecule_type = ['/protein']
         proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
         base = math.log(0.01)
+        #global_dof=[]
         protein_median = []
         protein_err = []
         for protein in proteins:
             image_list = helps.preprocess_image_list2(input_file_handler, molecule_type[0], protein)
             dof = adsc.compute_degree_of_clustering(image_list,input_file_handler, mtoc_file_handler)
+            #global_dof.append(dof)
             protein_median.append(math.log(np.median(dof)) - base)
             err = np.median(np.abs(np.tile(np.median(dof), (1, len(dof))) - dof))
             protein_err.append(math.log(np.median(dof) + err) - math.log(np.median(dof)) - base)
@@ -71,6 +74,9 @@ def main():
         #plot figures
         figname = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + 'mrna_degree_of_clustering.png'
         plot.bar_profile_median(mrna_median, genes, 'mrna', figname, mrna_err)
+        #plot.bar_profile(global_dof, genes,  figname)
+
+
         figname = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + 'protein_degree_of_clustering.png'
         plot.bar_profile_median(protein_median, proteins, 'protein', figname, protein_err)
 
