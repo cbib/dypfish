@@ -38,8 +38,10 @@ def peripheral_fraction_profile(sec_file_handler,molecule_type,genes,fraction,co
         print(gene)
         image_list = helps.preprocess_image_list2(sec_file_handler, molecule_type[0], gene)
         fractions.append(adsc.build_histogram_periph_fraction(sec_file_handler, image_list, fraction,path.path_data,file_handler))
+    print(fractions)
     figname = path.analysis_dir + 'analysis_peripheral_fraction_profile/figures/peripheral_fraction_'+str(fraction)+'.png'
-    plot.fraction_profile(fractions, fraction, genes, figname,colors)
+    #plot.fraction_profile(fractions, fraction, genes, figname,colors)
+    plot.bar_profile(fractions, genes, figname)
 
 def histogram_peripheral_profile(basic_file_handler,secondary_file_handler,genes, proteins, colors, path_data):
     molecule_type = ['/mrna']
@@ -79,16 +81,16 @@ def main():
     timepoints = ["2h", "3h", "4h", "5h"]
     timepoints_protein = ["2h", "3h", "5h", "7h"]
     with h5py.File(path.basic_file_path, "r") as basic_file_handler,h5py.File(path.secondary_file_path, "r") as secondary_file_handler:
-        peripheral_profiles(secondary_file_handler, molecule_type, genes, plot_colors,adsc.compute_peripheral_fraction_profiles_3D)
+        #peripheral_profiles(secondary_file_handler, molecule_type, genes, plot_colors,adsc.compute_peripheral_fraction_profiles_3D)
 
         ## Section to build peripheral profile fraction 10 and 30
         peripheral_fraction_profile(secondary_file_handler, molecule_type, genes, 10, plot_colors, basic_file_handler)
 
         ## Section to compute bar plot peripheral fraction
-        histogram_peripheral_profile(basic_file_handler, secondary_file_handler, genes, proteins, plot_colors, path.path_data)
+        #histogram_peripheral_profile(basic_file_handler, secondary_file_handler, genes, proteins, plot_colors, path.path_data)
 
         ## Section to produce plot interpolation (dynamic profile) of peripheral fraction by timepoint
-        peripheral_fraction_dynamic_profile(basic_file_handler, secondary_file_handler, genes, proteins, plot_colors, timepoints, timepoints_protein, path.path_data)
+        #peripheral_fraction_dynamic_profile(basic_file_handler, secondary_file_handler, genes, proteins, plot_colors, timepoints, timepoints_protein, path.path_data)
 
 if __name__ == "__main__":
     main()
