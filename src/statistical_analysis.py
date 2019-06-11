@@ -39,6 +39,8 @@ def compare_volume_corrected_nm(file_handler, sec_file_handler, acquisition1, ac
 # Implements equation 17 (supplemental)of padovan-merhar et al. 2015
 def compute_volume_corrected_nm(file_handler, image_list):
     cell_volume=[idsc.compute_cell_volume(file_handler,image) for image in image_list]
+    print(len(image_list))
+
     transcount = [len(idsc.get_spots(file_handler, image)) for image in image_list]
     print(transcount)
     coeffs = np.polyfit(cell_volume, transcount, 1)

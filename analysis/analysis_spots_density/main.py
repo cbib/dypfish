@@ -19,21 +19,21 @@ def main():
     ## Compare cell and nucleus area for arhgdia and arhgdia cultured
     with h5py.File(path.basic_file_path, "a") as file_handler, h5py.File(path.secondary_file_path, "a") as sec_file_handler:
 
+        ###First part
         stan.compare_spots_density(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_cell_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_cell_volume(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_nucleus_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
 
-
+        ###Second part
         arhgdia = helps.build_image_list_2(file_handler, 'mrna', "arhgdia",["3h"])
         arhgdia_cultured = helps.build_image_list_2(file_handler, 'mrna', "arhgdia_cultured",["3h"])
-
         nm_arhgdia=stan.compute_volume_corrected_nm(file_handler, arhgdia)
         nm_arhgdia_cultured=stan.compute_surface_corrected_nm(file_handler, arhgdia_cultured)
-        print(nm_arhgdia)
-        print(nm_arhgdia_cultured)
         plot.histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured)
 
+
+        ##Build dynamic profiles
         molecule_type = ['/mrna']
         genes = ["beta_actin", "arhgdia", "gapdh", "pard3","pkp4","rab13"]
         colors=['blue', 'lightblue', 'lightgreen', 'orange', 'red', 'yellow']
