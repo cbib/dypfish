@@ -50,6 +50,7 @@ def main(is_periph=False):
 
     # plot bar plot cytoplasmic mpi
     mpis,err=compute_mpis(df_sorted)
+
     if is_periph:
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_mrna_paired_mpis.png'
     else:
@@ -103,6 +104,7 @@ def main(is_periph=False):
                 gene_random_mpis.append(mpi)
             random_mpis.append(gene_random_mpis)
             mpi, p = stan.calculate_mpi(line['MTOC'].values, line['Non MTOC'].values)
+            print(gene, p)
             mpis.append(mpi)
         mrna_data = np.zeros((3, 4))
         counter = 0
