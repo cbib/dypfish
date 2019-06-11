@@ -843,6 +843,5 @@ def compute_isoline_area(file_handler, output_file_handler, image):
 
 def compute_cell_volume(file_handler,image):
     height_map=get_height_map(file_handler,image)
-    print(np.sum(height_map))
     return np.sum(height_map) * constants.VOLUME_COEFFICIENT
 

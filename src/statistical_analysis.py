@@ -39,10 +39,7 @@ def compare_volume_corrected_nm(file_handler, sec_file_handler, acquisition1, ac
 # Implements equation 17 (supplemental)of padovan-merhar et al. 2015
 def compute_volume_corrected_nm(file_handler, image_list):
     cell_volume=[idsc.compute_cell_volume(file_handler,image) for image in image_list]
-    print(len(image_list))
-
     transcount = [len(idsc.get_spots(file_handler, image)) for image in image_list]
-    print(transcount)
     coeffs = np.polyfit(cell_volume, transcount, 1)
     a = coeffs[1]
     b = coeffs[0]
@@ -137,6 +134,7 @@ def compare_cell_area(file_handler, sec_file_handler, acquisition1, acquisition2
     plt.yticks(fontsize=50)
     plt.xticks(fontsize=26)
     plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/cell_size_micropatterned_vs_standard.png", format="png")
+    plt.close()
 
 def compare_cell_volume(file_handler, sec_file_handler, acquisition1, acquisition2):
     arhgdia = build_image_list(file_handler, 'mrna', acquisition1)
@@ -150,6 +148,7 @@ def compare_cell_volume(file_handler, sec_file_handler, acquisition1, acquisitio
     plt.ylabel('Cell volume (um^3)')
     plt.title("Cell volume for micropatterned versus cultured")
     plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/cell_volume_mic_vs_nuc.png",format='png')
+    plt.close()
 
 
 
@@ -199,6 +198,7 @@ def compare_spots_density(file_handler, sec_file_handler, acquisition1, acquisit
         ax2.spines[axis].set_linewidth(3)
 
     plt.savefig(check_dir(path.analysis_dir + "/analysis_spots_density/figures/")+"mic_vs_cult.png", format="png")
+    plt.close()
 
 def compare_spots_volume_density(file_handler, sec_file_handler, acquisition1, acquisition2):
     # Build all image for an acquisition

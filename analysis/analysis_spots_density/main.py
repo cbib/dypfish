@@ -21,9 +21,10 @@ def main():
 
         ###First part
         stan.compare_spots_density(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
-        #stan.compare_cell_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
+        stan.compare_cell_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_cell_volume(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_nucleus_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
+
 
         ###Second part
         arhgdia = helps.build_image_list_2(file_handler, 'mrna', "arhgdia",["3h"])
@@ -41,7 +42,7 @@ def main():
             timepoints = ["2h", "3h", "4h", "5h"]
             nms=[]
             for timepoint in timepoints:
-                print(genes[i], '_', timepoint)
+                #print(genes[i], '_', timepoint)
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, genes[i], [timepoint])
                 nm = stan.compute_volume_corrected_nm(file_handler, image_list)
                 nms.append(nm)

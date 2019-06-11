@@ -114,9 +114,9 @@ def histogram_noise_measured(nm_arhgdia,nm_arhgdia_cultured):
     for axis in ['bottom', 'left']:
         ax.spines[axis].set_linewidth(3)
     plt.yticks(fontsize=30)
-    ind = np.arange(2)
+    ind = np.arange(1,3)
     width = 0.25
-    ax.set_xlim(-width * 2, len(ind) + width)
+    #ax.set_xlim(-width * 2, len(ind) + width)
     ax.set_ylim(0, 0.5)
     ax.set_title('')
     xTickMarks = ["", ""]
