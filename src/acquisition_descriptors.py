@@ -103,10 +103,8 @@ def build_histogram_periph_fraction(sec_file_handler,image_list,fraction,path_da
 def compute_degree_of_clustering(image_list,file_handler,mtoc_file_handler):
     h_star_l=[]
     for image in image_list:
-        print ('for image')
         h_star = image_descriptors.get_h_star(file_handler, image)
         d=np.array(h_star[h_star>1]-1).sum()
-        print (d)
         mtoc_quad=image_descriptors.get_mtoc_quad(mtoc_file_handler,image)
         if mtoc_quad == 1.0:
             h_star_l.append(d)
@@ -139,6 +137,7 @@ def compute_cytoplasmic_spread(image_list, file_handler, path_data):
 def compute_cytoplasmic_total(image_list,file_handler, path_data):
     total_cyts=[]
     for image in image_list:
+        print("image " + image +" has been treated")
         if 'mrna' in image:
             total_cyt=image_descriptors.compute_mrna_cytoplasmic_total(file_handler,image)
         else:
