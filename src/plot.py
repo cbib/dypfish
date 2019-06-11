@@ -121,6 +121,7 @@ def histogram_noise_measured(nm_arhgdia,nm_arhgdia_cultured):
     ax.set_title('')
     xTickMarks = ["", ""]
     ax.set_xticks(ind)
+    ax.bar(ind, [nm_arhgdia,nm_arhgdia_cultured], width, color=plot_colors)
     plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/Volume-corrected_noise_measure.png", format='png')
 
 def noise_measured_dynamic_profile(nms, gene, color):

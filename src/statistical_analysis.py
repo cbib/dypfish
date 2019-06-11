@@ -3,6 +3,7 @@ import math
 import matplotlib.pyplot as plt
 from scipy.stats import *
 import image_descriptors as idsc
+from src.utils import enable_logger, cell_type_micropatterned, plot_colors, check_dir
 from helpers import *
 
 logger = logging.getLogger('DYPFISH_HELPERS')
@@ -39,6 +40,7 @@ def compare_volume_corrected_nm(file_handler, sec_file_handler, acquisition1, ac
 def compute_volume_corrected_nm(file_handler, image_list):
     cell_volume=[idsc.compute_cell_volume(file_handler,image) for image in image_list]
     transcount = [len(idsc.get_spots(file_handler, image)) for image in image_list]
+    print(transcount)
     coeffs = np.polyfit(cell_volume, transcount, 1)
     a = coeffs[1]
     b = coeffs[0]
@@ -194,7 +196,7 @@ def compare_spots_density(file_handler, sec_file_handler, acquisition1, acquisit
         ax1.spines[axis].set_linewidth(3)
         ax2.spines[axis].set_linewidth(3)
 
-    plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/mic_vs_cult.png", format="png")
+    plt.savefig(check_dir(path.analysis_dir + "/analysis_spots_density/figures/")+"mic_vs_cult.png", format="png")
 
 def compare_spots_volume_density(file_handler, sec_file_handler, acquisition1, acquisition2):
     # Build all image for an acquisition

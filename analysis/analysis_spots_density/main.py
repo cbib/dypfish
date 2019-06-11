@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
+import sys
 import h5py
 import src.path as path
 import src.statistical_analysis as stan
@@ -17,15 +18,22 @@ def main():
     ## Build spots density relative to cell area for arhgdia and arhgdia cultured
     ## Compare cell and nucleus area for arhgdia and arhgdia cultured
     with h5py.File(path.basic_file_path, "a") as file_handler, h5py.File(path.secondary_file_path, "a") as sec_file_handler:
+
         stan.compare_spots_density(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_cell_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_cell_volume(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
         stan.compare_nucleus_area(file_handler, sec_file_handler, "arhgdia", "arhgdia_cultured")
+
+
         arhgdia = helps.build_image_list_2(file_handler, 'mrna', "arhgdia",["3h"])
-        arhgdia_cultured = helps.build_image_list_2(file_handler, 'mrna', "arhgdia_scratch",["3h"])
+        arhgdia_cultured = helps.build_image_list_2(file_handler, 'mrna', "arhgdia_cultured",["3h"])
+
         nm_arhgdia=stan.compute_volume_corrected_nm(file_handler, arhgdia)
         nm_arhgdia_cultured=stan.compute_surface_corrected_nm(file_handler, arhgdia_cultured)
+        print(nm_arhgdia)
+        print(nm_arhgdia_cultured)
         plot.histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured)
+
         molecule_type = ['/mrna']
         genes = ["beta_actin", "arhgdia", "gapdh", "pard3","pkp4","rab13"]
         colors=['blue', 'lightblue', 'lightgreen', 'orange', 'red', 'yellow']
@@ -38,6 +46,7 @@ def main():
                 nm = stan.compute_volume_corrected_nm(file_handler, image_list)
                 nms.append(nm)
             plot.noise_measured_dynamic_profile(nms,genes[i],colors[i])
+
         nms = []
         for i in range(len(genes)):
             image_list = helps.preprocess_image_list2(file_handler, molecule_type[0], genes[i])
