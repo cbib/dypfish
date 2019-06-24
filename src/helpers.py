@@ -252,10 +252,10 @@ def preprocess_image_list3(file_handler, molecule_type, gene, timepoints):
     for molecule in molecule_type:
         for timepoint in timepoints:
             node = molecule + '/' + gene + '/' + timepoint
-            #if node in file_handler.keys():
-            for image in file_handler[node]:
-                image_path = molecule + '/' + gene + '/' + timepoint + '/' + image
-                image_path_list.append(image_path)
+            if node in file_handler.keys():
+                for image in file_handler[node]:
+                    image_path = molecule + '/' + gene + '/' + timepoint + '/' + image
+                    image_path_list.append(image_path)
     return image_path_list
 
 
