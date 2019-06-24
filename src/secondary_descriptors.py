@@ -71,6 +71,9 @@ def set_h_star_protein(file_handler, output_file_handler, image):
     def prune_intensities(image, zero_level):
         molecule, gene, timepoint, number = image.split("/")
         IF_image_path = path.raw_data_dir + gene + '/' + molecule + '_' + timepoint + "/image_" + number + '/IF.tif'
+        if not os.path.exists(IF_image_path):
+            IF_image_path = path.raw_data_dir + gene + '/' + molecule + '_' + timepoint + "/" + number + "/IF.tif"
+
         IF = io.imread(IF_image_path, plugin='tifffile')
 
         vol_block = np.zeros((512, 512, zero_level))
