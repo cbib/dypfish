@@ -37,7 +37,7 @@ def main():
     genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
     proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
     with h5py.File(path.basic_file_path, "r") as file_handler:
-        cytoplasmic_total_count(file_handler, '/mrna', genes)
+        #cytoplasmic_total_count(file_handler, '/mrna', genes)
         cytoplasmic_total_count(file_handler, '/protein', proteins)
         cytoplasmic_total_dynamic_profiles(file_handler, genes, proteins)
 

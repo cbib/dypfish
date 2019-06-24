@@ -137,7 +137,7 @@ def compute_cytoplasmic_spread(image_list, file_handler, path_data):
 def compute_cytoplasmic_total(image_list,file_handler, path_data):
     total_cyts=[]
     for image in image_list:
-        print("image " + image +" has been treated")
+        print("image " + image +" will be treated")
         if 'mrna' in image:
             total_cyt=image_descriptors.compute_mrna_cytoplasmic_total(file_handler,image)
         else:

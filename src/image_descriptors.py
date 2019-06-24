@@ -28,7 +28,7 @@ def get_nucleus_mask(file_handler, image):
     descriptor = image + '/nucleus_mask'
     if descriptor not in file_handler:
         return np.empty(shape=(0, 0))
-    nucleus_mask = np.array(file_handler[descriptor])
+    nucleus_mask = np.array(file_handler[descriptor]).astype(int)
     return nucleus_mask
 
 def get_z_lines_masks(file_handler, image):
@@ -742,7 +742,12 @@ def compute_protein_cytoplasmic_total(file_handler, image,path_data):
     else:
         IF = get_IF(file_handler,image)
     cell_mask=get_cell_mask(file_handler, image)
+    print (len(cell_mask))
+    print (cell_mask)
     nucleus_mask= get_nucleus_mask(file_handler,image)
+    print(len(nucleus_mask))
+    print (nucleus_mask)
+    print (IF.shape)
     return IF[(cell_mask==1) & (nucleus_mask==0)].sum()
 
 # Compare cytoplasmic spread cell with 3D cytoplasmic mrna spread
