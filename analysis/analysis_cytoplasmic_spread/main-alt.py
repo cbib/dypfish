@@ -60,6 +60,7 @@ def cytoplasmic_spread(
             )
 
     plot.bar_profile(cyt_spreads, genes, graph_file_path_name)
+    assert(os.path.isfile(graph_file_path_name))
 
     if logger:
         logger.debug("Graph generated on path : %s" % graph_file_path_name)
@@ -112,27 +113,30 @@ def cytoplasmic_spread_dynamic_profiles(
     try:
         for mrna_data, protein_data, i in data_generator:
             gene = genes[i]
+            colour = plot_colors[i]
 
             if logger:
                 logger.debug("Processing gene : %s..." % gene)
 
             try:
-                graph_file_name = "%s_%s.png" % (CYTOPLASMIC_SPREAD_GRAPHS_DYNAMIC_PROFILES_PREFIX, gene)
-
                 if logger:
                     logger.debug("Generating graph %s..." % graph_file_name)
 
+                graph_file_name = "%s_%s.png" % (CYTOPLASMIC_SPREAD_GRAPHS_DYNAMIC_PROFILES_PREFIX, gene)
                 graph_file_path_name = os.path.join(save_into_dir, graph_file_name)
                 graph_metadata = {"filename": graph_file_name}
+
                 plot.dynamic_profiles(
                     mrna_data,
                     protein_data,
-                    genes[i],
-                    plot_colors[i],
+                    gene,
+                    colour,
                     'Time(hrs)',
                     'Cytoplasmic spread',
                     graph_file_path_name
                     )
+
+                assert(os.path.isfile(graph_file_path_name))
 
                 if logger:
                     logger.debug("Graph generated on path : %s" % graph_file_path_name)
