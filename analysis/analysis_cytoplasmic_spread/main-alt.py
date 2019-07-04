@@ -162,11 +162,10 @@ def main(
     basic_h5_file_path_name,
     save_into_dir
     ):
-
-    resulting_graphs_details = []
-
     # Required descriptors: spots, IF, zero level, cell mask, nucleus_centroid and height_map
     enable_logger()
+
+    resulting_graphs_details = []
 
     # Compute bar plot cytoplasmic spread
     genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
@@ -197,7 +196,8 @@ def main(
             save_into_dir=save_into_dir
             )
         resulting_graphs_details += graphs_details
-        print(resulting_graphs_details)
+
+        resulting_graphs_details
 
 
 if __name__ == "__main__":
@@ -205,4 +205,5 @@ if __name__ == "__main__":
     save_into_dir = os.path.join(path.analysis_dir, "analysis_cytoplasmic_spread/figures/")
     if not os.path.isdir(save_into_dir):
         os.mkdir(save_into_dir)
-    main(basic_h5_file_path_name, save_into_dir)
+    resulting_graphs_details = main(basic_h5_file_path_name, save_into_dir)
+    print(resulting_graphs_details)
