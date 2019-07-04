@@ -3,6 +3,7 @@
 # author: Benjamin Dartigues
 
 import os
+from collections import OrderedDict
 import h5py
 import src.plot as plot
 from src import acquisition_descriptors as adsc
@@ -11,13 +12,15 @@ import src.helpers as helps
 from src.utils import enable_logger, plot_colors
 
 
+PNG_IMAGES_MIME_TYPE = "image/png"
+
 CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX = "cytoplasmic_spread"
 
 def cytoplasmic_spread(
     basic_h5_file_handler,
     genes,
     molecule_type,
-    save_into_dir,
+    save_into_dir_path_name,
     logger=None
     ):  # TODO argument genes vs proteins ?
     """
@@ -30,17 +33,20 @@ def cytoplasmic_spread(
       Ex. : ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
     - molecule_type : a string (molecule type ID)
       Ex. : "mrna" or "protein"
-    - save_into_dir : a string (path of the directory where the graph will be saved)
+    - save_into_dir_path_name : a string (path of the directory where the graph will be saved)
     - logger : external logger
     """
-    assert os.path.isdir(save_into_dir)
+    assert os.path.isdir(save_into_dir_path_name)
 
     if logger:
         logger.debug("Generating cytoplasmic spread graph (%s)..." % molecule_type)
 
     graph_file_name = "%s_%s.png" % (molecule_type, CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX)
-    graph_file_path_name = os.path.join(save_into_dir, graph_file_name)
-    graph_metadata = {"filename": graph_file_name}
+    graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
+    graph_metadata = {
+        "file_name": graph_file_name,
+        "mime_type": PNG_IMAGES_MIME_TYPE
+        }
 
     # for each gene in genes list, compute cytoplasmic spread
     cyt_spreads = []
@@ -69,13 +75,13 @@ def cytoplasmic_spread(
 
 
 
-CYTOPLASMIC_SPREAD_GRAPHS_DYNAMIC_PROFILES_PREFIX = "cyt_spread"
+CYTOPLASMIC_SPREAD_DYNAMIC_PROFILES_GRAPHS_PREFIX = "cyt_spread"
 
 def cytoplasmic_spread_dynamic_profiles(
     basic_h5_file_handler,
     genes,
     proteins,
-    save_into_dir,
+    save_into_dir_path_name,
     logger=None
     ):
     """
@@ -88,9 +94,9 @@ def cytoplasmic_spread_dynamic_profiles(
       Ex. : ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
     - proteins :  list of strings (proteins IDs)
       Ex. : ["beta_actin", "arhgdia", "gapdh", "pard3"]
-    - save_into_dir : a string (path of the directory where the graphs will be saved)
+    - save_into_dir_path_name : a string (path of the directory where the graphs will be saved)
     """
-    assert os.path.isdir(save_into_dir)
+    assert os.path.isdir(save_into_dir_path_name)
 
     # This part produces plot interpolation of cytoplasmic spread by timepoint
     if logger:
@@ -122,9 +128,12 @@ def cytoplasmic_spread_dynamic_profiles(
                 if logger:
                     logger.debug("Generating graph %s..." % graph_file_name)
 
-                graph_file_name = "%s_%s.png" % (CYTOPLASMIC_SPREAD_GRAPHS_DYNAMIC_PROFILES_PREFIX, gene)
-                graph_file_path_name = os.path.join(save_into_dir, graph_file_name)
-                graph_metadata = {"filename": graph_file_name}
+                graph_file_name = "%s_%s.png" % (CYTOPLASMIC_SPREAD_DYNAMIC_PROFILES_GRAPHS_PREFIX, gene)
+                graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
+                graph_metadata = {
+                    "file_name": graph_file_name,
+                    "mime_type": PNG_IMAGES_MIME_TYPE
+                    }
 
                 plot.dynamic_profiles(
                     mrna_data,
@@ -160,12 +169,12 @@ def cytoplasmic_spread_dynamic_profiles(
 
 def main(
     basic_h5_file_path_name,
-    save_into_dir
+    save_into_dir_path_name
     ):
     # Required descriptors: spots, IF, zero level, cell mask, nucleus_centroid and height_map
     enable_logger()
 
-    resulting_graphs_details = []
+    resulting_graphs_details_as_list = []
 
     # Compute bar plot cytoplasmic spread
     genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
@@ -177,33 +186,43 @@ def main(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
             molecule_type='mrna',
-            save_into_dir=save_into_dir
+            save_into_dir_path_name=save_into_dir_path_name
             )
-        resulting_graphs_details.append(graph_details)
+        resulting_graphs_details_as_list.append(graph_details)
 
         graph_details = cytoplasmic_spread(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=proteins,
             molecule_type='protein',
-            save_into_dir=save_into_dir
+            save_into_dir_path_name=save_into_dir_path_name
             )
-        resulting_graphs_details.append(graph_details)
+        resulting_graphs_details_as_list.append(graph_details)
 
         graphs_details = cytoplasmic_spread_dynamic_profiles(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
             proteins=proteins,
-            save_into_dir=save_into_dir
+            save_into_dir_path_name=save_into_dir_path_name
             )
-        resulting_graphs_details += graphs_details
+        resulting_graphs_details_as_list += graphs_details
 
-        resulting_graphs_details
+    resulting_graphs_details_as_dict = OrderedDict()
+    for graph_details in resulting_graphs_details_as_list:
+        resulting_graphs_details_as_dict.update(graph_details)
+
+    return resulting_graphs_details_as_dict
 
 
 if __name__ == "__main__":
+
     basic_h5_file_path_name = path.basic_file_path
-    save_into_dir = os.path.join(path.analysis_dir, "analysis_cytoplasmic_spread/figures/")
-    if not os.path.isdir(save_into_dir):
-        os.mkdir(save_into_dir)
-    resulting_graphs_details = main(basic_h5_file_path_name, save_into_dir)
-    print(resulting_graphs_details)
+
+    save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_cytoplasmic_spread/figures/")
+    if not os.path.isdir(save_into_dir_path_name):
+        os.mkdir(save_into_dir_path_name)
+
+    resulting_graphs_details = main(basic_h5_file_path_name, save_into_dir_path_name)
+
+    print("The following graphs were generated in directory %s: " % save_into_dir_path_name)
+    for file_path_name in resulting_graphs_details:
+        print("-> %s" % resulting_graphs_details[file_path_name]["file_name"])
