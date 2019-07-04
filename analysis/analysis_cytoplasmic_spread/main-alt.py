@@ -9,7 +9,6 @@ from src import acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps
 from src.utils import enable_logger, plot_colors
-from src.utils import cell_type_micropatterned
 
 
 CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX = "cytoplasmic_spread.png"
@@ -17,7 +16,6 @@ CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX = "cytoplasmic_spread.png"
 def cytoplasmic_spread(
     basic_h5_file_handler,
     genes,
-    cell_type,
     molecule_type,
     save_into_dir,
     logger=None
@@ -30,8 +28,6 @@ def cytoplasmic_spread(
     - basic_h5_file_handler : handler linked to a 'basic.h5' file
     - genes : list of strings (genes IDs)
       Ex. : ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
-    - cell_type : cell type ID
-      Ex. : "micropatterned"
     - molecule_type : a string (molecule type ID)
       Ex. : "mrna" or "protein"
     - save_into_dir : a string (path of the directory where the graph will be saved)
@@ -160,6 +156,8 @@ def main(
     save_into_dir
     ):
 
+    resulting_graphs_details = []
+
     # Required descriptors: spots, IF, zero level, cell mask, nucleus_centroid and height_map
     enable_logger()
 
@@ -168,30 +166,34 @@ def main(
     proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
 
     with h5py.File(path.basic_file_path, "r") as basic_h5_file_handler:
-        cytoplasmic_spread(
+
+        graph_details = cytoplasmic_spread(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
-            cell_type=cell_type_micropatterned,
             molecule_type='mrna',
             save_into_dir=save_into_dir
             )
-        cytoplasmic_spread(
+        resulting_graphs_details.append(graph_details)
+
+        graph_details = cytoplasmic_spread(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=proteins,
-            cell_type=cell_type_micropatterned,
             molecule_type='protein',
             save_into_dir=save_into_dir
             )
-        cytoplasmic_spread_dynamic_profiles(
+        resulting_graphs_details.append(graph_details)
+
+        graphs_details = cytoplasmic_spread_dynamic_profiles(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
             proteins=proteins,
             save_into_dir=save_into_dir
             )
-
+        resulting_graphs_details += graphs_details
+        print(resulting_graphs_details)
 
 
 if __name__ == "__main__":
     basic_h5_file_path_name = path.basic_file_path
-    save_into_dir = path.analysis_dir + "/analysis_cytoplasmic_spread/figures/"
+    save_into_dir = os.path.join(path.analysis_dir, "analysis_cytoplasmic_spread/figures/")
     main(basic_h5_file_path_name, save_into_dir)
