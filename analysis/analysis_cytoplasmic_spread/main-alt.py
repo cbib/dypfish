@@ -17,6 +17,7 @@ PNG_IMAGES_MIME_TYPE = "image/png"
 CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX = "cytoplasmic_spread"
 
 def cytoplasmic_spread(
+    raw_images_dir_path_name,
     basic_h5_file_handler,
     genes,
     molecule_type,
@@ -61,7 +62,7 @@ def cytoplasmic_spread(
             adsc.compute_cytoplasmic_spread(
                 image_list,
                 basic_h5_file_handler,
-                path_data=None  # should be the path to raw images data, but in fact this parameter is not used in this case
+                raw_images_dir_path_name
                 )
             )
 
@@ -78,6 +79,7 @@ def cytoplasmic_spread(
 CYTOPLASMIC_SPREAD_DYNAMIC_PROFILES_GRAPHS_PREFIX = "cyt_spread"
 
 def cytoplasmic_spread_dynamic_profiles(
+    raw_images_dir_path_name,
     basic_h5_file_handler,
     genes,
     proteins,
@@ -113,7 +115,7 @@ def cytoplasmic_spread_dynamic_profiles(
         basic_h5_file_handler,
         adsc.compute_cytoplasmic_spread,
         basic_h5_file_handler,
-        None   # should be the path to raw images data, but in fact this parameter is not used in this case
+        raw_images_dir_path_name
         )
 
     try:
@@ -168,6 +170,7 @@ def cytoplasmic_spread_dynamic_profiles(
 
 
 def main(
+    raw_images_dir_path_name,
     basic_h5_file_path_name,
     save_into_dir_path_name
     ):
@@ -183,6 +186,7 @@ def main(
     with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler:
 
         graph_details = cytoplasmic_spread(
+            raw_images_dir_path_name=raw_images_dir_path_name,
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
             molecule_type='mrna',
@@ -191,6 +195,7 @@ def main(
         resulting_graphs_details_as_list.append(graph_details)
 
         graph_details = cytoplasmic_spread(
+            raw_images_dir_path_name=raw_images_dir_path_name,
             basic_h5_file_handler=basic_h5_file_handler,
             genes=proteins,
             molecule_type='protein',
@@ -199,6 +204,7 @@ def main(
         resulting_graphs_details_as_list.append(graph_details)
 
         graphs_details = cytoplasmic_spread_dynamic_profiles(
+            raw_images_dir_path_name=raw_images_dir_path_name,
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
             proteins=proteins,
@@ -215,13 +221,17 @@ def main(
 
 if __name__ == "__main__":
 
+    raw_images_dir_path_name = path.path_data
     basic_h5_file_path_name = path.basic_file_path
-
     save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_cytoplasmic_spread/figures/")
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)
 
-    resulting_graphs_details = main(basic_h5_file_path_name, save_into_dir_path_name)
+    resulting_graphs_details = main(
+        raw_images_dir_path_name,
+        basic_h5_file_path_name,
+        save_into_dir_path_name
+        )
 
     print("The following graphs were generated in directory %s: " % save_into_dir_path_name)
     for file_path_name in resulting_graphs_details:
