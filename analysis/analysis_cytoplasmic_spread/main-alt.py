@@ -11,7 +11,7 @@ import src.helpers as helps
 from src.utils import enable_logger, plot_colors
 
 
-CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX = "cytoplasmic_spread.png"
+CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX = "cytoplasmic_spread"
 
 def cytoplasmic_spread(
     basic_h5_file_handler,
@@ -33,13 +33,14 @@ def cytoplasmic_spread(
     - save_into_dir : a string (path of the directory where the graph will be saved)
     - logger : external logger
     """
+    assert os.path.isdir(save_into_dir)
 
     if logger:
         logger.debug("Generating cytoplasmic spread graph (%s)..." % molecule_type)
 
-    graph_filename = "%s_%s" % (molecule_type, CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX)
-    graph_file_path = os.path.join(save_into_dir, graph_filename)
-    graph_metadata = {"filename": graph_filename}
+    graph_file_name = "%s_%s.png" % (molecule_type, CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX)
+    graph_file_path_name = os.path.join(save_into_dir, graph_file_name)
+    graph_metadata = {"filename": graph_file_name}
 
     # for each gene in genes list, compute cytoplasmic spread
     cyt_spreads = []
@@ -47,26 +48,27 @@ def cytoplasmic_spread(
     for gene in genes:
         image_list = helps.preprocess_image_list2(
             basic_h5_file_handler,
-            '/' + molecule_type, gene
+            '/' + molecule_type,
+            gene
             )
         cyt_spreads.append(
             adsc.compute_cytoplasmic_spread(
                 image_list,
                 basic_h5_file_handler,
-                path_data=None
+                path_data=None  # should be the path to raw images data, but in fact this parameter is not used in this case
                 )
             )
 
-    plot.bar_profile(cyt_spreads, genes, graph_file_path)
+    plot.bar_profile(cyt_spreads, genes, graph_file_path_name)
 
     if logger:
-        logger.debug("Graph generated on path : %s" % graph_file_path)
+        logger.debug("Graph generated on path : %s" % graph_file_path_name)
 
-    return {graph_file_path: graph_metadata}
+    return {graph_file_path_name: graph_metadata}
 
 
 
-CYTOPLASMIC_SPREAD_GRAPHS_DYNMIC_PROFILES_PREFIX = "cyt_spread"
+CYTOPLASMIC_SPREAD_GRAPHS_DYNAMIC_PROFILES_PREFIX = "cyt_spread"
 
 def cytoplasmic_spread_dynamic_profiles(
     basic_h5_file_handler,
@@ -87,6 +89,7 @@ def cytoplasmic_spread_dynamic_profiles(
       Ex. : ["beta_actin", "arhgdia", "gapdh", "pard3"]
     - save_into_dir : a string (path of the directory where the graphs will be saved)
     """
+    assert os.path.isdir(save_into_dir)
 
     # This part produces plot interpolation of cytoplasmic spread by timepoint
     if logger:
@@ -103,7 +106,7 @@ def cytoplasmic_spread_dynamic_profiles(
         basic_h5_file_handler,
         adsc.compute_cytoplasmic_spread,
         basic_h5_file_handler,
-        path.path_data
+        None   # should be the path to raw images data, but in fact this parameter is not used in this case
         )
 
     try:
@@ -114,13 +117,13 @@ def cytoplasmic_spread_dynamic_profiles(
                 logger.debug("Processing gene : %s..." % gene)
 
             try:
-                graph_filename = "%s_%s.png" % (CYTOPLASMIC_SPREAD_GRAPHS_DYNMIC_PROFILES_PREFIX, gene)
+                graph_file_name = "%s_%s.png" % (CYTOPLASMIC_SPREAD_GRAPHS_DYNAMIC_PROFILES_PREFIX, gene)
 
                 if logger:
-                    logger.debug("Generating graph %s..." % graph_filename)
+                    logger.debug("Generating graph %s..." % graph_file_name)
 
-                graph_file_path = os.path.join(save_into_dir, graph_filename)
-                graph_metadata = {"filename": graph_filename}
+                graph_file_path_name = os.path.join(save_into_dir, graph_file_name)
+                graph_metadata = {"filename": graph_file_name}
                 plot.dynamic_profiles(
                     mrna_data,
                     protein_data,
@@ -128,13 +131,13 @@ def cytoplasmic_spread_dynamic_profiles(
                     plot_colors[i],
                     'Time(hrs)',
                     'Cytoplasmic spread',
-                    graph_file_path
+                    graph_file_path_name
                     )
 
                 if logger:
-                    logger.debug("Graph generated on path : %s" % graph_file_path)
+                    logger.debug("Graph generated on path : %s" % graph_file_path_name)
 
-                graphs_details.append({graph_file_path: graph_metadata})
+                graphs_details.append({graph_file_path_name: graph_metadata})
 
             except Exception as e:
                 if logger:
@@ -165,7 +168,7 @@ def main(
     genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
     proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
 
-    with h5py.File(path.basic_file_path, "r") as basic_h5_file_handler:
+    with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler:
 
         graph_details = cytoplasmic_spread(
             basic_h5_file_handler=basic_h5_file_handler,
@@ -196,4 +199,6 @@ def main(
 if __name__ == "__main__":
     basic_h5_file_path_name = path.basic_file_path
     save_into_dir = os.path.join(path.analysis_dir, "analysis_cytoplasmic_spread/figures/")
+    if not os.path.isdir(save_into_dir):
+        os.mkdir(save_into_dir)
     main(basic_h5_file_path_name, save_into_dir)
