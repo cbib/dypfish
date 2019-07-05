@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import traceback
 import matplotlib
 try:
     import Tkinter
@@ -254,8 +255,13 @@ def data_extractor(genes,proteins, secondary_file_handler, calc_function, *args)
     mrna_tp= ["2h", "3h", "4h", "5h"]
     protein_tp= ["2h", "3h", "5h", "7h"]
     for i in range(len(genes)):
-        mrna_data=process_data(secondary_file_handler,mrna_tp,['/mrna'],genes[i], calc_function, *args)
-        if genes[i] in proteins:
-            protein_data=process_data(secondary_file_handler, protein_tp, ['/protein'], genes[i], calc_function, *args)
-
-        yield mrna_data, protein_data, i
+        try:
+            mrna_data=process_data(secondary_file_handler,mrna_tp,['/mrna'],genes[i], calc_function, *args)
+            if genes[i] in proteins:
+                protein_data=process_data(secondary_file_handler, protein_tp, ['/protein'], genes[i], calc_function, *args)
+            yield mrna_data, protein_data, i
+        except Exception as e:
+            print("Got exception : %s" % str(e))
+            tr = traceback.format_exc()
+            print(tr)
+            # raise

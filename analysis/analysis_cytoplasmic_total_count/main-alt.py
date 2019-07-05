@@ -133,12 +133,14 @@ def cytoplasmic_total_dynamic_profiles(
                     ext_logger.exception(
                         "Could not generate cytoplasmic spread dynamic profile for gene : %s" % gene
                         )
+                raise
 
     except Exception as e:
         if ext_logger:
             ext_logger.exception(
                 "Got exception ! (maybe raised by data_generator ?)"
                 )
+        raise
 
     return graphs_details
 
