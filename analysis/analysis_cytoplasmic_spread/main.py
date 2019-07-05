@@ -186,15 +186,15 @@ def main(
 
     with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler:
 
-        # graph_details = cytoplasmic_spread(
-        #     basic_h5_file_handler=basic_h5_file_handler,
-        #     genes=genes,
-        #     molecule_type='mrna',
-        #     save_into_dir_path_name=save_into_dir_path_name,
-        #     raw_images_dir_path_name=raw_images_dir_path_name,
-        #     ext_logger=ext_logger
-        #     )
-        # resulting_graphs_details_as_list.append(graph_details)
+        graph_details = cytoplasmic_spread(
+            basic_h5_file_handler=basic_h5_file_handler,
+            genes=genes,
+            molecule_type='mrna',
+            save_into_dir_path_name=save_into_dir_path_name,
+            raw_images_dir_path_name=raw_images_dir_path_name,
+            ext_logger=ext_logger
+            )
+        resulting_graphs_details_as_list.append(graph_details)
 
         graph_details = cytoplasmic_spread(
             basic_h5_file_handler=basic_h5_file_handler,
@@ -206,15 +206,15 @@ def main(
             )
         resulting_graphs_details_as_list.append(graph_details)
 
-        # graphs_details = cytoplasmic_spread_dynamic_profiles(
-        #     basic_h5_file_handler=basic_h5_file_handler,
-        #     genes=genes,
-        #     proteins=proteins,
-        #     save_into_dir_path_name=save_into_dir_path_name,
-        #     raw_images_dir_path_name=raw_images_dir_path_name,
-        #     ext_logger=ext_logger
-        #     )
-        # resulting_graphs_details_as_list += graphs_details
+        graphs_details = cytoplasmic_spread_dynamic_profiles(
+            basic_h5_file_handler=basic_h5_file_handler,
+            genes=genes,
+            proteins=proteins,
+            save_into_dir_path_name=save_into_dir_path_name,
+            raw_images_dir_path_name=raw_images_dir_path_name,
+            ext_logger=ext_logger
+            )
+        resulting_graphs_details_as_list += graphs_details
 
     resulting_graphs_details_as_odict = OrderedDict()
     for graph_details in resulting_graphs_details_as_list:
