@@ -18,8 +18,8 @@ CYTOPLASMIC_TOTAL_COUNT_GRAPHS_SUFFIX = "total_cytoplasmic_transcript"
 
 def cytoplasmic_total_count(
     basic_h5_file_handler,
-    molecule_type,
     genes,
+    molecule_type,
     save_into_dir_path_name,
     raw_images_dir_path_name=None,
     ext_logger=None
@@ -164,8 +164,8 @@ def main(
 
         graph_details = cytoplasmic_total_count(
             basic_h5_file_handler=basic_h5_file_handler,
-            molecule_type='mrna',
             genes=genes,
+            molecule_type='mrna',
             save_into_dir_path_name=save_into_dir_path_name,
             raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
@@ -174,8 +174,8 @@ def main(
 
         graph_details = cytoplasmic_total_count(
             basic_h5_file_handler=basic_h5_file_handler,
-            molecule_type='protein',
             genes=proteins,
+            molecule_type='protein',
             save_into_dir_path_name=save_into_dir_path_name,
             raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
