@@ -1,7 +1,14 @@
 #!/usr/bin/env python2
 # encoding: UTF-8
 
+import matplotlib
+try:
+    import Tkinter
+except:
+    matplotlib.use('Agg')
+    # required on headless Linux servers
 import matplotlib.pyplot as plt
+
 import numpy as np
 from scipy.interpolate import interp1d
 
