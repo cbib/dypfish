@@ -166,7 +166,7 @@ def cytoplasmic_spread_dynamic_profiles(
             ext_logger.exception(
                 "Got exception ! (maybe raised by data_generator ?)"
                 )
-        raise
+        #raise
 
     return graphs_details
 
