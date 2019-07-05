@@ -264,4 +264,4 @@ def data_extractor(genes,proteins, secondary_file_handler, calc_function, *args)
             print("Got exception : %s" % str(e))
             tr = traceback.format_exc()
             print(tr)
-            # raise
+            raise
