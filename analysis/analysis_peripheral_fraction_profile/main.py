@@ -383,42 +383,42 @@ def main(
         resulting_graphs_details_as_list.append(graph_details)
 
         ## Section to build peripheral profile fraction 10 and 30
-        # graph_details = peripheral_fraction_profile(
-        #     secondary_h5_file_handler=secondary_h5_file_handler,
-        #     molecule_type=slashed_molecule_type,
-        #     genes=genes,
-        #     fraction=10,
-        #     colors=plot_colors,
-        #     basic_h5_file_handler=basic_h5_file_handler,
-        #     save_into_dir_path_name=save_into_dir_path_name
-        #     )
-        # resulting_graphs_details_as_list.append(graph_details)
+        graph_details = peripheral_fraction_profile(
+            secondary_h5_file_handler=secondary_h5_file_handler,
+            molecule_type=slashed_molecule_type,
+            genes=genes,
+            fraction=10,
+            colors=plot_colors,
+            basic_h5_file_handler=basic_h5_file_handler,
+            save_into_dir_path_name=save_into_dir_path_name
+            )
+        resulting_graphs_details_as_list.append(graph_details)
 
         ## Section to compute bar plot peripheral fraction
-        # graphs_details = histogram_peripheral_profile(
-        #     basic_h5_file_handler=basic_h5_file_handler,
-        #     secondary_h5_file_handler=secondary_h5_file_handler,
-        #     genes=genes,
-        #     proteins=proteins,
-        #     colors=plot_colors,
-        #     raw_images_dir_path_name=raw_images_dir_path_name,
-        #     save_into_dir_path_name=save_into_dir_path_name
-        #     )
-        # resulting_graphs_details_as_list += graphs_details
+        graphs_details = histogram_peripheral_profile(
+            basic_h5_file_handler=basic_h5_file_handler,
+            secondary_h5_file_handler=secondary_h5_file_handler,
+            genes=genes,
+            proteins=proteins,
+            colors=plot_colors,
+            raw_images_dir_path_name=raw_images_dir_path_name,
+            save_into_dir_path_name=save_into_dir_path_name
+            )
+        resulting_graphs_details_as_list += graphs_details
 
         ## Section to produce plot interpolation (dynamic profile) of peripheral fraction by timepoint
-        # graphs_details = peripheral_fraction_dynamic_profile(
-        #     basic_h5_file_handler=basic_h5_file_handler,
-        #     secondary_h5_file_handler=secondary_h5_file_handler,
-        #     genes=genes,
-        #     proteins=proteins,
-        #     colors=plot_colors,
-        #     mrna_tp=timepoints,
-        #     protein_tp=timepoints_protein,
-        #     save_into_dir_path_name=save_into_dir_path_name,
-        #     raw_images_dir_path_name=raw_images_dir_path_name
-        #     )
-        # resulting_graphs_details_as_list += graphs_details
+        graphs_details = peripheral_fraction_dynamic_profile(
+            basic_h5_file_handler=basic_h5_file_handler,
+            secondary_h5_file_handler=secondary_h5_file_handler,
+            genes=genes,
+            proteins=proteins,
+            colors=plot_colors,
+            mrna_tp=timepoints,
+            protein_tp=timepoints_protein,
+            save_into_dir_path_name=save_into_dir_path_name,
+            raw_images_dir_path_name=raw_images_dir_path_name
+            )
+        resulting_graphs_details_as_list += graphs_details
 
     resulting_graphs_details_as_odict = OrderedDict()
     for graph_details in resulting_graphs_details_as_list:
