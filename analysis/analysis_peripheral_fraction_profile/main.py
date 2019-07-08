@@ -64,7 +64,14 @@ def peripheral_profiles(
     save_into_dir_path_name,
     ext_logger=None
     ):
+
     assert os.path.isdir(save_into_dir_path_name)
+
+    ext_logger.debug("---> molecule_type : %s" % str(molecule_type))
+    ext_logger.debug("---> genes : %s" % str(genes))
+    ext_logger.debug("---> colors : %s" % str(colors))
+    ext_logger.debug("---> compute_peripheral_fraction_profiles : %s" % str(compute_peripheral_fraction_profiles))
+    ext_logger.debug("---> timepoints : %s" % str(timepoints))
 
     if not timepoints:
         timepoints=[False]
