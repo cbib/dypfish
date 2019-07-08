@@ -87,12 +87,12 @@ def peripheral_profiles(
                     [timepoint]
                     )
             else:
-                ext_logger("---> secondary_h5_file_handler : %s" % secondary_h5_file_handler)
-                ext_logger("---> type(secondary_h5_file_handler) : %s" % type(secondary_h5_file_handler))
-                ext_logger("---> molecule_type[0] : %s" % type(molecule_type[0]))
-                ext_logger("---> type(secondary_h5_file_handler) : %s" % type(molecule_type[0]))
-                ext_logger("---> gene : %s" % str(gene))
-                ext_logger("---> type(gene) : %s" % type(gene))
+                ext_logger.debug("---> secondary_h5_file_handler : %s" % secondary_h5_file_handler)
+                ext_logger.debug("---> type(secondary_h5_file_handler) : %s" % type(secondary_h5_file_handler))
+                ext_logger.debug("---> molecule_type[0] : %s" % type(molecule_type[0]))
+                ext_logger.debug("---> type(secondary_h5_file_handler) : %s" % type(molecule_type[0]))
+                ext_logger.debug("---> gene : %s" % str(gene))
+                ext_logger.debug("---> type(gene) : %s" % type(gene))
                 image_list = helps.preprocess_image_list2(
                 secondary_h5_file_handler,
                 molecule_type[0],
