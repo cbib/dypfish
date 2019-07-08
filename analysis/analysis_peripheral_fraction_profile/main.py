@@ -67,12 +67,6 @@ def peripheral_profiles(
 
     assert os.path.isdir(save_into_dir_path_name)
 
-    print("---> molecule_type : %s" % str(molecule_type))
-    print("---> genes : %s" % str(genes))
-    print("---> colors : %s" % str(colors))
-    print("---> compute_peripheral_fraction_profiles : %s" % str(compute_peripheral_fraction_profiles))
-    print("---> timepoints : %s" % str(timepoints))
-
     if not timepoints:
         timepoints=[False]
     for timepoint in timepoints:
@@ -87,12 +81,6 @@ def peripheral_profiles(
                     [timepoint]
                     )
             else:
-                ext_logger.debug("---> secondary_h5_file_handler : %s" % secondary_h5_file_handler)
-                ext_logger.debug("---> type(secondary_h5_file_handler) : %s" % type(secondary_h5_file_handler))
-                ext_logger.debug("---> molecule_type[0] : %s" % type(molecule_type[0]))
-                ext_logger.debug("---> type(secondary_h5_file_handler) : %s" % type(molecule_type[0]))
-                ext_logger.debug("---> gene : %s" % str(gene))
-                ext_logger.debug("---> type(gene) : %s" % type(gene))
                 image_list = helps.preprocess_image_list2(
                 secondary_h5_file_handler,
                 molecule_type[0],
