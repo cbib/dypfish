@@ -383,7 +383,7 @@ def generate_secondary_descriptors_hd5(
     raw_images_dir_path,
     secondary_h5_file_path_name,
     thread_num=4,
-    ext_logger = None
+    ext_logger=None
     ):
 
     assert os.path.isfile(basic_h5_file_path_name)
