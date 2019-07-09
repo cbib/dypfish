@@ -382,7 +382,8 @@ def generate_secondary_descriptors_hd5(
     basic_h5_file_path_name,
     raw_images_dir_path,
     secondary_h5_file_path_name,
-    thread_num=4
+    thread_num=4,
+    ext_logger = None
     ):
 
     assert os.path.isfile(basic_h5_file_path_name)
@@ -390,6 +391,14 @@ def generate_secondary_descriptors_hd5(
     assert not os.path.isfile(secondary_h5_file_path_name)
 
     ## Start Analysis
+
+    if ext_logger:
+        ext_logger:
+        ext_logger.debug(".debug("Running generate_secondary_descriptors_hd5...")
+        ext_logger.debug("basic_h5_file_path_name : %s" % basic_h5_file_path_name)
+        ext_logger.debug("raw_images_dir_path : %s" % raw_images_dir_path)
+        ext_logger.debug("secondary_h5_file_path_name : %s" % secondary_h5_file_path_name)
+        ext_logger.debug("ext_logger : %s" % ext_logger)
 
     with h5py.File(basic_h5_file_path_name, "a") as basic_h5_file_handler, \
          h5py.File(secondary_h5_file_path_name, "a") as secondary_h5_file_handler:
@@ -418,6 +427,9 @@ def generate_secondary_descriptors_hd5(
 
             for thread in thread_list:
                 thread.join()
+
+    if ext_logger:
+        ext_logger.debug("end of generate_secondary_descriptors_hd5 function")
 
     return True
 
