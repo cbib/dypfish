@@ -439,7 +439,7 @@ def generate_secondary_descriptors_hd5(
                 #         sub_list,
                 #         ext_logger=ext_logger
                 #         )
-                    )
+                    # )
 
                 for image in sub_list:
                     try:
