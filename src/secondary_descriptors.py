@@ -109,7 +109,7 @@ def set_zero_level(
     raw_images_dir_path
     ):
     molecule, gene, timepoint, number = image.split("/")
-    tubulin_image_path = raw_images_dir_path+gene+'/'+molecule+'_'+timepoint+"/image_"+number+"/tubulin.tif"
+    tubulin_image_path = raw_images_dir_path+'/'+gene+'/'+molecule+'_'+timepoint+"/image_"+number+"/tubulin.tif"
     if not os.path.exists(tubulin_image_path):
         tubulin_image_path = raw_images_dir_path + gene + '/' + molecule + '_' + timepoint +"/"+ number + "/tubulin.tif"
 
