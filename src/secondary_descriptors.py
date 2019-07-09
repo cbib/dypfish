@@ -311,7 +311,8 @@ class Preprocess(Thread):
         basic_h5_file_handler,
         secondary_h5_file_handler,
         raw_images_dir_path,
-        img_list
+        img_list,
+        ext_logger=None
         ):
         Thread.__init__(self)
         self.basic_h5_file_handler = basic_h5_file_handler
@@ -320,62 +321,68 @@ class Preprocess(Thread):
         self.img_list = img_list
 
     def run(self):
-        for image in self.img_list:
-            print("Computing descriptors for " + image)
+        if ext_logger:
+            ext_logger("Running preprocess...")
+        try:
+            for image in self.img_list:
+                print("Computing descriptors for " + image)
 
-            '''UPDATE BASIC.H5'''
-            set_zero_level(
-                self.basic_h5_file_handler,
-                image,
-                self.raw_images_dir_path
-                )
+                '''UPDATE BASIC.H5'''
+                set_zero_level(
+                    self.basic_h5_file_handler,
+                    image,
+                    self.raw_images_dir_path
+                    )
 
-            '''PREPROCESS'''
-            set_cell_mask_distance_map(
-                self.basic_h5_file_handler,
-                self.secondary_h5_file_handler,
-                image
-                )
-            if 'mrna' in image:
-                set_3d_spots(
-                    self.basic_h5_file_handler,
-                    image
-                    )
-                set_spots_peripheral_distance(
+                '''PREPROCESS'''
+                set_cell_mask_distance_map(
                     self.basic_h5_file_handler,
                     self.secondary_h5_file_handler,
                     image
                     )
-                set_spots_peripheral_distance_2D(
+                if 'mrna' in image:
+                    set_3d_spots(
+                        self.basic_h5_file_handler,
+                        image
+                        )
+                    set_spots_peripheral_distance(
+                        self.basic_h5_file_handler,
+                        self.secondary_h5_file_handler,
+                        image
+                        )
+                    set_spots_peripheral_distance_2D(
+                        self.basic_h5_file_handler,
+                        self.secondary_h5_file_handler,
+                        image
+                        )
+                set_cell_area(
                     self.basic_h5_file_handler,
                     self.secondary_h5_file_handler,
                     image
                     )
-            set_cell_area(
-                self.basic_h5_file_handler,
-                self.secondary_h5_file_handler,
-                image
-                )
-            set_nucleus_area(
-                self.basic_h5_file_handler,
-                self.secondary_h5_file_handler,
-                image
-                )
-            '''PREPROCESS'''
+                set_nucleus_area(
+                    self.basic_h5_file_handler,
+                    self.secondary_h5_file_handler,
+                    image
+                    )
+                '''PREPROCESS'''
 
-            if 'mrna' in image:
-                set_h_star_mrna(
-                    self.basic_h5_file_handler,
-                    self.secondary_h5_file_handler,
-                    image
-                    )
-            elif 'protein' in image:
-                set_h_star_protein(
-                    self.basic_h5_file_handler,
-                    self.secondary_h5_file_handler,
-                    self.raw_images_dir_path,
-                    image
-                    )
+                if 'mrna' in image:
+                    set_h_star_mrna(
+                        self.basic_h5_file_handler,
+                        self.secondary_h5_file_handler,
+                        image
+                        )
+                elif 'protein' in image:
+                    set_h_star_protein(
+                        self.basic_h5_file_handler,
+                        self.secondary_h5_file_handler,
+                        self.raw_images_dir_path,
+                        image
+                        )
+        except Exception as e:
+            if ext_logger:
+                ext_logger.exception(e)
 
 
 def generate_secondary_descriptors_hd5(
