@@ -393,7 +393,7 @@ def generate_secondary_descriptors_hd5(
     ## Start Analysis
 
     if ext_logger:
-        ext_logger.debug(".debug("Running generate_secondary_descriptors_hd5...")
+        ext_logger.debug("Running generate_secondary_descriptors_hd5...")
         ext_logger.debug("basic_h5_file_path_name : %s" % basic_h5_file_path_name)
         ext_logger.debug("raw_images_dir_path : %s" % raw_images_dir_path)
         ext_logger.debug("secondary_h5_file_path_name : %s" % secondary_h5_file_path_name)
