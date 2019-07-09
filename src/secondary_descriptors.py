@@ -319,10 +319,11 @@ class Preprocess(Thread):
         self.secondary_h5_file_handler = secondary_h5_file_handler
         self.raw_images_dir_path = raw_images_dir_path
         self.img_list = img_list
+        self.ext_logger = ext_logger
 
     def run(self):
-        if ext_logger:
-            ext_logger("Running preprocess...")
+        if self.ext_logger:
+            self.ext_logger("Running preprocess...")
         try:
             for image in self.img_list:
                 print("Computing descriptors for " + image)
@@ -381,8 +382,8 @@ class Preprocess(Thread):
                         image
                         )
         except Exception as e:
-            if ext_logger:
-                ext_logger.exception(e)
+            if self.ext_logger:
+                self.ext_logger.exception(e)
 
 
 def generate_secondary_descriptors_hd5(
