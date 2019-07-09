@@ -398,7 +398,10 @@ def generate_secondary_descriptors_hd5(
     assert os.path.isdir(raw_images_dir_path)
     assert not os.path.isfile(secondary_h5_file_path_name)
 
-    ## Start Analysis
+    ## Start géneration
+
+    if ext_logger:
+        ext_logger.debug("Start géneration...")
 
     with h5py.File(basic_h5_file_path_name, "a") as basic_h5_file_handler, \
          h5py.File(secondary_h5_file_path_name, "a") as secondary_h5_file_handler:
