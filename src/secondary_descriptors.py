@@ -391,6 +391,7 @@ def generate_secondary_descriptors_hd5(
         ext_logger.debug("basic_h5_file_path_name : %s" % basic_h5_file_path_name)
         ext_logger.debug("raw_images_dir_path : %s" % raw_images_dir_path)
         ext_logger.debug("secondary_h5_file_path_name : %s" % secondary_h5_file_path_name)
+        ext_logger.debug("thread_num : %s" % thread_num)
         ext_logger.debug("ext_logger : %s" % ext_logger)
 
     assert os.path.isfile(basic_h5_file_path_name)
@@ -408,6 +409,8 @@ def generate_secondary_descriptors_hd5(
                 basic_h5_file_handler,
                 molecule_type
                 )
+            if ext_logger:
+                ext_logger.debug("---> len(sub_list): %s" % len(sub_list"))
             for sub_list in np.array_split(
                 image_list,
                 thread_num
