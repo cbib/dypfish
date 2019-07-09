@@ -430,7 +430,8 @@ def generate_secondary_descriptors_hd5(
                         basic_h5_file_handler,
                         secondary_h5_file_handler,
                         raw_images_dir_path,
-                        sub_list
+                        sub_list,
+                        ext_logger=ext_logger
                         )
                     )
 
