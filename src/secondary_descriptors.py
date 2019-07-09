@@ -410,7 +410,7 @@ def generate_secondary_descriptors_hd5(
                 molecule_type
                 )
             if ext_logger:
-                ext_logger.debug("---> len(sub_list): %s" % len(sub_list"))
+                ext_logger.debug("---> len(sub_list): %s" % len(sub_list))
             for sub_list in np.array_split(
                 image_list,
                 thread_num
