@@ -732,7 +732,7 @@ def compute_mrna_cytoplasmic_total(file_handler, image):
     return counter
 
 def compute_protein_cytoplasmic_total(file_handler, image,path_data):
-    print(image)
+    #print(image)
     if "tp" in image:
         molecule = image.split("/")[1]
         gene = image.split("/")[2].split("_")[0]
@@ -742,12 +742,12 @@ def compute_protein_cytoplasmic_total(file_handler, image,path_data):
     else:
         IF = get_IF(file_handler,image)
     cell_mask=get_cell_mask(file_handler, image)
-    print (len(cell_mask))
-    print (cell_mask)
+    #print (len(cell_mask))
+    #print (cell_mask)
     nucleus_mask= get_nucleus_mask(file_handler,image)
-    print(len(nucleus_mask))
-    print (nucleus_mask)
-    print (IF.shape)
+    #print(len(nucleus_mask))
+    #print (nucleus_mask)
+    #print (IF.shape)
     return IF[(cell_mask==1) & (nucleus_mask==0)].sum()
 
 # Compare cytoplasmic spread cell with 3D cytoplasmic mrna spread

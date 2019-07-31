@@ -44,7 +44,7 @@ def sns_boxplot(dd,my_pal,figname):
     plt.savefig(figname, format='png')
 
 def bar_profile(data,genes,figname):
-    print(data)
+    #print(data)
     plt.figure()
     ax = plt.axes()
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
@@ -65,7 +65,7 @@ def bar_profile(data,genes,figname):
             y_std=max_std
         dataMedians.append(np.median(l))
         dataStd.append(np.std(l))
-    print(dataStd)
+    #print(dataStd)
     ind = np.arange(N)
     width = 0.35
     ax.bar(ind, dataMedians, width,color=plot_colors,
