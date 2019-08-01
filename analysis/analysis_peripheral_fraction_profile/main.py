@@ -393,6 +393,7 @@ def main(
         #
         # except Exception as e:
         #     errors.append("Could not generate peripheral profiles graphs.")
+        #     raise
 
         # Section to build peripheral profile fraction 10 and 30
         try:
@@ -409,6 +410,7 @@ def main(
 
         except Exception as e:
             errors.append("Could not generate peripheral fraction profile graph.")
+            raise
 
         # Section to compute bar plot peripheral fraction
         # try:
@@ -422,9 +424,10 @@ def main(
         #         save_into_dir_path_name=save_into_dir_path_name
         #         )
         #     resulting_graphs_details_as_list += graphs_details
-
-        except Exception as e:
-            errors.append("Could not generate histogram peripheral profile graphs.")
+        #
+        # except Exception as e:
+        #     errors.append("Could not generate histogram peripheral profile graphs.")
+        #     raise
 
         # Section to produce plot interpolation (dynamic profile) of peripheral fraction by timepoint
         # try:
@@ -442,6 +445,7 @@ def main(
         #     resulting_graphs_details_as_list += graphs_details
         # except Exception as e:
         #     errors.append("Could not generate peripheral fraction dynamic profile graphs.")
+        #     raise
 
 
     resulting_graphs_details_as_odict = OrderedDict()
