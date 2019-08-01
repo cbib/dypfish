@@ -71,6 +71,9 @@ def set_h_star_protein(file_handler, output_file_handler, image):
     def prune_intensities(image, zero_level):
         molecule, gene, timepoint, number = image.split("/")
         IF_image_path = path.raw_data_dir + gene + '/' + molecule + '_' + timepoint + "/image_" + number + '/IF.tif'
+        if not os.path.exists(IF_image_path):
+            IF_image_path = path.raw_data_dir + gene + '/' + molecule + '_' + timepoint + "/" + number + "/IF.tif"
+
         IF = io.imread(IF_image_path, plugin='tifffile')
 
         vol_block = np.zeros((512, 512, zero_level))
@@ -122,11 +125,19 @@ def set_zero_level(file_handler, image, raw_data_dir):
 
 
 def set_3d_spots(file_handler, image):
-    if file_handler[image]['spots'].shape[1] == 3:
-        return
+    #if file_handler[image]['spots'].shape[1] == 3:
+
+     #   return
     spots_3d = []
+    print (image)
     for spot in file_handler[image]['spots']:
-        spots_3d.append((spot[0],spot[1], file_handler[image]['height_map'][spot[0],spot[1]]))
+
+        #print(spot[0],spot[1])
+        try:
+            spots_3d.append((spot[0], spot[1], file_handler[image]['height_map'][spot[0], spot[1]]))
+        except:
+            print('ERROR', image)
+
 
     del file_handler[image]['spots']
     file_handler.create_dataset(image+'/spots', data=spots_3d, dtype=np.float32)
@@ -293,21 +304,45 @@ class Preprocess(Thread):
 if __name__ == "__main__":
 
 
-    basic_file_path = path.analysis_data_dir + 'basic.h5'
-    secondary_file_path = path.analysis_data_dir + 'secondary.h5'
-
-    if os.path.exists(secondary_file_path):
-        os.remove(secondary_file_path)
+    if os.path.exists(path.secondary_file_path):
+        os.remove(path.secondary_file_path)
 
     ## Start Analysis
 
-    with h5py.File(basic_file_path, "a") as input_file_handler, h5py.File(secondary_file_path,
+    with h5py.File(path.basic_file_path, "a") as input_file_handler, h5py.File(path.secondary_file_path,
                                                                           "a") as output_file_handler:
 
         for molecule_type in (['mrna'], ['protein']):
-            THREAD_NUM = 4
+            THREAD_NUM = 1
             thread_list = []
+            print(path.basic_file_path)
             image_list = helps.preprocess_image_list(input_file_handler, molecule_type)
+
+            for image in image_list:
+                print("Computing descriptors for " + image)
+
+                '''UPDATE BASIC.H5'''
+                set_zero_level(input_file_handler, image, path.raw_data_dir)
+
+                '''PREPROCESS'''
+                set_cell_mask_distance_map(input_file_handler, output_file_handler, image)
+                if 'mrna' in image:
+                    print('3d')
+                    set_3d_spots(input_file_handler, image)
+                    set_spots_peripheral_distance(input_file_handler, output_file_handler, image)
+                    set_spots_peripheral_distance_2D(input_file_handler, output_file_handler, image)
+                set_cell_area(input_file_handler, output_file_handler, image)
+                set_nucleus_area(input_file_handler, output_file_handler, image)
+                '''PREPROCESS'''
+
+                if 'mrna' in image:
+                    set_h_star_mrna(input_file_handler, output_file_handler, image)
+                elif 'protein' in image:
+                    set_h_star_protein(input_file_handler, output_file_handler, image)
+
+
+            exit(1)
+
             for sub_list in np.array_split(image_list, THREAD_NUM):
                 thread_list.append(Preprocess(sub_list))
 

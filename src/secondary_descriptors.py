@@ -440,15 +440,15 @@ def generate_secondary_descriptors_hd5(
                     ext_logger.debug("---> len(sub_list): %s" % len(sub_list))
 
                 if thread_num > 1:
-                thread_list.append(
-                    Preprocess(
-                        basic_h5_file_handler,
-                        secondary_h5_file_handler,
-                        raw_images_dir_path,
-                        sub_list,
-                        ext_logger=ext_logger
+                    thread_list.append(
+                        Preprocess(
+                            basic_h5_file_handler,
+                            secondary_h5_file_handler,
+                            raw_images_dir_path,
+                            sub_list,
+                            ext_logger=ext_logger
+                            )
                         )
-                    )
 
                 for image in sub_list:
                     try:
