@@ -379,21 +379,21 @@ def main(
     with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler, \
          h5py.File(secondary_h5_path_name, "r") as secondary_h5_file_handler:
 
-        # try:
-        #     graphs_details = peripheral_profiles(
-        #         secondary_h5_file_handler=secondary_h5_file_handler,
-        #         molecule_type=slashed_molecule_type,
-        #         genes=genes,
-        #         colors=plot_colors,
-        #         compute_peripheral_fraction_profiles=adsc.compute_peripheral_fraction_profiles_3D,
-        #         timepoints=None,
-        #         save_into_dir_path_name=save_into_dir_path_name
-        #         )
-        #     resulting_graphs_details_as_list += graphs_details
-        #
-        # except Exception as e:
-        #     errors.append("Could not generate peripheral profiles graphs.")
-        #     raise
+        try:
+            graphs_details = peripheral_profiles(
+                secondary_h5_file_handler=secondary_h5_file_handler,
+                molecule_type=slashed_molecule_type,
+                genes=genes,
+                colors=plot_colors,
+                compute_peripheral_fraction_profiles=adsc.compute_peripheral_fraction_profiles_3D,
+                timepoints=None,
+                save_into_dir_path_name=save_into_dir_path_name
+                )
+            resulting_graphs_details_as_list += graphs_details
+
+        except Exception as e:
+            errors.append("Could not generate peripheral profiles graphs.")
+            raise
 
         # Section to build peripheral profile fraction 10 and 30
         try:
@@ -413,39 +413,39 @@ def main(
             raise
 
         # Section to compute bar plot peripheral fraction
-        # try:
-        #     graphs_details = histogram_peripheral_profile(
-        #         basic_h5_file_handler=basic_h5_file_handler,
-        #         secondary_h5_file_handler=secondary_h5_file_handler,
-        #         genes=genes,
-        #         proteins=proteins,
-        #         colors=plot_colors,
-        #         raw_images_dir_path_name=raw_images_dir_path_name,
-        #         save_into_dir_path_name=save_into_dir_path_name
-        #         )
-        #     resulting_graphs_details_as_list += graphs_details
-        #
-        # except Exception as e:
-        #     errors.append("Could not generate histogram peripheral profile graphs.")
-        #     raise
+        try:
+            graphs_details = histogram_peripheral_profile(
+                basic_h5_file_handler=basic_h5_file_handler,
+                secondary_h5_file_handler=secondary_h5_file_handler,
+                genes=genes,
+                proteins=proteins,
+                colors=plot_colors,
+                raw_images_dir_path_name=raw_images_dir_path_name,
+                save_into_dir_path_name=save_into_dir_path_name
+                )
+            resulting_graphs_details_as_list += graphs_details
+
+        except Exception as e:
+            errors.append("Could not generate histogram peripheral profile graphs.")
+            raise
 
         # Section to produce plot interpolation (dynamic profile) of peripheral fraction by timepoint
-        # try:
-        #     graphs_details = peripheral_fraction_dynamic_profile(
-        #         basic_h5_file_handler=basic_h5_file_handler,
-        #         secondary_h5_file_handler=secondary_h5_file_handler,
-        #         genes=genes,
-        #         proteins=proteins,
-        #         colors=plot_colors,
-        #         mrna_tp=timepoints,
-        #         protein_tp=timepoints_protein,
-        #         save_into_dir_path_name=save_into_dir_path_name,
-        #         raw_images_dir_path_name=raw_images_dir_path_name
-        #         )
-        #     resulting_graphs_details_as_list += graphs_details
-        # except Exception as e:
-        #     errors.append("Could not generate peripheral fraction dynamic profile graphs.")
-        #     raise
+        try:
+            graphs_details = peripheral_fraction_dynamic_profile(
+                basic_h5_file_handler=basic_h5_file_handler,
+                secondary_h5_file_handler=secondary_h5_file_handler,
+                genes=genes,
+                proteins=proteins,
+                colors=plot_colors,
+                mrna_tp=timepoints,
+                protein_tp=timepoints_protein,
+                save_into_dir_path_name=save_into_dir_path_name,
+                raw_images_dir_path_name=raw_images_dir_path_name
+                )
+            resulting_graphs_details_as_list += graphs_details
+        except Exception as e:
+            errors.append("Could not generate peripheral fraction dynamic profile graphs.")
+            raise
 
 
     resulting_graphs_details_as_odict = OrderedDict()

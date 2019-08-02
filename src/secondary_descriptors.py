@@ -26,27 +26,28 @@ def compute_cell_mask_3d(
     basic_h5_file_handler,
     image
     ):
-   height_map = get_height_map(basic_h5_file_handler, image)
-   if height_map.size == 0:
-       return None
+    height_map = get_height_map(basic_h5_file_handler, image)
+    if height_map.size == 0:
+        return None
 
-   zero_level = get_zero_level(basic_h5_file_handler, image)
-   cell_mask = get_cell_mask(basic_h5_file_handler, image)
-   height_map = height_map.astype(float)
-   height_map[cell_mask == 0] = np.nan
-   reversed_height_map = zero_level-height_map+1
+    zero_level = get_zero_level(basic_h5_file_handler, image)
+    cell_mask = get_cell_mask(basic_h5_file_handler, image)
+    height_map = height_map.astype(float)
+    height_map[cell_mask == 0] = np.nan
+    reversed_height_map = zero_level-height_map+1
 
-   # Create binary cell masks per slice
+    # Create binary cell masks per slice
 
-   cell_masks = np.zeros((512,512,zero_level))
+    cell_masks = np.zeros((512,512,zero_level))
 
-   # build slice mask
-   for slice in range(0,zero_level):
-       slice_mask = np.array(reversed_height_map, copy = True)
-       slice_mask[slice_mask > slice] = np.nan
-       slice_mask[slice_mask <= float(slice)] = 1
-       slice_mask=np.nan_to_num(slice_mask)
-       cell_masks[:,:,slice]
+    # build slice mask
+    for slice in range(0,zero_level):
+        slice_mask = np.array(reversed_height_map, copy = True)
+        slice_mask[slice_mask > slice] = np.nan
+        slice_mask[slice_mask <= float(slice)] = 1
+        slice_mask=np.nan_to_num(slice_mask)
+        cell_masks[:,:,slice] = slice_mask
+    return cell_masks
 
 
 def set_h_star_mrna(
@@ -112,9 +113,9 @@ def set_zero_level(
     raw_images_dir_path
     ):
     molecule, gene, timepoint, number = image.split("/")
-    tubulin_image_path = raw_images_dir_path+'/'+gene+'/'+molecule+'_'+timepoint+"/image_"+number+"/tubulin.tif"
+    tubulin_image_path = raw_images_dir_path+gene+'/'+molecule+'_'+timepoint+"/image_"+number+"/tubulin.tif"
     if not os.path.exists(tubulin_image_path):
-        tubulin_image_path = raw_images_dir_path + '/' + gene + '/' + molecule + '_' + timepoint +"/"+ number + "/tubulin.tif"
+        tubulin_image_path = raw_images_dir_path + gene + '/' + molecule + '_' + timepoint +"/"+ number + "/tubulin.tif"
 
     image_stacked = io.imread(tubulin_image_path, plugin='tifffile')
     #print(image_stacked.shape)
@@ -143,7 +144,9 @@ def set_3d_spots(
     basic_h5_file_handler,
     image
     ):
+
     #if basic_h5_file_handler[image]['spots'].shape[1] == 3:
+
      #   return
     spots_3d = []
     print(image)
@@ -154,6 +157,10 @@ def set_3d_spots(
             spots_3d.append((spot[0], spot[1], basic_h5_file_handler[image]['height_map'][spot[0], spot[1]]))
         except:
             print('ERROR', image)
+
+
+    del basic_h5_file_handler[image]['spots']
+    basic_h5_file_handler.create_dataset(image+'/spots', data=spots_3d, dtype=np.float32)
 
 
 '''Cell mask distance map computation'''
@@ -277,6 +284,7 @@ def set_cell_mask_distance_map(
     secondary_h5_file_handler.create_dataset(descriptor, data=cell_mask_distance_map, dtype=np.int)
 
 
+
 '''Cell and nucleus area computation'''
 def set_cell_area(
     basic_h5_file_handler,
@@ -305,6 +313,7 @@ def set_nucleus_area(
     nucleus_mask = get_nucleus_mask(basic_h5_file_handler, image)
     area = nucleus_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)  # * by pixel dimensions
     secondary_h5_file_handler[image].attrs['nucleus_area'] = area
+
 
 
 from threading import Thread
@@ -428,6 +437,7 @@ def generate_secondary_descriptors_hd5(
 
         for molecule_type in (['mrna'], ['protein']):
             thread_list = []
+            print(path.basic_file_path)
             image_list = helps.preprocess_image_list(
                 basic_h5_file_handler,
                 molecule_type
@@ -436,8 +446,6 @@ def generate_secondary_descriptors_hd5(
                 image_list,
                 thread_num
                 ):
-                if ext_logger:
-                    ext_logger.debug("---> len(sub_list): %s" % len(sub_list))
 
                 if thread_num > 1:
                     thread_list.append(
