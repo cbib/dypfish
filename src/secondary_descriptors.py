@@ -522,7 +522,7 @@ def generate_secondary_descriptors_hd5(
 
                     except Exception as e:
                         if ext_logger:
-                            ext_logger.excption(e)
+                            ext_logger.exception(e)
 
             if thread_num > 1:
                 for thread in thread_list:
@@ -551,3 +551,4 @@ if __name__ == "__main__":
         raw_images_dir_path=raw_images_dir_path,
         secondary_h5_file_path_name=secondary_h5_file_path_name
         )
+
