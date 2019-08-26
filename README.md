@@ -7,7 +7,7 @@ A large number of mRNAs exhibit tightly controlled localization patterns specifi
 We introduce a range of analytical techniques for quantitatively interrogating single molecule RNA FISH data in combination with protein immunolabeling. Strikingly, our results show that micropatterning of cells reduces variation in subcellular mRNA and protein distributions, allowing the characterization of their localization and dynamics with high reproducibility.
 The method reveals patterns of clustering, strong dependency of mRNA-protein localization on MTOC orientation and interdependent dynamics globally and at specific subcellular locations. We establish a robust approach that is broadly applicable to a wide range of systems.
 
-DypFISH is a python library designed to analysis confocal microscopy image.
+DypFISH is a python library designed for the analysis of confocal microscopy images.
 Using hdf5 files, users can run spatial and temporal statistics on mRNA and protein signals
 
 # Datasets
