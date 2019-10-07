@@ -110,7 +110,7 @@ def compute_cell_mask_3d(file_handler,image):
    reversed_height_map = zero_level-height_map+1
 
    # Create binary cell masks per slice
-   cell_masks = np.zeros((512,512,zero_level))
+   cell_masks = np.zeros((constants.IMAGE_WIDTH,constants.IMAGE_HEIGHT,zero_level))
 
    # build slice mask
    for slice in range(0,zero_level):
@@ -174,7 +174,7 @@ def compute_line_segments(nucleus_mask, cytoplasm_mask, nucleus_centroid, x_slop
     for point in range(constants.MAX_CELL_RADIUS):
         x = int(round(nucleus_centroid[0] + point * x_slope))
         y = int(round(nucleus_centroid[1] + point * y_slope))
-        if not (x < 0 or x > 511 or y < 0 or y > 511):
+        if not (x < 0 or x > (constants.IMAGE_WIDTH -1) or y < 0 or y > (constants.IMAGE_HEIGHT-1)):
             cytoplasm_segment[point] = cytoplasm_mask[y, x]
             nucleus_segment[point] = nucleus_mask[y, x]
         else:
@@ -230,7 +230,7 @@ def set_height_map(file_handler, image, tubulin_image_path):
     else:
         percentile = 9
 
-    height_map = np.zeros((512, 512))
+    height_map = np.zeros((constants.IMAGE_WIDTH,constants.IMAGE_HEIGHT))
     test_counter=0
     for n in range(zero_level, -1, -1):
         fig,((ax1,ax2),(ax3,ax4))=plt.subplots(2,2,figsize=(20,10))
@@ -301,6 +301,8 @@ def set_scratch_peripheral_distance(file_handler, output_file_handler, image):
 
 def set_protein_peripheral_distance(file_handler, output_file_handler, image):
     peripheral_distance = get_peripheral_distance(output_file_handler, image)
+    spots = get_spots(file_handler, image)
+
     assert (not peripheral_distance.size), 'peripheral_distance already defined for %r' % image
     height_map = get_height_map(file_handler, image)
     zero_level = get_zero_level(file_handler, image)
@@ -458,7 +460,7 @@ def set_quadrants(file_handler, image):
     right_point = rotate_point(nucleus_centroid, mtoc_position, 45)
     s = slope_from_points(nucleus_centroid, right_point)
     corr = np.arctan(s)
-    xx, yy = np.meshgrid(np.array(range(0, 512)) - nucleus_centroid[0], np.array(range(0, 512)) - nucleus_centroid[1])
+    xx, yy = np.meshgrid(np.array(range(0, constants.IMAGE_WIDTH)) - nucleus_centroid[0], np.array(range(0, constants.IMAGE_HEIGHT)) - nucleus_centroid[1])
     rotated_xx, rotated_yy = rotate_meshgrid(xx, yy, -corr)
     sliceno = ((math.pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / (2 * math.pi)))
     sliceno = sliceno.astype(int)
@@ -490,8 +492,8 @@ def search_protein_quadrants(file_handler, mtoc_file_handler,protein,image):
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
         s = slope_from_points(nucleus_centroid, right_point)
         corr = np.arctan(s)  # angle wrt to x axis
-        xx, yy = np.meshgrid(np.array(range(0, 512)) - nucleus_centroid[0],
-                             np.array(range(0, 512)) - nucleus_centroid[1])
+        xx, yy = np.meshgrid(np.array(range(0, constants.IMAGE_WIDTH)) - nucleus_centroid[0],
+                             np.array(range(0, constants.IMAGE_HEIGHT)) - nucleus_centroid[1])
         rotated_xx, rotated_yy = rotate_meshgrid(xx, yy, -corr)
         sliceno = ((math.pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / (2 * math.pi)))
         sliceno = sliceno.astype(int)
@@ -526,7 +528,7 @@ def search_mrna_quadrants(file_handler, image):
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
         s = slope_from_points(nucleus_centroid, right_point)
         corr = np.arctan(s) # angle wrt to x axis
-        xx, yy = np.meshgrid(np.array(range(0, 512)) - nucleus_centroid[0], np.array(range(0, 512)) - nucleus_centroid[1])
+        xx, yy = np.meshgrid(np.array(range(0, constants.IMAGE_WIDTH)) - nucleus_centroid[0], np.array(range(0, constants.IMAGE_HEIGHT)) - nucleus_centroid[1])
         rotated_xx, rotated_yy = rotate_meshgrid(xx, yy, -corr)
         sliceno = ((math.pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / (2 * math.pi)))
         sliceno = sliceno.astype(int)
@@ -568,7 +570,7 @@ def search_periph_mrna_quadrants(file_handler,second_file_handler, image):
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
         s = slope_from_points(nucleus_centroid, right_point)
         corr = np.arctan(s)
-        xx, yy = np.meshgrid(np.array(range(0, 512)) - nucleus_centroid[0], np.array(range(0, 512)) - nucleus_centroid[1])
+        xx, yy = np.meshgrid(np.array(range(0, constants.IMAGE_WIDTH)) - nucleus_centroid[0], np.array(range(0, constants.IMAGE_HEIGHT)) - nucleus_centroid[1])
         rotated_xx, rotated_yy = rotate_meshgrid(xx, yy, -corr)
         sliceno = ((math.pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / (2 * math.pi)))
         sliceno = sliceno.astype(int)
@@ -610,8 +612,8 @@ def search_periph_protein_quadrants(file_handler,second_file_handler, protein,im
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
         s = slope_from_points(nucleus_centroid, right_point)
         corr = np.arctan(s)  # angle wrt to x axis
-        xx, yy = np.meshgrid(np.array(range(0, 512)) - nucleus_centroid[0],
-                             np.array(range(0, 512)) - nucleus_centroid[1])
+        xx, yy = np.meshgrid(np.array(range(0, constants.IMAGE_WIDTH)) - nucleus_centroid[0],
+                             np.array(range(0, constants.IMAGE_HEIGHT)) - nucleus_centroid[1])
         rotated_xx, rotated_yy = rotate_meshgrid(xx, yy, -corr)
         sliceno = ((math.pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / (2 * math.pi)))
         sliceno = sliceno.astype(int)
@@ -698,8 +700,8 @@ def compute_protein_cytoplasmic_spread(file_handler, image,path_data):
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
     IF = get_IF(file_handler,image)
     height_map += 1
-    ds1 = np.matlib.repmat(range(0, 512), 512, 1) - nucleus_centroid[0]
-    ds2 = np.matlib.repmat(np.asmatrix(np.arange(0, 512).reshape(512, 1)), 1, 512) - nucleus_centroid[1]
+    ds1 = np.matlib.repmat(range(0, constants.IMAGE_WIDTH), constants.IMAGE_WIDTH, 1) - nucleus_centroid[0]
+    ds2 = np.matlib.repmat(np.asmatrix(np.arange(0, constants.IMAGE_HEIGHT).reshape(constants.IMAGE_HEIGHT, 1)), 1, constants.IMAGE_HEIGHT) - nucleus_centroid[1]
     dsAll = np.power(ds1, 2) + np.power(ds2, 2)
     dsAll = np.sqrt(dsAll)
     height_map = np.multiply(height_map,cell_mask)
@@ -713,8 +715,8 @@ def compute_protein_cytoplasmic_spread_2D(file_handler, image,path_data):
     cell_mask = get_cell_mask(file_handler, image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
     IF = get_IF(file_handler,image)
-    ds1 = np.matlib.repmat(range(0, 512), 512, 1) - nucleus_centroid[0]
-    ds2 = np.matlib.repmat(np.asmatrix(np.arange(0, 512).reshape(512, 1)), 1, 512) - nucleus_centroid[1]
+    ds1 = np.matlib.repmat(range(0, constants.IMAGE_WIDTH), constants.IMAGE_WIDTH, 1) - nucleus_centroid[0]
+    ds2 = np.matlib.repmat(np.asmatrix(np.arange(0, constants.IMAGE_HEIGHT).reshape(constants.IMAGE_HEIGHT, 1)), 1,constants.IMAGE_HEIGHT) - nucleus_centroid[1]
     dsAll = np.power(ds1, 2) + np.power(ds2, 2)
     dsAll = np.sqrt(dsAll)
     plane_map_dist = np.multiply(cell_mask,dsAll)
@@ -761,8 +763,8 @@ def compute_mrna_cytoplasmic_spread(file_handler, image):
     spots = get_spots(file_handler, image)
 
     # Compute all possible distance in a matrix [512x512]
-    ds1 = np.matlib.repmat(range(0, 512), 512, 1) - nucleus_centroid[0]
-    ds2 = np.matlib.repmat(np.asmatrix(np.arange(0, 512).reshape(512,1)), 1, 512) - nucleus_centroid[1]
+    ds1 = np.matlib.repmat(range(0, constants.IMAGE_WIDTH), constants.IMAGE_WIDTH, 1) - nucleus_centroid[0]
+    ds2 = np.matlib.repmat(np.asmatrix(np.arange(0, constants.IMAGE_HEIGHT).reshape(constants.IMAGE_HEIGHT, 1)), 1,constants.IMAGE_HEIGHT) - nucleus_centroid[1]
     dsAll = np.power(ds1, 2) + np.power(ds2, 2)
     dsAll = np.sqrt(dsAll)
 
@@ -799,8 +801,8 @@ def compute_mrna_cytoplasmic_spread_2D(file_handler, image):
     cell_mask = get_cell_mask(file_handler, image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
     spots = get_spots(file_handler, image)
-    ds1 = np.matlib.repmat(range(0, 512), 512, 1) - nucleus_centroid[0]
-    ds2 = np.matlib.repmat(np.asmatrix(np.arange(0, 512).reshape(512,1)), 1, 512) - nucleus_centroid[1]
+    ds1 = np.matlib.repmat(range(0, constants.IMAGE_WIDTH), constants.IMAGE_WIDTH, 1) - nucleus_centroid[0]
+    ds2 = np.matlib.repmat(np.asmatrix(np.arange(0, constants.IMAGE_HEIGHT).reshape(constants.IMAGE_HEIGHT, 1)), 1,constants.IMAGE_HEIGHT) - nucleus_centroid[1]
     dsAll = np.power(ds1, 2) + np.power(ds2, 2)
     dsAll = np.sqrt(dsAll)
 

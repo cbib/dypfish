@@ -135,9 +135,9 @@ def plot_mask(mask):
     plt.show()
 
 def build_quadrant_mask(index):
-    quad_mask = np.zeros((512, 512))
-    end = 511
-    for i in range(256):
+    quad_mask = np.zeros((constants.IMAGE_WIDTH, constants.IMAGE_HEIGHT))
+    end = constants.IMAGE_WIDTH-1
+    for i in range(int(constants.IMAGE_WIDTH/2)):
         if index == 1:
             quad_mask[i, i + 1:end - i + 1] = 1
         elif index == 2:
@@ -318,10 +318,10 @@ def ripley_k_random_measure(IF,my_lambda,nuw,r_max):
 
 
     # distance map(dist from origin)
-    dMap = np.zeros((512 * 2 - 1, 512 * 2 - 1))
-    for x in range(512 * 2 - 1):
-        for y in range(512 * 2 - 1):
-            d = (x - 512) ** 2 + (y - 512) ** 2;
+    dMap = np.zeros((constants.IMAGE_WIDTH * 2 - 1, constants.IMAGE_HEIGHT * 2 - 1))
+    for x in range(constants.IMAGE_WIDTH * 2 - 1):
+        for y in range(constants.IMAGE_HEIGHT * 2 - 1):
+            d = (x - constants.IMAGE_WIDTH) ** 2 + (y - constants.IMAGE_HEIGHT) ** 2;
             dMap[x, y] = math.sqrt(d)
 
 
@@ -609,7 +609,7 @@ def prune_intensities(image,zero_level):
     IF_image_path = path.raw_data_dir + '/' + image.split('/')[2] + '/' + image.split('/')[1] + '_' + \
                          image.split('/')[3] + '/image_' + image.split('/')[4] + '/IF.tif'
     IF = io.imread(IF_image_path, plugin='tifffile')
-    vol_block = np.zeros((512, 512, zero_level))
+    vol_block = np.zeros((constants.IMAGE_WIDTH, constants.IMAGE_HEIGHT, zero_level))
     for c_slice in range(0, zero_level):
         vol_block[:, :, c_slice] = IF[c_slice,:,:]
     return vol_block

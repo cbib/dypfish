@@ -35,7 +35,7 @@ def compute_cell_mask_3d(file_handler,image):
 
    # Create binary cell masks per slice
 
-   cell_masks = np.zeros((512,512,zero_level))
+   cell_masks = np.zeros((constants.IMAGE_WIDTH,constants.IMAGE_HEIGHT,zero_level))
 
    # build slice mask
    for slice in range(0,zero_level):
@@ -76,7 +76,7 @@ def set_h_star_protein(file_handler, output_file_handler, image):
 
         IF = io.imread(IF_image_path, plugin='tifffile')
 
-        vol_block = np.zeros((512, 512, zero_level))
+        vol_block = np.zeros((constants.IMAGE_WIDTH,constants.IMAGE_HEIGHT, zero_level))
         for c_slice in range(0, zero_level):
             vol_block[:, :, c_slice] = IF[c_slice, :, :]
 
@@ -160,7 +160,7 @@ def compute_line_segments(nucleus_mask, cytoplasm_mask, nucleus_centroid, x_slop
         #print(x)
         y = int(round(nucleus_centroid[1] + point * y_slope))
         #print(y)
-        if not (x < 0 or x > 511 or y < 0 or y > 511):
+        if not (x < 0 or x > (constants.IMAGE_WIDTH-1) or y < 0 or y > (constants.IMAGE_HEIGHT-1)):
             cytoplasm_segment[point] = cytoplasm_mask[y, x]
             nucleus_segment[point] = nucleus_mask[y, x]
         else:
@@ -186,14 +186,14 @@ def compute_edge_points(nucleus_segment, cytoplasm_segment):
 
 
 def compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points):
-    cell_mask_distance_map = np.zeros((512, 512), dtype=np.int)
+    cell_mask_distance_map = np.zeros((constants.IMAGE_WIDTH, constants.IMAGE_HEIGHT), dtype=np.int)
     for index in range(constants.NUM_CONTOURS):
         if index == 0:
             peripheral_mask = nucleus_mask
         else:
             contour_num = constants.NUM_CONTOURS - index
             peripheral_mask = helps.create_mask(contour_points[:, contour_num, 1], contour_points[:, contour_num, 0],
-                                                (512, 512))
+                                                (constants.IMAGE_WIDTH, constants.IMAGE_HEIGHT))
             peripheral_mask &= cytoplasm_mask
         cell_mask_distance_map[(peripheral_mask == 1)] = index +1
 
