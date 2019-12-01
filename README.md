@@ -12,7 +12,7 @@ Using hdf5 files, users can run spatial and temporal statistics on mRNA FISH and
 
 # Datasets
 
-Datasets corresponding to the data analyzed in the manuscript are available on the [accompanying website](http://dypfish.org)
+Datasets corresponding to the data analyzed in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org)
 
 
 # Installation
