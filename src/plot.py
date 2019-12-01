@@ -35,6 +35,7 @@ def bar_profile_median(median,genes,molecule_type, figname, err):
     plt.close()
 
 def sns_boxplot(dd,my_pal,figname):
+    fig = plt.figure()
     box = sns.boxplot(x='Gene', y='value', data=dd, hue='Quadrants', palette=my_pal)
     box.set_xlabel("", fontsize=15)
     box.set_ylabel("", fontsize=15)
@@ -42,7 +43,7 @@ def sns_boxplot(dd,my_pal,figname):
     box.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
     box.legend_.remove()
     plt.yticks(fontsize=15)
-    plt.savefig(figname, format='png')
+    fig.savefig(figname, format='png')
 
 def bar_profile(data,genes,figname):
     #print(data)

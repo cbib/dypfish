@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # encoding: UTF-8
 
-import numpy as np
 import h5py
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+
 pd.set_option('display.max_rows', 500)
 import src.image_descriptors as idsc
 import src.path as path
@@ -32,11 +33,13 @@ def plot_bar_profile(data, genes, y_limit, ylabel, figname, colors):
     plt.savefig(figname, format='svg')
     plt.show()
 
+
 def main():
     enable_logger()
     # Required descriptors: spots, IF, cell mask an height_map
-    with h5py.File(path.basic_file_path, "r") as file_handler, h5py.File(
-            path.mtoc_file_path, "r") as mtoc_file_handler:
+    with h5py.File(path.basic_file_path, "r") as file_handler, \
+            h5py.File(path.secondary_file_path, "r") as second_file_handler, \
+            h5py.File(path.mtoc_file_path, "r") as mtoc_file_handler:
         molecule_type = ['/mrna']
         mrnas = ["arhgdia", "arhgdia_cultured"]
         global_mtoc = []
@@ -52,7 +55,7 @@ def main():
             for timepoint in timepoints:
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
                 for image in image_list:
-                    spot_by_quad = idsc.search_mrna_quadrants(file_handler, image)
+                    spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler, image)
                     mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)
                     mtoc_spot = spot_by_quad[:, :, 1] == 1
                     non_mtoc_spot = spot_by_quad[:, :, 1] == 0
@@ -73,6 +76,7 @@ def main():
             {'Image': global_image, 'Gene': global_mrna, 'timepoint': global_timepoint, 'Non MTOC': global_nmtoc,
              'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading}, index=global_index)
         df.to_csv(check_dir(path.analysis_dir + 'analysis_stability/dataframe/') + 'global_mtoc_file_all_mrna.csv')
+
 
 if __name__ == "__main__":
     main()

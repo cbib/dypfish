@@ -44,9 +44,6 @@ def main(is_periph=False):
     #mrna part
     df_m = pd.read_csv(df_filename_m)
     df_sorted=df_m.sort_values(by='MTOC',ascending=False).groupby(['Gene','timepoint','Image'], as_index=False).first()
-    df_sorted['MTOC'] = df_sorted['MTOC'].apply(np.log2)
-    df_sorted['Non MTOC'] = df_sorted['Non MTOC'].apply(np.log2)
-    df_sorted['MTOC leading edge'] = df_sorted['MTOC leading edge'].apply(np.log2)
 
     # plot bar plot cytoplasmic mpi
     mpis,err=compute_mpis(df_sorted)
@@ -64,14 +61,13 @@ def main(is_periph=False):
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_mrna_boxplot_MTOC_enrichment.png'
     else:
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'mrna_boxplot_MTOC_enrichment.png'
+    # log values for plotting
+    dd['value'] = dd['value'].apply(np.log2)
     sns_boxplot(dd,my_pal,figname)
 
     #protein part
     df_p = pd.read_csv(df_filename_p)
     df_sorted = df_p.sort_values(by='MTOC',ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
-    df_sorted['MTOC'] = df_sorted['MTOC'].apply(np.log2)
-    df_sorted['Non MTOC'] = df_sorted['Non MTOC'].apply(np.log2)
-    df_sorted['MTOC leading edge'] = df_sorted['MTOC leading edge'].apply(np.log2)
 
     # plot bar plot cytoplasmic mpi
     mpis,err=compute_mpis(df_sorted)
@@ -87,6 +83,8 @@ def main(is_periph=False):
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_protein_boxplot_MTOC_enrichment.png'
     else:
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'protein_boxplot_MTOC_enrichment.png'
+    # log values for plotting
+    dd['value'] = dd['value'].apply(np.log2)
     sns_boxplot(dd,my_pal,figname)
 
     # plot dynamic profile cytoplasmic mpi
@@ -154,7 +152,8 @@ def main(is_periph=False):
         dynamic_profiles(mrna_data, protein_data, mrnas[i], plot_colors[i], '', '', figname)
 
 if __name__ == "__main__":
-    main(is_periph=True)
+    # main(is_periph=True)
+    main(is_periph=False)
 
 
 

@@ -143,7 +143,7 @@ if __name__ == "__main__":
                 mean_spots_non_mtoc = []
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
                 for image in image_list:
-                    spot_by_quad = idsc.search_mrna_quadrants(file_handler, image)
+                    spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler, image)
                     mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)
                     mtoc_spot = spot_by_quad[:, :, 1] == 1
                     non_mtoc_spot = spot_by_quad[:, :, 1] == 0
@@ -193,7 +193,7 @@ if __name__ == "__main__":
             for timepoint in timepoints:
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, protein, [timepoint])
                 for image in image_list:
-                    intensity_by_quad = idsc.search_protein_quadrants(file_handler, mtoc_file_handler,protein, image)
+                    intensity_by_quad = idsc.search_protein_quadrants(file_handler, second_file_handler, mtoc_file_handler,protein, image)
                     mtoc_intensity = intensity_by_quad[:, :, 1] == 1
                     non_mtoc_intensity = intensity_by_quad[:, :, 1] == 0
                     mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)

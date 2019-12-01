@@ -19,6 +19,7 @@ test_data_dir = get_or_create_dir(os.path.join(root_dir, 'test_data/'))
 
 basic_file_basename = 'basic'
 sec_file_basename = 'secondary'
+# TODO replace path_data everywhere by raw_data_dir
 path_data = raw_data_dir
 basic_file_path = analysis_data_dir + 'basic.h5'
 secondary_file_path = analysis_data_dir + 'secondary.h5'
