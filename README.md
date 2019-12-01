@@ -8,7 +8,7 @@ We introduce a range of analytical techniques for quantitatively interrogating s
 The method reveals patterns of clustering, strong dependency of mRNA-protein localization on MTOC orientation and interdependent dynamics globally and at specific subcellular locations. We establish a robust approach that is broadly applicable to a wide range of systems.
 
 DypFISH is a python library designed for the analysis of confocal microscopy images.
-Using hdf5 files, users can run spatial and temporal statistics on mRNA and protein signals
+Using hdf5 files, users can run spatial and temporal statistics on mRNA FISH and protein IF data.
 
 # Datasets
 
