@@ -310,7 +310,7 @@ def box_plot_fraction_profile(fractions1,fractions2,fraction1,fraction2,genes):
 def calculate_random_mpi(MTOC, nMTOC):
     scores=[]
     for value in MTOC:
-        tmp_list=np.random.choice(np.array(nMTOC),40)
+        tmp_list=np.random.choice(np.array(nMTOC), constants.BOOTSTRAP_MPI)
         med=np.median(tmp_list)
         scores.append(value-med)
     assert(len(MTOC)==len(scores))

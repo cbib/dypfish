@@ -1,4 +1,4 @@
-BOOTSTRAP_MPI = 100
+BOOTSTRAP_MPI = 40
 SIZE_COEFFICIENT = 9.75 # coefficient to swap between coordinates in numbers of pixels and micrometers
 VOLUME_OFFSET = 1
 PERIPHERAL_FRACTION_THRESHOLD = 10
