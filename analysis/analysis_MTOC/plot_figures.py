@@ -1,15 +1,25 @@
-#!/usr/bin/python
-# encoding: UTF-8
-# author: Benjamin Dartigues
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
+'''Plot Figures XXX and YYY for the manuscript bla bla'''
 
 import numpy as np
 import pandas as pd
-pd.set_option('display.max_rows', 500)
+import argparse
+
 from src.plot import *
 import src.path as path
 import src.statistical_analysis as stan
 from src.utils import check_dir, enable_logger, loadconfig, my_pal
+
+pd.set_option('display.max_rows', 500)
+
+parser = argparse.ArgumentParser()                                               
+parser.add_argument("--peripheral", "-p", help = 'boolean flag: perform peripheral computation or not',
+                        action = "store_true", default = False)
+args = parser.parse_args()
+is_periph = args.peripheral
 
 def compute_mpis(df_sorted):
     mpis = []
@@ -17,10 +27,10 @@ def compute_mpis(df_sorted):
     for gene, line in df_sorted.groupby(['Gene']):
         gene_random_mpis = []
         for i in range(100):
-            mpi, p = stan.calculate_random_mpi(line['MTOC'].values, line['Non MTOC'].values)
+            mpi, p = stan.calculate_random_mpi(line['MTOC'].values, line['Non MTOC'])
             gene_random_mpis.append(mpi)
         random_mpis.append(gene_random_mpis)
-        mpi, p = stan.calculate_mpi(line['MTOC'].values, line['Non MTOC'].values)
+        mpi, p = stan.calculate_mpi(line['MTOC'].values, line['Non MTOC'])
         mpis.append(mpi)
     err = []
     for l in random_mpis:
@@ -47,9 +57,9 @@ def main(is_periph=False):
         df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna.csv'
         df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein.csv'
     else:
+        print ('Global mode')
         df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna.csv'
         df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein.csv'
-
 
     #mrna part
     df_m = pd.read_csv(df_filename_m)
@@ -62,7 +72,7 @@ def main(is_periph=False):
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_mrna_paired_mpis.png'
     else:
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'mrna_paired_mpis.png'
-    bar_profile_median(mpis,genes,'mrna',figname,err)
+    bar_profile_median(mpis, genes, 'mrna', figname, err)
 
     # plot boxplot cytoplasmic mpi
     dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'], var_name='Quadrants')
@@ -162,6 +172,3 @@ def main(is_periph=False):
 if __name__ == "__main__":
     # main(is_periph=True)
     main(is_periph=False)
-
-
-
