@@ -9,7 +9,7 @@ import src.plot as plot
 from src import acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps
-from src.utils import enable_logger, plot_colors
+from src.utils import enable_logger, plot_colors, loadconfig
 
 
 PNG_IMAGES_MIME_TYPE = "image/png"
@@ -23,7 +23,7 @@ def cytoplasmic_spread(
     save_into_dir_path_name,
     raw_images_dir_path_name=None,
     ext_logger=None
-    ):  # TODO argument genes vs proteins ?
+    ):  #
     """
     * Generates a cytoplasmic spread graph and saves it in a file
     * Returns a tuple embedding 2 values : temporary file path name,
@@ -180,9 +180,11 @@ def main(
     # Required descriptors: spots, IF, zero level, cell mask, nucleus_centroid and height_map
     resulting_graphs_details_as_list = []
 
+    configData = loadconfig("original")
+
     # Compute bar plot cytoplasmic spread
-    genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
-    proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
+    genes = configData["GENES"]
+    proteins = configData["PROTEINS"]
 
     with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler:
 

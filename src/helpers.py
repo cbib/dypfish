@@ -250,10 +250,12 @@ def preprocess_image_list2(file_handler, molecule,gene_name):
 
 def preprocess_image_list3(file_handler, molecule_type, gene, timepoints):
     """build path from preliminar h5 files with basic descriptors"""
+    print(timepoints)
     image_path_list = []
     for molecule in molecule_type:
         for timepoint in timepoints:
             node = molecule + '/' + gene + '/' + timepoint
+            print(node)
             if node in file_handler:
                 for image in file_handler[node]:
                     image_path = molecule + '/' + gene + '/' + timepoint + '/' + image
@@ -308,6 +310,29 @@ def calc_dist(p1,p2):
     return math.sqrt((p2[0] - p1[0]) ** 2 +
                      (p2[1] - p1[1]) ** 2 +
                      (p2[2] - p1[2]) ** 2)
+
+
+def ripley_k_random_measure_2D(IF,my_lambda,nuw,r_max):
+
+    IF_rev = IF[::-1,::-1]
+    P=signal.convolve(IF,IF_rev)
+
+    # distance map(dist from origin)
+    dMap = np.zeros((P.shape[0], P.shape[1]))
+    for x in range(P.shape[0]):
+        for y in range( P.shape[1]):
+            d = (x - IF.shape[0]) ** 2 + (y - IF.shape[1]) ** 2;
+            dMap[x, y] = math.sqrt(d)
+
+    # sum convolution using dMap
+    K = np.zeros((r_max, 1))
+    for dist in range(r_max):
+        K[dist] = P[dMap[:,:] <= dist].sum()
+
+    K = K * (1 / (my_lambda * nuw)) - (1 / my_lambda )
+
+    return K
+
 
 def ripley_k_random_measure(IF,my_lambda,nuw,r_max):
     # make convolution in 2D - approximates 3D convolution as Z dimension is thin
@@ -375,9 +400,72 @@ def ripley_k_point_process(spots, my_lambda, nuw, r_max):
     K = K * (1 / (my_lambda**2 * nuw))
     return K
 
+def clustering_index_random_measure_2d(IF, cell_mask_2d, max_cell_radius=400, simulation_number=20):
 
 
-def clustering_index_random_measure(IF, cell_mask_3d):
+    nuw = (np.sum(cell_mask_2d[:, :] == 1)) #* constants.SURFACE_COEFFICIENT
+    my_lambda = float(np.sum(IF[:, :])) / float(nuw)
+    k = ripley_k_random_measure_2D(IF, my_lambda, nuw, max_cell_radius)
+    k_sim = np.zeros((simulation_number, max_cell_radius))
+
+    # simulate n list of random intensity and run ripley_k
+    indsAll = np.where(cell_mask_2d[:, :] == 1)
+
+    for t in range(simulation_number):
+        print('simulation ', t)
+        inds_permuted = np.random.permutation(range(len(indsAll[0])))
+        I_samp=np.zeros(IF.shape)
+        for u in range(len(inds_permuted)):
+            new_x = indsAll[0][inds_permuted[u]]
+            old_x = indsAll[0][u]
+            new_y = indsAll[1][inds_permuted[u]]
+            old_y = indsAll[1][u]
+
+            I_samp[new_x,new_y]=IF[old_x,old_y]
+
+        k_sim[t, :]=ripley_k_random_measure_2D(I_samp,my_lambda,nuw, max_cell_radius).flatten()
+
+    h_star = np.zeros((max_cell_radius, 1))
+    h = np.subtract(np.sqrt(k / math.pi), np.arange(1, max_cell_radius + 1).reshape((max_cell_radius, 1)))
+    h_sim = np.sqrt(k_sim / math.pi) - matlib.repmat(np.matrix(np.arange(1, max_cell_radius + 1)),simulation_number, 1)
+    h_sim_sorted = np.sort(h_sim)
+    h_sim_sorted = np.sort(h_sim_sorted[:, :], axis=0)
+
+    synth95 = h_sim_sorted[int(round(0.95 * simulation_number)), :]
+    synth50 = h_sim_sorted[int(round(0.5 * simulation_number)), :]
+    synth5 = h_sim_sorted[int(round(0.05 * simulation_number)), :]
+
+    # Compute delta between .95 percentile against .5 percentile
+    delta1 = synth95 - synth50
+    # Compute delta between .5 percentile against .05 percentile
+    delta2 = synth50 - synth5
+
+    inds = np.where(h == synth50)
+    h_star[inds[0], :] = 0
+
+    idx_sup = []
+    for i in range(max_cell_radius):
+        if h[i, 0] > synth50[0,i]:
+            idx_sup.append(i)
+
+    if len(idx_sup) > 0:
+        tmp = np.subtract(h[idx_sup, 0].astype(float), synth50[0,idx_sup].astype(float))
+        h_star[idx_sup, 0] = tmp
+
+    idx_inf = []
+    for i in range(max_cell_radius):
+        if h[i, 0] < synth50[0,i]:
+            idx_inf.append(i)
+    if len(idx_inf) > 0:
+        tmp = - np.subtract(synth50[0,idx_inf].astype(float), h[idx_inf, 0].astype(float))
+        h_star[idx_inf, 0] = tmp
+    h_star[h_star == - np.inf] = 0
+    h_star[h_star == np.inf] = 0
+
+    return h_star
+
+
+def clustering_index_random_measure(IF, cell_mask_3d, max_cell_radius=400, simulation_number=20):
     nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * constants.PIXELS_IN_SLICE
     my_lambda = float(np.sum(IF[:, :, :])) / float(nuw)
     k = ripley_k_random_measure(IF, my_lambda, nuw, constants.MAX_CELL_RADIUS)

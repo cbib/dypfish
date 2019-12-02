@@ -10,7 +10,7 @@ import tqdm
 import src.helpers as helps
 import src.image_descriptors as idsc
 import src.path as path
-from src.utils import enable_logger, check_dir
+from src.utils import enable_logger, check_dir,loadconfig
 
 pd.set_option('display.max_rows', 500)
 
@@ -21,19 +21,22 @@ pd.set_option('display.max_rows', 500)
 def main(is_periph=False):
     check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/')
 
+    configData = loadconfig("original")
+
+
     # Required descriptors: spots, IF, cell mask an height_map
     with h5py.File(path.basic_file_path, "r") as file_handler, \
             h5py.File(path.secondary_file_path, "r") as second_file_handler, \
             h5py.File(path.mtoc_file_path, "r") as mtoc_file_handler:
-        compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler)
-        compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler)
+        #compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
 
 # TODO check leading edge computation
-def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler):
+def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler,configData):
     logger = enable_logger()
     molecule_type = ['/mrna']
-    mrnas = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
-
+    mrnas = configData["GENES"]
+    timepoints = configData["TIMEPOINTS_MRNA"]
     # mrna part
     global_mtoc = []
     global_nmtoc = []
@@ -44,7 +47,6 @@ def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler,
     global_timepoint = []
     for mrna in tqdm.tqdm(mrnas, desc="Processing mRNAs"):
         logger.info("Computing for mRNA %s", mrna)
-        timepoints = ["2h", "3h", "4h", "5h"]
         for timepoint in tqdm.tqdm(timepoints, desc="Processing timepoints"):
             logger.info("Computing for mRNA %s : timepoint %s", mrna, timepoint)
             image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
@@ -79,10 +81,14 @@ def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler,
         df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna.csv')
 
 
-def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, sec_file_handler):
+def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, sec_file_handler, configData):
     # protein part
     molecule_type = ['/protein']
     proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
+
+    proteins = configData["PROTEINS"]
+    timepoints = configData["TIMEPOINTS_PROTEIN"]
+
     global_protein = []
     global_mtoc = []
     global_nmtoc = []
@@ -91,7 +97,6 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
     global_index = []
     global_timepoint = []
     for protein in tqdm.tqdm(proteins, desc="Proteins"):
-        timepoints = ["2h", "3h", "5h", "7h"]
         for timepoint in tqdm.tqdm(timepoints, desc="timepoint"):
             image_list = helps.preprocess_image_list3(file_handler, molecule_type, protein, [timepoint])
             for image in tqdm.tqdm(image_list, desc="image"):

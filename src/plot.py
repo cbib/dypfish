@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 from scipy.stats import *
 from scipy import interpolate
-from utils import plot_colors,check_dir
+from utils import plot_colors,check_dir,plot_colors_chx
 import src.helpers as helps
 import seaborn as sns
 from helpers import *
@@ -28,8 +28,11 @@ def bar_profile_median(median,genes,molecule_type, figname, err):
     N = len(genes)
     ind = np.arange(N)
     width = 0.35
+    ax.bar(ind, median, width, color=plot_colors_chx,
+           yerr=err,
+           error_kw=dict(elinewidth=1, ecolor='black'))
     ax.set_xlim(-width, len(ind) + width)
-    ax.set_ylim(0, 15)
+    ax.set_ylim(np.min(median)-np.min(err)-2, np.max(median)+np.max(err)+1)
     ax.set_xticks([])
     fig.savefig(figname)
     plt.close()
@@ -173,6 +176,8 @@ def profile(profiles, genes, slice_number, figname,figtitle,colors,save=False):
     plt.xticks([w for w in range(0,slice_number+2,10)])
     for i in range(len(genes)):
         print(profiles[i])
+        print(np.arange(slice_number))
+
         plt.plot(np.arange(slice_number), profiles[i], color=colors[i], linewidth=3, label=genes)
     if save:
         plt.savefig(figname)
@@ -180,7 +185,11 @@ def profile(profiles, genes, slice_number, figname,figtitle,colors,save=False):
 
 
 # compare descriptor profile for mrna/protein over time
-def dynamic_profiles(mrna_data,protein_data,gene,plot_color,xlabel,ylabel,figpath):
+def dynamic_profiles(mrna_data,protein_data,timepoints_num_mrna, timepoints_num_protein, gene,plot_color,xlabel,ylabel,figpath):
+    print(mrna_data)
+    print(protein_data)
+    print(type(timepoints_num_mrna))
+    print(type(timepoints_num_protein))
     fig = plt.figure()
     ax = fig.add_subplot(111)
     for tick in ax.xaxis.get_major_ticks():
@@ -193,10 +202,10 @@ def dynamic_profiles(mrna_data,protein_data,gene,plot_color,xlabel,ylabel,figpat
     plt.yticks(fontsize=30)
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     ax.set_xlim(1, 8)
-    x_mrna = np.arange(2, 5, 0.01)
-    spl = interpolate.UnivariateSpline([2, 3, 4, 5], mrna_data[0, :])
-    spl_upp = interpolate.UnivariateSpline([2, 3, 4, 5], mrna_data[1, :])
-    spl_low = interpolate.UnivariateSpline([2, 3, 4, 5], mrna_data[2, :])
+    x_mrna = np.arange(np.min(timepoints_num_mrna), np.max(timepoints_num_mrna), 0.01)
+    spl = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[0, :],k=len(timepoints_num_mrna)-1)
+    spl_upp = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[1, :],k=len(timepoints_num_mrna)-1)
+    spl_low = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[2, :],k=len(timepoints_num_mrna)-1)
     m_y_new = spl(x_mrna)
     m_y_new_upp = spl_upp(x_mrna)
     m_y_new_down = spl_low(x_mrna)
@@ -204,10 +213,10 @@ def dynamic_profiles(mrna_data,protein_data,gene,plot_color,xlabel,ylabel,figpat
     plt.plot(x_mrna, m_y_new_down, linestyle="-", color=plot_color)
     ax.fill_between(x_mrna, m_y_new_upp, m_y_new_down, facecolor=plot_color, alpha=0.5, interpolate=False)
 
-    x_protein = np.arange(2, 7, 0.01)
-    spl = interpolate.UnivariateSpline([2, 3, 5, 7], protein_data[0, :])
-    spl_upp = interpolate.UnivariateSpline([2, 3, 5, 7], protein_data[1, :])
-    spl_low = interpolate.UnivariateSpline([2, 3, 5, 7], protein_data[2, :])
+    x_protein = np.arange(np.min(timepoints_num_protein), np.max(timepoints_num_protein), 0.01)
+    spl = interpolate.UnivariateSpline(timepoints_num_protein, protein_data[0, :],k=len(timepoints_num_mrna)-1)
+    spl_upp = interpolate.UnivariateSpline(timepoints_num_protein, protein_data[1, :],k=len(timepoints_num_mrna)-1)
+    spl_low = interpolate.UnivariateSpline(timepoints_num_protein, protein_data[2, :],k=len(timepoints_num_mrna)-1)
     p_y_new = spl(x_protein)
     p_y_new_upp = spl_upp(x_protein)
     p_y_new_down = spl_low(x_protein)
@@ -238,6 +247,7 @@ def process_data(file_handler, timepoints, molecule_type, gene, calc_function, *
     # compute median, low and up envelope
     # normalize data by mean of median timepoint result
     tp_l= len(timepoints)
+    print(timepoints)
     data = np.zeros((3,tp_l))
     for i in range(tp_l):
         image_list = helps.preprocess_image_list3(file_handler, molecule_type, gene, [timepoints[i]])
@@ -266,3 +276,19 @@ def data_extractor(genes,proteins, secondary_file_handler, calc_function, *args)
             tr = traceback.format_exc()
             print(tr)
             raise
+
+
+def data_extractor_generic(genes, proteins, timepoints_m, timepoints_p ,secondary_file_handler, calc_function, *args):
+    for i in range(len(genes)):
+        try:
+            mrna_data=process_data(secondary_file_handler,timepoints_m,['/mrna'],genes[i], calc_function, *args)
+            if genes[i] in proteins:
+                protein_data = process_data(secondary_file_handler, timepoints_p, ['/protein'], genes[i], calc_function,
+                                            *args)
+            yield mrna_data,protein_data, i
+        except Exception as e:
+            print("Got exception : %s" % str(e))
+            tr = traceback.format_exc()
+            print(tr)
+            raise
+

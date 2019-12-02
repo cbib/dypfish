@@ -9,7 +9,7 @@ import src.plot as plot
 import src.acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps
-from src.utils import enable_logger, plot_colors
+from src.utils import enable_logger, plot_colors,loadconfig
 
 
 PNG_IMAGES_MIME_TYPE = "image/png"
@@ -21,6 +21,7 @@ def cytoplasmic_total_count(
     genes,
     molecule_type,
     save_into_dir_path_name,
+    mime_type,
     raw_images_dir_path_name=None,
     ext_logger=None
     ):
@@ -52,7 +53,7 @@ def cytoplasmic_total_count(
     graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
     graph_metadata = {
         "file_name": graph_file_name,
-        "mime_type": PNG_IMAGES_MIME_TYPE
+        "mime_type": mime_type
         }
 
     plot.bar_profile(cytoplasmic_total, genes, graph_file_path_name)
@@ -71,7 +72,12 @@ def cytoplasmic_total_dynamic_profiles(
     basic_h5_file_handler,
     genes,
     proteins,
+    timepoints_mrna,
+    timepoints_protein,
+    timepoints_num_mrna,
+    timepoints_num_protein,
     save_into_dir_path_name,
+    mime_type,
     raw_images_dir_path_name=None,
     ext_logger=None
     ):
@@ -82,9 +88,11 @@ def cytoplasmic_total_dynamic_profiles(
 
     graphs_details = []
 
-    data_generator = plot.data_extractor(
+    data_generator = plot.data_extractor_generic(
         genes,
         proteins,
+        timepoints_mrna,
+        timepoints_protein,
         basic_h5_file_handler,
         adsc.compute_cytoplasmic_total,
         basic_h5_file_handler,
@@ -105,7 +113,7 @@ def cytoplasmic_total_dynamic_profiles(
                 graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
                 graph_metadata = {
                     "file_name": graph_file_name,
-                    "mime_type": PNG_IMAGES_MIME_TYPE
+                    "mime_type": mime_type
                     }
 
                 if ext_logger:
@@ -115,6 +123,8 @@ def cytoplasmic_total_dynamic_profiles(
                     mrna_data,
                     protein_data,
                     gene,
+                    timepoints_num_mrna,
+                    timepoints_num_protein,
                     colour,
                     'Time(hrs)',
                     'Cytoplasmic total',
@@ -157,26 +167,36 @@ def main(
 
     # Required descriptors: spots, IF, cell mask an height_map
     # Compute bar plot cytoplasmic total transcripts
-    genes = ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"]
-    proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
+    configData = loadconfig("original")
+
+    # Compute bar plot cytoplasmic spread
+    genes = configData["GENES"]
+    proteins = configData["PROTEINS"]
+    timepoints_mrna = configData["TIMEPOINTS_MRNA"]
+    timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
+    timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
+    timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
+    mime_type=configData["PNG_IMAGES_MIME_TYPE"]
 
     with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler:
 
-        # graph_details = cytoplasmic_total_count(
-        #     basic_h5_file_handler=basic_h5_file_handler,
-        #     genes=genes,
-        #     molecule_type='mrna',
-        #     save_into_dir_path_name=save_into_dir_path_name,
-        #     raw_images_dir_path_name=raw_images_dir_path_name,
-        #     ext_logger=ext_logger
-        #     )
-        # resulting_graphs_details_as_list.append(graph_details)
+        graph_details = cytoplasmic_total_count(
+            basic_h5_file_handler=basic_h5_file_handler,
+            genes=genes,
+            molecule_type='mrna',
+            save_into_dir_path_name=save_into_dir_path_name,
+            mime_type=mime_type,
+            raw_images_dir_path_name=raw_images_dir_path_name,
+            ext_logger=ext_logger
+            )
+        resulting_graphs_details_as_list.append(graph_details)
 
         graph_details = cytoplasmic_total_count(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=proteins,
             molecule_type='protein',
             save_into_dir_path_name=save_into_dir_path_name,
+            mime_type=mime_type,
             raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
             )
@@ -186,7 +206,12 @@ def main(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
             proteins=proteins,
+            timepoints_mrna=timepoints_mrna,
+            timepoints_protein=timepoints_protein,
+            timepoints_num_mrna=timepoints_num_mrna,
+            timepoints_num_protein=timepoints_num_protein,
             save_into_dir_path_name=save_into_dir_path_name,
+            mime_type=mime_type,
             raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
             )

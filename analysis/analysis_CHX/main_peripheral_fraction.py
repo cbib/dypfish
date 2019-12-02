@@ -33,7 +33,7 @@ def peripheral_profile(
         "mime_type": PNG_IMAGES_MIME_TYPE
         }
 
-    mean_profiles = mean_profiles / np.matlib.repmat(mean_profiles[2], len(genes), 1)
+    #mean_profiles = mean_profiles / np.matlib.repmat(mean_profiles[2], len(genes), 1)
     figure_title = ' peripheral profile ('+ timepoint+')'
 
     plot.profile(
@@ -110,7 +110,6 @@ def peripheral_profiles(
         graphs_details.append(graph_details)
 
     return graphs_details
-
 
 def mrna_peripheral_fraction_profile(
     secondary_h5_file_handler,
@@ -241,7 +240,7 @@ def histogram_peripheral_profile(
                 gene
                 )
             periph_fraction.append(
-                adsc.compute_periph_fraction(
+                adsc.compute_protein_periph_fraction(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
@@ -290,7 +289,7 @@ def histogram_peripheral_profile(
                 protein
                 )
             periph_fraction.append(
-                adsc.compute_periph_fraction(
+                adsc.compute_protein_periph_fraction(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
@@ -350,7 +349,7 @@ def peripheral_fraction_dynamic_profile(
         mrna_tp,
         protein_tp,
         secondary_h5_file_handler,
-        adsc.compute_periph_fraction,
+        adsc.compute_protein_periph_fraction,
         basic_h5_file_handler,
         secondary_h5_file_handler,
         constants.PERIPHERAL_FRACTION_THRESHOLD,
@@ -430,7 +429,7 @@ def main(
 
     ## Build peripheral profile plot either for each or for all timepoint
 
-    configData = loadconfig("original")
+    configData = loadconfig("chx")
     genes = configData["GENES"]
     proteins = configData["PROTEINS"]
     timepoints_mrna = configData["TIMEPOINTS_MRNA"]
@@ -439,13 +438,14 @@ def main(
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
 
 
-    with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler, \
-         h5py.File(secondary_h5_path_name, "r") as secondary_h5_file_handler:
+    with h5py.File(path.basic_file_path_chx, "r") as basic_h5_file_handler, \
+         h5py.File(path.basic_file_path_chx, "r") as secondary_h5_file_handler:
 
 
         # Section to build peripheral profile fraction 10 and 30
         try:
-            graph_details = mrna_peripheral_fraction_profile(
+            #here we used FISH continuous signal cause there is no FISH discrete Data for CHX analysis
+            graph_details = protein_peripheral_fraction_profile(
                 secondary_h5_file_handler=secondary_h5_file_handler,
                 molecule_type=['mrna'],
                 genes=genes,
@@ -484,7 +484,7 @@ def main(
                 molecule_type=['mrna'],
                 genes=genes,
                 colors=plot_colors,
-                compute_peripheral_fraction_profiles=adsc.compute_mrna_peripheral_fraction_profiles_3D,
+                compute_peripheral_fraction_profiles=adsc.compute_protein_peripheral_fraction_profiles_3D,
                 timepoints=None,
                 save_into_dir_path_name=save_into_dir_path_name
             )
@@ -566,7 +566,7 @@ if __name__ == "__main__":
     secondary_h5_path_name = path.secondary_file_path
     raw_images_dir_path_name = path.path_data
 
-    save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_peripheral_fraction_profile/figures/")
+    save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_chx/figures/")
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)
 

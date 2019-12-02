@@ -37,72 +37,104 @@ def compute_peripheral_fraction_profiles_2D(file_handler, image_list):
     return profiles
 
 
-def compute_peripheral_fraction_profiles_3D(file_handler, image_list):
+def compute_mrna_peripheral_fraction_profiles_3D(basic_file_handler,secondary_file_handler, image_list):
     profiles = []
     for image in image_list:
         print(image)
-        spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance(file_handler, image)
+        spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance(secondary_file_handler, image)
         print(spots_peripheral_distance)
         peripheral_profile = np.zeros(100)
         for i in range(0, 100):
-            peripheral_profile[i] = float(len(np.where(spots_peripheral_distance <= (i + 1))[0]))/float(len(spots_peripheral_distance))
+            peripheral_profile[i] = float(len(np.where(spots_peripheral_distance <= (i + 1))[0])) / float(len(spots_peripheral_distance))
+        profiles.append(peripheral_profile)
+
+    return profiles
+
+def compute_protein_peripheral_fraction_profiles_3D(basic_file_handler, secondary_file_handler, image_list):
+    profiles = []
+    for image in image_list:
+        cell_mask = image_descriptors.get_cell_mask(basic_file_handler, image)
+        nucleus_mask = image_descriptors.get_nucleus_mask(basic_file_handler, image)
+        cell_mask_distance_map = image_descriptors.get_cell_mask_distance_map(secondary_file_handler, image)
+        IF=image_descriptors.get_IF(basic_file_handler,image)
+        IF = np.multiply(IF, cell_mask)
+
+        peripheral_profile = np.zeros(100)
+        for i in range(0, 100):
+            peripheral_profile[i] = float(IF[(cell_mask_distance_map <= i + 1)].sum() ) / float(IF[(nucleus_mask == 0) & (cell_mask==1)].sum())
         profiles.append(peripheral_profile)
 
     return profiles
 
 
-def compute_periph_fraction(image_list,basic_file_handler,secondary_file_handler, fraction, path_data):
+
+
+def compute_protein_periph_fraction(image_list,basic_file_handler,secondary_file_handler, fraction, path_data):
     arr=[]
     for image in image_list:
 
-        if 'mrna' in image:
-            print(image)
-            spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance_2D(secondary_file_handler, image)
-            arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
-        else:
-            cell_mask=image_descriptors.get_cell_mask(basic_file_handler,image)
-            nucleus_mask=image_descriptors.get_nucleus_mask(basic_file_handler,image)
-            cell_mask_distance_map=image_descriptors.get_cell_mask_distance_map(secondary_file_handler,image)
-            if "tp" in image:
-                molecule = image.split("/")[1]
-                gene = image.split("/")[2].split("_")[0]
-                timepoint = image.split("/")[2].split("_")[1]
-                image_n = image.split("/")[4]
-                IF_image_path = path_data + '/' + molecule + '/' + gene + '/' + timepoint + '/' + image_n + '/IF.tif'
-                try:
-                    with open(IF_image_path):
-                        pass
-                except IOError:
-                    continue
-                print(IF_image_path)
-                IF= image_descriptors.get_IF_image_z_summed(molecule,gene,timepoint,image_n,path_data)
-            else:
-                IF= image_descriptors.get_IF(basic_file_handler,image)
 
-            IF=np.multiply(IF,cell_mask)
-            IF_periph=IF[(cell_mask_distance_map<=10) & (cell_mask_distance_map >0)]
-            IF_summed=IF[nucleus_mask==0].sum()
-            IF_summed_periph=IF_periph.sum()
-            periph_frac=float(IF_summed_periph)/float(IF_summed)
-            arr.append(periph_frac)
+        cell_mask=image_descriptors.get_cell_mask(basic_file_handler,image)
+        nucleus_mask=image_descriptors.get_nucleus_mask(basic_file_handler,image)
+        cell_mask_distance_map=image_descriptors.get_cell_mask_distance_map(secondary_file_handler,image)
+        if "tp" in image:
+            molecule = image.split("/")[1]
+            gene = image.split("/")[2].split("_")[0]
+            timepoint = image.split("/")[2].split("_")[1]
+            image_n = image.split("/")[4]
+            IF_image_path = path_data + '/' + molecule + '/' + gene + '/' + timepoint + '/' + image_n + '/IF.tif'
+            try:
+                with open(IF_image_path):
+                    pass
+            except IOError:
+                continue
+            print(IF_image_path)
+            IF= image_descriptors.get_IF_image_z_summed(molecule,gene,timepoint,image_n,path_data)
+        else:
+            IF= image_descriptors.get_IF(basic_file_handler,image)
+
+        IF=np.multiply(IF,cell_mask)
+        IF_periph=IF[(cell_mask_distance_map<=10) & (cell_mask_distance_map >0)]
+        IF_summed=IF[nucleus_mask==0].sum()
+        IF_summed_periph=IF_periph.sum()
+        periph_frac=float(IF_summed_periph)/float(IF_summed)
+        arr.append(periph_frac)
     return arr
 
 
-def build_histogram_periph_fraction(sec_file_handler,image_list,fraction,path_data,basic_file_handler):
+
+def compute_mrna_periph_fraction(image_list,basic_file_handler,secondary_file_handler, fraction, path_data):
     arr=[]
     for image in image_list:
-        if 'mrna' in image:
-            spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance(sec_file_handler, image)
-            arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
-        else:
-            nucleus_mask = image_descriptors.get_nucleus_mask(basic_file_handler, image)
-            IF= image_descriptors.get_IF(basic_file_handler,image)
-            cell_mask_distance_map = image_descriptors.get_cell_mask_distance_map(sec_file_handler, image)
-            IF_periph = IF[(cell_mask_distance_map <= fraction) & (cell_mask_distance_map > 0)]
-            IF_summed = IF[nucleus_mask == 0].sum()
-            IF_summed_periph = IF_periph.sum()
-            periph_frac = float(IF_summed_periph) / float(IF_summed)
-            arr.append(periph_frac)
+
+        print(image)
+        spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance_2D(secondary_file_handler, image)
+        arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
+
+    return arr
+
+
+def build_histogram_mrna_periph_fraction(sec_file_handler,image_list,fraction,path_data,basic_file_handler):
+    arr = []
+    for image in image_list:
+        spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance(sec_file_handler, image)
+        arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction])) / float(
+            len(spots_peripheral_distance)))
+
+    return arr
+
+def build_histogram_protein_periph_fraction(sec_file_handler,image_list,fraction,path_data,basic_file_handler):
+    arr=[]
+    for image in image_list:
+
+        nucleus_mask = image_descriptors.get_nucleus_mask(basic_file_handler, image)
+        IF= image_descriptors.get_IF(basic_file_handler,image)
+        cell_mask_distance_map = image_descriptors.get_cell_mask_distance_map(sec_file_handler, image)
+        IF_periph = IF[(cell_mask_distance_map <= fraction) & (cell_mask_distance_map > 0)]
+        IF_summed = IF[nucleus_mask == 0].sum()
+        IF_summed_periph = IF_periph.sum()
+        periph_frac = float(IF_summed_periph) / float(IF_summed)
+        arr.append(periph_frac)
     return arr
 
 
@@ -115,6 +147,14 @@ def compute_degree_of_clustering(image_list,file_handler,mtoc_file_handler):
         mtoc_quad=image_descriptors.get_mtoc_quad(mtoc_file_handler,image)
         if mtoc_quad == 1.0:
             h_star_l.append(d)
+    return h_star_l
+
+def compute_degree_of_clustering_wo_MTOC(image_list,file_handler):
+    h_star_l=[]
+    for image in image_list:
+        h_star = image_descriptors.get_h_star(file_handler, image)
+        d=np.array(h_star[h_star>1]-1).sum()
+        h_star_l.append(d)
     return h_star_l
 
 

@@ -100,6 +100,16 @@ def get_h_star(file_handler, image):
     return h_star
 
 
+def set_h_star_protein_2D(file_handler, output_file_handler, image, max_cell_radius, simulation_number):
+    cell_mask = get_cell_mask(file_handler, image)
+    IF_image = get_IF(file_handler, image)
+    cell_mask_2d = cell_mask
+    IF = IF_image
+    IF_c = IF.astype(float) * cell_mask_2d
+    h_star = clustering_index_random_measure_2d(IF_c, cell_mask_2d, max_cell_radius, simulation_number)
+    descriptor = image + '/h_star'
+    output_file_handler.create_dataset(descriptor, data=h_star, dtype=np.float32)
+
 def set_h_star_protein(file_handler, output_file_handler, image):
     cell_mask_3d = compute_cell_mask_3d(file_handler, image)
     zero_level = get_zero_level(file_handler, image)
@@ -513,58 +523,11 @@ def compute_cytoplasmic_volume(file_handler, image, second_file_handler):
 
 def compute_protein_density_normalization_factor(file_handler, image, second_file_handler):
     # compute density normalization factor
-    cytoplasmic_protein_count = compute_protein_cytoplasmic_total(file_handler, image,path.path_data)
+    cytoplasmic_protein_count = compute_protein_cytoplasmic_total(file_handler, image, path.path_data)
     cytoplasmic_volume = compute_cytoplasmic_volume(file_handler, image, second_file_handler)
     normalization_factor = cytoplasmic_protein_count / cytoplasmic_volume
     assert normalization_factor > 0
     return normalization_factor
-
-
-
-
-# Calculates the quadrant mask for the MTOC
-def search_protein_quadrants(file_handler, second_file_handler, mtoc_file_handler, protein, image):
-    print(image)
-    quadrants = get_quadrants(file_handler, image)
-    assert (not quadrants.size), 'mtoc_quadrant already defined for %r' % image
-    mtoc_position = get_mtoc_position(file_handler, image)
-    height_map = get_height_map(file_handler, image)
-    nucleus_centroid = get_nucleus_centroid(file_handler, image)
-    cell_mask = get_cell_mask(file_handler, image)
-    nucleus_mask = get_nucleus_mask(file_handler, image)
-    IF = get_IF(file_handler, image)
-    IF[cell_mask == 0] = 0
-    IF[nucleus_mask == 1] = 0
-    intensity_by_quad = np.zeros((90, 4, 2))
-    mtoc_quads = []
-    height_map = height_map.astype(float)
-    height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
-    height_map[cell_mask == 0] = 0
-    normalization_factor = compute_protein_density_normalization_factor(file_handler, image, second_file_handler)
-
-    for i in range(90):
-        # the quadrant of MTOC is defined by two lines 45 degrees to the right
-        right_point = rotate_point(nucleus_centroid, mtoc_position, i)
-        s = slope_from_points(nucleus_centroid, right_point)
-        corr = np.arctan(s)  # angle wrt to x axis
-        xx, yy = np.meshgrid(np.array(range(0, constants.IMAGE_WIDTH)) - nucleus_centroid[0],
-                             np.array(range(0, constants.IMAGE_HEIGHT)) - nucleus_centroid[1])
-        rotated_xx, rotated_yy = rotate_meshgrid(xx, yy, -corr)
-        sliceno = ((math.pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / (2 * math.pi)))
-        sliceno = sliceno.astype(int)
-        quadrant_mask = sliceno + cell_mask
-        quadrant_mask[quadrant_mask == 5] = 4
-        quadrant_mask[cell_mask == 0] = 0
-        mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-        mtoc_quads.append(mtoc_quad)
-        for quad_num in range(1, 5):
-            intensity_by_quad[i, quad_num - 1, 0] = np.sum(IF[quadrant_mask == quad_num])
-            if quad_num == mtoc_quad:
-                intensity_by_quad[i, mtoc_quad - 1, 1] = 1
-            intensity_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[quadrant_mask == quad_num]) * constants.VOLUME_COEFFICIENT
-            intensity_by_quad[i, quad_num - 1, 0] /= normalization_factor
-    return intensity_by_quad
-
 
 def compute_mrna_density_normalization_factor(file_handler, image, second_file_handler):
     # compute density normalization factor
@@ -628,7 +591,6 @@ def search_mrna_quadrants(file_handler, second_file_handler, image):
 
 
 # Calculates the quadrant mask for the MTOC
-# TODO apply normalization here too
 def search_periph_mrna_quadrants(file_handler, second_file_handler, image):
     print(image)
     mtoc_position = get_mtoc_position(file_handler, image)
@@ -642,6 +604,9 @@ def search_periph_mrna_quadrants(file_handler, second_file_handler, image):
     height_map = height_map.astype(float)
     height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
     height_map[cell_mask == 0] = 0
+
+    normalization_factor = compute_mrna_density_normalization_factor(file_handler, image, second_file_handler)
+
     for i in range(90):
         # the quadrant of MTOC is defined by two lines 45 degrees to the right
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
@@ -663,12 +628,54 @@ def search_periph_mrna_quadrants(file_handler, second_file_handler, image):
         spot_by_quad[i, mtoc_quad - 1, 1] += 1
         for quad_num in range(1, 5):
             spot_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[(peripheral_binary_mask == 1) & (quadrant_mask == quad_num)]) * constants.VOLUME_COEFFICIENT
+            spot_by_quad[i, quad_num - 1, 0] /= normalization_factor
     return spot_by_quad
 
+# Calculates the quadrant mask for the MTOC
+def search_protein_quadrants(file_handler, second_file_handler, mtoc_file_handler, protein, image):
+    print(image)
+    quadrants = get_quadrants(file_handler, image)
+    assert (not quadrants.size), 'mtoc_quadrant already defined for %r' % image
+    mtoc_position = get_mtoc_position(file_handler, image)
+    height_map = get_height_map(file_handler, image)
+    nucleus_centroid = get_nucleus_centroid(file_handler, image)
+    cell_mask = get_cell_mask(file_handler, image)
+    nucleus_mask = get_nucleus_mask(file_handler, image)
+    IF = get_IF(file_handler, image)
+    IF[cell_mask == 0] = 0
+    IF[nucleus_mask == 1] = 0
+    intensity_by_quad = np.zeros((90, 4, 2))
+    mtoc_quads = []
+    height_map = height_map.astype(float)
+    height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
+    height_map[cell_mask == 0] = 0
+    normalization_factor = compute_protein_density_normalization_factor(file_handler, image, second_file_handler)
+
+    for i in range(90):
+        # the quadrant of MTOC is defined by two lines 45 degrees to the right
+        right_point = rotate_point(nucleus_centroid, mtoc_position, i)
+        s = slope_from_points(nucleus_centroid, right_point)
+        corr = np.arctan(s)  # angle wrt to x axis
+        xx, yy = np.meshgrid(np.array(range(0, constants.IMAGE_WIDTH)) - nucleus_centroid[0],
+                             np.array(range(0, constants.IMAGE_HEIGHT)) - nucleus_centroid[1])
+        rotated_xx, rotated_yy = rotate_meshgrid(xx, yy, -corr)
+        sliceno = ((math.pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / (2 * math.pi)))
+        sliceno = sliceno.astype(int)
+        quadrant_mask = sliceno + cell_mask
+        quadrant_mask[quadrant_mask == 5] = 4
+        quadrant_mask[cell_mask == 0] = 0
+        mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
+        mtoc_quads.append(mtoc_quad)
+        for quad_num in range(1, 5):
+            intensity_by_quad[i, quad_num - 1, 0] = np.sum(IF[quadrant_mask == quad_num])
+            if quad_num == mtoc_quad:
+                intensity_by_quad[i, mtoc_quad - 1, 1] = 1
+            intensity_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[quadrant_mask == quad_num]) * constants.VOLUME_COEFFICIENT
+            intensity_by_quad[i, quad_num - 1, 0] /= normalization_factor
+    return intensity_by_quad
 
 
 # Calculates the quadrant mask for the MTOC
-# TODO apply normalization too
 def search_periph_protein_quadrants(file_handler, second_file_handler, protein, image, path_data):
     print(image)
     quadrants = get_quadrants(file_handler, image)
@@ -687,6 +694,10 @@ def search_periph_protein_quadrants(file_handler, second_file_handler, protein, 
     height_map[cell_mask == 0] = 0
     height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
     peripheral_binary_mask = (cell_mask_dist_map > 0) & (cell_mask_dist_map <= constants.PERIPHERAL_FRACTION_THRESHOLD).astype(int)
+
+    normalization_factor = compute_protein_density_normalization_factor(file_handler, image, second_file_handler)
+
+
     for i in range(90):
         # the quadrant of MTOC is defined by two lines 45 degrees to the right
         right_point = rotate_point(nucleus_centroid, mtoc_position, i)
@@ -706,6 +717,8 @@ def search_periph_protein_quadrants(file_handler, second_file_handler, protein, 
             if quad_num == mtoc_quad:
                 intensity_by_quad[i, mtoc_quad - 1, 1] += 1
             intensity_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[(peripheral_binary_mask == 1) & (quadrant_mask == quad_num)]) * constants.VOLUME_COEFFICIENT
+            intensity_by_quad[i, quad_num - 1, 0] /= normalization_factor
+
     return intensity_by_quad
 
 
@@ -846,16 +859,20 @@ def compute_mrna_cytoplasmic_total(file_handler, image):
 
 def compute_protein_cytoplasmic_total(file_handler, image, path_data):
     # print(image)
-    if "tp" in image:
-        # TODO : document what path_data and
-        # Very fragile to search for "tp" in the image
-        molecule = image.split("/")[1]
-        gene = image.split("/")[2].split("_")[0]
-        type = image.split("/")[2].split("_")[1]
-        image_n = image.split("/")[4]
-        IF = get_IF_image_z_summed(molecule, gene, type, image_n, path_data)
-    else:
-        IF = get_IF(file_handler, image)
+
+    # need to find a way to deal with raw image if necessary
+    # if "tp" in image:
+    #     # TODO : document what path_data and
+    #     # Very fragile to search for "tp" in the image
+    #     molecule = image.split("/")[1]
+    #     gene = image.split("/")[2].split("_")[0]
+    #     type = image.split("/")[2].split("_")[1]
+    #     image_n = image.split("/")[4]
+    #     IF = get_IF_image_z_summed(molecule, gene, type, image_n, path_data)
+    # else:
+    #
+
+    IF = get_IF(file_handler, image)
     cell_mask = get_cell_mask(file_handler, image)
     # print (len(cell_mask))
     # print (cell_mask)
@@ -960,3 +977,62 @@ def compute_isoline_area(file_handler, output_file_handler, image):
         tmp_mask[(tmp_mask > i) & (tmp_mask <= 100)] = 1
         isoline_area.append(tmp_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2) + nucleus_area)
     return isoline_area
+
+
+def compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points, contours_num):
+    #assert(cytoplasm_mask==nucleus_mask)
+    assert (cytoplasm_mask.shape==nucleus_mask.shape), 'cytoplasm mask and nucleus mask do not have same size'
+    cell_mask_distance_map = np.zeros((cytoplasm_mask.shape[0],cytoplasm_mask.shape[1]), dtype=np.int)
+    for index in range(contours_num):
+        if index == 0:
+            peripheral_mask = nucleus_mask
+        else:
+            contour_num = contours_num - index
+            peripheral_mask = create_mask(contour_points[:, contour_num, 1], contour_points[:, contour_num, 0],(cytoplasm_mask.shape[0],cytoplasm_mask.shape[1]))
+            peripheral_mask &= cytoplasm_mask
+        cell_mask_distance_map[(peripheral_mask == 1)] = index +1
+
+    cell_mask_distance_map[(cytoplasm_mask == 0)] = 0
+    return cell_mask_distance_map
+
+def set_cell_mask_distance_map(file_handler, output_file_handler, image, contours_num):
+
+    #descriptor = image + '/cell_mask_distance_map'
+    #assert (descriptor not in output_file_handler.keys(), 'cell_mask_distance_map already defined for %r' % image)
+
+    cell_mask_distance_map = get_cell_mask_distance_map(file_handler, image)
+    assert (not cell_mask_distance_map.size), 'cell_mask_distance_map already defined for %r' % image
+    cell_mask = get_cell_mask(file_handler, image).astype(int)
+    nucleus_mask = get_nucleus_mask(file_handler, image).astype(int)
+    nucleus_centroid = get_nucleus_centroid(file_handler, image).transpose()
+    contour_points = np.zeros((360, 100, 2))
+    cytoplasm_mask = (cell_mask == 1) & (nucleus_mask == 0)
+
+    #print(nucleus_centroid)
+
+    # for each degree, analyse the line segment between the nucleus and the periphery
+    for degree in range(360):
+        angle = degree * 2 * math.pi / 360
+        x_slope, y_slope = math.sin(angle), math.cos(angle)
+        nucleus_segment, cytoplasm_segment = compute_line_segments(nucleus_mask, cytoplasm_mask, nucleus_centroid,
+                                                                   x_slope, y_slope)
+        nucleus_edge_point, cytoplasm_edge_point = compute_edge_points(nucleus_segment, cytoplasm_segment)
+        segment_length = cytoplasm_edge_point - nucleus_edge_point
+
+
+        for index in range(contours_num):
+            point = nucleus_edge_point + segment_length * index / contours_num
+            x = int(round(nucleus_centroid[0] + point * x_slope))
+            y = int(round(nucleus_centroid[1] + point * y_slope))
+            contour_points[degree, index, :] = [x, y]
+
+    cell_mask_distance_map = compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points, contours_num)
+    # cell_mask_distance_map[(cell_mask == 1) & (cell_mask_distance_map == 0)] = 1
+    # cell_mask_distance_map[nucleus_mask == 1] = 0
+
+    # plt.imshow(cell_mask_distance_map, cmap='hot')
+    # plt.show()
+    descriptor = image + '/cell_mask_distance_map'
+    output_file_handler.create_dataset(descriptor, data=cell_mask_distance_map, dtype=np.int)
+    #output_file_handler[image].attrs['cell_mask_distance_map'] = cell_mask_distance_map
+
