@@ -16,12 +16,11 @@
     "SLICE_THICKNESS" : 0.3,
     "Z_LINE_SPACING" : 20,
     "MOLECULE_TYPES": ["mrna", "protein"],
-    "GENES" : ["arhgdia", "arhgdia_CHX", "pard3","pard3_CHX"],
-    "PROTEINS" : ["arhgdia", "arhgdia_CHX", "pard3","pard3_CHX"],
-    "TIMEPOINTS_PROTEIN":["2h", "3h", "5h"],
-    "TIMEPOINTS_MRNA":["2h", "3h", "5h"],
-    "TIMEPOINTS_NUM_PROTEIN":[2, 3, 5],
-    "TIMEPOINTS_NUM_MRNA":[2, 3, 5]
+    "GENES" : ["arhgdia_control", "arhgdia_cytod"],
+    "PROTEINS" : ["arhgdia_control", "arhgdia_cytod", "pard3","pard3_cytoD"],
+    "TIMEPOINTS_PROTEIN":["tp"],
+    "TIMEPOINTS_MRNA":["tp"]
+
 
 }
 

@@ -6,6 +6,7 @@ import json
 
 plot_colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B', '#C02A18', '#E9CB45']
 plot_colors_chx = ['#0A3950', '#1E95BB', '#A1BA6D', '#d3deba']
+plot_colors_cytoD = ['#1E95bb', '#1ec5d4']
 my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#003366", "MTOC leading edge": "#0080ff"}
 
 cell_type_micropatterned = 'micropatterned'

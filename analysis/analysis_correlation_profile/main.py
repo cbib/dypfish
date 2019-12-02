@@ -8,7 +8,7 @@ import h5py
 from src import acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps
-from src.utils import enable_logger, check_dir
+from src.utils import enable_logger, check_dir, loadconfig
 import src.plot as plot
 
 def pearsoncorr(vec1, vec2):
@@ -24,20 +24,21 @@ and degree of clustering. We investigate correlations between pairs of such norm
 def main():
     # Required descriptors: spots, IF, zero level, cell mask, nucleus_centroid and height_map
     enable_logger()
+    configData = loadconfig("original")
+    proteins = configData["PROTEINS"]
+    timepoints_mrna = configData["TIMEPOINTS_MRNA"]
+    timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
     # micropatterned data
-    genes = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-    proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
 
     with h5py.File(path.basic_file_path, "r") as file_handler,h5py.File(path.h_star_file_path, "r") as hstar_file_handler,h5py.File(path.mtoc_file_path, "r") as mtoc_file_handler,h5py.File(path.secondary_file_path, "r") as secondary_file_handler:
         molecule_type = ['/mrna']
         prof_m = np.zeros((4, 4, 4))
         cpt_g = 0
-        for i in range(len(genes)):
-            timepoints = ["2h", "3h", "4h", "5h"]
+        for i in range(len(proteins)):
             cpt_tp=0
-            for timepoint in timepoints:
-                print(genes[i], '_', timepoint)
-                image_list = helps.preprocess_image_list3(file_handler, molecule_type, genes[i], [timepoint])
+            for timepoint in timepoints_mrna:
+                print(proteins[i], '_', timepoint)
+                image_list = helps.preprocess_image_list3(file_handler, molecule_type, proteins[i], [timepoint])
 
                 cyt_spread = adsc.compute_cytoplasmic_spread(image_list,file_handler , path.path_data)
                 prof_m[cpt_g,0,cpt_tp]=np.median(cyt_spread)
@@ -58,18 +59,14 @@ def main():
             prof_m[cpt_g, 3, :] /= np.mean(prof_m[cpt_g, 3, :])
             cpt_g+=1
 
-        print(prof_m)
-        print(prof_m[0, 0, :])
-
         molecule_type = ['/protein']
         prof_p = np.zeros((4, 4, 4))
         cpt_g = 0
-        for i in range(len(genes)):
-            timepoints = ["2h", "3h", "5h", "7h"]
+        for i in range(len(proteins)):
             cpt_tp = 0
-            for timepoint in timepoints:
-                print(genes[i], '_', timepoint)
-                image_list = helps.preprocess_image_list3(file_handler, molecule_type, genes[i], [timepoint])
+            for timepoint in timepoints_protein:
+                print(proteins[i], '_', timepoint)
+                image_list = helps.preprocess_image_list3(file_handler, molecule_type, proteins[i], [timepoint])
 
                 cyt_spread = adsc.compute_cytoplasmic_spread(image_list, file_handler, path.path_data)
                 prof_p[cpt_g, 0, cpt_tp] = np.median(cyt_spread)

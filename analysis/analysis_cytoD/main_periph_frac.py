@@ -10,7 +10,7 @@ import src.acquisition_descriptors as adsc
 import src.path as path
 import src.statistical_analysis as stan
 import src.helpers as helps
-from src.utils import enable_logger, cell_type_micropatterned, check_dir
+from src.utils import enable_logger, cell_type_micropatterned, check_dir, loadconfig, plot_colors_cytoD
 
 
 def peripheral_profile(file_handler, molecule_type, genes, colors, cell_type, timepoints=[False]):
@@ -152,7 +152,7 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, mole
         for gene in genes:
             print(gene)
             image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], gene)
-            periph_fraction.append(adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
+            periph_fraction.append(adsc.compute_mrna_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
         print(periph_fraction)
         figname = path.analysis_dir + 'analysis_cytoD/figures/'+cell_type+'/'+molecule_type[
             0] +'_peripheral_fraction.png'
@@ -161,7 +161,7 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, mole
         periph_fraction = []
         for protein in proteins:
             image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], protein)
-            periph_fraction.append(adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD,path_data))
+            periph_fraction.append(adsc.compute_protein_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD,path_data))
         figname = path.analysis_dir + 'analysis_cytoD/figures/'+cell_type+'/'+molecule_type[0] +'_peripheral_fraction.png'
         stan.plot_bar_profile(periph_fraction, proteins, 0.2, 'Peripheral fraction', figname,colors)
     else:
@@ -366,25 +366,23 @@ def peripheral_dynamic_profile(basic_file_handler,secondary_file_handler, genes,
                 ax.set_xlabel('Time(hrs)')
                 ax.set_title(genes[i])
                 plt.savefig(
-                    path.analysis_dir + 'analysis_nocodazole/figures/' + cell_type + '/peripheral_fraction_' +image_t+
+                    path.analysis_dir + 'analysis_cytoD/figures/' + cell_type + '/peripheral_fraction_' +image_t+
                     '_'+genes[i] + '.svg')
 
 def main():
     # Required descriptors: spots_peripheral_distance, height_map, zero_level and spots
     enable_logger()
-
+    configData = loadconfig("cytoD")
+    genes = configData["GENES"]
+    proteins = configData["PROTEINS"]
     ## Build peripheral profile plot either for each or for all timepoint
     ## Figures and analysis
     path_data = path.raw_data_dir
     molecule_type = ['/protein']
-    plot_colors = ['#F16c1b', '#f1bc1b']
-    genes = ["pard3_control", "pard3_cytod"]
-    proteins = ["pard3_control", "pard3_cytod"]
     image_type = []
     cell_type = cell_type_micropatterned
     with h5py.File(path.basic_file_path, "r") as file_handler,h5py.File(path.secondary_file_path, "r") as secondary_file_handler:
-        histogram_peripheral_profile(file_handler, secondary_file_handler, molecule_type, genes, proteins, plot_colors,
-                                     path_data, cell_type, image_type)
+        histogram_peripheral_profile(file_handler, secondary_file_handler, molecule_type, genes, proteins, plot_colors_cytoD, path_data, cell_type, image_type)
 
 if __name__ == "__main__":
     main()
