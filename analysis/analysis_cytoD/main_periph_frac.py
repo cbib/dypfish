@@ -151,7 +151,8 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, mole
         periph_fraction = []
         for gene in genes:
             print(gene)
-            image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], gene)
+            #image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], gene)
+            image_list = helps.preprocess_image_list_1(basic_file_handler, gene)
             periph_fraction.append(adsc.compute_mrna_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
         print(periph_fraction)
         figname = path.analysis_dir + 'analysis_cytoD/figures/'+cell_type+'/'+molecule_type[

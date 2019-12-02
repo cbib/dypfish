@@ -20,19 +20,19 @@ def main():
     configData = loadconfig("cytoD")
     genes = configData["GENES"]
     proteins = configData["PROTEINS"]
-
+    contours_num = configData["NUM_CONTOURS"]
     with h5py.File(path.basic_file_path, "a") as input_file_handler, \
-            h5py.File(path.secondary_file_path, "a") as secondary_file_handler, \
-            h5py.File(path.h_star_chx_file_path, "a") as hstar_file_handler:
+            h5py.File(path.secondary_file_path, "a") as secondary_file_handler:
 
-        image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], gene)
-        image_list = helps.preprocess_image(input_file_handler)
+        image_list = helps.preprocess_image_list_1(input_file_handler, genes)
+        #image_list = helps.preprocess_image(input_file_handler)
         for image in image_list:
-            idsc.set_cell_mask_distance_map(input_file_handler, secondary_file_handler, image, contours_num)
-            if 'mrna' in image:
-                idsc.set_spots_peripheral_distance_2D(input_file_handler, secondary_file_handler, image)
-            idsc.set_cell_area(input_file_handler, secondary_file_handler, image)
-            idsc.set_nucleus_area(input_file_handler, secondary_file_handler, image)
+            print(image)
+            # idsc.set_cell_mask_distance_map(input_file_handler, secondary_file_handler, image, contours_num)
+            # if 'mrna' in image:
+            #     idsc.set_spots_peripheral_distance_2D(input_file_handler, secondary_file_handler, image)
+            # idsc.set_cell_area(input_file_handler, secondary_file_handler, image)
+            # idsc.set_nucleus_area(input_file_handler, secondary_file_handler, image)
 
 if __name__ == "__main__":
     main()

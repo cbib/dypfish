@@ -413,8 +413,6 @@ def peripheral_fraction_dynamic_profile(
 
 
 def main(
-    basic_h5_file_handler,
-    secondary_h5_file_handler,
     raw_images_dir_path_name,
     save_into_dir_path_name
     ):
@@ -423,11 +421,7 @@ def main(
     resulting_graphs_details_as_list = []
     errors = []
 
-
-
-
     # Required descriptors: spots_peripheral_distance, height_map, zero_level and spots
-
     ## Build peripheral profile plot either for each or for all timepoint
 
     configData = loadconfig("original")
@@ -571,8 +565,6 @@ if __name__ == "__main__":
         os.mkdir(save_into_dir_path_name)
 
     resulting_graphs_details, errors = main(
-        basic_h5_file_handler=basic_h5_file_path_name,
-        secondary_h5_file_handler=secondary_h5_path_name,
         raw_images_dir_path_name=raw_images_dir_path_name,
         save_into_dir_path_name=save_into_dir_path_name
         )

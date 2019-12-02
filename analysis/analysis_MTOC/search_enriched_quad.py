@@ -20,7 +20,6 @@ pd.set_option('display.max_rows', 500)
 
 def main(is_periph=False):
     check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/')
-
     configData = loadconfig("original")
 
 
@@ -28,7 +27,7 @@ def main(is_periph=False):
     with h5py.File(path.basic_file_path, "r") as file_handler, \
             h5py.File(path.secondary_file_path, "r") as second_file_handler, \
             h5py.File(path.mtoc_file_path, "r") as mtoc_file_handler:
-        #compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
         compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
 
 # TODO check leading edge computation
@@ -132,5 +131,5 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
 
 
 if __name__ == "__main__":
-    main()
-    # main(is_periph=True)
+    #main()
+    main(is_periph=True)

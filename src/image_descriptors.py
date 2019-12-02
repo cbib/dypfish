@@ -537,8 +537,6 @@ def compute_mrna_density_normalization_factor(file_handler, image, second_file_h
     assert normalization_factor > 0
     return normalization_factor
 
-
-
 def search_mrna_quadrants(file_handler, second_file_handler, image):
     """
     For all possible subdivisions of the cell in quadrants (90 possible),

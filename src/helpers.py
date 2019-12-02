@@ -224,6 +224,17 @@ def preprocess_image(file_handler):
     return image_path_list
 
 
+def preprocess_image_list_1(file_handler, genes):
+    """build path from preliminar h5 files with basic descriptors"""
+    image_path_list = []
+    for molecule in file_handler:
+        for gene in genes:
+            for timepoint in file_handler[molecule + '/' + gene]:
+                for image in file_handler[molecule + '/' + gene + '/' + timepoint]:
+                    image_path = molecule + '/' + gene + '/' + timepoint + '/' + image
+                    image_path_list.append(image_path)
+    return image_path_list
+
 def preprocess_image_list(file_handler, molecule_type):
     """build path from preliminar h5 files with basic descriptors"""
     image_path_list = []

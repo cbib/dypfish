@@ -11,7 +11,7 @@ import src.image_descriptors as idsc
 import src.path as path
 import src.helpers as helps
 import src.constants as cst
-from src.utils import enable_logger, check_dir
+from src.utils import enable_logger, check_dir, loadconfig
 
 def compute_eight_quadrant_max(file_handler, image, degree_max):
     print(image)
@@ -76,18 +76,23 @@ def main():
         key = gene[0] + "_" + gene[1]
         degree_max_protein[key] = line['Unnamed: 0'].values
 
+    configData = loadconfig("original")
+    genes = configData["GENES"][0:4]
+    proteins = configData["PROTEINS"]
+    timepoints_mrna = configData["TIMEPOINTS_MRNA"]
+    timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
+    stripe_n= configData["STRIPE_NUM"]
+
     # Compute global TIS
     with h5py.File(path.basic_file_path, "r") as file_handler, \
             h5py.File(path.secondary_file_path, "r") as second_file_handler:
-        mrnas = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-        mrna_timepoints = ["2h", "3h", "4h", "5h"]
         gene_count = 0
-        for mrna in mrnas:
+        for mrna in genes:
             time_count = 0
-            for timepoint in mrna_timepoints:
+            for timepoint in timepoints_mrna:
                 key = mrna + "_" + timepoint
                 image_count = 0
-                h_array = np.zeros((len(degree_max_mrna[key]),cst.STRIPE_NUM*8 ))
+                h_array = np.zeros((len(degree_max_mrna[key]),stripe_n*8 ))
                 for i in range(len(degree_max_mrna[key])):
                     image = degree_max_mrna[key][i].split("_")[0]
                     degree = degree_max_mrna[key][i].split("_")[1]
@@ -108,7 +113,7 @@ def main():
                             if value == 100:
                                 value = 99
                             dist = value
-                            slice_area = np.floor(value / (100.0/cst.STRIPE_NUM))
+                            slice_area = np.floor(value / (100.0/stripe_n))
                             value = (int(slice_area) * 8) + int(quad-1)
                             h_array[image_count, int(value)] += (1.0 / len(spots)) / float(np.sum(cell_mask[(cell_mask_dist_map == dist) & (quad_mask == quad)]) * math.pow((1 / cst.SIZE_COEFFICIENT), 2))
                     image_count += 1
@@ -117,16 +122,14 @@ def main():
                                   mrna + '_' + timepoint + "_mrna.csv")
                 time_count += 1
             gene_count += 1
-        proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-        prot_timepoints = ["2h", "3h", "5h", "7h"]
         gene_count = 0
         for protein in proteins:
             print(protein)
             time_count = 0
-            for timepoint in prot_timepoints:
+            for timepoint in timepoints_protein:
                 key = protein + "_" + timepoint
                 image_count = 0
-                h_array = np.zeros((len(degree_max_protein[key]), 8*cst.STRIPE_NUM))
+                h_array = np.zeros((len(degree_max_protein[key]), 8* stripe_n))
                 for i in range(len(degree_max_protein[key])):
                     image = degree_max_protein[key][i].split("_")[0]
                     degree = degree_max_protein[key][i].split("_")[1]
@@ -144,7 +147,7 @@ def main():
                     cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
                     for i in range(1, 99):
                         for j in range(1, 9):
-                            value = int(np.floor(i / (100.0/cst.STRIPE_NUM)))
+                            value = int(np.floor(i / (100.0/stripe_n)))
                             value = (int(value) * 8) + int(j - 1)
                             if np.sum(cell_mask[(cell_mask_dist_map == i) & (quad_mask == j)]) == 0:
                                 h_array[image_count, value] = 0.0

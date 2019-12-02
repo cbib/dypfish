@@ -185,6 +185,8 @@ if __name__ == "__main__":
     genes = ['actn2', 'gapdh']
     timepoints = ['mature']
     colors = ['#0A3950', '#1E95BB', '#A1BA6D']
+
+
     with h5py.File(basic_file_path, "a") as file_handler,\
             h5py.File(muscle_rebuild_file_path, "a") as muscle_file_handler:
         all_median_profiles = compute_zline_distance(
