@@ -1,9 +1,8 @@
-
-# !/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
+# Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski 
 
-'''Build a dataframe containing mrna and protein normalised distributions between MTOC quadrant,
+'''Build a dataframe containing mrna and protein normalised distributions between MTOC quadrant, 
    MTOC leading edge quadrant and non MTOC quadrants'''
 
 import h5py
@@ -19,12 +18,10 @@ from src.utils import enable_logger, check_dir, loadconfig
 
 pd.set_option('display.max_rows', 500)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--peripheral", "-p", help='boolean flag: perform peripheral computation or not',
-                    action="store_true", default=False)
+parser = argparse.ArgumentParser()                                               
+parser.add_argument("--peripheral", "-p", help='boolean flag: perform peripheral computation or not', action="store_true", default=False)
 args = parser.parse_args()
 is_periph = args.peripheral
-
 
 def main():
     check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/')
@@ -38,14 +35,13 @@ def main():
         compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
         compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
 
-
 def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData):
     # mrna part
     logger = enable_logger()
     molecule_type = ['/mrna']
     mrnas = configData["GENES"]
     timepoints = configData["TIMEPOINTS_MRNA"]
-
+    
     global_mtoc = []
     global_non_mtoc = []
     global_mtoc_leading = []
@@ -113,7 +109,7 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
             for image in tqdm.tqdm(image_list, desc="Processing images"):
                 intensity_by_quad = idsc.search_periph_protein_quadrants(
                     file_handler, sec_file_handler, protein, image, path.path_data) if is_periph else \
-                    idsc.search_protein_quadrants(file_handler, sec_file_handler, mtoc_file_handler, protein, image)
+                    idsc.search_protein_quadrants(file_handler,sec_file_handler, mtoc_file_handler, protein, image)
                 mtoc_intensity = intensity_by_quad[:, :, 1] == 1
                 non_mtoc_intensity = intensity_by_quad[:, :, 1] == 0
                 num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
@@ -126,7 +122,7 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
                     global_timepoint.append(timepoint)
                 global_mtoc.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
                 for i in range(0, 270, 3):
-                    # TODO: has to be extend
+                    # TODO: has to be extend 
                     global_non_mtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3]))
                 if num_mtoc_quadrant == 1:
                     global_mtoc_leading.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
@@ -147,3 +143,4 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
 
 if __name__ == "__main__":
     main()
+

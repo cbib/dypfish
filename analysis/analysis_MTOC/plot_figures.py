@@ -15,7 +15,7 @@ from src.utils import check_dir, enable_logger, loadconfig, my_pal
 
 pd.set_option('display.max_rows', 500)
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser()                                               
 parser.add_argument("--peripheral", "-p", help = 'boolean flag: perform peripheral computation or not',
                         action = "store_true", default = False)
 args = parser.parse_args()

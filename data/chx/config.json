@@ -10,22 +10,22 @@
     "PIXEL_PER_VOXEL" : 16,
     "VOXELS_PER_IMAGE" : 512,
     "RIPLEY_K_SIMULATION_NUMBER" : 20,
-    "IMAGE_WIDTH" : 512,
-    "IMAGE_HEIGHT" : 512,
+    "IMAGE_WIDTH" : 251,
+    "IMAGE_HEIGHT" : 251,
     "STRIPE_NUM" : 3,
     "SLICE_THICKNESS" : 0.3,
     "Z_LINE_SPACING" : 20,
     "MOLECULE_TYPES": ["mrna", "protein"],
-    "GENES" : ["arhgdia_control", "arhgdia_cytod"],
-    "PROTEINS" : ["arhgdia_control", "arhgdia_cytod", "pard3","pard3_cytoD"],
-    "COLORS" : ["#0A3950", "#1E95BB", "#A1BA6D", "#F16C1B", "#C02A18", "#E9CB45"],
-    "TIMEPOINTS_PROTEIN":["tp"],
-    "TIMEPOINTS_MRNA":["tp"],
-    "BASIC_FILE_NAME":"basic.h5",
-    "SECONDARY_FILE_NAME":"secondary.h5",
-    "HSTAR_FILE_NAME":"h_star.h5",
+    "GENES" : ["arhgdia", "arhgdia_CHX", "pard3","pard3_CHX"],
+    "PROTEINS" : ["arhgdia", "arhgdia_CHX", "pard3","pard3_CHX"],
+    "TIMEPOINTS_PROTEIN":["2h", "3h", "5h"],
+    "TIMEPOINTS_MRNA":["2h", "3h", "5h"],
+    "TIMEPOINTS_NUM_PROTEIN":[2, 3, 5],
+    "TIMEPOINTS_NUM_MRNA":[2, 3, 5],
+    "BASIC_FILE_NAME":"basic_chx.h5",
+    "SECONDARY_FILE_NAME":"secondary_chx.h5",
+    "HSTAR_FILE_NAME":"h_star_chx.h5",
     "MTOC_FILE_NAME":"not defined"
-
 
 }
 
