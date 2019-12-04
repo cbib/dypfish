@@ -3,6 +3,7 @@
 
 import numpy as np
 import h5py
+import argparse
 import math
 import pandas as pd
 import src.image_descriptors as idsc
@@ -10,6 +11,11 @@ import src.path as path
 import src.helpers as helps
 import src.constants as cst
 from src.utils import enable_logger
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def reindex_quadrant_mask3(quad_mask, mtoc_quad):
     import pandas as pd

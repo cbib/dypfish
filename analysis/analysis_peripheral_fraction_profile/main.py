@@ -5,12 +5,19 @@ import os
 from collections import OrderedDict
 import numpy as np
 import h5py
+import argparse
 import src.plot as plot
 import src.constants as constants
 import src.acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps
 from src.utils import enable_logger, cell_type_micropatterned, plot_colors, check_dir,loadconfig
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+
 
 PNG_IMAGES_MIME_TYPE = "image/png"
 
@@ -241,7 +248,7 @@ def histogram_peripheral_profile(
                 gene
                 )
             periph_fraction.append(
-                adsc.compute_periph_fraction(
+                adsc.compute_mrna_periph_fraction(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
@@ -290,7 +297,7 @@ def histogram_peripheral_profile(
                 protein
                 )
             periph_fraction.append(
-                adsc.compute_periph_fraction(
+                adsc.compute_protein_periph_fraction(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
@@ -424,6 +431,7 @@ def main(
     # Required descriptors: spots_peripheral_distance, height_map, zero_level and spots
     ## Build peripheral profile plot either for each or for all timepoint
 
+    #mettre nom diu json en entier et en argument.
     configData = loadconfig("original")
     genes = configData["GENES"]
     proteins = configData["PROTEINS"]
@@ -431,10 +439,11 @@ def main(
     timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
     timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
 
-
-    with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler, \
-         h5py.File(secondary_h5_path_name, "r") as secondary_h5_file_handler:
+    with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as basic_h5_file_handler, \
+         h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as secondary_h5_file_handler:
 
 
         # Section to build peripheral profile fraction 10 and 30

@@ -2,6 +2,7 @@
 # encoding: UTF-8
 
 import h5py
+import argparse
 import src.path as path
 import src.helpers as helps
 import src.image_descriptors as idsc
@@ -12,20 +13,29 @@ from src.utils import enable_logger, loadconfig
 2-This script is supposed to be ran to compute cell_mask_distance_map and spot_peripheral_distance descriptors in dypfish. It produces:
 '''
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+
 def main():
     # Required descriptors: cell_mask, height_map, zero_level and spots
     # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
     # This import script takes username and password arguments to connect to remote server bb8
     enable_logger()
-    configData = loadconfig("chx")
+    configData = loadconfig(input_dir_name)
     max_cell_radius = configData["MAX_CELL_RADIUS"]
     simulation_number = configData["RIPLEY_K_SIMULATION_NUMBER"]
     pixels_in_slice = float(configData["SLICE_THICKNESS"] * configData["SIZE_COEFFICIENT"])
     contours_num=configData["NUM_CONTOURS"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    hstar_file_name = configData["HSTAR_FILE_NAME"]
 
-    with h5py.File(path.basic_file_chx_path, "a") as input_file_handler, \
-            h5py.File(path.secondary_file_chx_path, "a") as secondary_file_handler, \
-            h5py.File(path.h_star_chx_file_path, "a") as hstar_file_handler:
+
+    with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "a") as input_file_handler, \
+            h5py.File(path.data_dir+input_dir_name+"/"+secondary_file_name, "a") as secondary_file_handler, \
+            h5py.File(path.data_dir+input_dir_name+"/"+hstar_file_name, "a") as hstar_file_handler:
 
         image_list = helps.preprocess_image(input_file_handler)
         for image in image_list:

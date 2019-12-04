@@ -3,6 +3,7 @@
 
 import logging
 import sys
+import argparse
 import numpy as np
 import h5py
 import pandas as pd
@@ -12,6 +13,7 @@ import matplotlib.patches as mpatches
 import src.image_descriptors as idsc
 import src.path as path
 import src.helpers as helps
+from src.utils import loadconfig
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -22,6 +24,11 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 np.set_printoptions(precision=4)
 logger.info("Running %s", sys.argv[0])
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 
 def box_plot_concentrations(k1, k2, title, figname):
@@ -111,17 +118,24 @@ if __name__ == "__main__":
     ''' 
     1-You need to create a password.txt file before running to connect via ssh
     '''
-    basic_file_path = path.analysis_data_dir + 'basic.h5'
-    secondary_file_path = path.analysis_data_dir + 'secondary.h5'
-    mtoc_file_path = path.analysis_data_dir + 'mtoc.h5'
-    basic_md5_path=path.analysis_data_dir + 'basic.md5'
-    secondary_md5_path=path.analysis_data_dir + 'secondary.md5'
-    mtoc_md5_path = path.analysis_data_dir + 'mtoc.md5'
 
-    with h5py.File(basic_file_path, "r") as file_handler,h5py.File(secondary_file_path, "r") as second_file_handler,h5py.File(mtoc_file_path, "r") as mtoc_file_handler:
+    configData = loadconfig(input_dir_name)
+    print(input_dir_name)
+    genes = configData["GENES"]
+    proteins = configData["PROTEINS"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
+    colors = configData["COLORS"]
+    print(path.data_dir+input_dir_name+"/"+basic_file_name)
+
+
+    with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as file_handler,\
+            h5py.File(path.data_dir+input_dir_name+"/"+secondary_file_name, "r") as second_file_handler,\
+            h5py.File(path.data_dir+input_dir_name+"/"+mtoc_file_name, "r") as mtoc_file_handler:
         from pylab import setp
         molecule_type=['/mrna']
-        colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B']
+        #colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B']
         mrnas = ["arhgdia_control", "arhgdia_cytod"]
         global_mean_mtoc=[]
         global_mean_mtoc_leading = []
@@ -150,7 +164,7 @@ if __name__ == "__main__":
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
                 for image in image_list:
                     spot_by_quad = idsc.search_mrna_quadrants(file_handler,second_file_handler, image)
-                    mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)
+                    #mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)
                     mtoc_spot = spot_by_quad[:, :, 1] == 1
                     non_mtoc_spot = spot_by_quad[:, :, 1] == 0
                     for i in range(90):
@@ -160,14 +174,13 @@ if __name__ == "__main__":
                         global_timepoint.append(timepoint)
                     global_mtoc.extend(spot_by_quad[mtoc_spot][:,0].flatten())
                     for i in range(0,270,3):
-                        global_nmtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:,0].flatten()[i:i+2]))
-                    if mtoc_quad_j == 1:
-                        global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:,0].flatten())
-                    else:
-                        for i in range(90):
-                            global_mtoc_leading.append(np.nan)
-        df = pd.DataFrame({'Image': global_image,'Gene': global_mrna, 'timepoint': global_timepoint, 'Non MTOC': global_nmtoc,'MTOC': global_mtoc,
-                            'MTOC in leading edge': global_mtoc_leading},
+                        global_nmtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:,0].flatten()[i:i+3]))
+                    #if mtoc_quad_j == 1:
+                    #    global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:,0].flatten())
+                    # else:
+                    #     for i in range(90):
+                    #         global_mtoc_leading.append(np.nan)
+        df = pd.DataFrame({'Image': global_image,'Gene': global_mrna, 'timepoint': global_timepoint, 'Non MTOC': global_nmtoc,'MTOC': global_mtoc},
                           index=global_index)
         df.to_csv(path.analysis_dir + 'analysis_nocodazole/df/' +'global_mtoc_file_mrna_all.csv')
         molecule_type = ['/protein']
@@ -209,15 +222,14 @@ if __name__ == "__main__":
                         global_timepoint.append(timepoint)
                     global_mtoc.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
                     for i in range(0, 270, 3):
-                        global_nmtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 2]))
-                    if mtoc_quad_j == 1:
-                        global_mtoc_leading.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
-                    else:
-                        for i in range(90):
-                            global_mtoc_leading.append(np.nan)
+                        global_nmtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3]))
+                    # if mtoc_quad_j == 1:
+                    #     global_mtoc_leading.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
+                    # else:
+                    #     for i in range(90):
+                    #         global_mtoc_leading.append(np.nan)
         df = pd.DataFrame(
             {'Image': global_image, 'Gene': global_protein, 'timepoint': global_timepoint, 'Non MTOC': global_nmtoc,
-             'MTOC': global_mtoc,
-             'MTOC leading edge': global_mtoc_leading},
+             'MTOC': global_mtoc},
             index=global_index)
         df.to_csv(path.analysis_dir + 'analysis_nocodazole/df/' +'global_mtoc_file_protein_all.csv')

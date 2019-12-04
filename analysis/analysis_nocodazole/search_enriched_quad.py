@@ -3,6 +3,7 @@
 
 import logging
 import sys
+import argparse
 import numpy as np
 import h5py
 import pandas as pd
@@ -12,6 +13,8 @@ import matplotlib.patches as mpatches
 import src.image_descriptors as idsc
 import src.path as path
 import src.helpers as helps
+from src.utils import loadconfig
+import tqdm
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -21,6 +24,14 @@ formatter = logging.Formatter('%(asctime)s - %(filename)s - %(message)s', "%Y-%m
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 logger.info("Running %s", sys.argv[0])
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--peripheral", "-p", help='boolean flag: perform peripheral computation or not', action="store_true", default=False)
+
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+is_periph = args.peripheral
 
 def box_plot_concentrations(k1, k2, title, figname):
     fig, ax = plt.subplots(1, 1)
@@ -105,18 +116,23 @@ if __name__ == "__main__":
     # Required descriptors: spots, IF, cell mask an height_map
     # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
     # This import script takes username and password arguments to connect to remote server bb8
-    ''' 
-    1-You need to create a password.txt file before running to connect via ssh
-    '''
-    basic_file_path = path.analysis_data_dir + 'basic.h5'
-    secondary_file_path = path.analysis_data_dir + 'secondary.h5'
-    mtoc_file_path = path.analysis_data_dir + 'mtoc.h5'
 
-    with h5py.File(basic_file_path, "r") as file_handler,h5py.File(secondary_file_path, "r") as second_file_handler,h5py.File(mtoc_file_path, "r") as mtoc_file_handler:
+
+    configData = loadconfig(input_dir_name)
+    mrnas = configData["GENES"]
+    proteins = configData["PROTEINS"]
+    mrna_timepoints = configData["TIMEPOINTS_MRNA"]
+    prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
+    colors = configData["COLORS"]
+
+    with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as file_handler,\
+            h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as second_file_handler,\
+            h5py.File(path.data_dir+input_dir_name+'/'+mtoc_file_name, "r") as mtoc_file_handler:
         from pylab import setp
         molecule_type=['/mrna']
-        colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B']
-        mrnas = ["arhgdia", "arhgdia_nocodazole","pard3","pard3_nocodazole"]
         global_mean_mtoc=[]
         global_mean_mtoc_leading = []
         global_mean_non_mtoc=[]
@@ -124,7 +140,9 @@ if __name__ == "__main__":
         global_max_mtoc_leading = []
         global_max_non_mtoc = []
         global_mtoc=[]
-        global_nmtoc=[]
+        global_non_mtoc1 = []
+        global_non_mtoc2 = []
+        global_non_mtoc3 = []
         global_mtoc_leading = []
         global_mrna=[]
         global_image=[]
@@ -133,16 +151,19 @@ if __name__ == "__main__":
         global_mpis=[]
         global_p=[]
         global_degree=[]
-        for mrna in mrnas:
+        for mrna in tqdm.tqdm(mrnas, desc="Processing mRNAs"):
+        #for mrna in mrnas:
             print(mrna)
             spots_mtoc_all = []
             spots_non_mtoc_all = []
-            timepoints = ["3h", "5h"]
-            for timepoint in timepoints:
+            for timepoint in tqdm.tqdm(mrna_timepoints, desc="Processing timepoints"):
+            #for timepoint in mrna_timepoints:
                 mean_spots_mtoc = []
                 mean_spots_non_mtoc = []
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
-                for image in image_list:
+                for image in tqdm.tqdm(image_list, desc="Processing images"):
+
+                #for image in image_list:
                     spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler, image)
                     mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)
                     mtoc_spot = spot_by_quad[:, :, 1] == 1
@@ -154,19 +175,24 @@ if __name__ == "__main__":
                         global_timepoint.append(timepoint)
                     global_mtoc.extend(spot_by_quad[mtoc_spot][:,0].flatten())
                     for i in range(0,270,3):
-                        global_nmtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:,0].flatten()[i:i+2]))
+                        #global_nmtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:,0].flatten()[i:i+3]))
+                        global_non_mtoc1.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][0])
+                        global_non_mtoc2.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][1])
+                        global_non_mtoc3.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][2])
                     if mtoc_quad_j == 1:
                         global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:,0].flatten())
                     else:
                         for i in range(90):
                             global_mtoc_leading.append(np.nan)
 
-        df = pd.DataFrame({'Image': global_image,'Gene': global_mrna, 'timepoint': global_timepoint, 'Non MTOC': global_nmtoc,'MTOC': global_mtoc,
-                            'MTOC leading edge': global_mtoc_leading},
-                          index=global_index)
+        df = pd.DataFrame(
+            {'Image': global_image, 'Gene': global_mrna, 'timepoint': global_timepoint, 'MTOC': global_mtoc,
+             'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1, 'Non MTOC2': global_non_mtoc2,
+             'Non MTOC3': global_non_mtoc3}, index=global_index)
+
         df.to_csv(path.analysis_dir + 'analysis_nocodazole/df/' +'global_mtoc_file_mrna_all.csv')
+
         molecule_type = ['/protein']
-        proteins = ["arhgdia", "arhgdia_nocodazole","pard3","pard3_nocodazole"]
         mean_intensities_mtoc = []
         mean_intensities_non_mtoc = []
         global_mean_mtoc = []
@@ -180,7 +206,9 @@ if __name__ == "__main__":
         global_max_mtoc_leading = []
         global_max_non_mtoc = []
         global_mtoc = []
-        global_nmtoc = []
+        global_non_mtoc1 = []
+        global_non_mtoc2 = []
+        global_non_mtoc3 = []
         global_mtoc_leading = []
         global_image = []
         global_index = []
@@ -189,8 +217,7 @@ if __name__ == "__main__":
         global_p = []
         global_degree = []
         for protein in proteins:
-            timepoints = ["3h", "5h"]
-            for timepoint in timepoints:
+            for timepoint in prot_timepoints:
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, protein, [timepoint])
                 for image in image_list:
                     intensity_by_quad = idsc.search_protein_quadrants(file_handler, second_file_handler, mtoc_file_handler,protein, image)
@@ -204,15 +231,17 @@ if __name__ == "__main__":
                         global_timepoint.append(timepoint)
                     global_mtoc.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
                     for i in range(0, 270, 3):
-                        global_nmtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 2]))
+                        #global_nmtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 2]))
+                        global_non_mtoc1.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][0])
+                        global_non_mtoc2.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][1])
+                        global_non_mtoc3.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][2])
                     if mtoc_quad_j == 1:
                         global_mtoc_leading.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
                     else:
                         for i in range(90):
                             global_mtoc_leading.append(np.nan)
-        df = pd.DataFrame(
-            {'Image': global_image, 'Gene': global_protein, 'timepoint': global_timepoint, 'Non MTOC': global_nmtoc,
-             'MTOC': global_mtoc,
-             'MTOC leading edge': global_mtoc_leading},
-            index=global_index)
+        df = pd.DataFrame({'Image': global_image, 'Gene': global_protein, 'timepoint': global_timepoint,
+                           'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1,
+                           'Non MTOC2': global_non_mtoc2, 'Non MTOC3': global_non_mtoc3},
+                          index=global_index)
         df.to_csv(path.analysis_dir + 'analysis_nocodazole/df/' +'global_mtoc_file_protein_all.csv')

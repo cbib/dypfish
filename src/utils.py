@@ -27,10 +27,15 @@ def check_dir(path):
         os.makedirs(path)
     return path
 
+def check_dir_only(path):
+    if not os.path.exists(path):
+        return False
+    else:
+        return True
 
-def loadconfig(data_label):
+
+def loadconfig(data_dir):
     data={}
-    print(path.analysis_data_dir)
-    with open(path.config_data_dir+'/config_'+data_label+'.json', 'r') as fichier:
+    with open(path.data_dir+data_dir+'/config.json', 'r') as fichier:
         data = json.load(fichier)
     return data

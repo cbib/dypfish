@@ -3,13 +3,19 @@
 # author: benjamin Dartigues
 import numpy as np
 import h5py
+import argparse
 import math
 import pandas as pd
 import src.image_descriptors as idsc
 import src.path as path
 import src.helpers as helps
 import src.constants as cst
-from src.utils import enable_logger, check_dir
+from src.utils import enable_logger, check_dir, loadconfig
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def reindex_quadrant_mask(quad_mask, mtoc_quad):
     import pandas as pd
@@ -46,6 +52,16 @@ def main():
     # you need to run before MTOC analysis script called search enriched quad
     enable_logger()
 
+    configData = loadconfig(input_dir_name)
+    mrnas = configData["GENES"][0:4]
+    proteins = configData["PROTEINS"]
+    timepoints_mrna = configData["TIMEPOINTS_MRNA"]
+    timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
+    stripe_n = configData["STRIPE_NUM"]
+    size_coeff = configData["SIZE_COEFFICIENT"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+
     try:
         df = pd.read_csv(path.analysis_dir + 'analysis_MTOC/dataframe/' + 'periph_global_mtoc_file_all_mrna.csv')
     except IOError:
@@ -67,17 +83,16 @@ def main():
     limit=30
 
     # Compute global TIS
-    with h5py.File(path.basic_file_path, "r") as file_handler, \
-            h5py.File(path.secondary_file_path, "r") as second_file_handler:
-        mrnas = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-        mrna_timepoints = ["2h", "3h", "4h", "5h"]
+    with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as file_handler, \
+            h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as second_file_handler:
+
         gene_count = 0
         for mrna in mrnas:
             time_count = 0
-            for timepoint in mrna_timepoints:
+            for timepoint in timepoints_mrna:
                 key = mrna + "_" + timepoint
                 image_count = 0
-                h_array = np.zeros((len(degree_max_mrna[key]),cst.STRIPE_NUM*8 ))
+                h_array = np.zeros((len(degree_max_mrna[key]),stripe_n*8 ))
                 for i in range(len(degree_max_mrna[key])):
                     image = degree_max_mrna[key][i].split("_")[0]
                     degree = degree_max_mrna[key][i].split("_")[1]
@@ -101,12 +116,12 @@ def main():
                             value = cell_mask_dist_map[spots[i, 1], spots[i, 0]]
                             if value == limit:
                                 value = limit-1
-                            slice_area = np.floor(value / (float(limit)/cst.STRIPE_NUM))
+                            slice_area = np.floor(value / (float(limit)/stripe_n))
                             value = (int(slice_area) * 8) + int(quad)
-                            print("low_limit",(slice_area*(limit/cst.STRIPE_NUM))+1)
-                            print("high limit",(slice_area *(limit/cst.STRIPE_NUM))+(limit/cst.STRIPE_NUM))
+                            print("low_limit",(slice_area*(limit/stripe_n))+1)
+                            print("high limit",(slice_area *(limit/stripe_n))+(limit/stripe_n))
                             spots_relative=(1.0 / spots_in_periph)
-                            surface_relative=float(np.sum(cell_mask[((cell_mask_dist_map >= (slice_area*(limit/cst.STRIPE_NUM))+1) & (cell_mask_dist_map < (slice_area *(limit/cst.STRIPE_NUM))+(limit/cst.STRIPE_NUM))) & (quad_mask == quad)]) * math.pow((1 / cst.SIZE_COEFFICIENT), 2))/float(np.sum(cell_mask[cell_mask==1])* math.pow((1 / cst.SIZE_COEFFICIENT), 2))
+                            surface_relative=float(np.sum(cell_mask[((cell_mask_dist_map >= (slice_area*(limit/stripe_n))+1) & (cell_mask_dist_map < (slice_area *(limit/stripe_n))+(limit/stripe_n))) & (quad_mask == quad)]) * math.pow((1 / size_coeff), 2))/float(np.sum(cell_mask[cell_mask==1])* math.pow((1 / size_coeff), 2))
                             if surface_relative==0.0:
                                 h_array[image_count, int(value) - 1] +=0
                             else:
@@ -117,13 +132,11 @@ def main():
                                   mrna + '_' + timepoint+ '_' +str(limit) +"_mrna.csv")
                 time_count += 1
             gene_count += 1
-        proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-        prot_timepoints = ["2h", "3h", "5h", "7h"]
+
         gene_count = 0
         for protein in proteins:
-            print(protein)
             time_count = 0
-            for timepoint in prot_timepoints:
+            for timepoint in timepoints_protein:
                 key = protein + "_" + timepoint
                 image_count = 0
                 h_array = np.zeros((len(degree_max_protein[key]),cst.STRIPE_NUM*8 ))
@@ -143,14 +156,14 @@ def main():
                     IF[(nucleus_mask == 1)] = 0
                     cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
                     cpt_stripes=0
-                    for i in range((limit/cst.STRIPE_NUM), limit+1, (limit/cst.STRIPE_NUM)):
+                    for i in range((limit/stripe_n), limit+1, (limit/stripe_n)):
                         print("i",i)
                         for j in range(1, 9):
-                            if np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) == 0:
+                            if np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-(limit/stripe_n))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) == 0:
                                 h_array[image_count, cpt_stripes] = 0.0
                             else:
-                                IF_relative=float(np.sum(IF[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)])) / np.sum(IF[cell_mask==1])/np.sum(IF[cell_mask==1])
-                                surface_relative=np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-(limit/cst.STRIPE_NUM))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) * math.pow((1 / cst.SIZE_COEFFICIENT), 2) / np.sum(cell_mask[cell_mask==1])* math.pow((1 / cst.SIZE_COEFFICIENT), 2)
+                                IF_relative=float(np.sum(IF[((cell_mask_dist_map >= 1+(i-(limit/stripe_n))) & (cell_mask_dist_map < i)) & (quad_mask == j)])) / np.sum(IF[cell_mask==1])/np.sum(IF[cell_mask==1])
+                                surface_relative=np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-(limit/stripe_n))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) * math.pow((1 / size_coeff), 2) / np.sum(cell_mask[cell_mask==1])* math.pow((1 / size_coeff), 2)
                                 h_array[image_count, cpt_stripes] =IF_relative/surface_relative
                             cpt_stripes+=1
                         count += 1

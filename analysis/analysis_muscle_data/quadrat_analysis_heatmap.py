@@ -4,6 +4,7 @@
 
 import logging
 import sys
+import argparse
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
@@ -23,6 +24,12 @@ formatter = logging.Formatter('%(asctime)s - %(filename)s - %(message)s', "%Y-%m
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 logger.info("Running %s", sys.argv[0])
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def compute_minimal_distance(segment_summed):
     for i in range(15):

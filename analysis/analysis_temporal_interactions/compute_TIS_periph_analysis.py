@@ -4,11 +4,17 @@
 
 import numpy as np
 import itertools
+import argparse
 import matplotlib.pyplot as plt
 from scipy import stats
 import pandas as pd
 import src.path as path
-from src.utils import enable_logger, plot_colors, check_dir
+from src.utils import enable_logger, plot_colors, check_dir,loadconfig
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def permutations(orig_list):
     if not isinstance(orig_list, list):
@@ -110,6 +116,17 @@ def plot_bar_profile(data, genes, ylabel, figname, colors):
     plt.close()
 
 def main():
+
+    configData = loadconfig(input_dir_name)
+    mrnas = configData["GENES"][0:4]
+    # proteins = configData["PROTEINS"]
+    mrna_timepoints = configData["TIMEPOINTS_MRNA"]
+    prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
+    colors = configData["COLORS"]
+
     limit="10"
     enable_logger()
     mrnas = ["beta_actin", "arhgdia", "gapdh", "pard3"]

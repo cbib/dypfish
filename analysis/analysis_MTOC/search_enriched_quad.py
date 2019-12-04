@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import tqdm
 import argparse
-
+import sys
 import src.helpers as helps
 import src.image_descriptors as idsc
 import src.path as path
@@ -20,18 +20,24 @@ pd.set_option('display.max_rows', 500)
 
 parser = argparse.ArgumentParser()                                               
 parser.add_argument("--peripheral", "-p", help='boolean flag: perform peripheral computation or not', action="store_true", default=False)
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+
 args = parser.parse_args()
 is_periph = args.peripheral
+input_dir_name = args.input_dir_name
 
 def main():
     check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/')
-    configData = loadconfig("original")
+    configData = loadconfig(input_dir_name)
 
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
     # Required descriptors: spots, IF, cell mask and height_map
     # annotations for the number of the quadrant containing the mtoc comes from the mtoc5.h5
-    with h5py.File(path.basic_file_path, "r") as file_handler, \
-            h5py.File(path.secondary_file_path, "r") as second_file_handler, \
-            h5py.File(path.mtoc_file_path, "r") as mtoc_file_handler:
+    with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as file_handler, \
+            h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as second_file_handler, \
+            h5py.File(path.data_dir+input_dir_name+'/'+mtoc_file_name, "r") as mtoc_file_handler:
         compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
         compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
 
@@ -43,7 +49,9 @@ def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler,
     timepoints = configData["TIMEPOINTS_MRNA"]
     
     global_mtoc = []
-    global_non_mtoc = []
+    global_non_mtoc1 = []
+    global_non_mtoc2 = []
+    global_non_mtoc3 = []
     global_mtoc_leading = []
     global_mrna = []
     global_image = []
@@ -70,23 +78,26 @@ def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler,
                 global_mtoc.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
                 for i in range(0, 270, 3):
                     # TODO : has to be extend
-                    global_non_mtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3]))
+                    global_non_mtoc1.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][0])
+                    global_non_mtoc2.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][1])
+                    global_non_mtoc3.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][2])
+
+                    #global_non_mtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3]))
                 # quadrant number is 1 if it is in the leading edge
                 if num_mtoc_quadrant == 1:
                     global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
                 else:
                     for i in range(90):
                         global_mtoc_leading.append(np.nan)
-
     # TODO: add non_MTOC 1, 2 and 3
     df = pd.DataFrame(
-        {'Image': global_image, 'Gene': global_mrna, 'timepoint': global_timepoint, 'Non MTOC': global_non_mtoc,
-         'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading}, index=global_index)
+        {'Image': global_image, 'Gene': global_mrna, 'timepoint': global_timepoint, 'MTOC': global_mtoc,
+          'MTOC leading edge': global_mtoc_leading,'Non MTOC1': global_non_mtoc1,'Non MTOC2': global_non_mtoc2,'Non MTOC3': global_non_mtoc3}, index=global_index)
     if is_periph:
         df.to_csv(
-            check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna.csv')
+            check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna_all_NMTOC.csv')
     else:
-        df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna.csv')
+        df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna_all_NMTOC.csv')
 
 
 def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, sec_file_handler, configData):
@@ -98,7 +109,9 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
 
     global_protein = []
     global_mtoc = []
-    global_non_mtoc = []
+    global_non_mtoc1 = []
+    global_non_mtoc2 = []
+    global_non_mtoc3 = []
     global_mtoc_leading = []
     global_image = []
     global_index = []
@@ -122,23 +135,25 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
                     global_timepoint.append(timepoint)
                 global_mtoc.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
                 for i in range(0, 270, 3):
-                    # TODO: has to be extend 
-                    global_non_mtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3]))
+                    # TODO: has to be extend
+                    global_non_mtoc1.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][0])
+                    global_non_mtoc2.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][1])
+                    global_non_mtoc3.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][2])
+                    #global_non_mtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3]))
                 if num_mtoc_quadrant == 1:
                     global_mtoc_leading.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
                 else:
                     for i in range(90):
                         global_mtoc_leading.append(np.nan)
-
     # TODO: add non_MTOC 1, 2 and 3
     df = pd.DataFrame({'Image': global_image, 'Gene': global_protein, 'timepoint': global_timepoint,
-                       'Non MTOC': global_non_mtoc, 'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading},
+                    'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1,'Non MTOC2': global_non_mtoc2,'Non MTOC3': global_non_mtoc3},
                       index=global_index)
     if is_periph:
         df.to_csv(
-            check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein.csv')
+            check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein_all_NMTOC.csv')
     else:
-        df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein.csv')
+        df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein_all_NMTOC.csv')
 
 
 if __name__ == "__main__":

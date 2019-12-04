@@ -3,11 +3,19 @@
 
 import sys
 import h5py
+import argparse
 import src.path as path
 import src.statistical_analysis as stan
 import src.helpers as helps
 import src.plot as plot
 from src.utils import enable_logger
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+
 
 def main():
     enable_logger()

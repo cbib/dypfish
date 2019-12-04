@@ -3,6 +3,7 @@
 # author: Benjamin Dartigues
 
 import os
+import argparse
 from collections import OrderedDict
 import h5py
 import src.plot as plot
@@ -12,7 +13,11 @@ import src.helpers as helps
 from src.utils import enable_logger, plot_colors,loadconfig
 
 
-PNG_IMAGES_MIME_TYPE = "image/png"
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+
 
 CYTOPLASMIC_TOTAL_COUNT_GRAPHS_SUFFIX = "total_cytoplasmic_transcript"
 
@@ -157,7 +162,6 @@ def cytoplasmic_total_dynamic_profiles(
 
 
 def main(
-    basic_h5_file_path_name,
     save_into_dir_path_name,
     raw_images_dir_path_name=None,
     ext_logger=None
@@ -167,7 +171,7 @@ def main(
 
     # Required descriptors: spots, IF, cell mask an height_map
     # Compute bar plot cytoplasmic total transcripts
-    configData = loadconfig("original")
+    configData = loadconfig(input_dir_name)
 
     # Compute bar plot cytoplasmic spread
     genes = configData["GENES"]
@@ -177,8 +181,10 @@ def main(
     timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     mime_type=configData["PNG_IMAGES_MIME_TYPE"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
 
-    with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler:
+
+    with h5py.File(path.analysis_data_dir+input_dir_name+'/'+basic_file_name, "r") as basic_h5_file_handler:
 
         graph_details = cytoplasmic_total_count(
             basic_h5_file_handler=basic_h5_file_handler,
@@ -228,13 +234,11 @@ if __name__ == "__main__":
 
     enable_logger()
 
-    basic_h5_file_path_name = path.basic_file_path
     save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_cytoplasmic_total_count/figures/")
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)
 
     resulting_graphs_details = main(
-        basic_h5_file_path_name,
         save_into_dir_path_name
         )
 

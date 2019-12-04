@@ -2,6 +2,7 @@
 # encoding: UTF-8
 
 import h5py
+import argparse
 import src.path as path
 import src.helpers as helps
 import src.image_descriptors as idsc
@@ -12,7 +13,10 @@ from src.utils import enable_logger, loadconfig
 2-This script is supposed to be ran to compute cell_mask_distance_map and spot_peripheral_distance descriptors in dypfish. It produces:
 '''
 
-
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 
 def main():

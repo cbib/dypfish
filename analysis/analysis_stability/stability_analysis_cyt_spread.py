@@ -2,11 +2,18 @@
 # encoding: UTF-8
 
 import h5py
+import argparse
 import src.path as path
 import src.helpers as helps
 import src.acquisition_descriptors as adsc
 from src.utils import enable_logger, check_dir
 from numpy import mean, median, absolute
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+
 
 def mean_absolute_deviation(data, axis=None):
     return mean(absolute(data - mean(data, axis)), axis)

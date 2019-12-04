@@ -5,6 +5,8 @@ import os
 from collections import OrderedDict
 import numpy as np
 import h5py
+import sys
+import argparse
 import src.plot as plot
 import src.constants as constants
 import src.acquisition_descriptors as adsc
@@ -14,10 +16,18 @@ from src.utils import enable_logger, cell_type_micropatterned, plot_colors, chec
 
 PNG_IMAGES_MIME_TYPE = "image/png"
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+
+
 def peripheral_profile(
     mean_profiles,
     timepoint,
     genes,
+    mime_type,
     molecule_type,
     colors,
     save_into_dir_path_name,
@@ -30,7 +40,7 @@ def peripheral_profile(
     graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
     graph_metadata = {
         "file_name": graph_file_name,
-        "mime_type": PNG_IMAGES_MIME_TYPE
+        "mime_type": mime_type
         }
 
     #mean_profiles = mean_profiles / np.matlib.repmat(mean_profiles[2], len(genes), 1)
@@ -60,6 +70,7 @@ def peripheral_profiles(
     secondary_h5_file_handler,
     molecule_type,
     genes,
+    mime_type,
     colors,
     compute_peripheral_fraction_profiles,
     timepoints,
@@ -101,6 +112,7 @@ def peripheral_profiles(
             mean_profiles=mean_profiles,
             timepoint=timepoint,
             genes=genes,
+            mime_type=mime_type,
             molecule_type=molecule_type,
             colors=colors,
             save_into_dir_path_name=save_into_dir_path_name,
@@ -115,6 +127,7 @@ def mrna_peripheral_fraction_profile(
     secondary_h5_file_handler,
     molecule_type,
     genes,
+    mime_type,
     fraction,
     colors,
     basic_h5_file_handler,
@@ -146,7 +159,7 @@ def mrna_peripheral_fraction_profile(
 
     graph_metadata = {
         "file_name": graph_file_name,
-        "mime_type": PNG_IMAGES_MIME_TYPE
+        "mime_type": mime_type,
         }
 
     #plot.fraction_profile(fractions, fraction, genes, fig_file_path_name, colors)
@@ -164,6 +177,7 @@ def protein_peripheral_fraction_profile(
     secondary_h5_file_handler,
     molecule_type,
     genes,
+    mime_type,
     fraction,
     colors,
     basic_h5_file_handler,
@@ -195,7 +209,7 @@ def protein_peripheral_fraction_profile(
 
     graph_metadata = {
         "file_name": graph_file_name,
-        "mime_type": PNG_IMAGES_MIME_TYPE
+        "mime_type": mime_type
         }
 
     #plot.fraction_profile(fractions, fraction, genes, fig_file_path_name, colors)
@@ -214,6 +228,7 @@ def histogram_peripheral_profile(
     secondary_h5_file_handler,
     genes,
     proteins,
+    mime_type,
     colors,
     raw_images_dir_path_name,
     save_into_dir_path_name,
@@ -253,7 +268,7 @@ def histogram_peripheral_profile(
         graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
         graph_metadata = {
             "file_name": graph_file_name,
-            "mime_type": PNG_IMAGES_MIME_TYPE
+            "mime_type": mime_type
             }
 
         plot.bar_profile(periph_fraction, genes, graph_file_path_name)
@@ -330,6 +345,7 @@ def peripheral_fraction_dynamic_profile(
     secondary_h5_file_handler,
     genes,
     proteins,
+    mime_type,
     timepoints_num_mrna,
     timepoints_num_protein,
     colors,
@@ -371,7 +387,7 @@ def peripheral_fraction_dynamic_profile(
                 graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
                 graph_metadata = {
                     "file_name": graph_file_name,
-                    "mime_type": PNG_IMAGES_MIME_TYPE
+                    "mime_type": mime_type
                     }
 
                 plot.dynamic_profiles(
@@ -412,8 +428,7 @@ def peripheral_fraction_dynamic_profile(
 
 
 def main(
-    basic_h5_file_handler,
-    secondary_h5_file_handler,
+
     raw_images_dir_path_name,
     save_into_dir_path_name
     ):
@@ -429,17 +444,19 @@ def main(
 
     ## Build peripheral profile plot either for each or for all timepoint
 
-    configData = loadconfig("chx")
+    configData = loadconfig(input_dir_name)
     genes = configData["GENES"]
     proteins = configData["PROTEINS"]
     timepoints_mrna = configData["TIMEPOINTS_MRNA"]
     timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
     timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
+    mime_type = configData["PNG_IMAGES_MIME_TYPE"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
 
-
-    with h5py.File(path.basic_file_path_chx, "r") as basic_h5_file_handler, \
-         h5py.File(path.basic_file_path_chx, "r") as secondary_h5_file_handler:
+    print(path.data_dir+input_dir_name+"/"+basic_file_name)
+    with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as basic_h5_file_handler, \
+         h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as secondary_h5_file_handler:
 
 
         # Section to build peripheral profile fraction 10 and 30
@@ -449,6 +466,7 @@ def main(
                 secondary_h5_file_handler=secondary_h5_file_handler,
                 molecule_type=['mrna'],
                 genes=genes,
+                mime_type=mime_type,
                 fraction=10,
                 colors=plot_colors,
                 basic_h5_file_handler=basic_h5_file_handler,
@@ -466,6 +484,7 @@ def main(
                 secondary_h5_file_handler=secondary_h5_file_handler,
                 molecule_type=['protein'],
                 genes=proteins,
+                mime_type=mime_type,
                 fraction=10,
                 colors=plot_colors,
                 basic_h5_file_handler=basic_h5_file_handler,
@@ -483,6 +502,7 @@ def main(
                 secondary_h5_file_handler=secondary_h5_file_handler,
                 molecule_type=['mrna'],
                 genes=genes,
+                mime_type=mime_type,
                 colors=plot_colors,
                 compute_peripheral_fraction_profiles=adsc.compute_protein_peripheral_fraction_profiles_3D,
                 timepoints=None,
@@ -500,6 +520,7 @@ def main(
                 secondary_h5_file_handler=secondary_h5_file_handler,
                 molecule_type=['protein'],
                 genes=proteins,
+                mime_type=mime_type,
                 colors=plot_colors,
                 compute_peripheral_fraction_profiles=adsc.compute_protein_peripheral_fraction_profiles_3D,
                 timepoints=None,
@@ -520,6 +541,7 @@ def main(
                 secondary_h5_file_handler=secondary_h5_file_handler,
                 genes=genes,
                 proteins=proteins,
+                mime_type=mime_type,
                 colors=plot_colors,
                 raw_images_dir_path_name=raw_images_dir_path_name,
                 save_into_dir_path_name=save_into_dir_path_name
@@ -537,6 +559,7 @@ def main(
                 secondary_h5_file_handler=secondary_h5_file_handler,
                 genes=genes,
                 proteins=proteins,
+                mime_type=mime_type,
                 timepoints_num_mrna=timepoints_num_mrna,
                 timepoints_num_protein=timepoints_num_protein,
                 colors=plot_colors,
@@ -562,17 +585,13 @@ if __name__ == "__main__":
 
     enable_logger()
 
-    basic_h5_file_path_name = path.basic_file_path
-    secondary_h5_path_name = path.secondary_file_path
     raw_images_dir_path_name = path.path_data
-
     save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_chx/figures/")
+
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)
 
     resulting_graphs_details, errors = main(
-        basic_h5_file_handler=basic_h5_file_path_name,
-        secondary_h5_file_handler=secondary_h5_path_name,
         raw_images_dir_path_name=raw_images_dir_path_name,
         save_into_dir_path_name=save_into_dir_path_name
         )

@@ -3,6 +3,7 @@
 
 import logging
 import sys
+import argparse
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
@@ -13,6 +14,7 @@ import src.acquisition_descriptors as adsc
 import src.image_descriptors as idsc
 import src.path as path
 import src.helpers as helps
+from src.utils import loadconfig,check_dir
 import hashlib
 
 logger = logging.getLogger('DYPFISH_HELPERS')
@@ -24,6 +26,10 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 logger.info("Running %s", sys.argv[0])
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 
 def peripheral_profile_by_timepoint(file_handler,molecule_type,genes,timepoints,colors,cell_type,image_type=[]):
@@ -96,19 +102,27 @@ def peripheral_fraction_profile(file_handler,molecule_type,genes,fraction,colors
     if len(image_type) == 0:
         fractions = []
         for gene in genes:
-            print(gene)
-            image_list = helps.preprocess_image_list2(file_handler, molecule_type[0], gene)
-            fractions.append(adsc.build_histogram_periph_fraction(file_handler, image_list, fraction,path_data,basic_file_handler))
-        figname = path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/'+molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
-        plot.fraction_profile(fractions, fraction, genes, figname,colors)
+            image_list = helps.preprocess_image_list2(file_handler, molecule_type, gene)
+            if molecule_type=="mrna":
+                fractions.append(adsc.build_histogram_mrna_periph_fraction(file_handler, image_list, fraction,path_data,basic_file_handler))
+            else:
+                fractions.append(adsc.build_histogram_protein_periph_fraction(file_handler, image_list, fraction,path_data,basic_file_handler))
+        print(fractions)
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/')+molecule_type+'_peripheral_fraction_'+str(fraction)+'.png'
+        #plot.fraction_profile(fractions, fraction, genes, figname,colors)
+        plot.bar_profile(fractions,genes,figname)
     else:
         for image_t in image_type:
             fractions = []
             for gene in genes:
-                image_list = helps.preprocess_image_list5(file_handler, molecule_type[0], gene,image_t)
-                fractions.append(adsc.build_histogram_periph_fraction(file_handler, image_list, fraction,path_data,basic_file_handler))
-            figname = path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/' +gene_root_name+'_peripheral_fraction_' +image_t+'_'+ str(fraction) + '.png'
-            plot.fraction_profile(fractions, fraction, genes, figname, colors)
+                image_list = helps.preprocess_image_list5(file_handler, molecule_type, gene,image_t)
+                if molecule_type == "mrna":
+                    fractions.append(adsc.build_histogram_mrna_periph_fraction(file_handler, image_list, fraction, path_data,basic_file_handler))
+                else:
+                    fractions.append(adsc.build_histogram_protein_periph_fraction(file_handler, image_list, fraction, path_data,basic_file_handler))
+            figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/') +gene_root_name+'_peripheral_fraction_' +image_t+'_'+ str(fraction) + '.png'
+            #plot.fraction_profile(fractions, fraction, genes, figname, colors)
+            plot.bar_profile(fractions, genes, figname)
 
 
 def peripheral_fractions_profile(file_handler, molecule_type, genes,image_type):
@@ -137,23 +151,24 @@ def peripheral_fractions_profile(file_handler, molecule_type, genes,image_type):
         idsc.plt.close()
 
 
-def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, molecule_type, genes, proteins, colors, path_data,cell_type,image_type):
+def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, genes, proteins, colors, path_data,cell_type,image_type):
     if len(image_type) == 0:
+        molecule_type = ['/mrna']
         periph_fraction = []
         for gene in genes:
             print(gene)
             image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], gene)
-            periph_fraction.append(adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler, constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
+            periph_fraction.append(adsc.compute_mrna_periph_fraction(image_list,basic_file_handler, secondary_file_handler, constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
         print(periph_fraction)
-        figname = path.analysis_dir + 'analysis_nocodazole/figures/'+cell_type+'/'+molecule_type[
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/')+molecule_type[
             0] +'_peripheral_fraction.png'
         plot.bar_profile(periph_fraction, genes, figname)
         molecule_type = ['/protein']
         periph_fraction = []
         for protein in proteins:
             image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], protein)
-            periph_fraction.append(adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD,path_data))
-        figname = path.analysis_dir + 'analysis_nocodazole/figures/'+cell_type+'/'+molecule_type[0] +'_peripheral_fraction.png'
+            periph_fraction.append(adsc.compute_protein_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD,path_data))
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/') +molecule_type[0] +'_peripheral_fraction.png'
         plot.bar_profile(periph_fraction, proteins,  figname)
     else:
         for image_t in image_type:
@@ -164,9 +179,9 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, mole
                 print(gene)
                 image_list = helps.preprocess_image_list5(basic_file_handler, molecule_type[0], gene,image_t)
                 periph_fraction.append(
-                    adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler,
+                    adsc.compute_mrna_periph_fraction(image_list,basic_file_handler, secondary_file_handler,
                                                  constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
-            figname = path.analysis_dir + 'analysis_nocodazole/figures/' + cell_type + '/' + \
+            figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/') + \
                       molecule_type[0] +'_'+image_t+ 'peripheral_fraction.svg'
             plot.bar_profile(periph_fraction, genes, figname)
             molecule_type = ['/protein']
@@ -174,8 +189,8 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, mole
             for protein in proteins:
                 print(protein)
                 image_list = helps.preprocess_image_list5(basic_file_handler, molecule_type[0], protein,image_t)
-                periph_fraction.append(adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler, constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
-            figname = path.analysis_dir + 'analysis_nocodazole/figures/' + cell_type + '/' + \
+                periph_fraction.append(adsc.compute_protein_periph_fraction(image_list,basic_file_handler, secondary_file_handler, constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
+            figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/') + \
                       molecule_type[0] + '_' + image_t + '_peripheral_fraction.svg'
             plot.bar_profile(periph_fraction, proteins, figname)
 
@@ -266,7 +281,7 @@ def peripheral_dynamic_profile(basic_file_handler,secondary_file_handler, genes,
             ax.set_xlabel('Time(hrs)')
             ax.set_title(genes[i])
             plt.savefig(
-                path.analysis_dir + 'analysis_nocodazole/figures/'+cell_type+'/peripheral_fraction_' + genes[i] + '.svg')
+                check_dir(path.analysis_dir + 'analysis_nocodazole/figures/peripheral_fraction/')+'peripheral_fraction_' + genes[i] + '.svg')
             plt.show()
     else:
         for image_t in image_type:
@@ -368,36 +383,27 @@ if __name__ == "__main__":
     # Required descriptors: spots_peripheral_distance, height_map, zero_level and spots
     # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
     # This import script takes username and password arguments to connect to remote server bb8
-    ''' 
-    1-You need to create a password.txt file before running to connect via ssh
-    '''
-    basic_file_basename='basic'
-    sec_file_basename = 'secondary'
+
+    configData = loadconfig(input_dir_name)
+    mrnas = configData["GENES"]
+    proteins = configData["PROTEINS"]
+    mrna_timepoints = configData["TIMEPOINTS_MRNA"]
+    prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
+    colors = configData["COLORS"]
+    molecule_types=configData["MOLECULE_TYPES"]
+    cell_type = 'micropatterned'
+    image_type = []
+    gene_root_name = ""
     path_data = path.raw_data_dir
-    basic_file_path = path.analysis_data_dir + basic_file_basename+'.h5'
-    secondary_file_path = path.analysis_data_dir + sec_file_basename+ '.h5'
-    molecule_type = ['/mrna']
-    colors = ['#F16c1b', '#f1bc1b']
-    genes = ["pard3", "pard3_nocodazole"]
-    proteins=["pard3", "pard3_nocodazole"]
-    gene_root_name = ""
-    timepoints = ["3h","5h"]
-    cell_type = 'micropatterned'
-    image_type = []
+    print(mrnas)
 
+    with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as basic_file_handler, \
+            h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as secondary_file_handler:
 
-    with h5py.File(basic_file_path, "r") as basic_file_handler, h5py.File(secondary_file_path, "r") as secondary_file_handler:
-        peripheral_fraction_profile(secondary_file_handler, molecule_type, genes, 10,colors, image_type,gene_root_name,basic_file_handler)
-        peripheral_fraction_profile(secondary_file_handler, molecule_type, genes, 30,colors, image_type,gene_root_name,basic_file_handler)
-        histogram_peripheral_profile(basic_file_handler, secondary_file_handler, molecule_type, genes, proteins, colors, path_data,cell_type,image_type)
-
-    molecule_type = ['/protein']
-    proteins = ["arhgdia", "arhgdia_nocodazole"]
-    gene_root_name = ""
-    timepoints = ["3h","5h"]
-    cell_type = 'micropatterned'
-    image_type = []
-
-    with h5py.File(basic_file_path, "r") as basic_file_handler, h5py.File(secondary_file_path,"r") as secondary_file_handler:
-        peripheral_fraction_profile(secondary_file_handler, molecule_type, proteins, 10, colors, image_type,gene_root_name, basic_file_handler)
-        peripheral_fraction_profile(secondary_file_handler, molecule_type, proteins, 30,colors, image_type,gene_root_name,basic_file_handler)
+        for molecule_type in molecule_types:
+            peripheral_fraction_profile(secondary_file_handler, molecule_type, mrnas, 10,colors, image_type,gene_root_name,basic_file_handler)
+            peripheral_fraction_profile(secondary_file_handler, molecule_type, mrnas, 30,colors, image_type,gene_root_name,basic_file_handler)
+        histogram_peripheral_profile(basic_file_handler, secondary_file_handler, mrnas, proteins, colors, path_data,cell_type,image_type)

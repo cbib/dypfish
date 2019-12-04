@@ -2,11 +2,18 @@
 # encoding: UTF-8
 
 import numpy as np
+import argparse
 import matplotlib.pyplot as plt
 from scipy import stats
 import pandas as pd
 import src.path as path
 from src.utils import enable_logger, plot_colors
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def permutations(orig_list):
     if not isinstance(orig_list, list):
@@ -55,7 +62,7 @@ def permutations_test(interactions, fwdints):
         if score > rs0:
             count += 1
     if count==0:
-    p=0
+        p=0
     stat = rs1
     return p, stat, ranking
 

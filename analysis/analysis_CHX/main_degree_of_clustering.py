@@ -4,6 +4,7 @@
 
 import h5py
 import math
+import argparse
 import json
 import numpy as np
 import src.acquisition_descriptors as adsc
@@ -16,11 +17,14 @@ from src.utils import enable_logger, plot_colors, check_dir, loadconfig
 2-This script is supposed to be ran after compute h_star in dypfish. It produces:
  -bar plot for degree of clustering 
 '''
-
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def degree_of_clustering_dynamic_profile(input_file_handler,genes, molecule_type, timepoints, timepoints_num_mrna, timepoints_num_protein):
 
-        data_generator = plot.data_extractor_generic(genes, genes, timepoints, input_file_handler, adsc.compute_degree_of_clustering_wo_MTOC, input_file_handler)
+        data_generator = plot.data_extractor_generic(genes, genes, timepoints, timepoints, input_file_handler, adsc.compute_degree_of_clustering_wo_MTOC, input_file_handler)
         #data_generator = plot.data_extractor(genes, genes, input_file_handler, adsc.compute_degree_of_clustering_wo_MTOC, input_file_handler )
         print(data_generator)
         for mrna_data, protein_data, i in data_generator:
@@ -33,16 +37,18 @@ def main():
     # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
     # This import script takes username and password arguments to connect to remote server bb8
     enable_logger()
-    configData = loadconfig("chx")
+    configData = loadconfig(input_dir_name)
+    print(input_dir_name)
     molecule_types = configData["MOLECULE_TYPES"]
     genes = configData["GENES"]
-    timepoints = configData["TIMEPOINTS"]
+    timepoints = configData["TIMEPOINTS_MRNA"]
     timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
-
-
+    h_star_file_name = configData["HSTAR_FILE_NAME"]
+    print(genes)
+    print(path.analysis_data_dir+h_star_file_name)
     # produce bar plot for degree of clustering
-    with h5py.File(path.h_star_chx_file_path, "a") as input_file_handler:
+    with h5py.File(path.analysis_data_dir+h_star_file_name, "a") as input_file_handler:
 
         for molecule_type in molecule_types:
             print(molecule_type)

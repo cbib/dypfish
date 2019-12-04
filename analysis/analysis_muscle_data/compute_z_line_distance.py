@@ -4,6 +4,7 @@
 
 import numpy as np
 import h5py
+import argparse
 import matplotlib.pyplot as plt
 from numpy import matlib
 import math
@@ -15,6 +16,10 @@ import src.helpers as helps
 import src.plot as plot
 from src.utils import enable_logger, check_dir
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def compute_minimal_distance(segment_summed):
     for i in range(15):
@@ -185,6 +190,9 @@ if __name__ == "__main__":
     genes = ['actn2', 'gapdh']
     timepoints = ['mature']
     colors = ['#0A3950', '#1E95BB', '#A1BA6D']
+
+
+
 
 
     with h5py.File(basic_file_path, "a") as file_handler,\

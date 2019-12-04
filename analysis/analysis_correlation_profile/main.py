@@ -5,32 +5,42 @@
 
 import numpy as np
 import h5py
+import argparse
 from src import acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps
 from src.utils import enable_logger, check_dir, loadconfig
 import src.plot as plot
 
-def pearsoncorr(vec1, vec2):
-    mu1 = np.mean(vec1)
-    mu2 = np.mean(vec2)
-    vec1b = vec1 - mu1
-    vec2b = vec2 - mu2
-    val = np.mean(vec1b * vec2b) / (np.std(vec1) * np.std(vec2))
-    return val
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+
 '''this analysis aims to compare normalized profile of different descriptors peripheral fraction, cytoplasmic spread, cytoplasmic total count
 and degree of clustering. We investigate correlations between pairs of such normaized distributions using the Pearson Correlation Coefficient'''
+
 
 def main():
     # Required descriptors: spots, IF, zero level, cell mask, nucleus_centroid and height_map
     enable_logger()
-    configData = loadconfig("original")
+    configData = loadconfig(input_dir_name)
     proteins = configData["PROTEINS"]
     timepoints_mrna = configData["TIMEPOINTS_MRNA"]
     timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    hstar_file_name = configData["HSTAR_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
+
+
     # micropatterned data
 
-    with h5py.File(path.basic_file_path, "r") as file_handler,h5py.File(path.h_star_file_path, "r") as hstar_file_handler,h5py.File(path.mtoc_file_path, "r") as mtoc_file_handler,h5py.File(path.secondary_file_path, "r") as secondary_file_handler:
+    with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as file_handler,\
+            h5py.File(path.data_dir+input_dir_name+"/"+hstar_file_name, "r") as hstar_file_handler,\
+            h5py.File(path.data_dir+input_dir_name+"/"+mtoc_file_name, "r") as mtoc_file_handler,\
+            h5py.File(path.data_dir+input_dir_name+"/"+secondary_file_name, "r") as secondary_file_handler:
         molecule_type = ['/mrna']
         prof_m = np.zeros((4, 4, 4))
         cpt_g = 0
@@ -40,10 +50,10 @@ def main():
                 print(proteins[i], '_', timepoint)
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, proteins[i], [timepoint])
 
-                cyt_spread = adsc.compute_cytoplasmic_spread(image_list,file_handler , path.path_data)
+                cyt_spread = adsc.compute_cytoplasmic_spread(image_list,file_handler)
                 prof_m[cpt_g,0,cpt_tp]=np.median(cyt_spread)
 
-                periph_frac = adsc.compute_periph_fraction(image_list, file_handler, secondary_file_handler,  10,path.path_data)
+                periph_frac = adsc.compute_mrna_periph_fraction(image_list, file_handler, secondary_file_handler,  10,path.path_data)
                 prof_m[cpt_g, 1, cpt_tp]=np.median(periph_frac)
 
                 cyt_total=adsc.compute_cytoplasmic_total(image_list, file_handler, path.path_data)
@@ -68,10 +78,10 @@ def main():
                 print(proteins[i], '_', timepoint)
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, proteins[i], [timepoint])
 
-                cyt_spread = adsc.compute_cytoplasmic_spread(image_list, file_handler, path.path_data)
+                cyt_spread = adsc.compute_cytoplasmic_spread(image_list, file_handler)
                 prof_p[cpt_g, 0, cpt_tp] = np.median(cyt_spread)
 
-                periph_frac = adsc.compute_periph_fraction(image_list,file_handler, secondary_file_handler,  10,path.path_data)
+                periph_frac = adsc.compute_protein_periph_fraction(image_list,file_handler, secondary_file_handler,  10,path.path_data)
                 prof_p[cpt_g, 1, cpt_tp] = np.median(periph_frac)
 
                 cyt_total = adsc.compute_cytoplasmic_total(image_list, file_handler, path.path_data)
@@ -93,7 +103,7 @@ def main():
             for j in range(4):
                 vec1 = prof_m[i, :, :].flatten()
                 vec2 = prof_p[j, :, :].flatten()
-                v = pearsoncorr(vec1,vec2)
+                v = helps.pearsoncorr(vec1,vec2)
                 if i == j:
                     vec_match.append(v)
                 else:

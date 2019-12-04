@@ -3,6 +3,7 @@
 
 import logging
 import sys
+import argparse
 import numpy as np
 import h5py
 import pandas as pd
@@ -12,6 +13,8 @@ import matplotlib.patches as mpatches
 import src.path as path
 import src.statistical_analysis as stan
 import seaborn as sns
+from src.utils import loadconfig,check_dir
+from pylab import setp
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -22,6 +25,11 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 np.set_printoptions(precision=4)
 logger.info("Running %s", sys.argv[0])
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def box_plot_concentrations(k1, k2, title, figname):
     fig, ax = plt.subplots(1, 1)
@@ -102,48 +110,89 @@ if __name__ == "__main__":
     basic_md5_path=path.analysis_data_dir + 'basic.md5'
     secondary_md5_path=path.analysis_data_dir + 'secondary.md5'
     mtoc_md5_path = path.analysis_data_dir + 'mtoc.md5'
+
+    configData = loadconfig(input_dir_name)
+    mrnas = configData["GENES"]
+    proteins = configData["PROTEINS"]
+    mrna_timepoints = configData["TIMEPOINTS_MRNA"]
+    prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
+    colors = configData["COLORS"]
+
     path_data = path.raw_data_dir
-    with h5py.File(basic_file_path, "r") as file_handler,h5py.File(secondary_file_path, "r") as second_file_handler,h5py.File(mtoc_file_path, "r") as mtoc_file_handler:
-        from pylab import setp
-        molecule_type=['/mrna']
+    with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as file_handler,\
+            h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as second_file_handler,\
+            h5py.File(path.data_dir+input_dir_name+'/'+mtoc_file_name, "r") as mtoc_file_handler:
+        molecule_type=['mrna']
         colors = ['#F16c1b', '#f1bc1b']
-        mrnas_noc = ["pard3_nocodazole"]
-        mrnas = ["pard3"]
-        df = pd.read_csv('df/global_mtoc_file_mrna_all.csv')
-        df_sorted_noc=df.sort('MTOC', ascending=False).groupby(['Gene','timepoint','Image'], as_index=False).first()
+        mrnas = ['pard3']
+        mrnas_noc = ['pard3_nocodazole']
+
+        check_dir(path.analysis_dir + 'analysis_nocodazole/figures/')
+        mrna_df = pd.read_csv(path.analysis_dir+'analysis_nocodazole/df/global_mtoc_file_mrna_all.csv')
+        protein_df = pd.read_csv(path.analysis_dir+'analysis_nocodazole/df/global_mtoc_file_protein_all.csv')
+
+
+        ####Compute MPI
+        #df = pd.read_csv('df/global_mtoc_file_mrna_all.csv')
+        df_sorted_noc = mrna_df.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],as_index=False).first()
         mpis_noc=[]
         mpis_random_noc=[]
         for gene, line in df_sorted_noc.groupby(['Gene']):
             if gene in mrnas_noc:
                 gene_random_mpis = []
+                nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
+
                 for i in range(100):
-                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values, line['Non MTOC'].values)
+                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values, nonMTOC)
                     gene_random_mpis.append(mpi)
                 mpis_random_noc.append(gene_random_mpis)
-                mpi,p=stan.calculate_mpi(line['MTOC'].values,line['Non MTOC'].values)
+                mpi,p=stan.calculate_mpi(line['MTOC'].values,nonMTOC)
                 mpis_noc.append(mpi)
-        df_sorted = df.sort('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
+
+
+        df_sorted = mrna_df.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],as_index=False).first()
+
         mpis = []
         random_mpis=[]
         for gene, line in df_sorted.groupby(['Gene']):
             if gene in mrnas:
                 gene_random_mpis = []
+                nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
+
                 for i in range(100):
-                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values / 100000, line['Non MTOC'].values / 100000)
+                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values , nonMTOC)
                     gene_random_mpis.append(mpi)
                 random_mpis.append(gene_random_mpis)
-                mpi, p = stan.calculate_mpi(line['MTOC'].values, line['Non MTOC'].values)
+                mpi, p = stan.calculate_mpi(line['MTOC'].values, nonMTOC)
                 mpis.append(mpi)
-        figname = path.analysis_dir + 'analysis_nocodazole/figures/MPI/' + molecule_type[0] + '_paired_mpis_nocodazole.png'
+
+
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/') + molecule_type[0] + '_paired_mpis_nocodazole.png'
+
         plot_bar_profile(mpis,random_mpis, mpis_noc,mpis_random_noc, mrnas_noc, mrnas, 0.7, 'Cytoplasmic MPI', figname,colors)
-        df = pd.read_csv('df/global_mtoc_file_mrna_all.csv')
+
+        ####Compute MTOC quadrant enrichment fro mRNA
+
+        #df = pd.read_csv('df/global_mtoc_file_mrna_all.csv')
         array = ['arhgdia', 'arhgdia_nocodazole']
-        df=df.loc[df['Gene'].isin(array)]
-        df_sorted = df.sort('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
-        df_sorted['MTOC'] = df_sorted['MTOC'].apply(np.log2)
-        df_sorted['Non MTOC'] = df_sorted['Non MTOC'].apply(np.log2)
-        df_sorted['MTOC leading edge'] = df_sorted['MTOC leading edge'].apply(np.log2)
-        dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'], var_name='Quadrants')
+        mrna_df_c=mrna_df.loc[mrna_df['Gene'].isin(array)]
+        df_sorted = mrna_df_c.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],as_index=False).first()
+
+        # df_sorted['MTOC'] = df_sorted['MTOC'].apply(np.log2)
+        # df_sorted['Non MTOC'] = df_sorted['Non MTOC'].apply(np.log2)
+        # df_sorted['MTOC leading edge'] = df_sorted['MTOC leading edge'].apply(np.log2)
+        #dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'], var_name='Quadrants')
+
+        dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC1', 'Non MTOC2', 'Non MTOC3', 'MTOC leading edge'],var_name='Quadrants')
+        dd = dd.replace('Non MTOC1', 'Non MTOC')
+        dd = dd.replace('Non MTOC2', 'Non MTOC')
+        dd = dd.replace('Non MTOC3', 'Non MTOC')
+        dd = dd.replace(0.000000, np.nan)
+        dd['value'] = dd['value'].apply(np.log2)
+
         my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#003366", "MTOC leading edge": "#0080ff"}
         box = sns.boxplot(x='Gene', y='value', data=dd, hue='Quadrants',palette=my_pal)
         box.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
@@ -154,19 +203,31 @@ if __name__ == "__main__":
         box.set_ylabel("", fontsize=15)
         plt.yticks(fontsize=25)
         box.legend_.remove()
-
-        figname = path.analysis_dir + 'analysis_nocodazole/figures/MPI/' + molecule_type[0] + '_boxplot_MTOC_enrichment.svg'
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/') +'arhgdia_' + molecule_type[0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
         plt.show()
-        df = pd.read_csv('df/global_mtoc_file_mrna_all.csv')
+
+
+
+
+
         array = ['pard3', 'pard3_nocodazole']
-        df = df.loc[df['Gene'].isin(array)]
-        df_sorted = df.sort('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
-        df_sorted['MTOC'] = df_sorted['MTOC'].apply(np.log2)
-        df_sorted['Non MTOC'] = df_sorted['Non MTOC'].apply(np.log2)
-        df_sorted['MTOC leading edge'] = df_sorted['MTOC leading edge'].apply(np.log2)
-        dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'],
-                     var_name='Quadrants')
+        mrna_df = mrna_df.loc[mrna_df['Gene'].isin(array)]
+        df_sorted = mrna_df.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],as_index=False).first()
+
+        # df_sorted['MTOC'] = df_sorted['MTOC'].apply(np.log2)
+        # df_sorted['Non MTOC'] = df_sorted['Non MTOC'].apply(np.log2)
+        # df_sorted['MTOC leading edge'] = df_sorted['MTOC leading edge'].apply(np.log2)
+        # dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'],var_name='Quadrants')
+
+        dd = pd.melt(df_sorted, id_vars=['Gene'],value_vars=['MTOC', 'Non MTOC1', 'Non MTOC2', 'Non MTOC3', 'MTOC leading edge'],var_name='Quadrants')
+        dd = dd.replace('Non MTOC1', 'Non MTOC')
+        dd = dd.replace('Non MTOC2', 'Non MTOC')
+        dd = dd.replace('Non MTOC3', 'Non MTOC')
+        dd = dd.replace(0.000000, np.nan)
+        dd['value'] = dd['value'].apply(np.log2)
+
+
         my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#003366", "MTOC leading edge": "#0080ff"}
         box = sns.boxplot(x='Gene', y='value', data=dd, hue='Quadrants', palette=my_pal)
         box.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
@@ -177,7 +238,78 @@ if __name__ == "__main__":
         box.set_ylabel("", fontsize=15)
         plt.yticks(fontsize=25)
         box.legend_.remove()
-        figname = path.analysis_dir + 'analysis_nocodazole/figures/MPI/' + molecule_type[
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/')+ 'pard3_' + molecule_type[
             0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
         plt.show()
+
+
+
+        ####Compute MTOC quadrant enrichment for proteins
+        molecule_type = ['protein']
+        array = ['arhgdia', 'arhgdia_nocodazole']
+        protein_df_c = protein_df.loc[protein_df['Gene'].isin(array)]
+        df_sorted = protein_df_c.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],as_index=False).first()
+
+        # df_sorted['MTOC'] = df_sorted['MTOC'].apply(np.log2)
+        # df_sorted['Non MTOC'] = df_sorted['Non MTOC'].apply(np.log2)
+        # df_sorted['MTOC leading edge'] = df_sorted['MTOC leading edge'].apply(np.log2)
+        # dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'], var_name='Quadrants')
+
+        dd = pd.melt(df_sorted, id_vars=['Gene'],
+                     value_vars=['MTOC', 'Non MTOC1', 'Non MTOC2', 'Non MTOC3', 'MTOC leading edge'],
+                     var_name='Quadrants')
+        dd = dd.replace('Non MTOC1', 'Non MTOC')
+        dd = dd.replace('Non MTOC2', 'Non MTOC')
+        dd = dd.replace('Non MTOC3', 'Non MTOC')
+        dd = dd.replace(0.000000, np.nan)
+        dd['value'] = dd['value'].apply(np.log2)
+
+        my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#003366", "MTOC leading edge": "#0080ff"}
+        box = sns.boxplot(x='Gene', y='value', data=dd, hue='Quadrants', palette=my_pal)
+        box.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
+        box.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
+        box.set(xlabel='')
+        box.set(ylabel='')
+        box.set_xlabel("", fontsize=15)
+        box.set_ylabel("", fontsize=15)
+        plt.yticks(fontsize=25)
+        box.legend_.remove()
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/')+ 'arhgdia_' + molecule_type[
+            0] + '_boxplot_MTOC_enrichment.svg'
+        plt.savefig(figname, format='svg')
+        plt.show()
+
+        array = ['pard3', 'pard3_nocodazole']
+        protein_df = protein_df.loc[protein_df['Gene'].isin(array)]
+        df_sorted = protein_df.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],as_index=False).first()
+
+        # df_sorted['MTOC'] = df_sorted['MTOC'].apply(np.log2)
+        # df_sorted['Non MTOC'] = df_sorted['Non MTOC'].apply(np.log2)
+        # df_sorted['MTOC leading edge'] = df_sorted['MTOC leading edge'].apply(np.log2)
+        # dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'],var_name='Quadrants')
+
+        dd = pd.melt(df_sorted, id_vars=['Gene'],
+                     value_vars=['MTOC', 'Non MTOC1', 'Non MTOC2', 'Non MTOC3', 'MTOC leading edge'],
+                     var_name='Quadrants')
+        dd = dd.replace('Non MTOC1', 'Non MTOC')
+        dd = dd.replace('Non MTOC2', 'Non MTOC')
+        dd = dd.replace('Non MTOC3', 'Non MTOC')
+        dd = dd.replace(0.000000, np.nan)
+        dd['value'] = dd['value'].apply(np.log2)
+
+        my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#003366", "MTOC leading edge": "#0080ff"}
+        box = sns.boxplot(x='Gene', y='value', data=dd, hue='Quadrants', palette=my_pal)
+        box.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
+        box.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
+        box.set(xlabel='')
+        box.set(ylabel='')
+        box.set_xlabel("", fontsize=15)
+        box.set_ylabel("", fontsize=15)
+        plt.yticks(fontsize=25)
+        box.legend_.remove()
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/')+ 'pard3_' + molecule_type[
+            0] + '_boxplot_MTOC_enrichment.svg'
+        plt.savefig(figname, format='svg')
+        plt.show()
+

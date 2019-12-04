@@ -170,13 +170,13 @@ def compute_cytoplasmic_spread_2D(file_handler, image_list,path_data):
     return cyt_spreads
 
 
-def compute_cytoplasmic_spread(image_list, file_handler, path_data):
+def compute_cytoplasmic_spread(image_list, file_handler):
     cyt_spreads=[]
     for image in image_list:
         if 'mrna' in image:
             cyt_spread=image_descriptors.compute_mrna_cytoplasmic_spread(file_handler,image)
         else:
-            cyt_spread=image_descriptors.compute_protein_cytoplasmic_spread(file_handler,image,path_data)
+            cyt_spread=image_descriptors.compute_protein_cytoplasmic_spread(file_handler,image)
         cyt_spreads.append(cyt_spread)
     return cyt_spreads
 

@@ -3,6 +3,7 @@
 
 import logging
 import sys
+import argparse
 import numpy as np
 import h5py
 import math
@@ -11,6 +12,7 @@ import src.image_descriptors as idsc
 import src.path as path
 import src.helpers as helps
 import src.constants as cst
+from src.utils import check_dir,loadconfig
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -21,6 +23,12 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 np.set_printoptions(precision=4)
 logger.info("Running %s", sys.argv[0])
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def compute_eight_quadrant_max(file_handler, image, degree_max):
     print(image)
@@ -132,24 +140,41 @@ if __name__ == "__main__":
     basic_file_path = path.analysis_data_dir + 'basic.h5'
     secondary_file_path = path.analysis_data_dir + 'secondary.h5'
     mtoc_file_path = path.analysis_data_dir + 'mtoc.h5'
-    df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/global_mtoc_file_mrna_all.csv")
-    df_sorted = df.sort('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
+
+    configData = loadconfig(input_dir_name)
+    mrnas = configData["GENES"]
+    proteins = configData["PROTEINS"]
+    mrna_timepoints = configData["TIMEPOINTS_MRNA"]
+    prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
+    colors = configData["COLORS"]
+
+    mrna_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/global_mtoc_file_mrna_all.csv")
+    df_sorted = mrna_df.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],
+                                                                           as_index=False).first()
+
     degree_max_mrna={}
     for gene, line in df_sorted.groupby(['Gene','timepoint']):
         key=gene[0]+"_"+gene[1]
         degree_max_mrna[key]=line['Unnamed: 0'].values
-    df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/global_mtoc_file_protein_all.csv")
-    df_sorted = df.sort('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
+
+    protein_df = pd.read_csv(path.analysis_dir + "analysis_nocodazole/df/global_mtoc_file_protein_all.csv")
+    df_sorted = protein_df.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],
+                                                                        as_index=False).first()
+
     degree_max_protein = {}
     for gene, line in df_sorted.groupby(['Gene', 'timepoint']):
         key = gene[0] + "_" + gene[1]
         degree_max_protein[key] = line['Unnamed: 0'].values
 
-    # Compute global TIS
-    with h5py.File(basic_file_path, "r") as file_handler,h5py.File(secondary_file_path, "r") as second_file_handler,h5py.File(mtoc_file_path, "r") as mtoc_file_handler:
+    # Compute global TISs
+    with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as file_handler,\
+            h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as second_file_handler,\
+            h5py.File(path.data_dir+input_dir_name+'/'+mtoc_file_name, "r") as mtoc_file_handler:
+
         molecule_type=['/mrna']
-        mrnas = ["arhgdia","pard3"]
-        mrna_timepoints = ["3h","5h"]
         gene_count=0
         for mrna in mrnas:
             print(mrna)
@@ -189,8 +214,10 @@ if __name__ == "__main__":
                 mrna_tp_df.to_csv(path.analysis_dir+"analysis_nocodazole/df/"+mrna + '_' + timepoint + "_mrna.csv")
                 time_count += 1
             gene_count += 1
-        proteins = ["arhgdia","pard3"]
-        prot_timepoints = ["3h", "5h"]
+
+
+
+
         gene_count = 0
         for protein in proteins:
             print(protein)

@@ -4,11 +4,19 @@
 
 import numpy as np
 import itertools
+import argparse
 import matplotlib.pyplot as plt
+import src.plot as plot
 from scipy import stats
 import pandas as pd
 import src.path as path
-from src.utils import enable_logger, plot_colors, check_dir
+from src.utils import enable_logger, plot_colors, check_dir, loadconfig
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+
 
 def permutations(orig_list):
     if not isinstance(orig_list, list):
@@ -107,10 +115,17 @@ def plot_bar_profile(data, genes, ylabel, figname, colors):
 
 def main():
     enable_logger()
-    mrnas = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-    mrna_timepoints = ["2h", "3h", "4h", "5h"]
-    proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-    prot_timepoints = ["2h", "3h", "5h", "7h"]
+
+    configData = loadconfig(input_dir_name)
+    mrnas = configData["GENES"][0:4]
+    #proteins = configData["PROTEINS"]
+    mrna_timepoints = configData["TIMEPOINTS_MRNA"]
+    prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
+    colors = configData["COLORS"]
+
 
     tiss = []
     p_vals = []
@@ -132,9 +147,7 @@ def main():
         (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list)
         tiss.append(tis)
         p_vals.append(p)
-        print(ranking)
         im = np.flipud(np.kron(ranking, np.ones((10, 10))))
-        print(im)
         plt.imshow(im, extent=[0, 4, 0, 4], cmap='GnBu', interpolation='nearest')
         ax = plt.axes()
         ax.set_ylabel("mRNA  - Time (hrs)")
@@ -151,7 +164,7 @@ def main():
 
     ylabel = 'Global temporal interaction score'
     figname = path.analysis_dir + 'analysis_temporal_interactions/figures/TIS.svg'
-    plot_bar_profile(tiss, mrnas, ylabel, figname, plot_colors)
+    plot.bar_profile(tiss, mrnas, figname,)
 
 if __name__ == "__main__":
     main()

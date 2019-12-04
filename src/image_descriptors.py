@@ -813,7 +813,7 @@ def set_nucleus_volume(file_handler, image):
     file_handler[image].attrs['nucleus_volume'] = compute_nucleus_volume_in_pixel(file_handler, image)
 
 
-def compute_protein_cytoplasmic_spread(file_handler, image, path_data):
+def compute_protein_cytoplasmic_spread(file_handler, image):
     cell_mask = get_cell_mask(file_handler, image)
     height_map = get_height_map(file_handler, image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)

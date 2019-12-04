@@ -2,9 +2,12 @@
 # encoding: UTF-8
 
 import h5py
+import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+
 
 pd.set_option('display.max_rows', 500)
 import src.image_descriptors as idsc
@@ -12,6 +15,11 @@ import src.path as path
 import src.helpers as helps
 from src.utils import enable_logger, check_dir
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def plot_bar_profile(data, genes, y_limit, ylabel, figname, colors):
     ax = plt.axes()

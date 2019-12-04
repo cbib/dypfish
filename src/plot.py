@@ -17,6 +17,113 @@ import seaborn as sns
 from helpers import *
 
 
+
+def linear_regression(
+        cell_area,
+        num_spots,
+        graph_file_path_name):
+
+    # display figures
+    fig, (ax2, ax1) = plt.subplots(1, 2, sharey=True, figsize=(15, 5))
+    xs1 = cell_area[0]
+    ys1 = num_spots[0]
+    xs2 =  cell_area[1]
+    ys2 = num_spots[1]
+
+    # Create linear regression object
+    ax1.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.1)
+    ax1.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
+    fit1 = np.polyfit(xs1, ys1, 1)
+    p = np.poly1d(fit1)
+    fit_fn1 = np.poly1d(fit1)
+
+    ax1.plot(xs1, ys1, 'yo', xs1, fit_fn1(xs1), '--k', c='#0080ff')
+    ax2.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.1)
+    ax2.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
+    fit2 = np.polyfit(xs2, ys2, 1)
+    p = np.poly1d(fit2)
+
+    fit_fn2 = np.poly1d(fit2)
+    ax2.plot(xs2, ys2, 'yo', xs2, fit_fn2(xs2), '--k', c='#646464')
+    ax2.axis([200, 1500, -100, 600])
+    ax1.axis([200, 800, -100, 600])
+
+    for tick in ax1.xaxis.get_major_ticks():
+        tick.label.set_fontsize(20)
+    for tick in ax1.yaxis.get_major_ticks():
+        tick.label.set_fontsize(20)
+    for tick in ax2.xaxis.get_major_ticks():
+        tick.label.set_fontsize(20)
+    for tick in ax2.yaxis.get_major_ticks():
+        tick.label.set_fontsize(20)
+    for axis in ['bottom', 'left']:
+        ax1.spines[axis].set_linewidth(3)
+        ax2.spines[axis].set_linewidth(3)
+    print(graph_file_path_name)
+    plt.savefig(graph_file_path_name, format="png")
+    plt.close()
+
+def boxplot2(data,graph_file_path_name, ylim):
+    fig = plt.figure(figsize=(15, 15))
+    ax = fig.add_subplot(111)
+    ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
+    ax.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
+    bp = ax.boxplot(data)
+    for axis in ['bottom', 'left']:
+        ax.spines[axis].set_linewidth(3)
+    plt.setp(bp['boxes'], color='black', linewidth=3)
+    plt.setp(bp['whiskers'], color='black', linewidth=3)
+    plt.setp(bp['medians'], color='black', linewidth=3)
+    plt.setp(bp['caps'], color='black', linewidth=3)
+    plt.setp(bp['fliers'], color='black', linewidth=3)
+    axes = plt.gca()
+    axes.set_ylim([0, ylim])
+    #plt.xticks([1, 2], ['Micropatterned cells', 'Standard cells'])
+    plt.yticks(fontsize=50)
+    plt.xticks(fontsize=26)
+    plt.savefig(graph_file_path_name,format="png")
+    plt.close()
+
+def sns_linear_regression(data_1,data_2,color,graph_file_path_name):
+    print("plot")
+    #print(data_1)
+    #print(data_2)
+
+
+    sns.set(style="white", color_codes=True)
+    annot_kws = {'prop': {'family': 'monospace', 'weight': 'bold', 'size': 8}}
+    res1 = pearsonr(data_1, data_2)
+    #print(", ".join(["x" + unichr(u) for u in (0x2070, 0x00B9, 0x00B2, 0x00B3, 0x2074, 0x2075, 0x2076, 0x2077, 0x2078, 0x2079)]))
+    sns.set(font_scale=1)
+
+    data3=np.array(data_2)/np.array(data_1)
+    data3 = data3[data3 <= 0.6]
+
+    #idx=np.argmax(data3)
+    #print(idx)
+    #print(np.max(data3))
+    #print(data3[idx])
+    data3=data3-np.median(data3)
+
+
+    print(data3)
+
+    #plt.plot(data3,marker='o')
+    #plt.scatter(np.arange(1,len(data3)+1),np.array(data3))
+    #plt.show()
+    #sns.plt.xlim(350, 850)
+    #print("data3:",len(data3))
+    #sns.distplot(data3, hist=True, kde=True,bins=50, color='darkblue',hist_kws={'edgecolor': 'black'},kde_kws={'linewidth': 4})
+    #plt.ylim((0,7))
+    #plt.savefig(graph_file_path_name, format="png")
+    #plt.close()
+    sns_plot_regression = sns.jointplot(x=data_1, y=data_2, kind='reg',color=color)
+    #sns_plot_regression.ax_marg_x.set_xlim(350,850)
+    phantom, = sns_plot_regression.ax_joint.plot([], [], linestyle="", alpha=0)
+    sns_plot_regression.ax_joint.legend([phantom], ['pearsonr={:f}, R'+ unichr(0x00B2)+'={:f}, p={:.2E}'.format(res1[0],res1[0]**2, res1[1])],**annot_kws)
+    sns_plot_regression.savefig(graph_file_path_name, format="png")
+
+
 def bar_profile_median(median,genes,molecule_type, figname, err):
     fig = plt.figure()
     ax = plt.axes()
@@ -44,6 +151,7 @@ def sns_boxplot(dd,my_pal,figname):
     box.set_ylabel("", fontsize=15)
     box.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
     box.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
+    #box.set(ylim=(-3, 3))
     box.legend_.remove()
     plt.yticks(fontsize=15)
     fig.savefig(figname, format='png')
@@ -104,6 +212,9 @@ def fraction_profile(fractions,fraction,genes,figname,colors):
         fractionsStd.append(np.std(l))
     ind = np.arange(N)
     width = 0.35
+    ax.bar(ind, fractionsMeans, width, color=plot_colors,
+           yerr=fractionsStd,
+           error_kw=dict(elinewidth=1, ecolor='black'))
     ax.set_xlim(-width, len(ind) + width)
     ax.set_ylim(0, y_lim + 2 * y_std)
     ax.set_ylim(0, 0.2)

@@ -5,11 +5,18 @@
 
 import logging
 import sys
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 import pandas as pd
 import src.path as path
+from src.utils import loadconfig,check_dir
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -131,18 +138,23 @@ if __name__ == "__main__":
     # Required descriptors: spots, IF, cell mask an height_map
     # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
     # This import script takes username and password arguments to connect to remote server bb8
-    ''' 
-    1-You need to create a password.txt file before running to connect via ssh
-    '''
-    basic_file_path = path.analysis_data_dir + 'basic.h5'
-    secondary_file_path = path.analysis_data_dir + 'secondary.h5'
-    mtoc_file_path = path.analysis_data_dir + 'mtoc.h5'
+
+
     path_data = path.raw_data_dir
-    mrnas = ["arhgdia", "pard3"]
-    mrna_timepoints = [ "3h", "5h"]
-    proteins = ["arhgdia","pard3"]
-    prot_timepoints = [ "3h", "5h"]
-    colors = ['#0A3950', '#1E95BB', '#A1BA6D', '#F16C1B']
+
+
+    configData = loadconfig(input_dir_name)
+    mrnas = configData["GENES"]
+    proteins = configData["PROTEINS"]
+    mrna_timepoints = configData["TIMEPOINTS_MRNA"]
+    prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    mtoc_file_name = configData["MTOC_FILE_NAME"]
+    colors= configData["COLORS"]
+
+
+
     tiss=[]
     p_vals=[]
     count_gene=0
@@ -172,11 +184,11 @@ if __name__ == "__main__":
         myyticklabels=['3h', '5h']
         ax.yaxis.set(ticks=np.arange(0.5,2.5,1), ticklabels=myyticklabels)
         ax.set_title(mrna)
-        figname = path.analysis_dir + 'analysis_nocodazole/figures/'+mrna+'_TIS_correlation_ranking.svg'
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/TIS/')+mrna+'_TIS_correlation_ranking.svg'
         plt.savefig(figname,format='svg')
         plt.close()
         count_gene+=1
 
     ylabel='Global temporal interaction score'
-    figname = path.analysis_dir + 'analysis_nocodazole/figures/TIS.svg'
+    figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/TIS/')+ 'TIS.svg'
     plot_bar_profile(tiss,mrnas,ylabel,figname,colors)

@@ -248,12 +248,13 @@ def preprocess_image_list(file_handler, molecule_type):
     return image_path_list
 
 
-def preprocess_image_list2(file_handler, molecule,gene_name):
+def preprocess_image_list2(file_handler, molecule, gene_name):
     """build path from preliminar h5 files with basic descriptors"""
     image_path_list = []
-    #print(molecule, gene_name)
+    print(molecule, gene_name)
 
     for timepoint in file_handler[molecule + '/' + gene_name]:
+        print(timepoint)
         for image in file_handler[molecule + '/' + gene_name + '/' + timepoint]:
             image_path = molecule + '/' + gene_name + '/' + timepoint + '/' + image
             image_path_list.append(image_path)
@@ -712,4 +713,13 @@ def prune_intensities(image,zero_level):
     for c_slice in range(0, zero_level):
         vol_block[:, :, c_slice] = IF[c_slice,:,:]
     return vol_block
+
+
+def pearsoncorr(vec1, vec2):
+    mu1 = np.mean(vec1)
+    mu2 = np.mean(vec2)
+    vec1b = vec1 - mu1
+    vec2b = vec2 - mu2
+    val = np.mean(vec1b * vec2b) / (np.std(vec1) * np.std(vec2))
+    return val
 

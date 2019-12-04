@@ -3,6 +3,7 @@
 # author: Benjamin Dartigues
 
 import os
+import argparse
 from collections import OrderedDict
 import h5py
 import src.plot as plot
@@ -12,13 +13,19 @@ import src.helpers as helps
 from src.utils import enable_logger, plot_colors, loadconfig
 
 
-PNG_IMAGES_MIME_TYPE = "image/png"
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
+
+
 
 CYTOPLASMIC_SPREAD_GRAPHS_SUFFIX = "cytoplasmic_spread"
 
 def cytoplasmic_spread(
     basic_h5_file_handler,
     genes,
+    mime_type,
     molecule_type,
     save_into_dir_path_name,
     raw_images_dir_path_name=None,
@@ -46,7 +53,7 @@ def cytoplasmic_spread(
     graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
     graph_metadata = {
         "file_name": graph_file_name,
-        "mime_type": PNG_IMAGES_MIME_TYPE
+        "mime_type": mime_type
         }
 
     # for each gene in genes list, compute cytoplasmic spread
@@ -82,6 +89,7 @@ def cytoplasmic_spread_dynamic_profiles(
     basic_h5_file_handler,
     genes,
     proteins,
+    mime_type,
     save_into_dir_path_name,
     raw_images_dir_path_name=None,
     ext_logger=None
@@ -131,7 +139,7 @@ def cytoplasmic_spread_dynamic_profiles(
                 graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
                 graph_metadata = {
                     "file_name": graph_file_name,
-                    "mime_type": PNG_IMAGES_MIME_TYPE
+                    "mime_type": mime_type
                     }
 
                 if ext_logger:
@@ -172,7 +180,6 @@ def cytoplasmic_spread_dynamic_profiles(
 
 
 def main(
-    basic_h5_file_path_name,
     save_into_dir_path_name,
     raw_images_dir_path_name=None,
     ext_logger=None
@@ -180,17 +187,21 @@ def main(
     # Required descriptors: spots, IF, zero level, cell mask, nucleus_centroid and height_map
     resulting_graphs_details_as_list = []
 
-    configData = loadconfig("original")
+    configData = loadconfig(input_dir_name)
 
     # Compute bar plot cytoplasmic spread
     genes = configData["GENES"]
     proteins = configData["PROTEINS"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    mime_type = configData["PNG_IMAGES_MIME_TYPE"]
 
-    with h5py.File(basic_h5_file_path_name, "r") as basic_h5_file_handler:
+
+    with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as basic_h5_file_handler:
 
         graph_details = cytoplasmic_spread(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
+            mime_type=mime_type,
             molecule_type='mrna',
             save_into_dir_path_name=save_into_dir_path_name,
             raw_images_dir_path_name=raw_images_dir_path_name,
@@ -201,6 +212,7 @@ def main(
         graph_details = cytoplasmic_spread(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=proteins,
+            mime_type=mime_type,
             molecule_type='protein',
             save_into_dir_path_name=save_into_dir_path_name,
             raw_images_dir_path_name=raw_images_dir_path_name,
@@ -212,6 +224,7 @@ def main(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
             proteins=proteins,
+            mime_type=mime_type,
             save_into_dir_path_name=save_into_dir_path_name,
             raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
@@ -229,13 +242,11 @@ if __name__ == "__main__":
 
     enable_logger()
 
-    basic_h5_file_path_name = path.basic_file_path
     save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_cytoplasmic_spread/figures/")
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)
 
     resulting_graphs_details = main(
-        basic_h5_file_path_name,
         save_into_dir_path_name
         )
 

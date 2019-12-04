@@ -5,6 +5,7 @@
 
 import numpy as np
 import h5py
+import argparse
 import math
 import pandas as pd
 import src.image_descriptors as idsc
@@ -12,6 +13,11 @@ import src.path as path
 import src.helpers as helps
 import src.constants as cst
 from src.utils import enable_logger, check_dir, loadconfig
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+args = parser.parse_args()
+input_dir_name = args.input_dir_name
 
 def compute_eight_quadrant_max(file_handler, image, degree_max):
     print(image)
@@ -57,6 +63,17 @@ def reindex_quadrant_mask(quad_mask, mtoc_quad):
 
 def main():
     enable_logger()
+
+    configData = loadconfig(input_dir_name)
+    mrnas = configData["GENES"][0:4]
+    proteins = configData["PROTEINS"]
+    timepoints_mrna = configData["TIMEPOINTS_MRNA"]
+    timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
+    stripe_n = configData["STRIPE_NUM"]
+    size_coeff=configData["SIZE_COEFFICIENT"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+
     try:
         df = pd.read_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna.csv')
     except IOError:
@@ -76,18 +93,13 @@ def main():
         key = gene[0] + "_" + gene[1]
         degree_max_protein[key] = line['Unnamed: 0'].values
 
-    configData = loadconfig("original")
-    genes = configData["GENES"][0:4]
-    proteins = configData["PROTEINS"]
-    timepoints_mrna = configData["TIMEPOINTS_MRNA"]
-    timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
-    stripe_n= configData["STRIPE_NUM"]
+
 
     # Compute global TIS
-    with h5py.File(path.basic_file_path, "r") as file_handler, \
-            h5py.File(path.secondary_file_path, "r") as second_file_handler:
+    with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name,  "r") as file_handler, \
+            h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name,  "r") as second_file_handler:
         gene_count = 0
-        for mrna in genes:
+        for mrna in mrnas:
             time_count = 0
             for timepoint in timepoints_mrna:
                 key = mrna + "_" + timepoint
@@ -115,7 +127,7 @@ def main():
                             dist = value
                             slice_area = np.floor(value / (100.0/stripe_n))
                             value = (int(slice_area) * 8) + int(quad-1)
-                            h_array[image_count, int(value)] += (1.0 / len(spots)) / float(np.sum(cell_mask[(cell_mask_dist_map == dist) & (quad_mask == quad)]) * math.pow((1 / cst.SIZE_COEFFICIENT), 2))
+                            h_array[image_count, int(value)] += (1.0 / len(spots)) / float(np.sum(cell_mask[(cell_mask_dist_map == dist) & (quad_mask == quad)]) * math.pow((1 / size_coeff), 2))
                     image_count += 1
                 mrna_tp_df = pd.DataFrame(h_array)
                 mrna_tp_df.to_csv(check_dir(path.analysis_dir + "analysis_temporal_interactions/dataframe/") +
@@ -124,7 +136,6 @@ def main():
             gene_count += 1
         gene_count = 0
         for protein in proteins:
-            print(protein)
             time_count = 0
             for timepoint in timepoints_protein:
                 key = protein + "_" + timepoint
