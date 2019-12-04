@@ -41,7 +41,6 @@ def peripheral_profile(
         "mime_type": mime_type
         }
 
-    #mean_profiles = mean_profiles / np.matlib.repmat(mean_profiles[2], len(genes), 1)
     figure_title = ' peripheral profile ('+ timepoint+')'
 
     plot.profile(
