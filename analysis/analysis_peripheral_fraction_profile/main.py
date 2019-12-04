@@ -223,6 +223,7 @@ def histogram_peripheral_profile(
     genes,
     proteins,
     colors,
+    periph_fraction_cst,
     raw_images_dir_path_name,
     save_into_dir_path_name,
     ext_logger=None
@@ -252,7 +253,7 @@ def histogram_peripheral_profile(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
-                    constants.PERIPHERAL_FRACTION_THRESHOLD,
+                    periph_fraction_cst,
                     raw_images_dir_path_name
                     )
                 )
@@ -301,7 +302,7 @@ def histogram_peripheral_profile(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
-                    constants.PERIPHERAL_FRACTION_THRESHOLD,
+                    periph_fraction_cst,
                     raw_images_dir_path_name
                     )
                 )
@@ -341,6 +342,7 @@ def peripheral_fraction_dynamic_profile(
     timepoints_num_mrna,
     timepoints_num_protein,
     colors,
+    periph_fraction_cst,
     mrna_tp,
     protein_tp,
     raw_images_dir_path_name,
@@ -360,7 +362,7 @@ def peripheral_fraction_dynamic_profile(
         adsc.compute_periph_fraction,
         basic_h5_file_handler,
         secondary_h5_file_handler,
-        constants.PERIPHERAL_FRACTION_THRESHOLD,
+        periph_fraction_cst,
         raw_images_dir_path_name
         )
 
@@ -439,6 +441,7 @@ def main(
     timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
     timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
+    periph_fraction_cst = configData["PERIPHERAL_FRACTION_THRESHOLD"]
     basic_file_name = configData["BASIC_FILE_NAME"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
 
@@ -524,6 +527,7 @@ def main(
                 genes=genes,
                 proteins=proteins,
                 colors=plot_colors,
+                periph_fraction_cst=periph_fraction_cst,
                 raw_images_dir_path_name=raw_images_dir_path_name,
                 save_into_dir_path_name=save_into_dir_path_name
                 )

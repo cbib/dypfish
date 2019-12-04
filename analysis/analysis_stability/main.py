@@ -37,6 +37,9 @@ def main():
     # This import script takes username and password arguments to connect to remote server bb8
     enable_logger()
 
+
+
+
     try:
         arhgdia_df = pd.read_csv(path.analysis_dir + "analysis_stability/dataframe/arhgdia_3h_mrna.csv",index_col=0,dtype=np.float64)
     except IOError:

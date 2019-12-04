@@ -151,7 +151,7 @@ def peripheral_fractions_profile(file_handler, molecule_type, genes,image_type):
         plt.close()
 
 
-def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, genes, proteins, colors, path_data,cell_type,image_type):
+def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, genes, proteins, colors, path_data,cell_type,image_type, periph_fraction_cst):
     if len(image_type) == 0:
         molecule_type = ['/mrna']
         periph_fraction = []
@@ -159,7 +159,7 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, gene
             print(gene)
             #image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], gene)
             image_list = helps.preprocess_image_list_1(basic_file_handler, gene)
-            periph_fraction.append(adsc.compute_mrna_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
+            periph_fraction.append(adsc.compute_mrna_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  periph_fraction_cst, path_data))
         print(periph_fraction)
         figname = check_dir(path.analysis_dir + 'analysis_cytoD/figures/peripheral_fraction/')+cell_type+'/'+molecule_type[
             0] +'_peripheral_fraction.png'
@@ -168,7 +168,7 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, gene
         periph_fraction = []
         for protein in proteins:
             image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], protein)
-            periph_fraction.append(adsc.compute_protein_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD,path_data))
+            periph_fraction.append(adsc.compute_protein_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  periph_fraction_cst,path_data))
         figname = check_dir(path.analysis_dir + 'analysis_cytoD/figures/peripheral_fraction/')+cell_type+'/'+molecule_type[0] +'_peripheral_fraction.png'
         stan.plot_bar_profile(periph_fraction, proteins, 0.2, 'Peripheral fraction', figname,colors)
     else:
@@ -181,7 +181,7 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, gene
                 image_list = helps.preprocess_image_list5(basic_file_handler, molecule_type[0], gene,image_t)
                 periph_fraction.append(
                     adsc.compute_periph_fraction(image_list, basic_file_handler, secondary_file_handler,
-                                                 constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
+                                                 periph_fraction_cst, path_data))
             figname = check_dir(path.analysis_dir + 'analysis_cytoD/figures/peripheral_fraction/') + cell_type + '/' + \
                       molecule_type[
                           0] +'_'+image_t+ 'peripheral_fraction.svg'
@@ -191,12 +191,12 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, gene
             for protein in proteins:
                 print(protein)
                 image_list = helps.preprocess_image_list5(basic_file_handler, molecule_type[0], protein,image_t)
-                periph_fraction.append(adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler, constants.PERIPHERAL_FRACTION_THRESHOLD, path_data))
+                periph_fraction.append(adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler, periph_fraction_cst, path_data))
             figname = check_dir(path.analysis_dir + 'analysis_cytoD/figures/peripheral_fraction/') + cell_type + '/' + \
                       molecule_type[0] + '_' + image_t + '_peripheral_fraction.svg'
             stan.plot_bar_profile(periph_fraction, proteins, 0.2, 'Peripheral fraction', figname, colors)
 
-def peripheral_dynamic_profile(basic_file_handler,secondary_file_handler, genes,proteins, colors, mrna_tp, protein_tp, path_data,cell_type,image_type):
+def peripheral_dynamic_profile(basic_file_handler,secondary_file_handler, genes,proteins, colors, mrna_tp, protein_tp, path_data,cell_type,image_type,periph_fraction_cst):
     if len(image_type) == 0:
         for i in range(len(genes)):
             molecule_type = ['/mrna']
@@ -210,7 +210,7 @@ def peripheral_dynamic_profile(basic_file_handler,secondary_file_handler, genes,
             for timepoint in mrna_tp:
                 print(genes[i], '_', timepoint)
                 image_list = helps.preprocess_image_list3(secondary_file_handler, molecule_type, genes[i], [timepoint])
-                periph_frac = adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  constants.PERIPHERAL_FRACTION_THRESHOLD,path_data)
+                periph_frac = adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  periph_fraction_cst,path_data)
                 periph_frac_median = np.median(periph_frac)
                 print(periph_frac_median)
                 err = np.median(np.abs(np.tile(np.median(periph_frac), (1, len(periph_frac))) - periph_frac))
@@ -245,7 +245,7 @@ def peripheral_dynamic_profile(basic_file_handler,secondary_file_handler, genes,
                 for timepoint in protein_tp:
                     print(genes[i], '_', timepoint)
                     image_list = helps.preprocess_image_list3(secondary_file_handler, ['/protein'], genes[i], [timepoint])
-                    periph_frac = adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler, constants.PERIPHERAL_FRACTION_THRESHOLD,path_data)
+                    periph_frac = adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler, periph_fraction_cst,path_data)
                     periph_frac_median = np.median(periph_frac)
                     print("periph frac:" + str(periph_frac_median))
                     err = np.median(np.abs(np.tile(np.median(periph_frac), (1, len(periph_frac))) - periph_frac))
@@ -299,7 +299,7 @@ def peripheral_dynamic_profile(basic_file_handler,secondary_file_handler, genes,
                     image_list = helps.preprocess_image_list4(secondary_file_handler, molecule_type, genes[i],
                                                               [timepoint],image_t)
                     periph_frac = adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler,
-                                                               constants.PERIPHERAL_FRACTION_THRESHOLD, path_data)
+                                                               periph_fraction_cst, path_data)
                     periph_frac_median = np.median(periph_frac)
                     print(periph_frac_median)
                     err = np.median(np.abs(np.tile(np.median(periph_frac), (1, len(periph_frac))) - periph_frac))
@@ -336,7 +336,7 @@ def peripheral_dynamic_profile(basic_file_handler,secondary_file_handler, genes,
                         print(genes[i], '_', timepoint)
                         image_list = helps.preprocess_image_list4(secondary_file_handler, molecule_type, genes[i],
                                                                   [timepoint],image_t)
-                        periph_frac = adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler, constants.PERIPHERAL_FRACTION_THRESHOLD,
+                        periph_frac = adsc.compute_periph_fraction(image_list,basic_file_handler, secondary_file_handler, periph_fraction_cst,
                                                                    path_data)
                         periph_frac_median = np.median(periph_frac)
                         print("periph frac:" + str(periph_frac_median))
@@ -384,7 +384,9 @@ def main():
     proteins = configData["PROTEINS"]
     basic_file_name = configData["BASIC_FILE_NAME"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    periph_fraction_cst = configData["PERIPHERAL_FRACTION_THRESHOLD"]
     check_dir(path.analysis_dir + 'analysis_cytoD/figures/')
+
 
 
     ## Build peripheral profile plot either for each or for all timepoint
@@ -394,7 +396,7 @@ def main():
     cell_type = cell_type_micropatterned
     with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as file_handler,\
             h5py.File(path.data_dir+input_dir_name+"/"+secondary_file_name, "r") as secondary_file_handler:
-        histogram_peripheral_profile(file_handler, secondary_file_handler, genes, proteins, plot_colors_cytoD, path_data, cell_type, image_type)
+        histogram_peripheral_profile(file_handler, secondary_file_handler, genes, proteins, plot_colors_cytoD, path_data, cell_type, image_type,periph_fraction_cst)
 
 if __name__ == "__main__":
     main()

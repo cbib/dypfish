@@ -146,7 +146,6 @@ def compute_zline_distance(file_handler, muscle_file_handler, molecule_type, gen
                 for spot in spots_reduced:
                     z_line_mask = z_lines[int(spot[2])]
                     if z_line_mask[spot[1], spot[0]] == 0:
-                        cst.Z_LINE_SPACING
                         total_segment = np.zeros((360, cst.Z_LINE_SPACING))
                         for degree in range(360):
                             z_line_segment = np.zeros(cst.Z_LINE_SPACING)
@@ -190,6 +189,9 @@ if __name__ == "__main__":
     genes = ['actn2', 'gapdh']
     timepoints = ['mature']
     colors = ['#0A3950', '#1E95BB', '#A1BA6D']
+
+
+
 
 
 

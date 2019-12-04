@@ -230,6 +230,7 @@ def histogram_peripheral_profile(
     proteins,
     mime_type,
     colors,
+    periph_fraction_cst,
     raw_images_dir_path_name,
     save_into_dir_path_name,
     ext_logger=None
@@ -259,7 +260,7 @@ def histogram_peripheral_profile(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
-                    constants.PERIPHERAL_FRACTION_THRESHOLD,
+                    periph_fraction_cst,
                     raw_images_dir_path_name
                     )
                 )
@@ -308,7 +309,7 @@ def histogram_peripheral_profile(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
-                    constants.PERIPHERAL_FRACTION_THRESHOLD,
+                    periph_fraction_cst,
                     raw_images_dir_path_name
                     )
                 )
@@ -349,6 +350,7 @@ def peripheral_fraction_dynamic_profile(
     timepoints_num_mrna,
     timepoints_num_protein,
     colors,
+    periph_fraction_cst,
     mrna_tp,
     protein_tp,
     raw_images_dir_path_name,
@@ -368,7 +370,7 @@ def peripheral_fraction_dynamic_profile(
         adsc.compute_protein_periph_fraction,
         basic_h5_file_handler,
         secondary_h5_file_handler,
-        constants.PERIPHERAL_FRACTION_THRESHOLD,
+        periph_fraction_cst,
         raw_images_dir_path_name
         )
 
@@ -453,6 +455,7 @@ def main(
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     mime_type = configData["PNG_IMAGES_MIME_TYPE"]
     basic_file_name = configData["BASIC_FILE_NAME"]
+    periph_fraction_cst = configData["PERIPHERAL_FRACTION_THRESHOLD"]
 
     print(path.data_dir+input_dir_name+"/"+basic_file_name)
     with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as basic_h5_file_handler, \
@@ -543,6 +546,7 @@ def main(
                 proteins=proteins,
                 mime_type=mime_type,
                 colors=plot_colors,
+                periph_fraction_cst=periph_fraction_cst,
                 raw_images_dir_path_name=raw_images_dir_path_name,
                 save_into_dir_path_name=save_into_dir_path_name
                 )
@@ -563,6 +567,7 @@ def main(
                 timepoints_num_mrna=timepoints_num_mrna,
                 timepoints_num_protein=timepoints_num_protein,
                 colors=plot_colors,
+                periph_fraction_cst=periph_fraction_cst,
                 mrna_tp=timepoints_mrna,
                 protein_tp=timepoints_protein,
                 save_into_dir_path_name=save_into_dir_path_name,

@@ -139,7 +139,7 @@ def main():
             for timepoint in timepoints_protein:
                 key = protein + "_" + timepoint
                 image_count = 0
-                h_array = np.zeros((len(degree_max_protein[key]),cst.STRIPE_NUM*8 ))
+                h_array = np.zeros((len(degree_max_protein[key]),stripe_n*8 ))
                 for i in range(len(degree_max_protein[key])):
                     image = degree_max_protein[key][i].split("_")[0]
                     degree = degree_max_protein[key][i].split("_")[1]

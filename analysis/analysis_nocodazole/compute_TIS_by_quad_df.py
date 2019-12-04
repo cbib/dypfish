@@ -147,6 +147,8 @@ if __name__ == "__main__":
     mrna_timepoints = configData["TIMEPOINTS_MRNA"]
     prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
     basic_file_name = configData["BASIC_FILE_NAME"]
+    stripe_n = configData["STRIPE_NUM"]
+    size_coeff = configData["SIZE_COEFFICIENT"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
     mtoc_file_name = configData["MTOC_FILE_NAME"]
     colors = configData["COLORS"]
@@ -182,7 +184,7 @@ if __name__ == "__main__":
             for timepoint in mrna_timepoints:
                 key=mrna+"_"+timepoint
                 image_count = 0
-                h_array = np.zeros((len(degree_max_mrna[key]), cst.STRIPE_NUM*8))
+                h_array = np.zeros((len(degree_max_mrna[key]), stripe_n*8))
                 for i in range(len(degree_max_mrna[key])):
                     image = degree_max_mrna[key][i].split("_")[0]
                     degree = degree_max_mrna[key][i].split("_")[1]
@@ -206,9 +208,9 @@ if __name__ == "__main__":
                             if value == 100:
                                 value = 99
                             dist = value
-                            value = np.floor(value / (100.0 / cst.STRIPE_NUM))
+                            value = np.floor(value / (100.0 / stripe_n))
                             value=(int(value)*8)+int(quad-1)
-                            h_array[image_count, int(value)] += (1.0 / len(spots))/float(np.sum(cell_mask[(cell_mask_dist_map==dist) & (quad_mask==quad)])* math.pow((1 / cst.SIZE_COEFFICIENT), 2))
+                            h_array[image_count, int(value)] += (1.0 / len(spots))/float(np.sum(cell_mask[(cell_mask_dist_map==dist) & (quad_mask==quad)])* math.pow((1 / size_coeff), 2))
                     image_count += 1
                 mrna_tp_df = pd.DataFrame(h_array)
                 mrna_tp_df.to_csv(path.analysis_dir+"analysis_nocodazole/df/"+mrna + '_' + timepoint + "_mrna.csv")
@@ -225,7 +227,7 @@ if __name__ == "__main__":
             for timepoint in prot_timepoints:
                 key = protein + "_" + timepoint
                 image_count = 0
-                h_array = np.zeros((len(degree_max_protein[key]), 8*cst.STRIPE_NUM))
+                h_array = np.zeros((len(degree_max_protein[key]), 8*stripe_n))
                 for i in range(len(degree_max_protein[key])):
                     image = degree_max_protein[key][i].split("_")[0]
                     degree = degree_max_protein[key][i].split("_")[1]
@@ -247,7 +249,7 @@ if __name__ == "__main__":
                     cell_mask_dist_map[(cell_mask==1) & (cell_mask_dist_map==0)]=1
                     for i in range(1,99):
                         for j in range (1,9):
-                            value = int(np.floor(i / (100.0 / cst.STRIPE_NUM)))
+                            value = int(np.floor(i / (100.0 / stripe_n)))
                             value = (int(value) * 8) + int(j - 1)
                             if np.sum(cell_mask[(cell_mask_dist_map==i) & (quad_mask==j)])==0:
                                 h_array[image_count, value] =0.0

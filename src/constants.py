@@ -1,6 +1,6 @@
 BOOTSTRAP_MPI = 40
-SIZE_COEFFICIENT = 9.75 # coefficient to swap between coordinates in numbers of pixels and micrometers
-VOLUME_OFFSET = 1
+SIZE_COEFFICIENT = 9.75 # coefficient to swap between coordinates in numbers of pixels and micrometers, #used in analysis stability
+VOLUME_OFFSET = 1 #used in image_descriptors
 PERIPHERAL_FRACTION_THRESHOLD = 10
 NUM_CONTOURS = 100 # number of isolines for peripheral distance map
 MAX_CELL_RADIUS = 300
