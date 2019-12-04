@@ -22,6 +22,7 @@ def main():
     # you need to run before MTOC analysis script called search enriched quad
     enable_logger()
 
+
     try:
         df = pd.read_csv(path.analysis_dir + 'analysis_stability/dataframe/' + 'global_mtoc_file_all_mrna.csv')
     except IOError:

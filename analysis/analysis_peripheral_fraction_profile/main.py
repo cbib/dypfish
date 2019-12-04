@@ -434,7 +434,7 @@ def main(
     ## Build peripheral profile plot either for each or for all timepoint
 
     #mettre nom diu json en entier et en argument.
-    configData = loadconfig("original")
+    configData = loadconfig(input_dir_name)
     genes = configData["GENES"]
     proteins = configData["PROTEINS"]
     timepoints_mrna = configData["TIMEPOINTS_MRNA"]

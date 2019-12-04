@@ -149,6 +149,9 @@ def compute_degree_of_clustering(image_list,file_handler,mtoc_file_handler):
             h_star_l.append(d)
     return h_star_l
 
+
+
+
 def compute_degree_of_clustering_wo_MTOC(image_list,file_handler):
     h_star_l=[]
     for image in image_list:

@@ -449,12 +449,12 @@ def get_cell_area(file_handler, image):
     return file_handler[image].attrs['cell_area']
 
 
-def set_cell_area(file_handler, output_file_handler, image):
+def set_cell_area(file_handler, output_file_handler, image, size_coeff):
     """compute cell surface by pixel using cell mask"""
     cell_area = get_cell_area(output_file_handler, image)
     assert (cell_area == -1), 'cell_area already defined for %r' % image
     cell_mask = get_cell_mask(file_handler, image)
-    area = cell_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)
+    area = cell_mask.sum() * math.pow((1 / size_coeff), 2)
     output_file_handler[image].attrs['cell_area'] = area
 
 
@@ -467,12 +467,12 @@ def get_nucleus_area(file_handler, image):
     return nucleus_area
 
 
-def set_nucleus_area(file_handler, output_file_handler, image):
+def set_nucleus_area(file_handler, output_file_handler, image,size_coeff):
     """compute nucleus surface in pixel using nucleus mask"""
     nucleus_area = get_nucleus_area(output_file_handler, image)
     assert (nucleus_area == -1), 'nucleus_area already defined for %r' % image
     nucleus_mask = get_nucleus_mask(file_handler, image)
-    area = nucleus_mask.sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)
+    area = nucleus_mask.sum() * math.pow((1 /size_coeff), 2)
     output_file_handler[image].attrs['nucleus_area'] = area
 
 

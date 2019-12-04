@@ -28,6 +28,7 @@ def main():
     max_cell_radius = configData["MAX_CELL_RADIUS"]
     simulation_number = configData["RIPLEY_K_SIMULATION_NUMBER"]
     pixels_in_slice = float(configData["SLICE_THICKNESS"] * configData["SIZE_COEFFICIENT"])
+    size_coeff=configData["SIZE_COEFFICIENT"]
 
     with h5py.File(path.basic_file_path, "a") as input_file_handler, h5py.File(path.secondary_file_path, "a") as secondary_file_handler:
         image_list = helps.preprocess_image(input_file_handler)
@@ -36,8 +37,8 @@ def main():
             if 'mrna' in image:
                 idsc.set_spots_peripheral_distance(input_file_handler, secondary_file_handler, image)
                 idsc.set_spots_peripheral_distance_2D(input_file_handler, secondary_file_handler, image)
-            idsc.set_cell_area(input_file_handler, secondary_file_handler, image)
-            idsc.set_nucleus_area(input_file_handler, secondary_file_handler, image)
+            idsc.set_cell_area(input_file_handler, secondary_file_handler, image, size_coeff)
+            idsc.set_nucleus_area(input_file_handler, secondary_file_handler, image, size_coeff)
             idsc.set_cell_volume(input_file_handler,image)
             idsc.set_nucleus_volume(input_file_handler,image)
             idsc.set_h_star_protein(input_file_handler, secondary_file_handler, image, pixels_in_slice, max_cell_radius,simulation_number)
