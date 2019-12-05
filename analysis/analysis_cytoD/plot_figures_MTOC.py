@@ -8,8 +8,6 @@ import numpy as np
 import h5py
 import pandas as pd
 import seaborn as sns
-
-pd.set_option('display.max_rows', 500)
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import src.path as path
@@ -17,6 +15,8 @@ import src.statistical_analysis as stan
 from src.utils import loadconfig
 from pylab import setp
 
+
+pd.set_option('display.max_rows', 500)
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
@@ -26,7 +26,6 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 np.set_printoptions(precision=4)
 logger.info("Running %s", sys.argv[0])
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
 args = parser.parse_args()
@@ -48,6 +47,7 @@ def box_plot_concentrations(k1, k2, title, figname):
     plt.savefig(figname)
     plt.close()
 
+
 # function for setting the colors of the box plots pairs
 def setBoxColors(bp):
     setp(bp['boxes'][0], color='blue')
@@ -68,7 +68,7 @@ def setBoxColors(bp):
     setp(bp['medians'][1], color='red')
 
 
-def plot_bar_profile(data,random_data,data_noc, random_data_noc,genes,noc_genes, y_limit, ylabel, figname, colors):
+def plot_bar_profile(data,random_data, data_noc, random_data_noc, genes, noc_genes, y_limit, ylabel, figname, colors):
     ax = plt.axes()
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     N = len(genes)
@@ -98,6 +98,7 @@ def plot_bar_profile(data,random_data,data_noc, random_data_noc,genes,noc_genes,
     plt.yticks(fontsize=25)
     plt.savefig(figname, format='png')
     plt.show()
+
 
 if __name__ == "__main__":
     # Required descriptors: spots, IF, cell mask an height_map

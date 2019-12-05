@@ -128,8 +128,8 @@ def get_cell_area(cell_mask):
     return cell_area
 
 def create_circle():
-	circle= plt.Circle((0,0), radius= 5)
-	return circle
+    circle= plt.Circle((0,0), radius= 5)
+    return circle
 
 def show_shape(patch):
 	ax=plt.gca()

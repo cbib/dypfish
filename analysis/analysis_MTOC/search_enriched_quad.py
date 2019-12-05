@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 import tqdm
 import argparse
-import sys
 import src.helpers as helps
 import src.image_descriptors as idsc
 import src.path as path
@@ -81,8 +80,6 @@ def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler,
                     global_non_mtoc1.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][0])
                     global_non_mtoc2.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][1])
                     global_non_mtoc3.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][2])
-
-                    #global_non_mtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3]))
                 # quadrant number is 1 if it is in the leading edge
                 if num_mtoc_quadrant == 1:
                     global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:, 0].flatten())

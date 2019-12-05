@@ -547,6 +547,7 @@ def main(
                 timepoints_num_mrna=timepoints_num_mrna,
                 timepoints_num_protein=timepoints_num_protein,
                 colors=plot_colors,
+                periph_fraction_cst=periph_fraction_cst,
                 mrna_tp=timepoints_mrna,
                 protein_tp=timepoints_protein,
                 save_into_dir_path_name=save_into_dir_path_name,

@@ -18,7 +18,9 @@ parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 f
 args = parser.parse_args()
 input_dir_name = args.input_dir_name
 
-def peripheral_profile(file_handler, molecule_type, genes, colors, cell_type, timepoints=[False]):
+def peripheral_profile(file_handler, molecule_type, genes, colors, cell_type, timepoints=None):
+    if timepoints is None:
+        timepoints = [False]
     for timepoint in timepoints:
         print(timepoint)
         mean_profiles = []
