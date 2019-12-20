@@ -22,9 +22,9 @@
     "TIMEPOINTS_MRNA":["2h", "3h", "5h"],
     "TIMEPOINTS_NUM_PROTEIN":[2, 3, 5],
     "TIMEPOINTS_NUM_MRNA":[2, 3, 5],
-    "BASIC_FILE_NAME":"basic_chx.h5",
-    "SECONDARY_FILE_NAME":"secondary_chx.h5",
-    "HSTAR_FILE_NAME":"h_star_chx.h5",
+    "BASIC_FILE_NAME":"basic.h5",
+    "SECONDARY_FILE_NAME":"secondary.h5",
+    "HSTAR_FILE_NAME":"h_star.h5",
     "MTOC_FILE_NAME":"not defined"
 
 }

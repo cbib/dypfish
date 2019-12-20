@@ -38,9 +38,7 @@ def main():
             h5py.File(path.secondary_file_path, "a") as secondary_file_handler:
 
         image_list = helps.preprocess_image_list_1(input_file_handler, genes)
-        # image_list = helps.preprocess_image(input_file_handler)
         for image in image_list:
-            print(image)
             idsc.set_cell_mask_distance_map(input_file_handler, secondary_file_handler, image, contours_num)
             if 'mrna' in image:
                 idsc.set_spots_peripheral_distance_2D(input_file_handler, secondary_file_handler, image)

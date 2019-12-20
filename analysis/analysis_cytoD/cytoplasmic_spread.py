@@ -3,6 +3,7 @@
 
 import h5py
 import argparse
+import tqdm
 
 from src import acquisition_descriptors as adsc
 import src.path as path
@@ -21,7 +22,7 @@ def cytoplasmic_spread(file_handler, genes, path_data, plot_colors, molecule_typ
     cyt_spreads = []
 
     plot_filename = check_dir(path.analysis_dir + 'analysis_cytoD/figures/cyt_spread/') + molecule_type + '_cytoplasmic_spread_arhgdia_ctrl_vs_cytod.png'
-    for gene in genes:
+    for gene in tqdm.tqdm(genes, desc="Processing mRNAs"):
         image_list = helps.preprocess_image_list2(file_handler, '/' + molecule_type, gene)
         cyt_spreads.append(adsc.compute_cytoplasmic_spread_2D(file_handler, image_list, path_data))
     plot.bar_profile(cyt_spreads, genes, plot_filename)
@@ -36,8 +37,7 @@ def main():
 
     with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as file_handler:
         cytoplasmic_spread(file_handler, genes, path.path_data, plot_colors_cytoD, molecule_type='mrna')
-
-        #cytoplasmic_spread(file_handler, genes, path.path_data, plot_colors_cytoD, molecule_type='protein')
+        cytoplasmic_spread(file_handler, genes, path.path_data, plot_colors_cytoD, molecule_type='protein')
 
 if __name__ == "__main__":
     main()

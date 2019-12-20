@@ -200,7 +200,6 @@ def protein_peripheral_fraction_profile(
                 basic_h5_file_handler
                 )
             )
-    print(fractions)
     graph_file_name = molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name,graph_file_name)
 
@@ -315,7 +314,7 @@ def histogram_peripheral_profile(
         graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
         graph_metadata = {
             "file_name": graph_file_name,
-            "mime_type": PNG_IMAGES_MIME_TYPE
+            "mime_type": mime_type
             }
 
         plot.bar_profile(periph_fraction, proteins, graph_file_path_name)
@@ -452,11 +451,11 @@ def main(
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     mime_type = configData["PNG_IMAGES_MIME_TYPE"]
     basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
     periph_fraction_cst = configData["PERIPHERAL_FRACTION_THRESHOLD"]
 
-    print(path.data_dir+input_dir_name+"/"+basic_file_name)
     with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as basic_h5_file_handler, \
-         h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as secondary_h5_file_handler:
+         h5py.File(path.data_dir+input_dir_name+"/"+secondary_file_name, "r") as secondary_h5_file_handler:
 
 
         # Section to build peripheral profile fraction 10 and 30

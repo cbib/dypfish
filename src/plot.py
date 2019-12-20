@@ -286,9 +286,8 @@ def profile(profiles, genes, slice_number, figname,figtitle,colors,save=False):
     plt.xticks(fontsize=30)
     plt.xticks([w for w in range(0,slice_number+2,10)])
     for i in range(len(genes)):
-        print(profiles[i])
-        print(np.arange(slice_number))
-
+        #print(profiles[i])
+        #print(np.arange(slice_number))
         plt.plot(np.arange(slice_number), profiles[i], color=colors[i], linewidth=3, label=genes)
     if save:
         plt.savefig(figname)

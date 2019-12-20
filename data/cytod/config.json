@@ -17,7 +17,7 @@
     "Z_LINE_SPACING" : 20,
     "MOLECULE_TYPES": ["mrna", "protein"],
     "GENES" : ["arhgdia_control", "arhgdia_cytod"],
-    "PROTEINS" : ["arhgdia_control", "arhgdia_cytod", "pard3","pard3_cytoD"],
+    "PROTEINS" : ["arhgdia_control", "arhgdia_cytod", "pard3_control","pard3_cytod"],
     "COLORS" : ["#0A3950", "#1E95BB", "#A1BA6D", "#F16C1B", "#C02A18", "#E9CB45"],
     "TIMEPOINTS_PROTEIN":["tp"],
     "TIMEPOINTS_MRNA":["tp"],
