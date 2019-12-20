@@ -85,7 +85,7 @@ def plot_bar_profile(data,random_data,data_noc, random_data_noc,genes,noc_genes,
         dataStdnoc.append(np.std(l))
     ind = np.arange(N)
     width = 0.20
-
+    ax.bar(ind, [dataMedians, dataMediansnoc], width, color=colors)
     print(len(ind))
     ax.set_xlim(-width, len(ind)- 0.4)
     ax.set_ylim(y_lim_min, y_lim_max)
@@ -96,15 +96,10 @@ def plot_bar_profile(data,random_data,data_noc, random_data_noc,genes,noc_genes,
     ax.set_xticklabels(('pard3','arhgdia'))
     plt.yticks(fontsize=25)
     plt.savefig(figname, format='png')
-    plt.show()
 
 if __name__ == "__main__":
     # Required descriptors: spots, IF, cell mask an height_map
-    # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
-    # This import script takes username and password arguments to connect to remote server bb8
-    ''' 
-    1-You need to create a password.txt file before running to connect via ssh
-    '''
+
     basic_file_path = path.analysis_data_dir + 'basic.h5'
     secondary_file_path = path.analysis_data_dir + 'secondary.h5'
     mtoc_file_path = path.analysis_data_dir + 'mtoc.h5'
@@ -172,8 +167,7 @@ if __name__ == "__main__":
 
 
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/') + molecule_type[0] + '_paired_mpis_nocodazole.png'
-        plot.bar_profile()
-        plot_bar_profile(mpis,random_mpis, mpis_noc,mpis_random_noc, mrnas_noc, mrnas, 0.7, 'Cytoplasmic MPI', figname,colors)
+        #plot_bar_profile(mpis,random_mpis, mpis_noc,mpis_random_noc, mrnas_noc, mrnas, 0.7, 'Cytoplasmic MPI', figname,colors)
 
         ####Compute MTOC quadrant enrichment fro mRNA
 
@@ -206,7 +200,6 @@ if __name__ == "__main__":
         box.legend_.remove()
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/') +'arhgdia_' + molecule_type[0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
-        plt.show()
 
 
 
@@ -242,7 +235,6 @@ if __name__ == "__main__":
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/')+ 'pard3_' + molecule_type[
             0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
-        plt.show()
 
 
 
@@ -279,7 +271,6 @@ if __name__ == "__main__":
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/')+ 'arhgdia_' + molecule_type[
             0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
-        plt.show()
 
         array = ['pard3', 'pard3_nocodazole']
         protein_df = protein_df.loc[protein_df['Gene'].isin(array)]
@@ -312,5 +303,5 @@ if __name__ == "__main__":
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/')+ 'pard3_' + molecule_type[
             0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
-        plt.show()
+
 

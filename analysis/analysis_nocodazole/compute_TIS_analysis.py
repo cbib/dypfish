@@ -136,8 +136,8 @@ def plot_bar_profile(data,genes,ylabel,figname,colors):
 
 if __name__ == "__main__":
     # Required descriptors: spots, IF, cell mask an height_map
-    # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
-    # This import script takes username and password arguments to connect to remote server bb8
+    # WARNING you need to run before MTOC analysis script called search enriched quad
+
 
 
     path_data = path.raw_data_dir
@@ -163,10 +163,10 @@ if __name__ == "__main__":
         prot_list = []
         for timepoint in mrna_timepoints:
             print(mrna, timepoint)
-            mrna_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/"+mrna + '_' + timepoint + "_mrna.csv", index_col=0)
+            mrna_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/dataframe/"+mrna + '_' + timepoint + "_mrna.csv", index_col=0)
             mrna_list.append(mrna_df.median(axis=0).values)
         for timepoint in prot_timepoints:
-            prot_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/"+mrna + '_' + timepoint + "_protein.csv", index_col=0)
+            prot_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/dataframe/"+mrna + '_' + timepoint + "_protein.csv", index_col=0)
             prot_list.append(prot_df.median(axis=0).values)
         (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list)
         tiss.append(tis)

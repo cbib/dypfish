@@ -121,8 +121,7 @@ def plot_bar_profile_2_series(data, data_noc, genes, noc_genes, y_limit, ylabel,
 
 if __name__ == "__main__":
     # Required descriptors: spots, IF, cell mask an height_map
-    # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
-    # This import script takes username and password arguments to connect to remote server bb8
+
 
     configData = loadconfig(input_dir_name)
     mrnas = configData["GENES"]

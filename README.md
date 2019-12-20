@@ -150,16 +150,11 @@ Here is a example of json config file
 
 ```
 
-
 To run it on your own data, first the data has to be compiled in the HDF5 file format and second, you need to create the corresponding configuration files called config.json. 
 
 Then you have to create a folder in the data repository called "Your_data_label" and put all your h5 files as the corresponding config files
 
-
 Version 2.0 will include automatic parsing of gene names.
-
-
-
 
 ## Available analysis
 
@@ -177,13 +172,14 @@ Here is the list of availbale analysis
 * Degree of clustering analysis 
  
  
-The following analyses, you have to run the script corresponding to the sub analysis you needed (peripheral fraction, cytoplasmic spread, etc..):
+The following analyses, you have to run the script corresponding to the sub analysis you needed (peripheral_fraction.py, cytoplasmic_spread.py, etc..):
  * nocodazole 
  * cytod 
  * chx
  * muscle
  
 This section describes how the user must call it from the DypFISH root folder `dypfish/`.
+
 
 DypFish implements several analysis:
 

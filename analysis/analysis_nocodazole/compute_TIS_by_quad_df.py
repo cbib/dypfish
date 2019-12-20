@@ -131,11 +131,8 @@ def reindex_quadrant_mask3(quad_mask, mtoc_quad):
 
 if __name__ == "__main__":
     # Required descriptors: spots, IF, cell mask an height_map
-    # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
-    # This import script takes username and password arguments to connect to remote server bb8
-    ''' 
-    1-You need to create a password.txt file before running to connect via ssh
-    '''
+    # WARNING you need to run before MTOC analysis script called search enriched quad
+
     basic_file_path = path.analysis_data_dir + 'basic.h5'
     secondary_file_path = path.analysis_data_dir + 'secondary.h5'
     mtoc_file_path = path.analysis_data_dir + 'mtoc.h5'
@@ -152,7 +149,7 @@ if __name__ == "__main__":
     mtoc_file_name = configData["MTOC_FILE_NAME"]
     colors = configData["COLORS"]
 
-    mrna_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/global_mtoc_file_mrna_all.csv")
+    mrna_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/dataframe/global_mtoc_file_mrna_all.csv")
     df_sorted = mrna_df.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],
                                                                            as_index=False).first()
 
@@ -161,7 +158,7 @@ if __name__ == "__main__":
         key=gene[0]+"_"+gene[1]
         degree_max_mrna[key]=line['Unnamed: 0'].values
 
-    protein_df = pd.read_csv(path.analysis_dir + "analysis_nocodazole/df/global_mtoc_file_protein_all.csv")
+    protein_df = pd.read_csv(path.analysis_dir + "analysis_nocodazole/dataframe/global_mtoc_file_protein_all.csv")
     df_sorted = protein_df.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],
                                                                         as_index=False).first()
 
@@ -212,7 +209,7 @@ if __name__ == "__main__":
                             h_array[image_count, int(value)] += (1.0 / len(spots))/float(np.sum(cell_mask[(cell_mask_dist_map==dist) & (quad_mask==quad)])* math.pow((1 / size_coeff), 2))
                     image_count += 1
                 mrna_tp_df = pd.DataFrame(h_array)
-                mrna_tp_df.to_csv(path.analysis_dir+"analysis_nocodazole/df/"+mrna + '_' + timepoint + "_mrna.csv")
+                mrna_tp_df.to_csv(path.analysis_dir+"analysis_nocodazole/dataframe/"+mrna + '_' + timepoint + "_mrna.csv")
                 time_count += 1
             gene_count += 1
 
@@ -229,8 +226,9 @@ if __name__ == "__main__":
                 h_array = np.zeros((len(degree_max_protein[key]), 8*stripe_n))
                 for i in range(len(degree_max_protein[key])):
                     image = degree_max_protein[key][i].split("_")[0]
-                    degree = degree_max_protein[key][i].split("_")[1]
                     image = "/protein/" + protein + "/" + timepoint + "/" + image
+
+                    degree = degree_max_protein[key][i].split("_")[1]
                     quad_mask, mtoc_quad = compute_eight_quadrant_max(file_handler, image, degree)
                     quad_mask = reindex_quadrant_mask3(quad_mask, mtoc_quad)
                     image_number = image.split("/")[4]
@@ -257,6 +255,6 @@ if __name__ == "__main__":
                         count+=1
                     image_count += 1
                 prot_tp_df = pd.DataFrame(h_array)
-                prot_tp_df.to_csv(path.analysis_dir+"analysis_nocodazole/df/"+protein + '_' + timepoint + "_protein.csv")
+                prot_tp_df.to_csv(path.analysis_dir+"analysis_nocodazole/dataframe/"+protein + '_' + timepoint + "_protein.csv")
                 time_count += 1
             gene_count += 1

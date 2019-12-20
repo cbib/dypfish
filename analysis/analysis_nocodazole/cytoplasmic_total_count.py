@@ -29,8 +29,7 @@ input_dir_name = args.input_dir_name
 
 if __name__ == "__main__":
     # Required descriptors: spots, IF, cell mask an height_map
-    # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
-    # This import script takes username and password arguments to connect to remote server bb8
+
     enable_logger()
     configData = loadconfig(input_dir_name)
     mrnas = configData["GENES"]

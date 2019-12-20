@@ -381,8 +381,7 @@ def peripheral_dynamic_profile(basic_file_handler,secondary_file_handler, genes,
 
 if __name__ == "__main__":
     # Required descriptors: spots_peripheral_distance, height_map, zero_level and spots
-    # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
-    # This import script takes username and password arguments to connect to remote server bb8
+
 
     configData = loadconfig(input_dir_name)
     mrnas = configData["GENES"]

@@ -51,21 +51,24 @@ def compute_eight_quadrant_max(file_handler, image, degree_max):
 
 def main():
     # Required descriptors: spots, IF, cell mask an height_map
-    # you need to run before MTOC analysis script called search enriched quad
+    # WARNING you need to run before MTOC analysis script called search enriched quad
     enable_logger()
     try:
-        df = pd.read_csv('global_mtoc_file_all_mrna_nocodazole')
+        df = pd.read_csv(path.analysis_dir + "analysis_nocodazole/dataframe/global_mtoc_file_mrna_all.csv")
     except IOError:
-        print "Couldn't load file : global_mtoc_file_all_mrna_nocodazole"
+        print "Couldn't load file : global_mtoc_file_mrna_all.csv"
         print "Maybe MTOC analysis hasn't been launched prior to this one"
         exit(1)
+
     df_sorted = df.sort_values('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],
                                                                as_index=False).first()
     degree_max_mrna = {}
     for gene, line in df_sorted.groupby(['Gene', 'timepoint']):
         key = gene[0] + "_" + gene[1]
         degree_max_mrna[key] = line['Unnamed: 0'].values
-    df = pd.read_csv('global_mtoc_file_all_protein_nocodazole')
+
+
+    df = pd.read_csv(path.analysis_dir + "analysis_nocodazole/dataframe/global_mtoc_file_protein_all.csv")
     df_sorted = df.sort_values('MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'], as_index=False).first()
     degree_max_protein = {}
     for gene, line in df_sorted.groupby(['Gene', 'timepoint']):
@@ -120,8 +123,6 @@ def main():
                                 value = limit-1
                             slice_area = np.floor(value / (float(limit)/stripe_n))
                             value = (int(slice_area) * 8) + int(quad)
-                            print("low_limit",(slice_area*(limit/stripe_n))+1)
-                            print("high limit",(slice_area *(limit/stripe_n))+(limit/stripe_n))
                             spots_relative=(1.0 / spots_in_periph)
                             surface_relative=float(np.sum(cell_mask[((cell_mask_dist_map >= (slice_area*(limit/stripe_n))+1) & (cell_mask_dist_map < (slice_area *(limit/stripe_n))+(limit/stripe_n))) & (quad_mask == quad)]) * math.pow((1 / size_coeff), 2))/float(np.sum(cell_mask[cell_mask==1])* math.pow((1 / size_coeff), 2))
                             if surface_relative==0.0:
@@ -130,7 +131,7 @@ def main():
                                 h_array[image_count, int(value)-1] += (spots_relative/surface_relative)
                     image_count += 1
                 mrna_tp_df = pd.DataFrame(h_array)
-                mrna_tp_df.to_csv(path.analysis_dir + "analysis_nocodazole/df/" + mrna + '_' + timepoint + '_' +str(limit) + "_mrna.csv")
+                mrna_tp_df.to_csv(path.analysis_dir + "analysis_nocodazole/dataframe/" + mrna + '_' + timepoint + '_' +str(limit) + "_mrna.csv")
                 time_count += 1
             gene_count += 1
         gene_count = 0
@@ -143,15 +144,17 @@ def main():
                 h_array = np.zeros((len(degree_max_protein[key]),stripe_n*8 ))
                 for i in range(len(degree_max_protein[key])):
                     image = degree_max_protein[key][i].split("_")[0]
-                    degree = degree_max_protein[key][i].split("_")[1]
                     image = "/protein/" + protein + "/" + timepoint + "/" + image
+                    degree = degree_max_protein[key][i].split("_")[1]
+
                     quad_mask, mtoc_quad = compute_eight_quadrant_max(file_handler, image, degree)
                     quad_mask = reindex_quadrant_mask3(quad_mask, mtoc_quad)
                     image_number = image.split("/")[4]
                     cell_mask = idsc.get_cell_mask(file_handler, image)
                     nucleus_mask = idsc.get_nucleus_mask(file_handler, image)
                     cell_mask_dist_map = idsc.get_cell_mask_distance_map(second_file_handler, image)
-                    IF = helps.get_IF_image_z_summed(protein, 'protein', timepoint, image_number, path.path_data)
+
+                    IF = idsc.get_IF(file_handler, image)
                     count = 0
                     IF[(cell_mask == 0)] = 0
                     IF[(nucleus_mask == 1)] = 0
@@ -159,7 +162,6 @@ def main():
                     cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
                     cpt_stripes=0
                     for i in range((limit/stripe_n), limit+1, (limit/stripe_n)):
-                        print("i",i)
                         for j in range(1, 9):
                             if np.sum(cell_mask[((cell_mask_dist_map >= 1+(i-(limit/stripe_n))) & (cell_mask_dist_map < i)) & (quad_mask == j)]) == 0:
                                 h_array[image_count, cpt_stripes] = 0.0
@@ -171,7 +173,7 @@ def main():
                         count += 1
                     image_count += 1
                 prot_tp_df = pd.DataFrame(h_array)
-                prot_tp_df.to_csv(path.analysis_dir+"analysis_nocodazole/df/"+protein + '_' + timepoint + '_' +str(limit) + "_protein.csv")
+                prot_tp_df.to_csv(path.analysis_dir+"analysis_nocodazole/dataframe/"+protein + '_' + timepoint + '_' +str(limit) + "_protein.csv")
                 time_count += 1
             gene_count += 1
 

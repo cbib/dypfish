@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import pandas as pd
 import src.path as path
-from src.utils import enable_logger, plot_colors
+
+from src.utils import enable_logger, plot_colors,check_dir
 
 
 parser = argparse.ArgumentParser()
@@ -101,6 +102,8 @@ def plot_bar_profile(data, genes, figname, colors):
     y_lim = np.max(data) + 0.3
     ind = np.arange(N)
     width = 0.35
+    rects1 = ax.bar(ind, data, width,
+                    color=colors)
     ax.set_xlim(-width, len(ind) + width)
     ax.set_ylim(0, y_lim + 0.1)
     ax.set_title('')
@@ -111,6 +114,8 @@ def plot_bar_profile(data, genes, figname, colors):
     plt.savefig(figname, format='svg')
     plt.close()
 def main():
+    # WARNING you need to run before MTOC analysis script called search enriched quad
+
     limit="10"
     enable_logger()
     mrnas = ["arhgdia_nocodazole", "pard3_nocodazole"]
@@ -124,16 +129,14 @@ def main():
         mrna_list = []
         prot_list = []
         for timepoint in mrna_timepoints:
-            print(mrna, timepoint)
-            mrna_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/"+mrna + '_' + timepoint  +"_"+limit+  "_mrna.csv", index_col=0)
+            mrna_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/dataframe/"+mrna + '_' + timepoint  +"_"+limit+  "_mrna.csv", index_col=0)
             mrna_list.append(mrna_df.median(axis=0).values)
         for timepoint in prot_timepoints:
-            prot_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/df/"+mrna + '_' + timepoint  +"_"+limit+ "_protein.csv", index_col=0)
+            prot_df = pd.read_csv(path.analysis_dir+"analysis_nocodazole/dataframe/"+mrna + '_' + timepoint  +"_"+limit+ "_protein.csv", index_col=0)
             prot_list.append(prot_df.median(axis=0).values)
         (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list)
         tiss.append(tis)
         p_vals.append(p)
-        print(ranking)
         im = np.flipud(np.kron(ranking, np.ones((10, 10))))
         plt.imshow(im, extent=[0, 2, 0, 2], cmap='GnBu', interpolation='nearest')
         ax = plt.axes()
@@ -144,14 +147,15 @@ def main():
         myyticklabels = ['3h', '5h']
         ax.yaxis.set(ticks=np.arange(0.5, 2.5, 1), ticklabels=myyticklabels)
         ax.set_title(mrna)
-        figname = path.analysis_dir + 'analysis_nocodazole/figures/' + mrna + '_TIS_correlation_ranking.svg'
+        figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/TIS_periph/') + mrna + '_TIS_correlation_ranking.svg'
         plt.savefig(figname, format='svg')
         plt.close()
         count_gene += 1
 
+    print(tiss)
     ylabel = 'Global temporal interaction score'
-    figname = path.analysis_dir + 'analysis_nocodazole/figures/TIS.svg'
-    plot_bar_profile(tiss, mrnas, ylabel, figname, plot_colors)
+    figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/TIS_periph/')+'TIS.svg'
+    plot_bar_profile(tiss, mrnas,figname, plot_colors)
 
 if __name__ == "__main__":
     main()
