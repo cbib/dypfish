@@ -110,7 +110,7 @@ Here is the content of the data repository :
         * secondary.h5
         * config.json
         
-##Configuration file        
+## Configuration file        
         
 Here is a example of json config file
 ```
