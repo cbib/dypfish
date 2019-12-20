@@ -73,8 +73,7 @@ DypFISH runs in a command line environment.
 
 The runtime is dependent on the hardware.
 
-
-##Data settings
+## Data settings
 
 If you wish to run DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
 and the code will be executable as is. 
