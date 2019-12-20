@@ -28,7 +28,7 @@ input_dir_name = args.input_dir_name
 
 def cytoplasmic_spread(file_handler, molecule_type,genes):
     cyt_spreads = []
-    figname = check_dir(path.analysis_dir + '/analysis_nocodazole/figures/cyt_spread/') + molecule_type + '_cytoplasmic_spread.png'
+    figname = check_dir(path.analysis_dir + '/analysis_nocodazole/figures/cytoplasmic_spread/') + molecule_type + '_cytoplasmic_spread.png'
     for gene in genes:
         image_list = helps.preprocess_image_list2(file_handler, molecule_type, gene)
         cyt_spreads.append(adsc.compute_cytoplasmic_spread(image_list, file_handler))

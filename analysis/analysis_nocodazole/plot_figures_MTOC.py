@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import src.path as path
 import src.statistical_analysis as stan
+import src.plot as plot
 import seaborn as sns
 from src.utils import loadconfig,check_dir
 from pylab import setp
@@ -131,8 +132,8 @@ if __name__ == "__main__":
         mrnas_noc = ['pard3_nocodazole']
 
         check_dir(path.analysis_dir + 'analysis_nocodazole/figures/')
-        mrna_df = pd.read_csv(path.analysis_dir+'analysis_nocodazole/df/global_mtoc_file_mrna_all.csv')
-        protein_df = pd.read_csv(path.analysis_dir+'analysis_nocodazole/df/global_mtoc_file_protein_all.csv')
+        mrna_df = pd.read_csv(path.analysis_dir+'analysis_nocodazole/dataframe/global_mtoc_file_mrna_all.csv')
+        protein_df = pd.read_csv(path.analysis_dir+'analysis_nocodazole/dataframe/global_mtoc_file_protein_all.csv')
 
 
         ####Compute MPI
@@ -171,7 +172,7 @@ if __name__ == "__main__":
 
 
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/') + molecule_type[0] + '_paired_mpis_nocodazole.png'
-
+        plot.bar_profile()
         plot_bar_profile(mpis,random_mpis, mpis_noc,mpis_random_noc, mrnas_noc, mrnas, 0.7, 'Cytoplasmic MPI', figname,colors)
 
         ####Compute MTOC quadrant enrichment fro mRNA

@@ -13,7 +13,7 @@ import src.image_descriptors as idsc
 import src.path as path
 import src.helpers as helps
 import tqdm
-from src.utils import loadconfig
+from src.utils import loadconfig,check_dir
 from pylab import setp
 
 pd.set_option('display.max_rows', 500)
@@ -191,7 +191,7 @@ if __name__ == "__main__":
              'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1, 'Non MTOC2': global_non_mtoc2,
              'Non MTOC3': global_non_mtoc3}, index=global_index)
 
-        df.to_csv(path.analysis_dir + 'analysis_nocodazole/df/' + 'global_mtoc_file_mrna_all.csv')
+        df.to_csv(check_dir(path.analysis_dir + 'analysis_nocodazole/dataframe/') + 'global_mtoc_file_mrna_all.csv')
 
         molecule_type = ['/protein']
         mean_intensities_mtoc = []
@@ -243,4 +243,4 @@ if __name__ == "__main__":
                            'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1,
                            'Non MTOC2': global_non_mtoc2, 'Non MTOC3': global_non_mtoc3},
                           index=global_index)
-        df.to_csv(path.analysis_dir + 'analysis_nocodazole/df/' + 'global_mtoc_file_protein_all.csv')
+        df.to_csv(check_dir(path.analysis_dir + 'analysis_nocodazole/dataframe/' )+ 'global_mtoc_file_protein_all.csv')

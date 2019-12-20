@@ -31,7 +31,6 @@ args = parser.parse_args()
 input_dir_name = args.input_dir_name
 
 def compute_eight_quadrant_max(file_handler, image, degree_max):
-    print(image)
     mtoc_position = idsc.get_mtoc_position(file_handler, image)
     height_map = idsc.get_height_map(file_handler, image)
     nucleus_centroid = idsc.get_nucleus_centroid(file_handler, image)
