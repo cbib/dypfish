@@ -26,7 +26,7 @@ is_periph = args.peripheral
 input_dir_name = args.input_dir_name
 
 
-def compute_mpis(df_sorted):
+def compute_mpis(df_sorted,bootstrap_mpi):
     #print(df_sorted)
     mpis = []
     random_mpis = []
@@ -35,7 +35,7 @@ def compute_mpis(df_sorted):
         nonMTOC =line['Non MTOC1'].values+ line['Non MTOC2'].values+ line['Non MTOC3'].values
 
         for i in range(100):
-            mpi, p = stan.calculate_random_mpi(line['MTOC'].values,nonMTOC )
+            mpi, p = stan.calculate_random_mpi(line['MTOC'].values,nonMTOC,bootstrap_mpi)
             gene_random_mpis.append(mpi)
         random_mpis.append(gene_random_mpis)
         mpi, p = stan.calculate_mpi(line['MTOC'].values, nonMTOC)
@@ -54,6 +54,7 @@ def main():
     timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
     timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
+    bootstrap_mpi = configData["BOOTSTRAP_MPI"]
     mime_type = configData["PNG_IMAGES_MIME_TYPE"]
 
 
@@ -78,7 +79,7 @@ def main():
     df_sorted=df_m.sort_values(by='MTOC',ascending=False).groupby(['Gene','timepoint','Image'], as_index=False).first()
 
     # plot bar plot cytoplasmic mpi
-    mpis,err=compute_mpis(df_sorted)
+    mpis,err=compute_mpis(df_sorted,bootstrap_mpi)
 
     if is_periph:
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_mrna_paired_mpis.png'
@@ -119,7 +120,7 @@ def main():
     #df_sorted = df_sorted[df_sorted['timepoint']!="5h"]
     #df_sorted = df_sorted[df_sorted['timepoint'] != "7h"]
     # plot bar plot cytoplasmic mpi
-    mpis,err=compute_mpis(df_sorted)
+    mpis,err=compute_mpis(df_sorted,bootstrap_mpi)
     if is_periph:
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_protein_paired_mpis.png'
     else:

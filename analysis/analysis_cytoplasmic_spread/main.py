@@ -69,7 +69,6 @@ def cytoplasmic_spread(
             adsc.compute_cytoplasmic_spread(
                 image_list,
                 basic_h5_file_handler,
-                raw_images_dir_path_name
                 )
             )
 

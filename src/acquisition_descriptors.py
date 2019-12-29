@@ -74,23 +74,6 @@ def compute_protein_periph_fraction(image_list,basic_file_handler,secondary_file
         nucleus_mask=image_descriptors.get_nucleus_mask(basic_file_handler,image)
         cell_mask_distance_map=image_descriptors.get_cell_mask_distance_map(secondary_file_handler,image)
         IF = image_descriptors.get_IF(basic_file_handler, image)
-
-        # if "tp" in image:
-        #     molecule = image.split("/")[1]
-        #     gene = image.split("/")[2].split("_")[0]
-        #     timepoint = image.split("/")[2].split("_")[1]
-        #     image_n = image.split("/")[4]
-        #     IF_image_path = path_data + '/' + molecule + '/' + gene + '/' + timepoint + '/' + image_n + '/IF.tif'
-        #     try:
-        #         with open(IF_image_path):
-        #             pass
-        #     except IOError:
-        #         continue
-        #     print(IF_image_path)
-        #     IF= image_descriptors.get_IF_image_z_summed(molecule,gene,timepoint,image_n,path_data)
-        # else:
-        #     IF= image_descriptors.get_IF(basic_file_handler,image)
-
         IF=np.multiply(IF,cell_mask)
         IF_periph=IF[(cell_mask_distance_map<=fraction) & (cell_mask_distance_map >0)]
         IF_summed=IF[nucleus_mask==0].sum()
@@ -110,6 +93,31 @@ def compute_mrna_periph_fraction(image_list,basic_file_handler,secondary_file_ha
         arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
 
     return arr
+
+def compute_generic_periph_fraction(image_list,basic_file_handler,secondary_file_handler, fraction):
+    arr=[]
+    for image in image_list:
+
+        if 'protein' in image:
+            cell_mask = image_descriptors.get_cell_mask(basic_file_handler, image)
+            nucleus_mask = image_descriptors.get_nucleus_mask(basic_file_handler, image)
+            cell_mask_distance_map = image_descriptors.get_cell_mask_distance_map(secondary_file_handler, image)
+            IF = image_descriptors.get_IF(basic_file_handler, image)
+            IF = np.multiply(IF, cell_mask)
+            IF_periph = IF[(cell_mask_distance_map <= fraction) & (cell_mask_distance_map > 0)]
+            IF_summed = IF[nucleus_mask == 0].sum()
+            IF_summed_periph = IF_periph.sum()
+            periph_frac = float(IF_summed_periph) / float(IF_summed)
+            arr.append(periph_frac)
+        else:
+
+
+            print(image)
+            spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance_2D(secondary_file_handler, image)
+            arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
+
+    return arr
+
 
 
 def build_histogram_mrna_periph_fraction(sec_file_handler,image_list,fraction,path_data,basic_file_handler):

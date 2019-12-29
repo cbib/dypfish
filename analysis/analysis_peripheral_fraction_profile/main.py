@@ -254,7 +254,6 @@ def histogram_peripheral_profile(
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
                     periph_fraction_cst,
-                    raw_images_dir_path_name
                     )
                 )
 
@@ -303,7 +302,6 @@ def histogram_peripheral_profile(
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
                     periph_fraction_cst,
-                    raw_images_dir_path_name
                     )
                 )
 
@@ -359,11 +357,10 @@ def peripheral_fraction_dynamic_profile(
         mrna_tp,
         protein_tp,
         secondary_h5_file_handler,
-        adsc.compute_periph_fraction,
+        adsc.compute_generic_periph_fraction,
         basic_h5_file_handler,
         secondary_h5_file_handler,
         periph_fraction_cst,
-        raw_images_dir_path_name
         )
 
     try:

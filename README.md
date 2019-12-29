@@ -62,16 +62,9 @@ DypFISH takes HDF5 files as input. [Click here](https://www.hdfgroup.org/solutio
 
 Examples of HDF5 encoding of image acquisitions can be found in `dypfish/analysis/example_hdf5/`. These files are provided *only* as an example of data formatting. To download data and run the code please download HDF5 files avalaible on the [dypfish.org](http://dypfish.org).
 
-In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data.zip), place the zip file in the root directory `dypfish/` and unzip it there. This creates the directory `dypfish/data/` containing HDF5 files and enables running the pipeline. 
+In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data_and_conf.zip), place the zip file in the root directory `dypfish/` and unzip it there. This creates the directory `dypfish/data/` and all the  subfolders containing data in HDF5 files and enables running the pipeline. 
 
-If you wish to run the pipeline on your own data, place the HDF5 file in the `dypfish/data/` directory and modify the source code (see below).
-
-
-# Using the Pipeline
-
-DypFISH runs in a command line environment. 
-
-The runtime is dependent on the hardware.
+If you wish to run the pipeline on your own data, place the HDF5 file in the `dypfish/data/name_of_your_data` directory and modify the source code (see below).
 
 ## Data settings
 
@@ -154,6 +147,15 @@ To run it on your own data, first the data has to be compiled in the HDF5 file f
 
 Then you have to create a folder in the data repository called "Your_data_label" and put all your h5 files as the corresponding config files
 
+
+
+# Using the Pipeline
+
+DypFISH runs in a command line environment. 
+
+The runtime is dependent on the hardware.
+
+
 Version 2.0 will include automatic parsing of gene names.
 
 ## Available analysis
@@ -172,18 +174,21 @@ Here is the list of availbale analysis
 * Degree of clustering analysis 
  
  
-The following analyses, you have to run the script corresponding to the sub analysis you needed (peripheral_fraction.py, cytoplasmic_spread.py, etc..):
+For the following analyses, you have to run the script corresponding to the sub analysis you needed (peripheral_fraction.py, cytoplasmic_spread.py, etc..). 
  * nocodazole 
  * cytod 
  * chx
  * muscle
  
-This section describes how the user must call it from the DypFISH root folder `dypfish/`.
+For more details see section specific analysis:
 
+### General analysis
 
 DypFish implements several analysis:
 
-### General analysis
+
+This section describes how the user must call it from the DypFISH root folder `dypfish/`.
+
 
 ###### Cytoplasmic total count analysis
 The cytoplasmic total count descriptor was calculated as the number of transcripts or protein within the cytoplasm.
@@ -255,7 +260,7 @@ The degree of clustering is a unitless measure that can be used to compare clust
         python analysis/analysis_degree_of_clustering/compute_TIS_analysis.py -i original
 ```
 
-### more specific analysis
+### specific analysis
 
 
 ###### Nocodazole analysis

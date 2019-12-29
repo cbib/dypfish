@@ -85,29 +85,15 @@ def boxplot2(data,graph_file_path_name, ylim):
     plt.close()
 
 def sns_linear_regression(data_1,data_2,color,graph_file_path_name):
-    print("plot")
-    #print(data_1)
-    #print(data_2)
-
 
     sns.set(style="white", color_codes=True)
     annot_kws = {'prop': {'family': 'monospace', 'weight': 'bold', 'size': 8}}
     res1 = pearsonr(data_1, data_2)
     #print(", ".join(["x" + unichr(u) for u in (0x2070, 0x00B9, 0x00B2, 0x00B3, 0x2074, 0x2075, 0x2076, 0x2077, 0x2078, 0x2079)]))
     sns.set(font_scale=1)
-
     data3=np.array(data_2)/np.array(data_1)
     data3 = data3[data3 <= 0.6]
-
-    #idx=np.argmax(data3)
-    #print(idx)
-    #print(np.max(data3))
-    #print(data3[idx])
     data3=data3-np.median(data3)
-
-
-    print(data3)
-
     #plt.plot(data3,marker='o')
     #plt.scatter(np.arange(1,len(data3)+1),np.array(data3))
     #plt.show()
@@ -296,10 +282,6 @@ def profile(profiles, genes, slice_number, figname,figtitle,colors,save=False):
 
 # compare descriptor profile for mrna/protein over time
 def dynamic_profiles(mrna_data,protein_data,timepoints_num_mrna, timepoints_num_protein, gene,plot_color,xlabel,ylabel,figpath):
-    print(mrna_data)
-    print(protein_data)
-    print(type(timepoints_num_mrna))
-    print(type(timepoints_num_protein))
     fig = plt.figure()
     ax = fig.add_subplot(111)
     for tick in ax.xaxis.get_major_ticks():
@@ -357,7 +339,6 @@ def process_data(file_handler, timepoints, molecule_type, gene, calc_function, *
     # compute median, low and up envelope
     # normalize data by mean of median timepoint result
     tp_l= len(timepoints)
-    print(timepoints)
     data = np.zeros((3,tp_l))
     for i in range(tp_l):
         image_list = helps.preprocess_image_list3(file_handler, molecule_type, gene, [timepoints[i]])

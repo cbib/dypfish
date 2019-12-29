@@ -307,10 +307,10 @@ def box_plot_fraction_profile(fractions1,fractions2,fraction1,fraction2,genes):
              xticklabels=genes)
     plt.show()
 
-def calculate_random_mpi(MTOC, nMTOC):
+def calculate_random_mpi(MTOC, nMTOC, bootstrap_mpi):
     scores=[]
     for value in MTOC:
-        tmp_list=np.random.choice(np.array(nMTOC), constants.BOOTSTRAP_MPI)
+        tmp_list=np.random.choice(np.array(nMTOC), bootstrap_mpi)
         med=np.median(tmp_list)
         scores.append(value-med)
     assert(len(MTOC)==len(scores))

@@ -14,7 +14,7 @@ import src.image_descriptors as idsc
 import src.path as path
 import src.helpers as helps
 import src.plot as plot
-from src.utils import enable_logger, check_dir
+from src.utils import enable_logger, check_dir, loadconfig
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
@@ -131,6 +131,7 @@ def compute_zline_distance(file_handler, muscle_file_handler, molecule_type, gen
         for timepoint in timepoints:
             image_counter = 0
             total_profile = []
+            print(molecule_type[0] + '/' + gene + '/' + timepoint)
             for im in muscle_file_handler[molecule_type[0] + '/' + gene + '/' + timepoint]:
                 sec_image = molecule_type[0] + '/' + gene + '/' + timepoint + '/' + im
                 image_number = im.split("_")[0]
@@ -183,47 +184,41 @@ if __name__ == "__main__":
     # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
     # This import script takes username and password arguments to connect to remote server bb8
     enable_logger()
-    basic_file_path = path.analysis_data_dir + 'basics_muscle_data.h5'
-    muscle_rebuild_file_path = path.analysis_data_dir + 'secondary_muscle_data.h5'
+
+    configData = loadconfig(input_dir_name)
+
+    # timepoints_mrna = configData["TIMEPOINTS_MRNA"]
+    # timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
+    # timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
+    # timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
+    # mime_type = configData["PNG_IMAGES_MIME_TYPE"]
+    # molecule_types = configData["MOLECULE_TYPES"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
+
     molecule_type = ['/mrna']
     genes = ['actn2', 'gapdh']
     timepoints = ['mature']
     colors = ['#0A3950', '#1E95BB', '#A1BA6D']
+    with h5py.File(path.data_dir + input_dir_name + '/' + basic_file_name, "a") as file_handler,h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name, "a") as muscle_file_handler:
 
-
-
-
-
-
-
-
-    with h5py.File(basic_file_path, "a") as file_handler,\
-            h5py.File(muscle_rebuild_file_path, "a") as muscle_file_handler:
-        all_median_profiles = compute_zline_distance(
-            file_handler, muscle_file_handler, molecule_type, genes, timepoints)
+        all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes, timepoints)
         df = pd.DataFrame(all_median_profiles)
-        df.to_csv(check_dir(
-            path.analysis_dir + 'analysis_muscle_data/dataframe/') + "all_median_profiles_by_slice_mature_remove_bad_slice.csv")
+        df.to_csv(check_dir(path.analysis_dir + 'analysis_muscle_data/dataframe/') + "all_median_profiles_by_slice_mature_remove_bad_slice.csv")
+
+
     genes = ['actn2']
     timepoints = ['immature']
-    with h5py.File(basic_file_path, "a") as file_handler, h5py.File(muscle_rebuild_file_path,
-                                                                    "a") as muscle_file_handler:
-        all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes,
-                                                     timepoints)
+    with h5py.File(path.data_dir + input_dir_name + '/' + basic_file_name, "a") as file_handler, h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name,"a") as muscle_file_handler:
+        all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes,timepoints)
         df = pd.DataFrame(all_median_profiles)
-        df.to_csv(check_dir(
-            path.analysis_dir + 'analysis_muscle_data/dataframe/') + "all_median_profiles_by_slice_immature_remove_bad_slice.csv")
+        df.to_csv(check_dir(path.analysis_dir + 'analysis_muscle_data/dataframe/') + "all_median_profiles_by_slice_immature_remove_bad_slice.csv")
     all_median_profiles = []
-    plot_name = check_dir(path.analysis_dir + 'analysis_muscle_data/figures/') + 'z_line_distance' + str(
-        cst.Z_LINE_SPACING) + 'contours_mature_remove_bad_slice.png'
+    plot_name = check_dir(path.analysis_dir + 'analysis_muscle_data/figures/') + 'z_line_distance' + str(cst.Z_LINE_SPACING) + 'contours_mature_remove_bad_slice.png'
     figure_title = 'z line spots distance profile'
     genes = ["actn2 mature", "gapdh mature", "actn2 immature"]
-    df = pd.read_csv(
-        path.analysis_dir + "analysis_muscle_data/dataframe/all_median_profiles_by_slice_mature_remove_bad_slice.csv",
-        index_col=0)
-    df_im = pd.read_csv(
-        path.analysis_dir + "analysis_muscle_data/dataframe/all_median_profiles_by_slice_immature_remove_bad_slice.csv",
-        index_col=0)
+    df = pd.read_csv(path.analysis_dir + "analysis_muscle_data/dataframe/all_median_profiles_by_slice_mature_remove_bad_slice.csv",index_col=0)
+    df_im = pd.read_csv(path.analysis_dir + "analysis_muscle_data/dataframe/all_median_profiles_by_slice_immature_remove_bad_slice.csv",index_col=0)
     all_median_profiles.append(df.ix[0].values)
     all_median_profiles.append(df.ix[1].values)
     all_median_profiles.append(df_im.ix[0].values)
