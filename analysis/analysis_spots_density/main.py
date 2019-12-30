@@ -14,7 +14,6 @@ import src.plot as plot
 import src.acquisition_descriptors as adsc
 import src.image_descriptors as idsc
 import src.path as path
-import src.constants as constants
 from src.utils import check_dir, loadconfig
 
 import src.helpers as helps

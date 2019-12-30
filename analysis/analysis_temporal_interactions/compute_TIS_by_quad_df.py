@@ -55,7 +55,6 @@ def map_index(x,mtoc_quad):
     return new_index
 
 def reindex_quadrant_mask(quad_mask, mtoc_quad):
-     import pandas as pd
      df=pd.DataFrame(quad_mask)
      df=df.applymap(lambda x: x-mtoc_quad+1 if x >= mtoc_quad else (x+8-mtoc_quad+1 if x >0 else 0))
      quad_mask=np.array(df)
