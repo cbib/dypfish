@@ -506,38 +506,40 @@ def set_quadrants(file_handler, image, image_width, image_height):
     quadrant_mask[cell_mask == 0] = 0
     return quadrant_mask
 
-def compute_cytoplasmic_volume(file_handler, image, second_file_handler, volume_coeff):
+def compute_cytoplasmic_volume(file_handler, image, second_file_handler, volume_offset, volume_coeff):
     try:
         cell_volume = get_cell_volume(second_file_handler, image)
     except (IndexError,  # cell volume was not computed
             KeyError):  # image is not in the hdf file
-        cell_volume = compute_cell_volume(file_handler, image, volume_coeff)
+        cell_volume = compute_cell_volume(file_handler,volume_offset, image, volume_coeff)
     try:
         nucleus_volume = get_nucleus_volume(second_file_handler, image)
     except (IndexError, KeyError):
-        nucleus_volume = compute_nucleus_volume(file_handler, image, volume_coeff)
+        nucleus_volume = compute_nucleus_volume(file_handler,volume_offset, image, volume_coeff)
+    #print(cell_volume)
+    #print(nucleus_volume)
     cytoplasmic_volume = (cell_volume - nucleus_volume)
     assert cytoplasmic_volume > 0
     return cytoplasmic_volume
 
 
-def compute_protein_density_normalization_factor(file_handler, image, second_file_handler):
+def compute_protein_density_normalization_factor(file_handler, image, second_file_handler,volume_offset, volume_coeff):
     # compute density normalization factor
     cytoplasmic_protein_count = compute_protein_cytoplasmic_total(file_handler, image, path.path_data)
-    cytoplasmic_volume = compute_cytoplasmic_volume(file_handler, image, second_file_handler)
+    cytoplasmic_volume = compute_cytoplasmic_volume(file_handler, image, second_file_handler, volume_offset, volume_coeff)
     normalization_factor = cytoplasmic_protein_count / cytoplasmic_volume
     assert normalization_factor > 0
     return normalization_factor
 
-def compute_mrna_density_normalization_factor(file_handler, image, second_file_handler, volume_coeff):
+def compute_mrna_density_normalization_factor(file_handler, image, second_file_handler, volume_offset, volume_coeff):
     # compute density normalization factor
     cytoplasmic_mrna_count = compute_mrna_cytoplasmic_total(file_handler, image)
-    cytoplasmic_volume = compute_cytoplasmic_volume(file_handler,image,second_file_handler, volume_coeff)
+    cytoplasmic_volume = compute_cytoplasmic_volume(file_handler,image,second_file_handler,volume_offset, volume_coeff)
     normalization_factor = cytoplasmic_mrna_count / cytoplasmic_volume
     assert normalization_factor > 0
     return normalization_factor
 
-def search_mrna_quadrants(file_handler, second_file_handler, image_width, image_height, volume_coeff, image):
+def search_mrna_quadrants(file_handler, second_file_handler, image_width, image_height,  volume_offset, volume_coeff, image):
     """
     For all possible subdivisions of the cell in quadrants (90 possible),
     computes the mRNA normalized density (enrichment vs cytoplasm) per quadrant.
@@ -559,7 +561,7 @@ def search_mrna_quadrants(file_handler, second_file_handler, image_width, image_
     height_map[cell_mask == 0] = 0
     height_map[nucleus_mask == 1] = 0
 
-    normalization_factor = compute_mrna_density_normalization_factor(file_handler, image, second_file_handler, volume_coeff)
+    normalization_factor = compute_mrna_density_normalization_factor(file_handler, image, second_file_handler, volume_offset, volume_coeff)
 
     for degree in range(90):
         # the quadrant of MTOC is defined by two lines 45 degrees to the right
@@ -589,7 +591,7 @@ def search_mrna_quadrants(file_handler, second_file_handler, image_width, image_
 
 
 # Calculates the quadrant mask for the MTOC
-def search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_coeff, image):
+def search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image):
     print(image)
     mtoc_position = get_mtoc_position(file_handler, image)
     cell_mask_dist_map = get_cell_mask_distance_map(second_file_handler, image)
@@ -603,7 +605,7 @@ def search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_f
     height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
     height_map[cell_mask == 0] = 0
 
-    normalization_factor = compute_mrna_density_normalization_factor(file_handler, image, second_file_handler)
+    normalization_factor = compute_mrna_density_normalization_factor(file_handler, image, second_file_handler, volume_offset, volume_coeff)
 
     for i in range(90):
         # the quadrant of MTOC is defined by two lines 45 degrees to the right
@@ -630,7 +632,7 @@ def search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_f
     return spot_by_quad
 
 # Calculates the quadrant mask for the MTOC
-def search_protein_quadrants(file_handler, second_file_handler,image_width, image_height, volume_coeff, image):
+def search_protein_quadrants(file_handler, second_file_handler,image_width, image_height, volume_offset, volume_coeff, image):
     print(image)
     quadrants = get_quadrants(file_handler, image)
     assert (not quadrants.size), 'mtoc_quadrant already defined for %r' % image
@@ -647,7 +649,7 @@ def search_protein_quadrants(file_handler, second_file_handler,image_width, imag
     height_map = height_map.astype(float)
     height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
     height_map[cell_mask == 0] = 0
-    normalization_factor = compute_protein_density_normalization_factor(file_handler, image, second_file_handler)
+    normalization_factor = compute_protein_density_normalization_factor(file_handler, image, second_file_handler,volume_offset,volume_coeff)
 
     for i in range(90):
         # the quadrant of MTOC is defined by two lines 45 degrees to the right
@@ -674,7 +676,7 @@ def search_protein_quadrants(file_handler, second_file_handler,image_width, imag
 
 
 # Calculates the quadrant mask for the MTOC
-def search_periph_protein_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_coeff, image):
+def search_periph_protein_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image):
     print(image)
     quadrants = get_quadrants(file_handler, image)
     assert (not quadrants.size), 'mtoc_quadrant already defined for %r' % image
@@ -693,7 +695,7 @@ def search_periph_protein_quadrants(file_handler, second_file_handler, periphera
     height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
     peripheral_binary_mask = (cell_mask_dist_map > 0) & (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
 
-    normalization_factor = compute_protein_density_normalization_factor(file_handler, image, second_file_handler)
+    normalization_factor = compute_protein_density_normalization_factor(file_handler, image, second_file_handler, volume_offset, volume_coeff)
 
 
     for i in range(90):
@@ -773,8 +775,8 @@ def compute_cell_volume_in_pixel(file_handler, volume_offset, image):
     cell_volume = height_map[np.where(cell_mask[:] == 1)].sum()
     return cell_volume
 
-def compute_cell_volume(file_handler, image, volume_coeff):
-    volume_px = compute_cell_volume_in_pixel(file_handler, image)
+def compute_cell_volume(file_handler, volume_offset, image, volume_coeff):
+    volume_px = compute_cell_volume_in_pixel(file_handler,volume_offset, image)
     return volume_px * volume_coeff
 
 
@@ -801,8 +803,8 @@ def compute_nucleus_volume_in_pixel(file_handler, volume_offset, image):
     nucleus_volume = height_map[np.where(nucleus_mask[:] == 1)].sum()
     return nucleus_volume
 
-def compute_nucleus_volume(file_handler,image, volume_coeff):
-    volume_px = compute_nucleus_volume_in_pixel(file_handler, image)
+def compute_nucleus_volume(file_handler, volume_offset, image, volume_coeff):
+    volume_px = compute_nucleus_volume_in_pixel(file_handler, volume_offset, image)
     return volume_px * volume_coeff
 
 # need height map to compute, still in progress

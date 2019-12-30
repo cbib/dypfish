@@ -156,10 +156,10 @@ def build_histogram_protein_periph_fraction(sec_file_handler,image_list,fraction
 
 
 
-def compute_degree_of_clustering(image_list,file_handler,mtoc_file_handler):
+def compute_degree_of_clustering(image_list,hstar_file_handler,mtoc_file_handler):
     h_star_l=[]
     for image in image_list:
-        h_star = image_descriptors.get_h_star(file_handler, image)
+        h_star = image_descriptors.get_h_star(hstar_file_handler, image)
         d=np.array(h_star[h_star>1]-1).sum()
         mtoc_quad=image_descriptors.get_mtoc_quad(mtoc_file_handler,image)
         if mtoc_quad == 1.0:
@@ -183,7 +183,7 @@ def compute_cytoplasmic_spread_2D(file_handler, image_list, image_width, image_h
     for image in image_list:
         print(image)
         if 'mrna' in image:
-            cyt_spread=image_descriptors.compute_mrna_cytoplasmic_spread_2D(file_handler,image)
+            cyt_spread=image_descriptors.compute_mrna_cytoplasmic_spread_2D(file_handler,image,image_width,image_height)
         else:
             cyt_spread=image_descriptors.compute_protein_cytoplasmic_spread_2D(file_handler,image,image_width, image_height)
         cyt_spreads.append(cyt_spread)

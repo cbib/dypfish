@@ -66,12 +66,12 @@ def main():
     enable_logger()
     if is_periph:
         print ('Periph mode')
-        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna.csv'
+        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna_all_NMTOC.csv'
         df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein.csv'
     else:
         print ('Global mode')
-        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna.csv'
-        df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein.csv'
+        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna_all_NMTOC.csv'
+        df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein_all_NMTOC.csv'
 
     #mrna part
     df_m = pd.read_csv(df_filename_m)
@@ -154,7 +154,7 @@ def main():
             nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
             for j in range(100):
 
-                mpi, p = stan.calculate_random_mpi(line['MTOC'].values, nonMTOC)
+                mpi, p = stan.calculate_random_mpi(line['MTOC'].values, nonMTOC, bootstrap_mpi)
                 gene_random_mpis.append(mpi)
             random_mpis.append(gene_random_mpis)
             mpi, p = stan.calculate_mpi(line['MTOC'].values, nonMTOC)
@@ -182,7 +182,7 @@ def main():
                 nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
 
                 for j in range(100):
-                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values, nonMTOC)
+                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values, nonMTOC, bootstrap_mpi)
                     gene_random_mpis.append(mpi)
                 random_mpis.append(gene_random_mpis)
                 mpi, p = stan.calculate_mpi(line['MTOC'].values, nonMTOC)

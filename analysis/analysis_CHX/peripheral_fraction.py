@@ -98,7 +98,6 @@ def peripheral_profiles(
                 molecule_type[0],
                 gene
                 )
-            print(image_list)
             profiles=compute_peripheral_fraction_profiles(
                 basic_h5_file_handler,
                 secondary_h5_file_handler,
@@ -152,7 +151,6 @@ def mrna_peripheral_fraction_profile(
                 basic_h5_file_handler
                 )
             )
-    print(fractions)
     graph_file_name = molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name,graph_file_name)
 
@@ -229,7 +227,6 @@ def histogram_peripheral_profile(
     mime_type,
     colors,
     periph_fraction_cst,
-    raw_images_dir_path_name,
     save_into_dir_path_name,
     ext_logger=None
     ):
@@ -247,7 +244,6 @@ def histogram_peripheral_profile(
         slashed_molecule_type = [("/%s" % m) for m in molecule_type]
         periph_fraction = []
         for gene in genes:
-            print(gene)
             image_list = helps.preprocess_image_list2(
                 basic_h5_file_handler,
                 slashed_molecule_type[0],
@@ -259,7 +255,6 @@ def histogram_peripheral_profile(
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
                     periph_fraction_cst,
-                    raw_images_dir_path_name
                     )
                 )
 
@@ -308,7 +303,6 @@ def histogram_peripheral_profile(
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
                     periph_fraction_cst,
-                    raw_images_dir_path_name
                     )
                 )
 
@@ -351,7 +345,6 @@ def peripheral_fraction_dynamic_profile(
     periph_fraction_cst,
     mrna_tp,
     protein_tp,
-    raw_images_dir_path_name,
     save_into_dir_path_name,
     ext_logger=None
     ):
@@ -368,9 +361,8 @@ def peripheral_fraction_dynamic_profile(
         adsc.compute_protein_periph_fraction,
         basic_h5_file_handler,
         secondary_h5_file_handler,
-        periph_fraction_cst,
-        raw_images_dir_path_name
-        )
+        periph_fraction_cst
+    )
 
     try:
 
@@ -469,7 +461,7 @@ def main(
                 molecule_type=['mrna'],
                 genes=genes,
                 mime_type=mime_type,
-                fraction=10,
+                fraction=periph_fraction_cst,
                 colors=plot_colors,
                 basic_h5_file_handler=basic_h5_file_handler,
                 save_into_dir_path_name=save_into_dir_path_name
@@ -487,7 +479,7 @@ def main(
                 molecule_type=['protein'],
                 genes=proteins,
                 mime_type=mime_type,
-                fraction=10,
+                fraction=periph_fraction_cst,
                 colors=plot_colors,
                 basic_h5_file_handler=basic_h5_file_handler,
                 save_into_dir_path_name=save_into_dir_path_name
@@ -548,7 +540,6 @@ def main(
                 mime_type=mime_type,
                 colors=plot_colors,
                 periph_fraction_cst=periph_fraction_cst,
-                raw_images_dir_path_name=raw_images_dir_path_name,
                 save_into_dir_path_name=save_into_dir_path_name
                 )
             resulting_graphs_details_as_list += graphs_details
@@ -572,7 +563,6 @@ def main(
                 mrna_tp=timepoints_mrna,
                 protein_tp=timepoints_protein,
                 save_into_dir_path_name=save_into_dir_path_name,
-                raw_images_dir_path_name=raw_images_dir_path_name
             )
             resulting_graphs_details_as_list += graphs_details
         except Exception as e:
@@ -590,9 +580,9 @@ def main(
 if __name__ == "__main__":
 
     enable_logger()
-
+    check_dir(path.analysis_dir + 'analysis_CHX/figures/')
     raw_images_dir_path_name = path.path_data
-    save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_chx/figures/")
+    save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_chx/figures/peripheral_fraction")
 
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)

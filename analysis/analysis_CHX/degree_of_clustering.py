@@ -34,6 +34,7 @@ def main():
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     h_star_file_name = configData["HSTAR_FILE_NAME"]
 
+    check_dir(path.analysis_dir + 'analysis_CHX/figures/')
     # produce bar plot for degree of clustering
     with h5py.File(path.data_dir+input_dir_name+'/'+h_star_file_name, "a") as input_file_handler:
 
@@ -51,7 +52,7 @@ def main():
                 global_err.append(math.log(np.median(dof) + err) - math.log(np.median(dof)) - base)
 
             # plot figures
-            figname = check_dir(path.analysis_dir + 'analysis_chx/figures/') + molecule_type+ '_degree_of_clustering.png'
+            figname = check_dir(path.analysis_dir + 'analysis_chx/figures/degree_of_clustering/') + molecule_type+ '_degree_of_clustering.png'
             plot.bar_profile_median(global_median, genes, molecule_type, figname, global_err)
 
         # produce plot interpolation of degree of clustering by timepoint
@@ -59,7 +60,7 @@ def main():
 
         data_generator = plot.data_extractor_generic(genes, genes, timepoints, timepoints, input_file_handler, adsc.compute_degree_of_clustering_wo_MTOC, input_file_handler)
         for mrna_data, protein_data, i in data_generator:
-            figpath = check_dir(path.analysis_dir + 'analysis_chx/figures/') + '/degree_of_clustering_' + genes[i] + '.png'
+            figpath = check_dir(path.analysis_dir + 'analysis_chx/figures/degree_of_clustering/') + '/degree_of_clustering_' + genes[i] + '.png'
             plot.dynamic_profiles(mrna_data, protein_data, timepoints_num_mrna, timepoints_num_protein, genes[i], plot_colors[i], 'Time(hrs)', 'Degree of clustering(*)',figpath)
 
 

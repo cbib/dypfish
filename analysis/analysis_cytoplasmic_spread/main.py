@@ -27,8 +27,9 @@ def cytoplasmic_spread(
     genes,
     mime_type,
     molecule_type,
+    image_width,
+    image_height,
     save_into_dir_path_name,
-    raw_images_dir_path_name=None,
     ext_logger=None
     ):  #
     """
@@ -69,6 +70,8 @@ def cytoplasmic_spread(
             adsc.compute_cytoplasmic_spread(
                 image_list,
                 basic_h5_file_handler,
+                image_width,
+                image_height
                 )
             )
 
@@ -193,7 +196,8 @@ def main(
     proteins = configData["PROTEINS"]
     basic_file_name = configData["BASIC_FILE_NAME"]
     mime_type = configData["PNG_IMAGES_MIME_TYPE"]
-
+    image_width = configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
 
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as basic_h5_file_handler:
 
@@ -202,8 +206,9 @@ def main(
             genes=genes,
             mime_type=mime_type,
             molecule_type='mrna',
+            image_width=image_width,
+            image_height=image_height,
             save_into_dir_path_name=save_into_dir_path_name,
-            raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
             )
         resulting_graphs_details_as_list.append(graph_details)
@@ -213,8 +218,9 @@ def main(
             genes=proteins,
             mime_type=mime_type,
             molecule_type='protein',
+            image_width=image_width,
+            image_height=image_height,
             save_into_dir_path_name=save_into_dir_path_name,
-            raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
             )
         resulting_graphs_details_as_list.append(graph_details)

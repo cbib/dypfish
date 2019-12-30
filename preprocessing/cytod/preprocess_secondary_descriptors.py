@@ -27,11 +27,10 @@ def main():
     enable_logger()
     configData = loadconfig(input_dir_name)
     genes = configData["GENES"]
-    proteins = configData["PROTEINS"]
     contours_num = configData["NUM_CONTOURS"]
     max_cell_radius = configData["MAX_CELL_RADIUS"]
-    simulation_number = configData["RIPLEY_K_SIMULATION_NUMBER"]
-    pixels_in_slice = float(configData["SLICE_THICKNESS"] * configData["SIZE_COEFFICIENT"])
+    image_width=configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
     size_coeff = configData["SIZE_COEFFICIENT"]
 
     with h5py.File(path.basic_file_path, "a") as input_file_handler, \
@@ -39,7 +38,7 @@ def main():
 
         image_list = helps.preprocess_image_list_1(input_file_handler, genes)
         for image in image_list:
-            idsc.set_cell_mask_distance_map(input_file_handler, secondary_file_handler, image, contours_num)
+            idsc.set_cell_mask_distance_map(input_file_handler, secondary_file_handler, image, contours_num,image_width, image_height, max_cell_radius)
             if 'mrna' in image:
                 idsc.set_spots_peripheral_distance_2D(input_file_handler, secondary_file_handler, image)
             idsc.set_cell_area(input_file_handler, secondary_file_handler, image, size_coeff)
