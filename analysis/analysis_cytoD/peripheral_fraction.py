@@ -5,10 +5,8 @@ import os
 from collections import OrderedDict
 import numpy as np
 import h5py
-import sys
 import argparse
 import src.plot as plot
-import src.constants as constants
 import src.acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps

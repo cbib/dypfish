@@ -9,7 +9,6 @@ import h5py
 import matplotlib.pyplot as plt
 from scipy import interpolate
 import src.plot as plot
-import src.constants as constants
 import src.acquisition_descriptors as adsc
 import src.image_descriptors as idsc
 import src.path as path

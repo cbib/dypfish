@@ -7,10 +7,10 @@ import argparse
 import h5py
 import src.acquisition_descriptors as adsc
 import src.path as path
-import src.statistical_analysis as stan
 import src.helpers as helps
 from src.utils import check_dir,loadconfig
 import src.plot as plot
+
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()

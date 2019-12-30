@@ -7,7 +7,6 @@ import numpy as np
 import h5py
 import argparse
 import src.plot as plot
-import src.constants as constants
 import src.acquisition_descriptors as adsc
 import src.path as path
 import src.helpers as helps

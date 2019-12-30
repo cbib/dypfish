@@ -9,7 +9,6 @@ import pandas as pd
 import src.image_descriptors as idsc
 import src.path as path
 import src.helpers as helps
-import src.constants as cst
 from src.utils import enable_logger, check_dir, loadconfig
 
 parser = argparse.ArgumentParser()

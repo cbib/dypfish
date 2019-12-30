@@ -9,10 +9,8 @@ import matplotlib.pyplot as plt
 from numpy import matlib
 import math
 import pandas as pd
-import src.constants as cst
 import src.image_descriptors as idsc
 import src.path as path
-import src.helpers as helps
 import src.plot as plot
 from src.utils import enable_logger, check_dir, loadconfig
 

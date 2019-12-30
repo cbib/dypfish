@@ -4,7 +4,6 @@
 
 '''Plot Figures XXX and YYY for the manuscript bla bla'''
 
-import numpy as np
 import pandas as pd
 import argparse
 import sys

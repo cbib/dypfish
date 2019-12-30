@@ -6,7 +6,6 @@ import argparse
 import tqdm
 import src.acquisition_descriptors as adsc
 import src.path as path
-import src.statistical_analysis as stan
 import src.helpers as helps
 from src.utils import enable_logger, check_dir, loadconfig, plot_colors_cytoD
 import src.plot as plot

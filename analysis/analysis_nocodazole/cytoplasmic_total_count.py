@@ -6,12 +6,13 @@ import logging
 import argparse
 import sys
 import src.acquisition_descriptors as adsc
-from src.path import basic_file_path,path_data, analysis_dir
+from src.path import path_data, analysis_dir
 import src.path as path
 import src.helpers as helps
 from src.utils import enable_logger
 from src.utils import check_dir, loadconfig
 import src.plot as plot
+
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
