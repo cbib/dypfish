@@ -473,15 +473,15 @@ def clustering_index_random_measure_2d(IF, cell_mask_2d, max_cell_radius=400, si
     return h_star
 
 
-def clustering_index_random_measure(IF, cell_mask_3d, max_cell_radius=400, simulation_number=20):
-    nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * constants.PIXELS_IN_SLICE
+def clustering_index_random_measure(IF, cell_mask_3d, pixels_in_slice, max_cell_radius=400, simulation_number=20):
+    nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * pixels_in_slice
     my_lambda = float(np.sum(IF[:, :, :])) / float(nuw)
-    k = ripley_k_random_measure(IF, my_lambda, nuw, constants.MAX_CELL_RADIUS)
-    k_sim = np.zeros((constants.RIPLEY_K_SIMULATION_NUMBER, constants.MAX_CELL_RADIUS))
+    k = ripley_k_random_measure(IF, my_lambda, nuw, max_cell_radius)
+    k_sim = np.zeros((simulation_number, max_cell_radius))
 
     # simulate n list of random spots and run ripley_k
     indsAll = np.where(cell_mask_3d[:, :, :] == 1)
-    for t in range(constants.RIPLEY_K_SIMULATION_NUMBER):
+    for t in range(simulation_number):
         #print('simulation ', t)
         inds_permuted = np.random.permutation(range(len(indsAll[0])))
         I_samp=np.zeros(IF.shape)
@@ -493,16 +493,16 @@ def clustering_index_random_measure(IF, cell_mask_3d, max_cell_radius=400, simul
             new_z = indsAll[2][inds_permuted[u]]
             old_z = indsAll[2][u]
             I_samp[new_x,new_y,new_z]=IF[old_x,old_y,old_z]
-        k_sim[t, :]=ripley_k_random_measure(I_samp,my_lambda,nuw,constants.MAX_CELL_RADIUS).flatten()
+        k_sim[t, :]=ripley_k_random_measure(I_samp,my_lambda,nuw,max_cell_radius).flatten()
 
-    h_star = np.zeros((constants.MAX_CELL_RADIUS, 1))
+    h_star = np.zeros((max_cell_radius, 1))
     h=k
     h_sim=k_sim
     h_sim_sorted = np.sort(h_sim)
     h_sim_sorted = np.sort(h_sim_sorted, axis=0)
-    synth95 = h_sim_sorted[int(round(0.95 * constants.RIPLEY_K_SIMULATION_NUMBER)), :]
-    synth50 = h_sim_sorted[int(round(0.5 * constants.RIPLEY_K_SIMULATION_NUMBER)), :]
-    synth5 = h_sim_sorted[int(round(0.05 * constants.RIPLEY_K_SIMULATION_NUMBER)), :]
+    synth95 = h_sim_sorted[int(round(0.95 * simulation_number)), :]
+    synth50 = h_sim_sorted[int(round(0.5 * simulation_number)), :]
+    synth5 = h_sim_sorted[int(round(0.05 * simulation_number)), :]
 
     # Compute delta between .95 percentile against .5 percentile
     delta1 = synth95 - synth50
@@ -514,7 +514,7 @@ def clustering_index_random_measure(IF, cell_mask_3d, max_cell_radius=400, simul
     h_star[inds[0], :] = 0
 
     idx_sup = []
-    for i in range(constants.MAX_CELL_RADIUS):
+    for i in range(max_cell_radius):
         if h[i, 0] > synth50[i]:
             idx_sup.append(i)
     if len(idx_sup) > 0:
@@ -523,7 +523,7 @@ def clustering_index_random_measure(IF, cell_mask_3d, max_cell_radius=400, simul
         h_star[idx_sup, 0] = tmp
 
     idx_inf = []
-    for i in range(constants.MAX_CELL_RADIUS):
+    for i in range(max_cell_radius):
         if h[i, 0] < synth50[i]:
             idx_inf.append(i)
     if len(idx_inf) > 0:
@@ -538,20 +538,20 @@ def clustering_index_random_measure(IF, cell_mask_3d, max_cell_radius=400, simul
 
 
 # clustering index point process for muscle data
-def clustering_index_point_process_2d(spots, cell_mask_2d,cell_radius):
+def clustering_index_point_process_2d(spots, cell_mask_2d,size_coeff, max_cell_radius, simulation_number=20):
     n_spots = len(spots)
 
     # Nuw is the whole volume of the cell
-    nuw = (np.sum(cell_mask_2d[:, :] == 1)) * constants.SIZE_COEFFICIENT
+    nuw = (np.sum(cell_mask_2d[:, :] == 1)) * size_coeff
 
     # spots volumic density
     my_lambda = float(n_spots) / float(nuw)
-    k = ripley_k_point_process_2d(spots, my_lambda, nuw, cell_radius)
-    k_sim = np.zeros((constants.RIPLEY_K_SIMULATION_NUMBER, cell_radius))
+    k = ripley_k_point_process_2d(spots, my_lambda, nuw, max_cell_radius)
+    k_sim = np.zeros((simulation_number, max_cell_radius))
 
     #simulate n list of random spots and run ripley_k
     indsAll = np.where(cell_mask_2d[:, :] == 1)
-    for t in range(constants.RIPLEY_K_SIMULATION_NUMBER):
+    for t in range(simulation_number):
         #print("simulation" + str(t))
         inds_permuted = np.random.permutation(range(len(indsAll[0])))
         indsT = inds_permuted[0:n_spots]
@@ -559,19 +559,19 @@ def clustering_index_point_process_2d(spots, cell_mask_2d,cell_radius):
         for i in range(len(spots)):
             spots_random[i, 0] = indsAll[0][indsT[i]]
             spots_random[i, 1] = indsAll[1][indsT[i]]
-        tmp_k=ripley_k_point_process_2d(spots_random,my_lambda,nuw,cell_radius).flatten()
+        tmp_k=ripley_k_point_process_2d(spots_random,my_lambda,nuw,max_cell_radius).flatten()
         k_sim[t,:]=tmp_k
-    h_star=np.zeros((cell_radius,1))
+    h_star=np.zeros((max_cell_radius,1))
 
     # Build related statistics derived from Ripley's K function
     # normalize K
-    h = np.subtract(np.sqrt(k /  math.pi),np.arange(1, cell_radius + 1).reshape((cell_radius, 1)))
-    h_sim = (np.sqrt(k_sim /  math.pi)) - matlib.repmat(np.matrix(np.arange(1, cell_radius + 1)), constants.RIPLEY_K_SIMULATION_NUMBER, 1)
+    h = np.subtract(np.sqrt(k /  math.pi),np.arange(1, max_cell_radius + 1).reshape((max_cell_radius, 1)))
+    h_sim = (np.sqrt(k_sim /  math.pi)) - matlib.repmat(np.matrix(np.arange(1, max_cell_radius + 1)), simulation_number, 1)
     h_sim_sorted = np.sort(h_sim)
     h_sim_sorted=np.sort(h_sim_sorted[:,::-1],axis=0)
-    synth95 = h_sim_sorted[int(round(0.95 * constants.RIPLEY_K_SIMULATION_NUMBER)), :]
-    synth50 = h_sim_sorted[int(round(0.5 * constants.RIPLEY_K_SIMULATION_NUMBER)), :]
-    synth5 = h_sim_sorted[int(round(0.05 * constants.RIPLEY_K_SIMULATION_NUMBER)), :]
+    synth95 = h_sim_sorted[int(round(0.95 * simulation_number)), :]
+    synth50 = h_sim_sorted[int(round(0.5 * simulation_number)), :]
+    synth5 = h_sim_sorted[int(round(0.05 * simulation_number)), :]
 
     # Compute delta between .95 percentile against .5 percentile
     delta1 = synth95 - synth50
@@ -581,7 +581,7 @@ def clustering_index_point_process_2d(spots, cell_mask_2d,cell_radius):
     inds = np.where(h == synth50)
     h_star[inds[0], :] = 0
     idx_sup=[]
-    for i in range(cell_radius):
+    for i in range(max_cell_radius):
         if h[i, 0] > synth50[0, i]:
             idx_sup.append(i)
     if len(idx_sup)>0:
@@ -589,7 +589,7 @@ def clustering_index_point_process_2d(spots, cell_mask_2d,cell_radius):
         tmp = tmp / delta1[0, idx_sup]
         h_star[idx_sup, 0] = tmp
     idx_inf = []
-    for i in range(cell_radius):
+    for i in range(max_cell_radius):
         if h[i, 0] < synth50[0, i]:
             idx_inf.append(i)
     if len(idx_inf) > 0:
@@ -601,19 +601,19 @@ def clustering_index_point_process_2d(spots, cell_mask_2d,cell_radius):
     return h_star
 
 
-def clustering_index_point_process(spots, cell_mask_3d):
+def clustering_index_point_process(spots, cell_mask_3d, pixels_in_slice, max_cell_radius=400, simulation_number=20):
     n_spots = len(spots)
     # Nuw is the whole volume of the cell
-    nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * constants.PIXELS_IN_SLICE
+    nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * pixels_in_slice
     #print (spots.shape)
     # spots volumic density
     my_lambda = float(n_spots) / float(nuw)
-    k = ripley_k_point_process(spots, my_lambda, nuw, constants.MAX_CELL_RADIUS)
-    k_sim = np.zeros((constants.RIPLEY_K_SIMULATION_NUMBER, constants.MAX_CELL_RADIUS))
+    k = ripley_k_point_process(spots, my_lambda, nuw, max_cell_radius)
+    k_sim = np.zeros((simulation_number, max_cell_radius))
 
     #simulate n list of random spots and run ripley_k
     indsAll = np.where(cell_mask_3d[:, :, :] == 1)
-    for t in range(constants.RIPLEY_K_SIMULATION_NUMBER):
+    for t in range(simulation_number):
         #print("simulation"+str(t))
         inds_permuted = np.random.permutation(range(len(indsAll[0])))
         indsT = inds_permuted[0:n_spots]
@@ -622,19 +622,19 @@ def clustering_index_point_process(spots, cell_mask_3d):
             spots_random[i, 0] = indsAll[0][indsT[i]]
             spots_random[i, 1] = indsAll[1][indsT[i]]
             spots_random[i, 2] = indsAll[2][indsT[i]]
-        tmp_k=ripley_k_point_process(spots_random,my_lambda,nuw,constants.MAX_CELL_RADIUS).flatten()
+        tmp_k=ripley_k_point_process(spots_random,my_lambda,nuw,max_cell_radius).flatten()
         k_sim[t,:]=tmp_k
-    h_star=np.zeros((constants.MAX_CELL_RADIUS,1))
+    h_star=np.zeros((max_cell_radius,1))
 
     # Build related statistics derived from Ripley's K function
     # normalize K
-    h = np.subtract(np.power(((k * 3) / (4 * math.pi)), 1./3), np.arange(1,constants.MAX_CELL_RADIUS+1).reshape((constants.MAX_CELL_RADIUS, 1)))
-    h_sim = (np.power(((k_sim * 3) / (4 * math.pi)), 1./3)) - matlib.repmat(np.matrix(np.arange(1,constants.MAX_CELL_RADIUS+1)), constants.RIPLEY_K_SIMULATION_NUMBER, 1)
+    h = np.subtract(np.power(((k * 3) / (4 * math.pi)), 1./3), np.arange(1,max_cell_radius+1).reshape((max_cell_radius, 1)))
+    h_sim = (np.power(((k_sim * 3) / (4 * math.pi)), 1./3)) - matlib.repmat(np.matrix(np.arange(1,max_cell_radius+1)), simulation_number, 1)
     h_sim_sorted = np.sort(h_sim)
     h_sim_sorted=np.sort(h_sim_sorted[:,::-1],axis=0)
-    synth95 = h_sim_sorted[int(round(0.95 * constants.RIPLEY_K_SIMULATION_NUMBER)), :]
-    synth50 = h_sim_sorted[int(round(0.5 * constants.RIPLEY_K_SIMULATION_NUMBER)), :]
-    synth5 = h_sim_sorted[int(round(0.05 * constants.RIPLEY_K_SIMULATION_NUMBER)), :]
+    synth95 = h_sim_sorted[int(round(0.95 * simulation_number)), :]
+    synth50 = h_sim_sorted[int(round(0.5 * simulation_number)), :]
+    synth5 = h_sim_sorted[int(round(0.05 * simulation_number)), :]
 
     # Compute delta between .95 percentile against .5 percentile
     delta1 = synth95 - synth50
@@ -644,7 +644,7 @@ def clustering_index_point_process(spots, cell_mask_3d):
     inds = np.where(h == synth50)
     h_star[inds[0], :] = 0
     idx_sup=[]
-    for i in range(constants.MAX_CELL_RADIUS):
+    for i in range(max_cell_radius):
         if h[i, 0] > synth50[0, i]:
             idx_sup.append(i)
     if len(idx_sup)>0:
@@ -652,7 +652,7 @@ def clustering_index_point_process(spots, cell_mask_3d):
         tmp = tmp / delta1[0, idx_sup]
         h_star[idx_sup, 0] = tmp
     idx_inf = []
-    for i in range(constants.MAX_CELL_RADIUS):
+    for i in range(max_cell_radius):
         if h[i, 0] < synth50[0, i]:
             idx_inf.append(i)
     if len(idx_inf) > 0:

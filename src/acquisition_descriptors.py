@@ -55,7 +55,7 @@ def compute_protein_peripheral_fraction_profiles_3D(basic_file_handler, secondar
         cell_mask = image_descriptors.get_cell_mask(basic_file_handler, image)
         nucleus_mask = image_descriptors.get_nucleus_mask(basic_file_handler, image)
         cell_mask_distance_map = image_descriptors.get_cell_mask_distance_map(secondary_file_handler, image)
-        IF=image_descriptors.get_IF(basic_file_handler,image)
+        IF = image_descriptors.get_IF(basic_file_handler,image)
         IF = np.multiply(IF, cell_mask)
         peripheral_profile = np.zeros(100)
         for i in range(0, 100):

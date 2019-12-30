@@ -4,17 +4,19 @@
 
 import logging
 import sys
+import math
 import argparse
 import numpy as np
 import h5py
-import matplotlib.pyplot as plt
-from matplotlib import gridspec
-from numpy import matlib
-import math
 import src.image_descriptors as idsc
 import src.path as path
 import src.plot as plot
 from src.utils import check_dir
+
+import matplotlib.pyplot as plt
+from matplotlib import gridspec
+from numpy import matlib
+from skimage import measure
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)
@@ -95,7 +97,7 @@ def show_descriptors(cell_mask,spots,nucleus_mask):
     xs = spots[:, 0]
     ys = spots[:, 1]
     plt.grid(True)
-    from skimage import measure
+
     contours = measure.find_contours(nucleus_mask, 0.8)
     for n, contour in enumerate(contours):
         ##print(contour[:, 1]-50)

@@ -36,9 +36,7 @@ def get_spots_peripheral_distance_2D(spots,nucleus_mask,cell_mask,periph_dist_ma
     return np.array(spots_peripheral_distance_2D)
 
 def main():
-    # Required descriptors: cell_area (built from cell_mask), spots
-    # Import basics descriptors in H5 Format using 'import_h5.sh' or use own local file
-    # This import script takes username and password arguments to connect to remote server bb8
+    # this script produces Figure 1-E in dypFISH paper
     enable_logger()
 
     configData = loadconfig(input_dir_name)

@@ -110,12 +110,12 @@ def set_h_star_protein_2D(file_handler, output_file_handler, image, max_cell_rad
     descriptor = image + '/h_star'
     output_file_handler.create_dataset(descriptor, data=h_star, dtype=np.float32)
 
-def set_h_star_protein(file_handler, output_file_handler, image):
+def set_h_star_protein(file_handler, output_file_handler, image, pixels_in_slice, max_cell_radius, simulation_number):
     cell_mask_3d = compute_cell_mask_3d(file_handler, image)
     zero_level = get_zero_level(file_handler, image)
     IF = prune_intensities(image, zero_level)
     IF = IF * cell_mask_3d
-    h_star = clustering_index_random_measure(IF, cell_mask_3d)
+    h_star = clustering_index_random_measure(IF, cell_mask_3d, pixels_in_slice, max_cell_radius, simulation_number)
     descriptor = image + '/h_star'
     output_file_handler.create_dataset(descriptor, data=h_star, dtype=np.float32)
 
@@ -154,12 +154,12 @@ def get_zero_level(file_handler, image):
     return zero_level
 
 
-def set_h_star_mrna(file_handler, output_file_handler, image):
+def set_h_star_mrna(file_handler, output_file_handler, image, pixels_in_slice, max_cell_radius, simulation_number):
     H_star = get_h_star(file_handler, image)
     assert (not H_star.size), 'H_star already defined for %r' % image
     spots = get_spots(file_handler, image)
     cell_mask_3d = compute_cell_mask_3d(file_handler, image)
-    h_star = clustering_index_point_process(spots, cell_mask_3d)
+    h_star = clustering_index_point_process(spots, cell_mask_3d, pixels_in_slice, max_cell_radius, simulation_number)
     descriptor = image + '/h_star'
     output_file_handler.create_dataset(descriptor, data=h_star, dtype=np.float32)
 
@@ -370,7 +370,7 @@ def set_spots_peripheral_distance_2D(file_handler, output_file_handler, image):
     output_file_handler.create_dataset(descriptor, data=spots_peripheral_distance_2D, dtype=np.uint8)
 
 
-def set_spots_peripheral_distance(file_handler, output_file_handler, image):
+def set_spots_peripheral_distance(file_handler, output_file_handler, size_coeff, image):
     spots_peripheral_distance = get_spots_peripheral_distance(output_file_handler, image)
     assert (not spots_peripheral_distance.size), 'spots_peripheral_distance already defined for %r' % image
     spots = get_spots(file_handler, image)
@@ -383,7 +383,7 @@ def set_spots_peripheral_distance(file_handler, output_file_handler, image):
     for n in range(zero_level, -1, -1):
         height_map_copy = np.array(height_map, copy=True)
         height_map_copy[height_map >= zero_level + 1 - n] = 1
-        slice_area = height_map_copy[height_map_copy == 1].sum() * math.pow((1 / constants.SIZE_COEFFICIENT), 2)
+        slice_area = height_map_copy[height_map_copy == 1].sum() * math.pow((1 / size_coeff), 2)
         isoline_area = compute_isoline_area(file_handler, output_file_handler, image)
         test_index = find_nearest(isoline_area, slice_area)
         spots_in_slice = spots[np.around(spots[:, 2]) == n]

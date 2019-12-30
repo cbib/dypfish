@@ -109,11 +109,11 @@ def reject_outliers(data):
         index_cpt += 1
     return indexes
 
-def compute_degree_of_clustering(spots_reduced, mask, z_lines):
-    cell_mask_3d = compute_cell_mask_3d(mask, z_lines)
-    h_star = helps.clustering_index_point_process(spots_reduced, cell_mask_3d)
-    d = np.array(h_star[h_star > 1] - 1).sum()
-    return d
+# def compute_degree_of_clustering(spots_reduced, mask, z_lines):
+#     cell_mask_3d = compute_cell_mask_3d(mask, z_lines)
+#     h_star = helps.clustering_index_point_process(spots_reduced, cell_mask_3d)
+#     d = np.array(h_star[h_star > 1] - 1).sum()
+#     return d
 
 def reduce_z_line_mask(z_lines, spots):
     cpt_z = 1
