@@ -125,7 +125,7 @@ def reduce_z_line_mask(z_lines, spots):
         cpt_z += 1
     return z_lines_idx
 
-def compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes, timepoints):
+def compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes, timepoints, z_line_spacing):
     all_median_profiles = []
     for gene in genes:
         for timepoint in timepoints:
@@ -147,13 +147,13 @@ def compute_zline_distance(file_handler, muscle_file_handler, molecule_type, gen
                 for spot in spots_reduced:
                     z_line_mask = z_lines[int(spot[2])]
                     if z_line_mask[spot[1], spot[0]] == 0:
-                        total_segment = np.zeros((360, cst.Z_LINE_SPACING))
+                        total_segment = np.zeros((360, z_line_spacing))
                         for degree in range(360):
-                            z_line_segment = np.zeros(cst.Z_LINE_SPACING)
-                            line = np.zeros((cst.Z_LINE_SPACING, 2))
+                            z_line_segment = np.zeros(z_line_spacing)
+                            line = np.zeros((z_line_spacing, 2))
                             angle = degree * 2 * math.pi / 360
                             x_slope, y_slope = math.sin(angle), math.cos(angle)
-                            for point in range(cst.Z_LINE_SPACING):
+                            for point in range(z_line_spacing):
                                 x = int(round(spot[0] + point * x_slope))
                                 y = int(round(spot[1] + point * y_slope))
                                 line[point, 0] = x
@@ -169,13 +169,13 @@ def compute_zline_distance(file_handler, muscle_file_handler, molecule_type, gen
                     else:
                         image_spots_min_distance[spots_count] = 0
                     spots_count += 1
-                z_line_distance_profile = np.zeros(cst.Z_LINE_SPACING)
-                for i in range(cst.Z_LINE_SPACING):
+                z_line_distance_profile = np.zeros(z_line_spacing)
+                for i in range(z_line_spacing):
                     z_line_distance_profile[i] = float(len(np.where(image_spots_min_distance == i)[0])) / float(
                         len(image_spots_min_distance))
                 total_profile.append(z_line_distance_profile)
                 image_counter += 1
-            total_profile = np.array(total_profile).reshape((image_counter, cst.Z_LINE_SPACING))
+            total_profile = np.array(total_profile).reshape((image_counter, z_line_spacing))
             all_median_profiles.append(np.median(total_profile, axis=0))
     return all_median_profiles
 
@@ -195,6 +195,8 @@ if __name__ == "__main__":
     # molecule_types = configData["MOLECULE_TYPES"]
     basic_file_name = configData["BASIC_FILE_NAME"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
+    z_line_spacing = configData["Z_LINE_SPACING"]
+    image_height = configData["IMAGE_HEIGHT"]
 
     molecule_type = ['/mrna']
     genes = ['actn2', 'gapdh']
@@ -202,7 +204,7 @@ if __name__ == "__main__":
     colors = ['#0A3950', '#1E95BB', '#A1BA6D']
     with h5py.File(path.data_dir + input_dir_name + '/' + basic_file_name, "a") as file_handler,h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name, "a") as muscle_file_handler:
 
-        all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes, timepoints)
+        all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes, timepoints, z_line_spacing)
         df = pd.DataFrame(all_median_profiles)
         df.to_csv(check_dir(path.analysis_dir + 'analysis_muscle_data/dataframe/') + "all_median_profiles_by_slice_mature_remove_bad_slice.csv")
 
@@ -214,7 +216,7 @@ if __name__ == "__main__":
         df = pd.DataFrame(all_median_profiles)
         df.to_csv(check_dir(path.analysis_dir + 'analysis_muscle_data/dataframe/') + "all_median_profiles_by_slice_immature_remove_bad_slice.csv")
     all_median_profiles = []
-    plot_name = check_dir(path.analysis_dir + 'analysis_muscle_data/figures/') + 'z_line_distance' + str(cst.Z_LINE_SPACING) + 'contours_mature_remove_bad_slice.png'
+    plot_name = check_dir(path.analysis_dir + 'analysis_muscle_data/figures/') + 'z_line_distance' + str(z_line_spacing) + 'contours_mature_remove_bad_slice.png'
     figure_title = 'z line spots distance profile'
     genes = ["actn2 mature", "gapdh mature", "actn2 immature"]
     df = pd.read_csv(path.analysis_dir + "analysis_muscle_data/dataframe/all_median_profiles_by_slice_mature_remove_bad_slice.csv",index_col=0)
@@ -222,4 +224,4 @@ if __name__ == "__main__":
     all_median_profiles.append(df.ix[0].values)
     all_median_profiles.append(df.ix[1].values)
     all_median_profiles.append(df_im.ix[0].values)
-    plot.profile(all_median_profiles, genes, cst.Z_LINE_SPACING, plot_name, figure_title, colors, True)
+    plot.profile(all_median_profiles, genes, z_line_spacing, plot_name, figure_title, colors, True)

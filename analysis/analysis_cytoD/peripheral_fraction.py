@@ -27,6 +27,7 @@ def peripheral_profile(
     genes,
     mime_type,
     molecule_type,
+    num_contours,
     colors,
     save_into_dir_path_name,
     ext_logger=None
@@ -34,7 +35,7 @@ def peripheral_profile(
     assert os.path.isdir(save_into_dir_path_name)
 
     timepoint = timepoint if timepoint else 'All'
-    graph_file_name = 'peripheral_fraction_' + timepoint + '_timepoint_' + molecule_type[0]+ '_'+ str(constants.NUM_CONTOURS) + 'contours.png'
+    graph_file_name = 'peripheral_fraction_' + timepoint + '_timepoint_' + molecule_type[0]+ '_'+ str(num_contours) + 'contours.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
     graph_metadata = {
         "file_name": graph_file_name,
@@ -46,7 +47,7 @@ def peripheral_profile(
     plot.profile(
         mean_profiles,
         genes,
-        constants.NUM_CONTOURS,
+        num_contours,
         graph_file_path_name,
         figure_title,
         colors,
@@ -68,6 +69,7 @@ def peripheral_profiles(
     molecule_type,
     genes,
     mime_type,
+    num_contours,
     colors,
     compute_peripheral_fraction_profiles,
     timepoints,
@@ -110,6 +112,7 @@ def peripheral_profiles(
             genes=genes,
             mime_type=mime_type,
             molecule_type=molecule_type,
+            num_contours=num_contours,
             colors=colors,
             save_into_dir_path_name=save_into_dir_path_name,
             ext_logger=ext_logger
@@ -449,6 +452,7 @@ def main(
     basic_file_name = configData["BASIC_FILE_NAME"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
     periph_fraction_cst = configData["PERIPHERAL_FRACTION_THRESHOLD"]
+    num_contours=configData["NUM_CONTOURS"]
 
     with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as basic_h5_file_handler, \
          h5py.File(path.data_dir+input_dir_name+"/"+secondary_file_name, "r") as secondary_h5_file_handler:
@@ -498,6 +502,7 @@ def main(
                 molecule_type=['mrna'],
                 genes=genes,
                 mime_type=mime_type,
+                num_contours=num_contours,
                 colors=plot_colors,
                 compute_peripheral_fraction_profiles=adsc.compute_mrna_peripheral_fraction_profiles_2D,
                 timepoints=None,
@@ -516,6 +521,7 @@ def main(
                 molecule_type=['protein'],
                 genes=proteins,
                 mime_type=mime_type,
+                num_contours=num_contours,
                 colors=plot_colors,
                 compute_peripheral_fraction_profiles=adsc.compute_protein_peripheral_fraction_profiles_3D,
                 timepoints=None,

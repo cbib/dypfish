@@ -28,6 +28,8 @@ def main():
     simulation_number = configData["RIPLEY_K_SIMULATION_NUMBER"]
     pixels_in_slice = float(configData["SLICE_THICKNESS"] * configData["SIZE_COEFFICIENT"])
     contours_num=configData["NUM_CONTOURS"]
+    image_width=configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
     basic_file_name = configData["BASIC_FILE_NAME"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
     hstar_file_name = configData["HSTAR_FILE_NAME"]
@@ -39,7 +41,7 @@ def main():
 
         image_list = helps.preprocess_image(input_file_handler)
         for image in image_list:
-            idsc.set_cell_mask_distance_map(input_file_handler, secondary_file_handler, image, contours_num)
+            idsc.set_cell_mask_distance_map(input_file_handler, secondary_file_handler, image, contours_num,image_width, image_height, max_cell_radius,)
             idsc.set_cell_area(input_file_handler, secondary_file_handler, image)
             idsc.set_nucleus_area(input_file_handler, secondary_file_handler, image)
             idsc.set_h_star_protein_2D(input_file_handler, hstar_file_handler, image, pixels_in_slice,max_cell_radius, simulation_number)

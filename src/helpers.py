@@ -134,10 +134,10 @@ def plot_mask(mask):
     plt.imshow(mask, cmap='gray')
     plt.show()
 
-def build_quadrant_mask(index):
-    quad_mask = np.zeros((constants.IMAGE_WIDTH, constants.IMAGE_HEIGHT))
-    end = constants.IMAGE_WIDTH-1
-    for i in range(int(constants.IMAGE_WIDTH/2)):
+def build_quadrant_mask(index,image_width,image_height):
+    quad_mask = np.zeros((image_width, image_height))
+    end = image_width-1
+    for i in range(int(image_width/2)):
         if index == 1:
             quad_mask[i, i + 1:end - i + 1] = 1
         elif index == 2:
@@ -342,7 +342,7 @@ def ripley_k_random_measure_2D(IF,my_lambda,nuw,r_max):
     return K
 
 
-def ripley_k_random_measure(IF,my_lambda,nuw,r_max):
+def ripley_k_random_measure(IF,my_lambda,nuw,max_cell_radius,image_width, image_height):
     # make convolution in 2D - approximates 3D convolution as Z dimension is thin
 
     IF_2D=np.sum(IF,axis=2)
@@ -351,16 +351,16 @@ def ripley_k_random_measure(IF,my_lambda,nuw,r_max):
 
 
     # distance map(dist from origin)
-    dMap = np.zeros((constants.IMAGE_WIDTH * 2 - 1, constants.IMAGE_HEIGHT * 2 - 1))
-    for x in range(constants.IMAGE_WIDTH * 2 - 1):
-        for y in range(constants.IMAGE_HEIGHT * 2 - 1):
-            d = (x - constants.IMAGE_WIDTH) ** 2 + (y - constants.IMAGE_HEIGHT) ** 2;
+    dMap = np.zeros((image_width * 2 - 1, image_height * 2 - 1))
+    for x in range(image_width * 2 - 1):
+        for y in range(image_height * 2 - 1):
+            d = (x - image_width) ** 2 + (y - image_height) ** 2;
             dMap[x, y] = math.sqrt(d)
 
 
     # sum convolution using dMap
-    K = np.zeros((constants.MAX_CELL_RADIUS, 1))
-    for m in range(constants.MAX_CELL_RADIUS):
+    K = np.zeros((max_cell_radius, 1))
+    for m in range(max_cell_radius):
         K[m] = P[dMap[:,:] <= m].sum()
     K = K * (1 / (my_lambda ** 2 * nuw)) - (1 / my_lambda )
     return K
@@ -386,24 +386,24 @@ def ripley_k_point_process_2d(spots, my_lambda, nuw, r_max):
     K = K * (1 / (my_lambda**2 * nuw))
     return K
 
-def ripley_k_point_process(spots, my_lambda, nuw, r_max):
+def ripley_k_point_process(spots, my_lambda, nuw, max_cell_radius, pixels_in_slice):
     n_spots = len(spots)
-    K = np.zeros((constants.MAX_CELL_RADIUS, 1))
+    K = np.zeros((max_cell_radius, 1))
     for i in range(n_spots):
         ds = np.zeros((n_spots-1,1))
         for j in range(3):
             a = np.ma.array(spots[:, j], mask=False)
             a.mask[i] = True
             if j==2:
-                ds=np.add(ds.flatten(), np.square((spots[i, j] - a.compressed()) * constants.PIXELS_IN_SLICE))
+                ds=np.add(ds.flatten(), np.square((spots[i, j] - a.compressed()) * pixels_in_slice))
             else:
                 ds=np.add(ds.flatten(), np.square(spots[i, j] - a.compressed()))
         ds = np.sqrt(ds)
-        if n_spots - 1 < r_max:
+        if n_spots - 1 < max_cell_radius:
             for m in range(n_spots - 1):
-                K[int(math.ceil(ds[m])):int(r_max)] = K[int(math.ceil(ds[m])):int(r_max)] + 1
+                K[int(math.ceil(ds[m])):int(max_cell_radius)] = K[int(math.ceil(ds[m])):int(max_cell_radius)] + 1
         else:
-            for m in range(r_max):
+            for m in range(max_cell_radius):
                 K[m] = K[m] + ds[ds <= m].sum()
     K = K * (1 / (my_lambda**2 * nuw))
     return K
@@ -473,7 +473,7 @@ def clustering_index_random_measure_2d(IF, cell_mask_2d, max_cell_radius=400, si
     return h_star
 
 
-def clustering_index_random_measure(IF, cell_mask_3d, pixels_in_slice, max_cell_radius=400, simulation_number=20):
+def clustering_index_random_measure(IF, cell_mask_3d, pixels_in_slice, image_width, image_height, max_cell_radius=400, simulation_number=20):
     nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * pixels_in_slice
     my_lambda = float(np.sum(IF[:, :, :])) / float(nuw)
     k = ripley_k_random_measure(IF, my_lambda, nuw, max_cell_radius)
@@ -493,7 +493,7 @@ def clustering_index_random_measure(IF, cell_mask_3d, pixels_in_slice, max_cell_
             new_z = indsAll[2][inds_permuted[u]]
             old_z = indsAll[2][u]
             I_samp[new_x,new_y,new_z]=IF[old_x,old_y,old_z]
-        k_sim[t, :]=ripley_k_random_measure(I_samp,my_lambda,nuw,max_cell_radius).flatten()
+        k_sim[t, :]=ripley_k_random_measure(I_samp,my_lambda,nuw,max_cell_radius,image_width, image_height).flatten()
 
     h_star = np.zeros((max_cell_radius, 1))
     h=k
@@ -608,7 +608,7 @@ def clustering_index_point_process(spots, cell_mask_3d, pixels_in_slice, max_cel
     #print (spots.shape)
     # spots volumic density
     my_lambda = float(n_spots) / float(nuw)
-    k = ripley_k_point_process(spots, my_lambda, nuw, max_cell_radius)
+    k = ripley_k_point_process(spots, my_lambda, nuw, max_cell_radius, pixels_in_slice)
     k_sim = np.zeros((simulation_number, max_cell_radius))
 
     #simulate n list of random spots and run ripley_k
@@ -701,11 +701,11 @@ def find_nearest(array, value):
     return idx
 
 
-def prune_intensities(image,zero_level):
+def prune_intensities(image,zero_level, image_width, image_height):
     IF_image_path = path.raw_data_dir + '/' + image.split('/')[2] + '/' + image.split('/')[1] + '_' + \
                          image.split('/')[3] + '/image_' + image.split('/')[4] + '/IF.tif'
     IF = io.imread(IF_image_path, plugin='tifffile')
-    vol_block = np.zeros((constants.IMAGE_WIDTH, constants.IMAGE_HEIGHT, zero_level))
+    vol_block = np.zeros((image_width, image_height, zero_level))
     for c_slice in range(0, zero_level):
         vol_block[:, :, c_slice] = IF[c_slice,:,:]
     return vol_block

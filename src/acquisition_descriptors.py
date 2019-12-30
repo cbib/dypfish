@@ -178,25 +178,25 @@ def compute_degree_of_clustering_wo_MTOC(image_list,file_handler):
     return h_star_l
 
 
-def compute_cytoplasmic_spread_2D(file_handler, image_list,path_data):
+def compute_cytoplasmic_spread_2D(file_handler, image_list, image_width, image_height):
     cyt_spreads=[]
     for image in image_list:
         print(image)
         if 'mrna' in image:
             cyt_spread=image_descriptors.compute_mrna_cytoplasmic_spread_2D(file_handler,image)
         else:
-            cyt_spread=image_descriptors.compute_protein_cytoplasmic_spread_2D(file_handler,image,path_data)
+            cyt_spread=image_descriptors.compute_protein_cytoplasmic_spread_2D(file_handler,image,image_width, image_height)
         cyt_spreads.append(cyt_spread)
     return cyt_spreads
 
 
-def compute_cytoplasmic_spread(image_list, file_handler):
+def compute_cytoplasmic_spread(image_list, file_handler,image_width,image_height):
     cyt_spreads=[]
     for image in image_list:
         if 'mrna' in image:
-            cyt_spread=image_descriptors.compute_mrna_cytoplasmic_spread(file_handler,image)
+            cyt_spread=image_descriptors.compute_mrna_cytoplasmic_spread(file_handler, image, image_width, image_height)
         else:
-            cyt_spread=image_descriptors.compute_protein_cytoplasmic_spread(file_handler,image)
+            cyt_spread=image_descriptors.compute_protein_cytoplasmic_spread(file_handler, image, image_width, image_height)
         cyt_spreads.append(cyt_spread)
     return cyt_spreads
 

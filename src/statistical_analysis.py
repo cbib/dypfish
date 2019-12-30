@@ -242,13 +242,13 @@ def compare_spots_volume_density(file_handler, sec_file_handler, acquisition1, a
     plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/mic_vs_cult.png", format="png")
     plt.show()
 
-def compare_spots_density_by_gene_and_timepoint(file_handler, acquisition1, acquisition2, timepoints1, timepoints2):
+def compare_spots_density_by_gene_and_timepoint(file_handler, acquisition1, acquisition2, timepoints1, timepoints2, size_coeff):
     # build all image for an acquisition and a list of timepoint
     arhgdia_cultured = build_image_list_2(file_handler, 'mrna', acquisition2,timepoints2)
     arhgdia = build_image_list_2(file_handler, 'mrna', acquisition1,timepoints1)
     num_spots_arhgdia = [len(idsc.get_spots(file_handler, x)) for x in arhgdia]
     num_spots_arhgdia_cultured = [len(idsc.get_spots(file_handler, x)) for x in arhgdia_cultured]
-    const = math.pow((1 / constants.SIZE_COEFFICIENT), 2) * 100
+    const = math.pow((1 / size_coeff), 2) * 100
     cell_area_arhgdia = [idsc.get_cell_area(file_handler, x) * const for x in arhgdia]
 
     # cell_area_arhgdia_cultured = [idsc.get_cell_area(file_handler, x) * const for x in arhgdia_cultured]

@@ -108,7 +108,7 @@ def set_h_star_protein(
     zero_level = get_zero_level(basic_h5_file_handler, image)
     IF = prune_intensities(image, zero_level)
     IF = IF * cell_mask_3d
-    h_star = helps.clustering_index_random_measure(IF, cell_mask_3d, pixels_in_slice, max_cell_radius, simulation_number)
+    h_star = helps.clustering_index_random_measure(IF, cell_mask_3d, pixels_in_slice, image_width, image_height, max_cell_radius, simulation_number)
     descriptor = image + '/h_star'
     # secondary_h5_file_handler[descriptor][:] = h_star
     secondary_h5_file_handler.create_dataset(descriptor, data=h_star, dtype=np.float32)
@@ -179,23 +179,26 @@ def compute_line_segments(
         nucleus_mask,
         cytoplasm_mask,
         nucleus_centroid,
+        max_cell_radius,
+        image_width,
+        image_height,
         x_slope,
         y_slope
 ):
     logger.info('Compute line segments')
-    cytoplasm_segment = np.zeros(constants.MAX_CELL_RADIUS)
-    nucleus_segment = np.zeros(constants.MAX_CELL_RADIUS)
+    cytoplasm_segment = np.zeros(max_cell_radius)
+    nucleus_segment = np.zeros(max_cell_radius)
 
     # check for each point of the line (length MAX_CELL_RADIUS) if it falls within the nucleus or the cytoplasm
     # print(x_slope)
     # print(y_slope)
 
-    for point in range(constants.MAX_CELL_RADIUS):
+    for point in range(max_cell_radius):
         x = int(round(nucleus_centroid[0] + point * x_slope))
         # print(x)
         y = int(round(nucleus_centroid[1] + point * y_slope))
         # print(y)
-        if not (x < 0 or x > (constants.IMAGE_WIDTH - 1) or y < 0 or y > (constants.IMAGE_HEIGHT - 1)):
+        if not (x < 0 or x > (image_width - 1) or y < 0 or y > (image_height - 1)):
             cytoplasm_segment[point] = cytoplasm_mask[y, x]
             nucleus_segment[point] = nucleus_mask[y, x]
         else:
@@ -226,16 +229,19 @@ def compute_edge_points(
 def compute_cell_mask_distance_map(
         nucleus_mask,
         cytoplasm_mask,
+        nums_contour,
+        image_width,
+        image_height,
         contour_points
 ):
-    cell_mask_distance_map = np.zeros((constants.IMAGE_WIDTH, constants.IMAGE_HEIGHT), dtype=np.int)
-    for index in range(constants.NUM_CONTOURS):
+    cell_mask_distance_map = np.zeros((image_width, image_height), dtype=np.int)
+    for index in range(nums_contour):
         if index == 0:
             peripheral_mask = nucleus_mask
         else:
-            contour_num = constants.NUM_CONTOURS - index
+            contour_num = nums_contour - index
             peripheral_mask = helps.create_mask(contour_points[:, contour_num, 1], contour_points[:, contour_num, 0],
-                                                (constants.IMAGE_WIDTH, constants.IMAGE_HEIGHT))
+                                                (image_width, image_height))
             peripheral_mask &= cytoplasm_mask
         cell_mask_distance_map[(peripheral_mask == 1)] = index + 1
 
@@ -248,6 +254,8 @@ def compute_cell_mask_distance_map(
 def set_cell_mask_distance_map(
         basic_h5_file_handler,
         secondary_h5_file_handler,
+        image_width,
+        image_height,
         nums_contour,
         image
 ):
@@ -268,7 +276,7 @@ def set_cell_mask_distance_map(
     for degree in range(360):
         angle = degree * 2 * math.pi / 360
         x_slope, y_slope = math.sin(angle), math.cos(angle)
-        nucleus_segment, cytoplasm_segment = compute_line_segments(nucleus_mask, cytoplasm_mask, nucleus_centroid,
+        nucleus_segment, cytoplasm_segment = compute_line_segments(nucleus_mask, cytoplasm_mask, nucleus_centroid,max_cell_radius, image_width,image_height,
                                                                    x_slope, y_slope)
         nucleus_edge_point, cytoplasm_edge_point = compute_edge_points(nucleus_segment, cytoplasm_segment)
         segment_length = cytoplasm_edge_point - nucleus_edge_point
@@ -282,7 +290,7 @@ def set_cell_mask_distance_map(
     # end = time.time()
     # print(end - start)
     # sys.exit()
-    cell_mask_distance_map = compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points)
+    cell_mask_distance_map = compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, nums_contour, image_width, image_height, contour_points)
     # cell_mask_distance_map[(cell_mask == 1) & (cell_mask_distance_map == 0)] = 1
     # cell_mask_distance_map[nucleus_mask == 1] = 0
 
@@ -380,6 +388,8 @@ class Preprocess(Thread):
                     set_cell_mask_distance_map(
                         self.basic_h5_file_handler,
                         self.secondary_h5_file_handler,
+                        self.image_width,
+                        self.image_height,
                         self.nums_contour,
                         image
                     )
@@ -524,6 +534,7 @@ def generate_secondary_descriptors_hd5(
                         set_cell_mask_distance_map(
                             basic_h5_file_handler,
                             secondary_h5_file_handler,
+                            nums_contour,
                             image
                         )
                         if 'mrna' in image:
@@ -546,11 +557,13 @@ def generate_secondary_descriptors_hd5(
                         set_cell_area(
                             basic_h5_file_handler,
                             secondary_h5_file_handler,
+                            size_coeff,
                             image
                         )
                         set_nucleus_area(
                             basic_h5_file_handler,
                             secondary_h5_file_handler,
+                            size_coeff,
                             image
                         )
                         '''PREPROCESS'''
@@ -559,13 +572,20 @@ def generate_secondary_descriptors_hd5(
                             set_h_star_mrna(
                                 basic_h5_file_handler,
                                 secondary_h5_file_handler,
+                                pixels_in_slice,
+                                max_cell_radius,
+                                simulation_number,
                                 image
                             )
                         elif 'protein' in image:
                             set_h_star_protein(
                                 basic_h5_file_handler,
                                 secondary_h5_file_handler,
-                                raw_images_dir_path,
+                                pixels_in_slice,
+                                max_cell_radius,
+                                simulation_number,
+                                image_width,
+                                image_height,
                                 image
                             )
 
@@ -597,7 +617,6 @@ if __name__ == "__main__":
     size_coeff=configData["SIZE_COEFFICIENT"]
     nums_contour = configData["NUM_CONTOURS"]
     image_width = configData["IMAGE_WIDTH"]
-
     image_height = configData["IMAGE_HEIGHT"]
 
 

@@ -33,6 +33,9 @@ def main():
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
     hstar_file_name = configData["HSTAR_FILE_NAME"]
     mtoc_file_name = configData["MTOC_FILE_NAME"]
+    image_width = configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
+
 
 
     # micropatterned data
@@ -50,7 +53,7 @@ def main():
                 print(proteins[i], '_', timepoint)
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, proteins[i], [timepoint])
 
-                cyt_spread = adsc.compute_cytoplasmic_spread(image_list,file_handler)
+                cyt_spread = adsc.compute_cytoplasmic_spread(image_list,file_handler,image_width,image_height)
                 prof_m[cpt_g,0,cpt_tp]=np.median(cyt_spread)
 
                 periph_frac = adsc.compute_mrna_periph_fraction(image_list, file_handler, secondary_file_handler, 10)
