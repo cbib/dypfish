@@ -104,9 +104,9 @@ def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler,
     if is_periph:
         df.to_csv(
             check_dir(
-                path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna_all_NMTOC.csv')
+                path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_mrna.csv')
     else:
-        df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna_all_NMTOC.csv')
+        df.to_csv(check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_mrna.csv')
 
 
 def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, sec_file_handler, configData):
@@ -168,10 +168,10 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
     if is_periph:
         df.to_csv(
             check_dir(
-                path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein_all_NMTOC.csv')
+                path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_protein.csv')
     else:
         df.to_csv(
-            check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein_all_NMTOC.csv')
+            check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_protein.csv')
 
 
 if __name__ == "__main__":

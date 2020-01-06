@@ -26,12 +26,12 @@ parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 f
 args = parser.parse_args()
 input_dir_name = args.input_dir_name
 
-def cytoplasmic_spread(file_handler, molecule_type,genes):
+def cytoplasmic_spread(file_handler, molecule_type,genes,image_width,image_height):
     cyt_spreads = []
     figname = check_dir(path.analysis_dir + '/analysis_nocodazole/figures/cytoplasmic_spread/') + molecule_type + '_cytoplasmic_spread.png'
     for gene in genes:
         image_list = helps.preprocess_image_list2(file_handler, molecule_type, gene)
-        cyt_spreads.append(adsc.compute_cytoplasmic_spread(image_list, file_handler))
+        cyt_spreads.append(adsc.compute_cytoplasmic_spread_2D(image_list, file_handler, image_width,image_height))
     plot.bar_profile(cyt_spreads, genes, figname)
 
 if __name__ == "__main__":
@@ -43,8 +43,10 @@ if __name__ == "__main__":
     basic_file_name = configData["BASIC_FILE_NAME"]
     colors = configData["COLORS"]
     molecule_types = configData["MOLECULE_TYPES"]
+    image_width = configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
 
 
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as file_handler:
         for molecule_type in molecule_types:
-            cytoplasmic_spread(file_handler,molecule_type,mrnas)
+            cytoplasmic_spread(file_handler,molecule_type,mrnas,image_width,image_height)

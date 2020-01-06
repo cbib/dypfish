@@ -21,6 +21,7 @@
     "MOLECULE_TYPES": ["mrna", "protein"],
     "GENES" : ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"],
     "PROTEINS" : ["beta_actin", "arhgdia", "gapdh", "pard3"],
+    "COLORS" : ["#0A3950", "#1E95BB", "#A1BA6D", "#F16C1B", "#C02A18", "#E9CB45"],
     "TIMEPOINTS_MRNA" : ["2h", "3h", "4h", "5h"],
     "TIMEPOINTS_PROTEIN" : ["2h", "3h", "5h", "7h"],
     "TIMEPOINTS_NUM_MRNA":[2, 3, 4, 5],

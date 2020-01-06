@@ -30,9 +30,23 @@ def compute_mpis(df_sorted,bootstrap_mpi):
     mpis = []
     random_mpis = []
     for gene, line in df_sorted.groupby(['Gene']):
-        gene_random_mpis = []
-        nonMTOC =line['Non MTOC1'].values+ line['Non MTOC2'].values+ line['Non MTOC3'].values
+        # print(gene)
+        # print("#################################")
+        # print("non mTOC 1", line['Non MTOC1'].values)
+        # print("#################################")
+        # print("non mTOC 2", line['Non MTOC2'].values)
+        # print("#################################")
+        # print("non mTOC 3", line['Non MTOC3'].values)
+        # print("#################################")
 
+
+        gene_random_mpis = []
+        #nonMTOC =line['Non MTOC1'].values + line['Non MTOC2'].values+ line['Non MTOC3'].values
+        #nonMTOC = np.array(line['Non MTOC1'].values) + np.array(line['Non MTOC2'].values) + np.array(line['Non MTOC3'].values)
+        nonMTOC=np.concatenate((np.array(line['Non MTOC1'].values), np.array(line['Non MTOC2'].values),np.array(line['Non MTOC3'].values)), axis=0)
+
+        #print("NON MTOC concatenated ",nonMTOC)
+        #sys.exit()
         for i in range(100):
             mpi, p = stan.calculate_random_mpi(line['MTOC'].values,nonMTOC,bootstrap_mpi)
             gene_random_mpis.append(mpi)
@@ -66,12 +80,12 @@ def main():
     enable_logger()
     if is_periph:
         print ('Periph mode')
-        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_mrna_all_NMTOC.csv'
-        df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_all_protein.csv'
+        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_mrna.csv'
+        df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'periph_global_mtoc_file_protein.csv'
     else:
         print ('Global mode')
-        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_mrna_all_NMTOC.csv'
-        df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_all_protein_all_NMTOC.csv'
+        df_filename_m=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_mrna.csv'
+        df_filename_p=check_dir(path.analysis_dir + 'analysis_MTOC/dataframe/') + 'global_mtoc_file_protein.csv'
 
     #mrna part
     df_m = pd.read_csv(df_filename_m)
@@ -84,6 +98,7 @@ def main():
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_mrna_paired_mpis.png'
     else:
         figname=check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'mrna_paired_mpis.png'
+
     bar_profile_median(mpis, genes, 'mrna', figname, err)
 
     # plot boxplot cytoplasmic mpi
@@ -151,7 +166,9 @@ def main():
         mpis = []
         for gene, line in df_sorted_mc.groupby(['timepoint']):
             gene_random_mpis = []
-            nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
+            #nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
+            nonMTOC = np.concatenate((np.array(line['Non MTOC1'].values), np.array(line['Non MTOC2'].values),np.array(line['Non MTOC3'].values)), axis=0)
+            #nonMTOC=np.mean((np.array(line['Non MTOC1'].values), np.array(line['Non MTOC2'].values),np.array(line['Non MTOC3'].values)))
             for j in range(100):
 
                 mpi, p = stan.calculate_random_mpi(line['MTOC'].values, nonMTOC, bootstrap_mpi)
@@ -171,7 +188,8 @@ def main():
             mrna_data[1, counter] = upp_env
             mrna_data[2, counter] = low_env
             counter += 1
-        mrna_data = mrna_data / np.mean(mrna_data[0, :])
+        #mrna_data = mrna_data / np.mean(mrna_data[0, :])
+
         if genes[i] in proteins:
             df_sorted_pc = df_sorted_p.copy()
             df_sorted_pc = df_sorted_pc[df_sorted_pc.Gene == genes[i]]
@@ -179,7 +197,9 @@ def main():
             mpis = []
             for gene, line in df_sorted_pc.groupby(['timepoint']):
                 gene_random_mpis = []
-                nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
+                #nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
+                nonMTOC = np.concatenate((np.array(line['Non MTOC1'].values), np.array(line['Non MTOC2'].values),np.array(line['Non MTOC3'].values)), axis=0)
+                #nonMTOC = np.mean((np.array(line['Non MTOC1'].values), np.array(line['Non MTOC2'].values),np.array(line['Non MTOC3'].values)))
 
                 for j in range(100):
                     mpi, p = stan.calculate_random_mpi(line['MTOC'].values, nonMTOC, bootstrap_mpi)
@@ -197,7 +217,7 @@ def main():
                 protein_data[1, counter] = upp_env
                 protein_data[2, counter] = low_env
                 counter += 1
-            protein_data = protein_data / np.mean(protein_data[0, :])
+            #protein_data = protein_data / np.mean(protein_data[0, :])
 
         figname = check_dir(path.analysis_dir + 'analysis_MTOC/figures/') + 'periph_' if is_periph else '' + 'MPI_' + genes[i] + '.png'
         if is_periph:

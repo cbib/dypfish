@@ -202,12 +202,6 @@ Based on the cell masks, we calculated the peripheral fraction of mRNA and prote
         python analysis/analysis_peripheral_fraction_profile/main.py -i original
 ```
 
-###### Volume corrected noise measure (Spots density analysis) 
-In order to measure gene expression noise while accounting for cell volume, we computed the volume corrected noise measure Nm for micropatterned and standardly cultured cells.
-```
-        python analysis/analysis_spots_density/main.py -i original
-```
-
 ###### Cytoplasmic spread analysis
 Measures how evenly a molecule is spread across the cell
 ```
@@ -262,6 +256,11 @@ The degree of clustering is a unitless measure that can be used to compare clust
 
 ### specific analysis
 
+###### Volume corrected noise measure (Spots density analysis) 
+In order to measure gene expression noise while accounting for cell volume, we computed the volume corrected noise measure Nm for micropatterned and standardly cultured cells.
+```
+        python analysis/analysis_spots_density/main.py -i cultured
+```
 
 ###### Nocodazole analysis
 Adaptations of the previous methods to the case of nocodazole treated cells.

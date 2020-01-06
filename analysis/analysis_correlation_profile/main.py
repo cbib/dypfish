@@ -62,7 +62,7 @@ def main():
                 cyt_total=adsc.compute_cytoplasmic_total(image_list, file_handler, path.path_data)
                 prof_m[cpt_g, 2, cpt_tp]=np.median(cyt_total)
 
-                dof = adsc.compute_degree_of_clustering(image_list,hstar_file_handler, mtoc_file_handler)
+                dof = adsc.compute_degree_of_clustering(image_list, hstar_file_handler, mtoc_file_handler)
                 prof_m[cpt_g, 3, cpt_tp]=np.median(dof)
 
                 cpt_tp+=1

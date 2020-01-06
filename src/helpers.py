@@ -258,12 +258,10 @@ def preprocess_image_list2(file_handler, molecule, gene_name):
 
 def preprocess_image_list3(file_handler, molecule_type, gene, timepoints):
     """build path from preliminar h5 files with basic descriptors"""
-    print(timepoints)
     image_path_list = []
     for molecule in molecule_type:
         for timepoint in timepoints:
             node = molecule + '/' + gene + '/' + timepoint
-            print(node)
             if node in file_handler:
                 for image in file_handler[node]:
                     image_path = molecule + '/' + gene + '/' + timepoint + '/' + image

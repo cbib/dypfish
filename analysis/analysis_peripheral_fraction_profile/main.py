@@ -97,7 +97,6 @@ def peripheral_profiles(
                 molecule_type[0],
                 gene
                 )
-            print(image_list)
             profiles=compute_peripheral_fraction_profiles(
                 basic_h5_file_handler,
                 secondary_h5_file_handler,
@@ -150,7 +149,6 @@ def mrna_peripheral_fraction_profile(
                 basic_h5_file_handler
                 )
             )
-    print(fractions)
     graph_file_name = molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name,graph_file_name)
 
@@ -199,7 +197,6 @@ def protein_peripheral_fraction_profile(
                 basic_h5_file_handler
                 )
             )
-    print(fractions)
     graph_file_name = molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name,graph_file_name)
 
@@ -244,7 +241,6 @@ def histogram_peripheral_profile(
         slashed_molecule_type = [("/%s" % m) for m in molecule_type]
         periph_fraction = []
         for gene in genes:
-            print(gene)
             image_list = helps.preprocess_image_list2(
                 basic_h5_file_handler,
                 slashed_molecule_type[0],

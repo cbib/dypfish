@@ -119,8 +119,7 @@ def map_index(x,mtoc_quad):
     return new_index
 
 def reindex_quadrant_mask3(quad_mask, mtoc_quad):
-     print(mtoc_quad)
-     import pandas as pd
+
      df=pd.DataFrame(quad_mask)
      df=df.applymap(lambda x: x-mtoc_quad+1 if x >= mtoc_quad else (x+8-mtoc_quad+1 if x >0 else 0))
      quad_mask=np.array(df)
@@ -174,7 +173,6 @@ if __name__ == "__main__":
         molecule_type=['/mrna']
         gene_count=0
         for mrna in mrnas:
-            print(mrna)
             time_count = 0
             for timepoint in mrna_timepoints:
                 key=mrna+"_"+timepoint
@@ -217,7 +215,6 @@ if __name__ == "__main__":
 
         gene_count = 0
         for protein in proteins:
-            print(protein)
             time_count = 0
             for timepoint in prot_timepoints:
                 key = protein + "_" + timepoint

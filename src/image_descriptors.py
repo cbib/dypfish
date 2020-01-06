@@ -885,7 +885,7 @@ def compute_protein_cytoplasmic_total(file_handler, image, path_data):
 
 # Compare cytoplasmic spread cell with 3D cytoplasmic mrna spread
 # to evaluate degree of spread
-def compute_mrna_cytoplasmic_spread(file_handler, image,image_width,image_height):
+def compute_mrna_cytoplasmic_spread(file_handler, image, image_width, image_height):
     cell_mask = get_cell_mask(file_handler, image)
     height_map = get_height_map(file_handler, image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
@@ -928,7 +928,7 @@ def compute_mrna_cytoplasmic_spread(file_handler, image,image_width,image_height
 
 # Compare cytoplasmic spread cell with 2D cytoplasmic mrna spread
 # to evaluate degree of spread
-def compute_mrna_cytoplasmic_spread_2D(file_handler, image,image_width,image_height):
+def compute_mrna_cytoplasmic_spread_2D(file_handler, image, image_width, image_height):
     cell_mask = get_cell_mask(file_handler, image)
     nucleus_centroid = get_nucleus_centroid(file_handler, image)
     spots = get_spots(file_handler, image)

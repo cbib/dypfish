@@ -116,6 +116,7 @@ if __name__ == "__main__":
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
     mtoc_file_name = configData["MTOC_FILE_NAME"]
     colors = configData["COLORS"]
+    bootstrap_mpi = configData["BOOTSTRAP_MPI"]
 
     path_data = path.raw_data_dir
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as file_handler,\
@@ -142,7 +143,7 @@ if __name__ == "__main__":
                 nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
 
                 for i in range(100):
-                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values, nonMTOC)
+                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values, nonMTOC, bootstrap_mpi)
                     gene_random_mpis.append(mpi)
                 mpis_random_noc.append(gene_random_mpis)
                 mpi,p=stan.calculate_mpi(line['MTOC'].values,nonMTOC)
@@ -159,7 +160,7 @@ if __name__ == "__main__":
                 nonMTOC = line['Non MTOC1'].values + line['Non MTOC2'].values + line['Non MTOC3'].values
 
                 for i in range(100):
-                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values , nonMTOC)
+                    mpi, p = stan.calculate_random_mpi(line['MTOC'].values , nonMTOC, bootstrap_mpi)
                     gene_random_mpis.append(mpi)
                 random_mpis.append(gene_random_mpis)
                 mpi, p = stan.calculate_mpi(line['MTOC'].values, nonMTOC)
@@ -200,7 +201,7 @@ if __name__ == "__main__":
         box.legend_.remove()
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/') +'arhgdia_' + molecule_type[0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
-
+        plt.close()
 
 
 
@@ -235,6 +236,7 @@ if __name__ == "__main__":
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/')+ 'pard3_' + molecule_type[
             0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
+        plt.close()
 
 
 
@@ -271,7 +273,7 @@ if __name__ == "__main__":
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/')+ 'arhgdia_' + molecule_type[
             0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
-
+        plt.close()
         array = ['pard3', 'pard3_nocodazole']
         protein_df = protein_df.loc[protein_df['Gene'].isin(array)]
         df_sorted = protein_df.sort_values(by='MTOC', ascending=False).groupby(['Gene', 'timepoint', 'Image'],as_index=False).first()
@@ -303,5 +305,5 @@ if __name__ == "__main__":
         figname = check_dir(path.analysis_dir + 'analysis_nocodazole/figures/MTOC/')+ 'pard3_' + molecule_type[
             0] + '_boxplot_MTOC_enrichment.svg'
         plt.savefig(figname, format='svg')
-
+        plt.close()
 

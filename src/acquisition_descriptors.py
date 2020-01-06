@@ -40,7 +40,6 @@ def compute_mrna_peripheral_fraction_profiles_2D(basic_file_handler, secondary_f
 def compute_mrna_peripheral_fraction_profiles_3D(basic_file_handler,secondary_file_handler, image_list):
     profiles = []
     for image in image_list:
-        print(image)
         spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance(secondary_file_handler, image)
         peripheral_profile = np.zeros(100)
         for i in range(0, 100):
@@ -87,8 +86,6 @@ def compute_protein_periph_fraction(image_list,basic_file_handler,secondary_file
 def compute_mrna_periph_fraction(image_list,basic_file_handler,secondary_file_handler, fraction):
     arr=[]
     for image in image_list:
-
-        print(image)
         spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance_2D(secondary_file_handler, image)
         arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
 
@@ -110,9 +107,6 @@ def compute_generic_periph_fraction(image_list,basic_file_handler,secondary_file
             periph_frac = float(IF_summed_periph) / float(IF_summed)
             arr.append(periph_frac)
         else:
-
-
-            print(image)
             spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance_2D(secondary_file_handler, image)
             arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
 
@@ -178,7 +172,7 @@ def compute_degree_of_clustering_wo_MTOC(image_list,file_handler):
     return h_star_l
 
 
-def compute_cytoplasmic_spread_2D(file_handler, image_list, image_width, image_height):
+def compute_cytoplasmic_spread_2D(image_list, file_handler, image_width, image_height):
     cyt_spreads=[]
     for image in image_list:
         print(image)
@@ -204,7 +198,6 @@ def compute_cytoplasmic_spread(image_list, file_handler,image_width,image_height
 def compute_cytoplasmic_total(image_list,file_handler, path_data):
     total_cyts=[]
     for image in image_list:
-        print(image)
         if 'mrna' in image:
             total_cyt=image_descriptors.compute_mrna_cytoplasmic_total(file_handler,image)
         else:

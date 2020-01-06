@@ -32,7 +32,6 @@ def get_spots_peripheral_distance_2D(spots,nucleus_mask,cell_mask,periph_dist_ma
                 spots_peripheral_distance_2D.append(int(1))
             else:
                 spots_peripheral_distance_2D.append(periph_dist_map[spot[1], spot[0]])
-    print(spots_peripheral_distance_2D)
     return np.array(spots_peripheral_distance_2D)
 
 def main():
