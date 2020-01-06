@@ -110,7 +110,7 @@ def sns_linear_regression(data_1,data_2,color,graph_file_path_name):
     sns_plot_regression.savefig(graph_file_path_name, format="png")
 
 
-def bar_profile_median(median,genes,molecule_type, figname, err):
+def bar_profile_median(median,genes, figname, err, colors):
     fig = plt.figure()
     ax = plt.axes()
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
@@ -121,7 +121,7 @@ def bar_profile_median(median,genes,molecule_type, figname, err):
     N = len(genes)
     ind = np.arange(N)
     width = 0.35
-    ax.bar(ind, median, width, color=plot_colors_chx,
+    ax.bar(ind, median, width, color=colors,
            yerr=err,
            error_kw=dict(elinewidth=1, ecolor='black'))
     ax.set_xlim(-width, len(ind) + width)

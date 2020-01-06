@@ -46,6 +46,7 @@ def main():
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     hstar_file_name = configData["HSTAR_FILE_NAME"]
     mtoc_file_name = configData["MTOC_FILE_NAME"]
+    colors = configData["COLORS"]
 
 
     # produce bar plot for degree of clustering
@@ -76,14 +77,15 @@ def main():
             err = np.median(np.abs(np.tile(np.median(dof), (1, len(dof))) - dof))
             protein_err.append(math.log(np.median(dof) + err) - math.log(np.median(dof)) - base)
 
-        #plot figures
+        #Figure 2E left panel in dypFISH article
         figname = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + 'mrna_degree_of_clustering.png'
-        plot.bar_profile_median(mrna_median, genes, 'mrna', figname, mrna_err)
+        plot.bar_profile_median(mrna_median, genes, figname, mrna_err, colors)
 
+        #Figure 2E right panel in dypFISH article
         figname = check_dir(path.analysis_dir + 'analysis_degree_of_clustering/figures/') + 'protein_degree_of_clustering.png'
-        plot.bar_profile_median(protein_median, proteins, 'protein', figname, protein_err)
+        plot.bar_profile_median(protein_median, proteins, figname, protein_err, colors)
 
-        # produce plot interpolation of degree of clustering by timepoint
+        #Plot interpolation of degree of clustering by timepoint (figure 2F in dypFISH article)
         degree_of_clustering_dynamic_profile(input_file_handler,mtoc_file_handler,proteins, timepoints_mrna,timepoints_protein,timepoints_num_mrna,timepoints_num_protein)
 
 

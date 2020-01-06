@@ -33,6 +33,7 @@ def main():
     timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     h_star_file_name = configData["HSTAR_FILE_NAME"]
+    colors= configData["COLORS"]
 
     check_dir(path.analysis_dir + 'analysis_CHX/figures/')
     # produce bar plot for degree of clustering
@@ -53,7 +54,7 @@ def main():
 
             # plot figures
             figname = check_dir(path.analysis_dir + 'analysis_chx/figures/degree_of_clustering/') + molecule_type+ '_degree_of_clustering.png'
-            plot.bar_profile_median(global_median, genes, molecule_type, figname, global_err)
+            plot.bar_profile_median(global_median, genes, figname, global_err,colors)
 
         # produce plot interpolation of degree of clustering by timepoint
         #degree_of_clustering_dynamic_profile(input_file_handler, genes, molecule_type,timepoints,timepoints_num_mrna,timepoints_num_protein)

@@ -36,6 +36,6 @@ def check_dir_only(path):
 
 def loadconfig(data_dir):
     data={}
-    with open(path.data_dir+data_dir+'/config.json', 'r') as fichier:
+    with open(path.config_data_dir+data_dir+'/config.json', 'r') as fichier:
         data = json.load(fichier)
     return data

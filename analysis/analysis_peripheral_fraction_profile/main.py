@@ -33,13 +33,13 @@ def peripheral_profile(
     assert os.path.isdir(save_into_dir_path_name)
 
     timepoint = timepoint if timepoint else 'All'
-    graph_file_name = 'peripheral_fraction_' + timepoint + '_timepoint_' + molecule_type[0]+ '_'+ str(num_contours) + 'contours.png'
+    graph_file_name = molecule_type[0]+ '_peripheral_fraction_profile.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
     graph_metadata = {
         "file_name": graph_file_name,
         "mime_type": PNG_IMAGES_MIME_TYPE
         }
-
+    # normalize by Gapdh profile (here index 2 in mean profiles array)
     mean_profiles = mean_profiles / np.matlib.repmat(mean_profiles[2], len(genes), 1)
     figure_title = ' peripheral profile ('+ timepoint+')'
 
@@ -120,102 +120,6 @@ def peripheral_profiles(
     return graphs_details
 
 
-def mrna_peripheral_fraction_profile(
-    secondary_h5_file_handler,
-    molecule_type,
-    genes,
-    fraction,
-    colors,
-    basic_h5_file_handler,
-    save_into_dir_path_name,
-    raw_images_dir_path_name=None,
-    ext_logger=None
-    ):
-    assert os.path.isdir(save_into_dir_path_name)
-
-    fractions = []
-    for gene in genes:
-        image_list = helps.preprocess_image_list2(
-            secondary_h5_file_handler,
-            molecule_type[0],
-            gene
-            )
-        fractions.append(
-            adsc.build_histogram_mrna_periph_fraction(
-                secondary_h5_file_handler,
-                image_list,
-                fraction,
-                raw_images_dir_path_name,
-                basic_h5_file_handler
-                )
-            )
-    graph_file_name = molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
-    graph_file_path_name = os.path.join(save_into_dir_path_name,graph_file_name)
-
-    graph_metadata = {
-        "file_name": graph_file_name,
-        "mime_type": PNG_IMAGES_MIME_TYPE
-        }
-
-    #plot.fraction_profile(fractions, fraction, genes, fig_file_path_name, colors)
-    plot.bar_profile(fractions, genes, graph_file_path_name)
-
-    assert(os.path.isfile(graph_file_path_name))
-
-    if ext_logger:
-        ext_logger.debug("Graph generated on path : %s" % graph_file_path_name)
-
-    return {graph_file_path_name: graph_metadata}
-
-
-def protein_peripheral_fraction_profile(
-    secondary_h5_file_handler,
-    molecule_type,
-    genes,
-    fraction,
-    colors,
-    basic_h5_file_handler,
-    save_into_dir_path_name,
-    raw_images_dir_path_name=None,
-    ext_logger=None
-    ):
-    assert os.path.isdir(save_into_dir_path_name)
-
-    fractions = []
-    for gene in genes:
-        image_list = helps.preprocess_image_list2(
-            secondary_h5_file_handler,
-            molecule_type[0],
-            gene
-            )
-        fractions.append(
-            adsc.build_histogram_protein_periph_fraction(
-                secondary_h5_file_handler,
-                image_list,
-                fraction,
-                raw_images_dir_path_name,
-                basic_h5_file_handler
-                )
-            )
-    graph_file_name = molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
-    graph_file_path_name = os.path.join(save_into_dir_path_name,graph_file_name)
-
-    graph_metadata = {
-        "file_name": graph_file_name,
-        "mime_type": PNG_IMAGES_MIME_TYPE
-        }
-
-    #plot.fraction_profile(fractions, fraction, genes, fig_file_path_name, colors)
-    plot.bar_profile(fractions, genes, graph_file_path_name)
-
-    assert(os.path.isfile(graph_file_path_name))
-
-    if ext_logger:
-        ext_logger.debug("Graph generated on path : %s" % graph_file_path_name)
-
-    return {graph_file_path_name: graph_metadata}
-
-
 def histogram_peripheral_profile(
     basic_h5_file_handler,
     secondary_h5_file_handler,
@@ -255,7 +159,7 @@ def histogram_peripheral_profile(
                     )
                 )
 
-        graph_file_name = molecule_type[0] +'_peripheral_fraction.png'
+        graph_file_name = molecule_type[0] +'_peripheral_fraction_'+ str(periph_fraction_cst)+'.png'
         graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
         graph_metadata = {
             "file_name": graph_file_name,
@@ -428,7 +332,6 @@ def main(
     # Required descriptors: spots_peripheral_distance, height_map, zero_level and spots
     ## Build peripheral profile plot either for each or for all timepoint
 
-    #mettre nom diu json en entier et en argument.
     configData = loadconfig(input_dir_name)
     genes = configData["GENES"]
     proteins = configData["PROTEINS"]
@@ -444,41 +347,7 @@ def main(
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as basic_h5_file_handler, \
          h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as secondary_h5_file_handler:
 
-
-        # Section to build peripheral profile fraction 10 and 30
-        try:
-            graph_details = mrna_peripheral_fraction_profile(
-                secondary_h5_file_handler=secondary_h5_file_handler,
-                molecule_type=['mrna'],
-                genes=genes,
-                fraction=10,
-                colors=plot_colors,
-                basic_h5_file_handler=basic_h5_file_handler,
-                save_into_dir_path_name=save_into_dir_path_name
-            )
-            resulting_graphs_details_as_list.append(graph_details)
-
-        except Exception as e:
-            errors.append("Could not generate peripheral fraction profile graph for mrna.")
-            raise
-
-        # Section to build peripheral profile fraction 10 and 30
-        try:
-            graph_details = protein_peripheral_fraction_profile(
-                secondary_h5_file_handler=secondary_h5_file_handler,
-                molecule_type=['protein'],
-                genes=proteins,
-                fraction=10,
-                colors=plot_colors,
-                basic_h5_file_handler=basic_h5_file_handler,
-                save_into_dir_path_name=save_into_dir_path_name
-            )
-            resulting_graphs_details_as_list.append(graph_details)
-
-        except Exception as e:
-            errors.append("Could not generate peripheral fraction profile graph fro protein.")
-            raise
-
+        # Section to build peripheral profile graph (figure 2B in dypFISH Paper, only mRNA figure is shown in article)
         try:
             graphs_details = peripheral_profiles(
                 basic_h5_file_handler=basic_h5_file_handler,
@@ -517,7 +386,7 @@ def main(
 
 
 
-        # Section to compute bar plot peripheral fraction
+        # Section to compute bar plot peripheral fraction (change PERIPHERAL_FRACTION_THRESHOLD constant in related config.json)
         try:
             graphs_details = histogram_peripheral_profile(
                 basic_h5_file_handler=basic_h5_file_handler,

@@ -86,7 +86,7 @@ def compute_protein_periph_fraction(image_list,basic_file_handler,secondary_file
 def compute_mrna_periph_fraction(image_list,basic_file_handler,secondary_file_handler, fraction):
     arr=[]
     for image in image_list:
-        spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance_2D(secondary_file_handler, image)
+        spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance(secondary_file_handler, image)
         arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction]))/float(len(spots_peripheral_distance)))
 
     return arr
@@ -118,8 +118,7 @@ def build_histogram_mrna_periph_fraction(sec_file_handler,image_list,fraction,pa
     arr = []
     for image in image_list:
         spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance(sec_file_handler, image)
-        arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction])) / float(
-            len(spots_peripheral_distance)))
+        arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction])) / float(len(spots_peripheral_distance)))
 
     return arr
 
