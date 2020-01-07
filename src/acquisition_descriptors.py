@@ -136,12 +136,11 @@ def build_histogram_mrna_periph_fraction_2D(sec_file_handler,image_list,fraction
 def build_histogram_protein_periph_fraction(sec_file_handler,image_list,fraction,path_data,basic_file_handler):
     arr=[]
     for image in image_list:
-
         nucleus_mask = image_descriptors.get_nucleus_mask(basic_file_handler, image)
         IF= image_descriptors.get_IF(basic_file_handler,image)
         cell_mask_distance_map = image_descriptors.get_cell_mask_distance_map(sec_file_handler, image)
         IF_periph = IF[(cell_mask_distance_map <= fraction) & (cell_mask_distance_map > 0)]
-        IF_summed = IF[nucleus_mask == 0].sum()
+        IF_summed = IF[nucleus_mask==0].sum()
         IF_summed_periph = IF_periph.sum()
         periph_frac = float(IF_summed_periph) / float(IF_summed)
         arr.append(periph_frac)

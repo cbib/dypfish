@@ -142,7 +142,7 @@ def sns_boxplot(dd,my_pal,figname):
     plt.yticks(fontsize=15)
     fig.savefig(figname, format='png')
 
-def bar_profile(data,genes,figname):
+def bar_profile(data,genes,figname,colors):
     #print(data)
     plt.figure()
     ax = plt.axes()
@@ -167,11 +167,12 @@ def bar_profile(data,genes,figname):
     #print(dataStd)
     ind = np.arange(N)
     width = 0.35
-    ax.bar(ind, dataMedians, width,color=plot_colors,
+    ax.bar(ind, dataMedians, width,color=colors,
                     yerr=dataStd,
                     error_kw=dict(elinewidth=1, ecolor='black'))
     ax.set_xlim(-width, len(ind) + width)
     ax.set_ylim(0, y_lim + 2* y_std)
+    #ax.set_ylim(0, 0.03)
     ax.set_xticks(ind)
     ax.set_xticklabels(["" for i in range(0, N)])
     plt.savefig(figname,format='png')
@@ -203,7 +204,7 @@ def fraction_profile(fractions,fraction,genes,figname,colors):
            error_kw=dict(elinewidth=1, ecolor='black'))
     ax.set_xlim(-width, len(ind) + width)
     ax.set_ylim(0, y_lim + 2 * y_std)
-    ax.set_ylim(0, 0.2)
+    #ax.set_ylim(0, 0.2)
 
     xTickMarks = ["" for i in range(0, len(genes))]
     ax.set_xticks(ind)
@@ -224,7 +225,7 @@ def histogram_noise_measured(nm_arhgdia,nm_arhgdia_cultured):
     xTickMarks = ["", ""]
     ax.set_xticks(ind)
     ax.bar(ind, [nm_arhgdia,nm_arhgdia_cultured], width, color=plot_colors)
-    plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/Volume-corrected_noise_measure.png", format='png')
+    plt.savefig(path.analysis_dir + "/spots_density/figures/Volume-corrected_noise_measure.png", format='png')
 
 def noise_measured_dynamic_profile(nms, gene, color):
     x_mrna = np.arange(2, 5, 0.01)
@@ -259,7 +260,7 @@ def noise_measured_dynamic_profile(nms, gene, color):
     ax.set_axisbelow(True)
     ax.yaxis.grid(color='gray', linestyle='dashed')
     ax.set_title(gene)
-    plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/nm_profile_" + gene+".png", format='png')
+    plt.savefig(path.analysis_dir + "/spots_density/figures/nm_profile_" + gene+".png", format='png')
 
 def profile(profiles, genes, slice_number, figname,figtitle,colors,save=False):
     fig = plt.figure(figsize=(15, 10))

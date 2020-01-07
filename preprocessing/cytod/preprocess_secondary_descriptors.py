@@ -32,9 +32,13 @@ def main():
     image_width=configData["IMAGE_WIDTH"]
     image_height = configData["IMAGE_HEIGHT"]
     size_coeff = configData["SIZE_COEFFICIENT"]
+    basic_file_name = configData["BASIC_FILE_NAME"]
+    secondary_file_name = configData["SECONDARY_FILE_NAME"]
 
-    with h5py.File(path.basic_file_path, "a") as input_file_handler, \
-            h5py.File(path.secondary_file_path, "a") as secondary_file_handler:
+
+
+    with h5py.File(path.data_dir + input_dir_name +'/'+ basic_file_name, "a") as input_file_handler, \
+            h5py.File(path.data_dir + input_dir_name +'/'+ secondary_file_name, "a") as secondary_file_handler:
 
         image_list = helps.preprocess_image_list_1(input_file_handler, genes)
         for image in image_list:

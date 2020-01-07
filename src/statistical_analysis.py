@@ -109,7 +109,7 @@ def compare_nucleus_area(file_handler, sec_file_handler, acquisition1, acquisiti
     plt.xticks([1, 2], ['Micropatterned cells', 'Standard cells'])
     plt.yticks(fontsize=50)
     plt.xticks(fontsize=26)
-    plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/nucleus_size_micropatterned_vs_standard.png",format='png')
+    plt.savefig(path.analysis_dir + "/spots_density/figures/nucleus_size_micropatterned_vs_standard.png",format='png')
 
 def compare_cell_area(file_handler, sec_file_handler, acquisition1, acquisition2):
     arhgdia = build_image_list(file_handler, 'mrna', acquisition1)
@@ -133,7 +133,7 @@ def compare_cell_area(file_handler, sec_file_handler, acquisition1, acquisition2
     plt.xticks([1, 2], ['Micropatterned cells', 'Standard cells'])
     plt.yticks(fontsize=50)
     plt.xticks(fontsize=26)
-    plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/cell_size_micropatterned_vs_standard.png", format="png")
+    plt.savefig(path.analysis_dir + "/spots_density/figures/cell_size_micropatterned_vs_standard.png", format="png")
     plt.close()
 
 def compare_cell_volume(file_handler, sec_file_handler, acquisition1, acquisition2):
@@ -147,7 +147,7 @@ def compare_cell_volume(file_handler, sec_file_handler, acquisition1, acquisitio
     plt.xticks([1, 2], ['micropatterned', 'cultured'])
     plt.ylabel('Cell volume (um^3)')
     plt.title("Cell volume for micropatterned versus cultured")
-    plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/cell_volume_mic_vs_nuc.png",format='png')
+    plt.savefig(path.analysis_dir + "/spots_density/figures/cell_volume_mic_vs_nuc.png",format='png')
     plt.close()
 
 
@@ -197,7 +197,7 @@ def compare_spots_density(file_handler, sec_file_handler, acquisition1, acquisit
         ax1.spines[axis].set_linewidth(3)
         ax2.spines[axis].set_linewidth(3)
 
-    plt.savefig(check_dir(path.analysis_dir + "/analysis_spots_density/figures/")+"mic_vs_cult.png", format="png")
+    plt.savefig(check_dir(path.analysis_dir + "/spots_density/figures/")+"mic_vs_cult.png", format="png")
     plt.close()
 
 def compare_spots_volume_density(file_handler, sec_file_handler, acquisition1, acquisition2):
@@ -239,7 +239,7 @@ def compare_spots_volume_density(file_handler, sec_file_handler, acquisition1, a
     ax1.axis([200, 800, -100, 600])
     ax2.set_xlabel('Cell volume (um^3)')
     ax2.set_ylabel('Transcript number')
-    plt.savefig(path.analysis_dir + "/analysis_spots_density/figures/mic_vs_cult.png", format="png")
+    plt.savefig(path.analysis_dir + "/spots_density/figures/mic_vs_cult.png", format="png")
     plt.show()
 
 def compare_spots_density_by_gene_and_timepoint(file_handler, acquisition1, acquisition2, timepoints1, timepoints2, size_coeff):

@@ -16,7 +16,7 @@
     "SLICE_THICKNESS" : 0.3,
     "Z_LINE_SPACING" : 20,
     "MOLECULE_TYPES": ["mrna", "protein"],
-    "COLORS":["#0A3950", "#1E95BB", "#A1BA6D", "#d3deba"],
+    "COLORS":["#1E95BB", "#62d9ff", "#f16c1b", "#ffd08c"],
     "GENES" : ["arhgdia", "arhgdia_CHX", "pard3","pard3_CHX"],
     "PROTEINS" : ["arhgdia", "arhgdia_CHX", "pard3","pard3_CHX"],
     "TIMEPOINTS_PROTEIN":["2h", "3h", "5h"],

@@ -488,7 +488,6 @@ def generate_secondary_descriptors_hd5(
 
         for molecule_type in (['mrna'], ['protein']):
             thread_list = []
-            print(path.basic_file_path)
             image_list = helps.preprocess_image_list(
                 basic_h5_file_handler,
                 molecule_type
@@ -621,10 +620,9 @@ if __name__ == "__main__":
 
 
 
-    basic_h5_file_path_name = path.analysis_data_dir + 'basic.h5'
+    basic_h5_file_path_name = path.data_dir + input_dir_name +'/'+ 'basic.h5'
     raw_images_dir_path = path.raw_data_dir
-
-    secondary_h5_file_path_name = path.analysis_data_dir + 'secondary.h5'
+    secondary_h5_file_path_name = path.data_dir + input_dir_name +'/'+  'secondary.h5'
     if os.path.exists(secondary_h5_file_path_name):
         os.remove(secondary_h5_file_path_name)
 

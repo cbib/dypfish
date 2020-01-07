@@ -164,14 +164,14 @@ The package contains one main script by general analysis called main.py that coo
 Here is the list of availbale analysis
 
 * Cytoplasmic total count
-* Peripheral fraction analysis 
+* Peripheral fraction 
 * Volume corrected noise measure (analysis_density)
-* Cytoplasmic spread analysis
-* Stability analysis
+* Cytoplasmic spread
+* Stability
 * MTOC Polarity Index
 * mRNA / Protein distribution profile (Correlation profile analysis)
-* Temporal interaction analysis
-* Degree of clustering analysis 
+* Temporal interaction
+* Degree of clustering
  
  
 For the following analyses, you have to run the script corresponding to the sub analysis you needed (peripheral_fraction.py, cytoplasmic_spread.py, etc..). 
@@ -193,65 +193,65 @@ This section describes how the user must call it from the DypFISH root folder `d
 ###### Cytoplasmic total count analysis
 The cytoplasmic total count descriptor was calculated as the number of transcripts or protein within the cytoplasm.
 ```
-        python analysis/analysis_cytoplasmic_total_count/main.py -i original
+        python analysis/cytoplasmic_total_count/main.py -i original
 ```
 
 ###### Peripheral fraction analysis 
 Based on the cell masks, we calculated the peripheral fraction of mRNA and proteins at a given percent p of the radial distance.
 ```
-        python analysis/analysis_peripheral_fraction_profile/main.py -i original
+        python analysis/peripheral_fraction_profile/main.py -i original
 ```
 
 ###### Cytoplasmic spread analysis
 Measures how evenly a molecule is spread across the cell
 ```
-        python analysis/analysis_cytoplasmic_spread/main.py -i original
+        python analysis/cytoplasmic_spread/main.py -i original
 ```
 
 ###### Stability analysis 
 Compares the reproducibility of distributions in standard cultured and micropatterned cells
 ```
-        python analysis/analysis_stability/main.py -i original
-        python analysis/analysis_stability/compute_TIS_by_quad_df.py -i original
-        python analysis/analysis_stability/search_enriched_quad.py -i original
-        python analysis/analysis_stability/stability_analysis_by_fraction_profile.py -i original
-        python analysis/analysis_stability/stability_analysis_cyt_spread.py -i original
+        python analysis/stability/main.py -i original
+        python analysis/stability/compute_TIS_by_quad_df.py -i original
+        python analysis/stability/search_enriched_quad.py -i original
+        python analysis/stability/stability_analysis_by_fraction_profile.py -i original
+        python analysis/stability/stability_analysis_cyt_spread.py -i original
 ```
 
 ###### MTOC Polarity Index 
 Defines a polarity index that measures the enrichment of mRNA or protein signal for a given image acquisition series
 ```
-        python analysis/analysis_MTOC/search_enriched_quad.py -i original
+        python analysis/MTOC/search_enriched_quad.py -i original
 
-        python analysis/analysis_MTOC/plot_figures.py -i original
+        python analysis/MTOC/plot_figures.py -i original
 ```
 
 ###### mRNA / Protein distribution profile (Correlation profile analysis) 
 Defines a spatial distribution profile of mRNAs and proteins for images acquired at a given time point
 ```
-        python analysis/analysis_correlation_profile/main.py -i original
+        python analysis/correlation_profile/main.py -i original
 ```
 
 ###### Temporal interaction analysis
 Measures the interdependence between the mRNA and protein dynamics. **This analysis needs the results of the MTOC Polarity Index analysis to be performed.**
 For the cytoplasmique analysis: 
 ```
-        python analysis/analysis_degree_of_clustering/compute_TIS_by_quad_df.py -i original
+        python analysis/degree_of_clustering/compute_TIS_by_quad_df.py -i original
 
-        python analysis/analysis_temporal_interactions/compute_TIS_analysis.py -i original
+        python analysis/temporal_interactions/compute_TIS_analysis.py -i original
 ```
 
 For the peripheral analysis:
 ```
-        python analysis/analysis_degree_of_clustering/compute_TIS_by_periph_quad_df.py -i original
+        python analysis/degree_of_clustering/compute_TIS_by_periph_quad_df.py -i original
         
-        python analysis/analysis_degree_of_clustering/compute_TIS_periph_analysis.py -i original
+        python analysis/degree_of_clustering/compute_TIS_periph_analysis.py -i original
 ```
 
 ###### Degree of clustering analysis 
 The degree of clustering is a unitless measure that can be used to compare clustering between different molecules and conditions.
 ```
-        python analysis/analysis_degree_of_clustering/compute_TIS_analysis.py -i original
+        python analysis/degree_of_clustering/compute_TIS_analysis.py -i original
 ```
 
 ### specific analysis
@@ -259,45 +259,45 @@ The degree of clustering is a unitless measure that can be used to compare clust
 ###### Volume corrected noise measure (Spots density analysis) 
 In order to measure gene expression noise while accounting for cell volume, we computed the volume corrected noise measure Nm for micropatterned and standardly cultured cells.
 ```
-        python analysis/analysis_spots_density/main.py -i cultured
+        python analysis/spots_density/main.py -i cultured
 ```
 
 ###### Nocodazole analysis
 Adaptations of the previous methods to the case of nocodazole treated cells.
 ```
-        python analysis/analysis_nocodazole/cytoplasmic_spread.py -i nocodazole
-        python analysis/analysis_nocodazole/cytoplasmic_total_count.py -i nocodazole
-        python analysis/analysis_nocodazole/peripheral_fraction.py -i nocodazole
-        python analysis/analysis_nocodazole/search_enriched_quad.py -i nocodazole
-        python analysis/analysis_nocodazole/compute_TIS_by_quad_df.py -i nocodazole
-        python analysis/analysis_nocodazole/compute_TIS_by_periph_quad_df.py -i nocodazole
-        python analysis/analysis_nocodazole/compute_TIS_analysis.py -i nocodazole
-        python analysis/analysis_nocodazole/compute_TIS_periph_analysis.py -i nocodazole
-        python analysis/analysis_nocodazole/plot_figures_MTOC.py -i nocodazole
+        python analysis/nocodazole/cytoplasmic_spread.py -i nocodazole
+        python analysis/nocodazole/cytoplasmic_total_count.py -i nocodazole
+        python analysis/nocodazole/peripheral_fraction.py -i nocodazole
+        python analysis/nocodazole/search_enriched_quad.py -i nocodazole
+        python analysis/nocodazole/compute_TIS_by_quad_df.py -i nocodazole
+        python analysis/nocodazole/compute_TIS_by_periph_quad_df.py -i nocodazole
+        python analysis/nocodazole/compute_TIS_analysis.py -i nocodazole
+        python analysis/nocodazole/compute_TIS_periph_analysis.py -i nocodazole
+        python analysis/nocodazole/plot_figures_MTOC.py -i nocodazole
 ```
 ###### CytoD analysis
 Adaptations of the previous methods to the case of nocodazole treated cells.
 ```
-        python analysis/analysis_cytoD/preprocess_secondary_descriptors.py -i cytod
-        python analysis/analysis_cytoD/cytoplasmic_spread.py -i cytod
-        python analysis/analysis_cytoD/cytoplasmic_total.py -i cytod
-        python analysis/analysis_cytoD/peripheral_fraction.py -i cytod
+        python analysis/cytoD/preprocess_secondary_descriptors.py -i cytod
+        python analysis/cytoD/cytoplasmic_spread.py -i cytod
+        python analysis/cytoD/cytoplasmic_total.py -i cytod
+        python analysis/cytoD/peripheral_fraction.py -i cytod
 ```
 
 ###### CHX analysis
 Adaptations of the previous methods to the case of nocodazole treated cells.
 ```
-        python analysis/analysis_CHX/preprocess_secondary_descriptors.py -i chx
-        python analysis/analysis_CHX/degree_of_clustering.py -i chx
-        python analysis/analysis_CHX/peripheral_fraction.py -i chx
+        python analysis/CHX/preprocess_secondary_descriptors.py -i chx
+        python analysis/CHX/degree_of_clustering.py -i chx
+        python analysis/CHX/peripheral_fraction.py -i chx
 ```
 
 ###### Muscle analysis
 Adaptations of the previous methods to the case of muscle cells.
 ```
-        python analysis/analysis_muscle_data/compute_z_line_distance.py -i muscle
-        python analysis/analysis_muscle_data/quadrat_analysis_graph.py-i muscle
-        python analysis/analysis_muscle_data/quadrat_analysis_heatmap.py-i muscle
+        python analysis/muscle_data/compute_z_line_distance.py -i muscle
+        python analysis/muscle_data/quadrat_analysis_graph.py-i muscle
+        python analysis/muscle_data/quadrat_analysis_heatmap.py-i muscle
 ```
 
 ## Outputs:
@@ -305,14 +305,14 @@ Adaptations of the previous methods to the case of muscle cells.
 The output files produced by DypFish will be stored in the corresponding analysis figures and dataframe folders. 
 As an example here are the outputs produced by the cytoplasmic spread analysis, based on the full data from the website, as described in the Data Input section :
 ```
-        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_arhgdia.png
-        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_beta_actin_.png
-        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_gapdh.png
-        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_pard3.png
-        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_pkp4.png
-        analysis/analysis_cytoplasmic_spread/figures/cyt_spread_rab13.png
-        analysis/analysis_cytoplasmic_spread/figures/micropatterned/mrna_cytoplamsic_spread.png
-        analysis/analysis_cytoplasmic_spread/figures/micropatterned/protein_cytoplamsic_spread.png
+        analysis/cytoplasmic_spread/figures/cyt_spread_arhgdia.png
+        analysis/cytoplasmic_spread/figures/cyt_spread_beta_actin_.png
+        analysis/cytoplasmic_spread/figures/cyt_spread_gapdh.png
+        analysis/cytoplasmic_spread/figures/cyt_spread_pard3.png
+        analysis/cytoplasmic_spread/figures/cyt_spread_pkp4.png
+        analysis/cytoplasmic_spread/figures/cyt_spread_rab13.png
+        analysis/cytoplasmic_spread/figures/micropatterned/mrna_cytoplamsic_spread.png
+        analysis/cytoplasmic_spread/figures/micropatterned/protein_cytoplamsic_spread.png
 ```
 
 # Getting help

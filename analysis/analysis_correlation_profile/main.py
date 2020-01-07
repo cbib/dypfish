@@ -81,7 +81,7 @@ def main():
                 print(proteins[i], '_', timepoint)
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, proteins[i], [timepoint])
 
-                cyt_spread = adsc.compute_cytoplasmic_spread(image_list, file_handler)
+                cyt_spread = adsc.compute_cytoplasmic_spread(image_list, file_handler,image_width,image_height)
                 prof_p[cpt_g, 0, cpt_tp] = np.median(cyt_spread)
 
                 periph_frac = adsc.compute_protein_periph_fraction(image_list,file_handler, secondary_file_handler, 10)
