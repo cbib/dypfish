@@ -164,7 +164,7 @@ def main():
 
     ylabel = 'Global temporal interaction score'
     figname = path.analysis_dir + 'temporal_interactions/figures/TIS.svg'
-    plot.bar_profile(tiss, mrnas, figname,)
+    plot.bar_profile(tiss, mrnas, figname,colors)
 
 if __name__ == "__main__":
     main()

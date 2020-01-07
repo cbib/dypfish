@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import pandas as pd
 import src.path as path
+import src.plot as plot
 from src.utils import enable_logger, plot_colors, check_dir,loadconfig
 
 parser = argparse.ArgumentParser()
@@ -142,20 +143,20 @@ def main():
         for timepoint in mrna_timepoints:
             print(mrna, timepoint)
             mrna_df = pd.read_csv(
-                path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint +"_"+limit+ "_mrna.csv",
+                path.analysis_dir + "temporal_interactions/dataframe/periph_" + mrna + '_' + timepoint +"_mrna.csv",
                 index_col=0)
             mrna_list.append(mrna_df.median(axis=0).values)
         for timepoint in prot_timepoints:
             prot_df = pd.read_csv(
-                path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint +"_"+limit+ "_protein.csv",
+                path.analysis_dir + "temporal_interactions/dataframe/periph_" + mrna + '_' + timepoint + "_protein.csv",
                 index_col=0)
             prot_list.append(prot_df.median(axis=0).values)
         (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list)
         tiss.append(tis)
         p_vals.append(p)
-        print(ranking)
+        #print(ranking)
         im = np.flipud(np.kron(ranking, np.ones((10, 10))))
-        print(im)
+        #print(im)
         plt.imshow(im, extent=[0, 4, 0, 4], cmap='GnBu', interpolation='nearest')
         ax = plt.axes()
         ax.set_ylabel("mRNA  - Time (hrs)")
@@ -166,12 +167,13 @@ def main():
         ax.yaxis.set(ticks=np.arange(0.5, 4.5, 1), ticklabels=myyticklabels)
         ax.set_title(mrna)
         fig_path = check_dir(path.analysis_dir + 'temporal_interactions/figures/')
-        plt.savefig(fig_path + mrna + '_TIS_correlation_ranking_periph.svg', format='svg')
+        plt.savefig(fig_path + 'periph_'+ mrna + '_TIS_correlation_ranking.svg', format='svg')
         plt.close()
         count_gene += 1
     ylabel = 'Global temporal interaction score'
     figname = path.analysis_dir + 'temporal_interactions/figures/TIS_periph.svg'
-    plot_bar_profile(tiss, mrnas, ylabel, figname, plot_colors)
+    print(tiss)
+    plot.bar_profile(tiss, mrnas, figname, colors)
 
 if __name__ == "__main__":
     main()

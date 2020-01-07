@@ -111,7 +111,7 @@ def main():
                     vec_match.append(v)
                 else:
                     vec_non_match.append(v)
-        figpath = check_dir(path.analysis_dir + 'analysis_correlation_profile/figures/') + 'profile_correlation.png'
+        figpath = check_dir(path.analysis_dir + 'correlation_profile/figures/') + 'profile_correlation.png'
         plot.boxplot(vec_match,vec_non_match,figpath)
 
 if __name__ == "__main__":

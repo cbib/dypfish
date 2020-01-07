@@ -34,7 +34,7 @@ def peripheral_profile(
     assert os.path.isdir(save_into_dir_path_name)
 
     timepoint = timepoint if timepoint else 'All'
-    graph_file_name = 'peripheral_fraction_' + timepoint + '_timepoint_' + molecule_type[0]+ '_'+ str(num_contours) + 'contours.png'
+    graph_file_name = 'peripheral_fraction_' + molecule_type[0]+ '_'+ str(num_contours) + 'contours.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
     graph_metadata = {
         "file_name": graph_file_name,
@@ -583,8 +583,8 @@ def main(
 if __name__ == "__main__":
 
     enable_logger()
-    check_dir(path.analysis_dir + 'CHX/figures/')
-    save_into_dir_path_name = os.path.join(path.analysis_dir, "CHX/figures/peripheral_fraction")
+    check_dir(path.analysis_dir + 'chx/figures/')
+    save_into_dir_path_name = os.path.join(path.analysis_dir, "chx/figures/peripheral_fraction")
 
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)

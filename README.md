@@ -198,6 +198,7 @@ The cytoplasmic total count descriptor was calculated as the number of transcrip
 
 ###### Peripheral fraction analysis 
 Based on the cell masks, we calculated the peripheral fraction of mRNA and proteins at a given percent p of the radial distance.
+this percent p can be defined in config.json as PERIPHERAL_FRACTION_THRESHOLD
 ```
         python analysis/peripheral_fraction_profile/main.py -i original
 ```
@@ -212,14 +213,11 @@ Measures how evenly a molecule is spread across the cell
 Compares the reproducibility of distributions in standard cultured and micropatterned cells
 ```
         python analysis/stability/main.py -i original
-        python analysis/stability/compute_TIS_by_quad_df.py -i original
-        python analysis/stability/search_enriched_quad.py -i original
-        python analysis/stability/stability_analysis_by_fraction_profile.py -i original
-        python analysis/stability/stability_analysis_cyt_spread.py -i original
 ```
 
 ###### MTOC Polarity Index 
-Defines a polarity index that measures the enrichment of mRNA or protein signal for a given image acquisition series
+Defines a polarity index that measures the enrichment of mRNA or protein signal for a given image acquisition series.
+This analysis can be run in peripheral mode using the -p arg. PERIPHERAL_FRACTION_THRESHOLD is used to defined the peripheral area.
 ```
         python analysis/MTOC/search_enriched_quad.py -i original
 
@@ -234,24 +232,27 @@ Defines a spatial distribution profile of mRNAs and proteins for images acquired
 
 ###### Temporal interaction analysis
 Measures the interdependence between the mRNA and protein dynamics. **This analysis needs the results of the MTOC Polarity Index analysis to be performed.**
+*PERIPHERAL_FRACTION_THRESHOLD is used to define peripheral area.*
+
 For the cytoplasmique analysis: 
 ```
-        python analysis/degree_of_clustering/compute_TIS_by_quad_df.py -i original
+        python analysis/temporal_interactions/compute_TIS_by_quad_df.py -i original
 
         python analysis/temporal_interactions/compute_TIS_analysis.py -i original
 ```
 
+
 For the peripheral analysis:
 ```
-        python analysis/degree_of_clustering/compute_TIS_by_periph_quad_df.py -i original
-        
-        python analysis/degree_of_clustering/compute_TIS_periph_analysis.py -i original
+        python analysis/temporal_interactions/compute_TIS_by_periph_quad_df.py -i original
+
+        python analysis/temporal_interactions/compute_TIS_periph_analysis.py -i original
 ```
 
 ###### Degree of clustering analysis 
 The degree of clustering is a unitless measure that can be used to compare clustering between different molecules and conditions.
 ```
-        python analysis/degree_of_clustering/compute_TIS_analysis.py -i original
+        python analysis/degree_of_clustering/main.py -i original
 ```
 
 ### specific analysis
@@ -278,7 +279,6 @@ Adaptations of the previous methods to the case of nocodazole treated cells.
 ###### CytoD analysis
 Adaptations of the previous methods to the case of nocodazole treated cells.
 ```
-        python analysis/cytoD/preprocess_secondary_descriptors.py -i cytod
         python analysis/cytoD/cytoplasmic_spread.py -i cytod
         python analysis/cytoD/cytoplasmic_total.py -i cytod
         python analysis/cytoD/peripheral_fraction.py -i cytod
@@ -287,7 +287,6 @@ Adaptations of the previous methods to the case of nocodazole treated cells.
 ###### CHX analysis
 Adaptations of the previous methods to the case of nocodazole treated cells.
 ```
-        python analysis/CHX/preprocess_secondary_descriptors.py -i chx
         python analysis/CHX/degree_of_clustering.py -i chx
         python analysis/CHX/peripheral_fraction.py -i chx
 ```
@@ -311,8 +310,8 @@ As an example here are the outputs produced by the cytoplasmic spread analysis, 
         analysis/cytoplasmic_spread/figures/cyt_spread_pard3.png
         analysis/cytoplasmic_spread/figures/cyt_spread_pkp4.png
         analysis/cytoplasmic_spread/figures/cyt_spread_rab13.png
-        analysis/cytoplasmic_spread/figures/micropatterned/mrna_cytoplamsic_spread.png
-        analysis/cytoplasmic_spread/figures/micropatterned/protein_cytoplamsic_spread.png
+        analysis/cytoplasmic_spread/figures/mrna_cytoplamsic_spread.png
+        analysis/cytoplasmic_spread/figures/protein_cytoplamsic_spread.png
 ```
 
 # Getting help

@@ -40,7 +40,7 @@ def main():
     with h5py.File(path.data_dir + input_dir_name + '/' + basic_file_name, "r") as file_handler, \
             h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name, "r") as second_file_handler, \
             h5py.File(path.data_dir + input_dir_name + '/' + mtoc_file_name, "r") as mtoc_file_handler:
-        #compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
         compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
 
 
@@ -73,7 +73,7 @@ def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler,
             image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
             for image in tqdm.tqdm(image_list, desc="Processing images"):
                 if is_periph:
-                    spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_coeff, image)
+                    spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image)
                 else:
                     spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler,image_width, image_height, volume_offset, volume_coeff, image)
                 num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
@@ -135,7 +135,7 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
             image_list = helps.preprocess_image_list3(file_handler, molecule_type, protein, [timepoint])
             for image in tqdm.tqdm(image_list, desc="Processing images"):
                 intensity_by_quad = \
-                    idsc.search_periph_protein_quadrants(file_handler, sec_file_handler,peripheral_fraction_threshold, image_width, image_height, volume_coeff, image) if is_periph \
+                    idsc.search_periph_protein_quadrants(file_handler, sec_file_handler,peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image) if is_periph \
                         else \
                     idsc.search_protein_quadrants(file_handler, sec_file_handler,image_width, image_height, volume_offset, volume_coeff, image)
                 mtoc_intensity = intensity_by_quad[:, :, 1] == 1

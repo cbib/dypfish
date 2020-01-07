@@ -8,6 +8,7 @@ def get_or_create_dir(dirname):
     return dirname
 
 root_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+log_dir = get_or_create_dir(os.path.join(root_dir, 'logs'))
 src_dir = get_or_create_dir(os.path.join(root_dir, 'src'))
 analysis_dir = get_or_create_dir(os.path.join(root_dir, 'analysis/'))
 analysis_data_dir = get_or_create_dir(os.path.join(root_dir, 'data/'))
