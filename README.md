@@ -277,7 +277,7 @@ Adaptations of the previous methods to the case of nocodazole treated cells.
         python analysis/nocodazole/plot_figures_MTOC.py -i nocodazole
 ```
 ###### CytoD analysis
-Adaptations of the previous methods to the case of nocodazole treated cells.
+Adaptations of the previous methods to the case of cytoD treated cells.
 ```
         python analysis/cytoD/cytoplasmic_spread.py -i cytod
         python analysis/cytoD/cytoplasmic_total.py -i cytod
@@ -285,7 +285,7 @@ Adaptations of the previous methods to the case of nocodazole treated cells.
 ```
 
 ###### CHX analysis
-Adaptations of the previous methods to the case of nocodazole treated cells.
+Adaptations of the previous methods to the case of CHX treated cells.
 ```
         python analysis/CHX/degree_of_clustering.py -i chx
         python analysis/CHX/peripheral_fraction.py -i chx

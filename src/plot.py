@@ -171,7 +171,7 @@ def bar_profile(data,genes,figname,colors):
                     yerr=dataStd,
                     error_kw=dict(elinewidth=1, ecolor='black'))
     ax.set_xlim(-width, len(ind) + width)
-    ax.set_ylim(0, y_lim + 2* y_std)
+    #ax.set_ylim(0, y_lim + 2* y_std)
     #ax.set_ylim(0, 0.03)
     ax.set_xticks(ind)
     ax.set_xticklabels(["" for i in range(0, N)])

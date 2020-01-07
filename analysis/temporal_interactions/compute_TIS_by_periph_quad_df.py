@@ -17,7 +17,6 @@ args = parser.parse_args()
 input_dir_name = args.input_dir_name
 
 def reindex_quadrant_mask(quad_mask, mtoc_quad):
-    import pandas as pd
     df = pd.DataFrame(quad_mask)
     df = df.applymap(lambda x: x - mtoc_quad + 1 if x >= mtoc_quad else (x + 8 - mtoc_quad + 1 if x > 0 else 0))
     quad_mask = np.array(df)
@@ -86,49 +85,49 @@ def main():
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as file_handler, \
             h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as second_file_handler:
 
-        # gene_count = 0
-        # for mrna in mrnas:
-        #     time_count = 0
-        #     for timepoint in timepoints_mrna:
-        #         key = mrna + "_" + timepoint
-        #         image_count = 0
-        #         h_array = np.zeros((len(degree_max_mrna[key]),stripe_n*8 ))
-        #         for i in range(len(degree_max_mrna[key])):
-        #             image = degree_max_mrna[key][i].split("_")[0]
-        #             degree = degree_max_mrna[key][i].split("_")[1]
-        #             image = "/mrna/" + mrna + "/" + timepoint + "/" + image
-        #             quad_mask, mtoc_quad = compute_eight_quadrant_max(file_handler, image, degree)
-        #             quad_mask = reindex_quadrant_mask(quad_mask, mtoc_quad)
-        #             nucleus_mask = idsc.get_nucleus_mask(file_handler, image)
-        #             cell_mask = idsc.get_cell_mask(file_handler, image)
-        #             spots = idsc.get_spots(file_handler, image)
-        #             cell_mask_dist_map = idsc.get_cell_mask_distance_map(second_file_handler, image)
-        #             cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
-        #             cell_mask_dist_map[(nucleus_mask == 1)] = 0
-        #             peripheral_binary_mask = (cell_mask_dist_map > 0) & (cell_mask_dist_map <= limit).astype(int)
-        #             spots_in_periph=0
-        #             for i in range(len(spots)):
-        #                 if peripheral_binary_mask[spots[i, 1], spots[i, 0]]:
-        #                     spots_in_periph+=1
-        #             for i in range(len(spots)):
-        #                 if peripheral_binary_mask[spots[i, 1], spots[i, 0]]:
-        #                     quad = quad_mask[spots[i, 1], spots[i, 0]]
-        #                     value = cell_mask_dist_map[spots[i, 1], spots[i, 0]]
-        #                     if value == limit:
-        #                         value = limit-1
-        #                     slice_area = np.floor(value / (float(limit)/stripe_n))
-        #                     value = (int(slice_area) * 8) + int(quad)
-        #                     spots_relative=(1.0 / spots_in_periph)
-        #                     surface_relative=float(np.sum(cell_mask[((cell_mask_dist_map >= (slice_area*(limit/stripe_n))+1) & (cell_mask_dist_map < (slice_area *(limit/stripe_n))+(limit/stripe_n))) & (quad_mask == quad)]) * math.pow((1 / size_coeff), 2))/float(np.sum(cell_mask[cell_mask==1])* math.pow((1 / size_coeff), 2))
-        #                     if surface_relative==0.0:
-        #                         h_array[image_count, int(value) - 1] +=0
-        #                     else:
-        #                         h_array[image_count, int(value)-1] += (spots_relative/surface_relative)
-        #             image_count += 1
-        #         mrna_tp_df = pd.DataFrame(h_array)
-        #         mrna_tp_df.to_csv(check_dir(path.analysis_dir + "temporal_interactions/dataframe/") +'periph_'+ mrna + '_' + timepoint+"_mrna.csv")
-        #         time_count += 1
-        #     gene_count += 1
+        gene_count = 0
+        for mrna in mrnas:
+            time_count = 0
+            for timepoint in timepoints_mrna:
+                key = mrna + "_" + timepoint
+                image_count = 0
+                h_array = np.zeros((len(degree_max_mrna[key]),stripe_n*8 ))
+                for i in range(len(degree_max_mrna[key])):
+                    image = degree_max_mrna[key][i].split("_")[0]
+                    degree = degree_max_mrna[key][i].split("_")[1]
+                    image = "/mrna/" + mrna + "/" + timepoint + "/" + image
+                    quad_mask, mtoc_quad = compute_eight_quadrant_max(file_handler, image, degree)
+                    quad_mask = reindex_quadrant_mask(quad_mask, mtoc_quad)
+                    nucleus_mask = idsc.get_nucleus_mask(file_handler, image)
+                    cell_mask = idsc.get_cell_mask(file_handler, image)
+                    spots = idsc.get_spots(file_handler, image)
+                    cell_mask_dist_map = idsc.get_cell_mask_distance_map(second_file_handler, image)
+                    cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
+                    cell_mask_dist_map[(nucleus_mask == 1)] = 0
+                    peripheral_binary_mask = (cell_mask_dist_map > 0) & (cell_mask_dist_map <= limit).astype(int)
+                    spots_in_periph=0
+                    for i in range(len(spots)):
+                        if peripheral_binary_mask[spots[i, 1], spots[i, 0]]:
+                            spots_in_periph+=1
+                    for i in range(len(spots)):
+                        if peripheral_binary_mask[spots[i, 1], spots[i, 0]]:
+                            quad = quad_mask[spots[i, 1], spots[i, 0]]
+                            value = cell_mask_dist_map[spots[i, 1], spots[i, 0]]
+                            if value == limit:
+                                value = limit-1
+                            slice_area = np.floor(value / (float(limit)/stripe_n))
+                            value = (int(slice_area) * 8) + int(quad)
+                            spots_relative=(1.0 / spots_in_periph)
+                            surface_relative=float(np.sum(cell_mask[((cell_mask_dist_map >= (slice_area*(limit/stripe_n))+1) & (cell_mask_dist_map < (slice_area *(limit/stripe_n))+(limit/stripe_n))) & (quad_mask == quad)]) * math.pow((1 / size_coeff), 2))/float(np.sum(cell_mask[cell_mask==1])* math.pow((1 / size_coeff), 2))
+                            if surface_relative==0.0:
+                                h_array[image_count, int(value) - 1] +=0
+                            else:
+                                h_array[image_count, int(value)-1] += (spots_relative/surface_relative)
+                    image_count += 1
+                mrna_tp_df = pd.DataFrame(h_array)
+                mrna_tp_df.to_csv(check_dir(path.analysis_dir + "temporal_interactions/dataframe/") +'periph_'+ mrna + '_' + timepoint+"_mrna.csv")
+                time_count += 1
+            gene_count += 1
 
         gene_count = 0
         for protein in proteins:
@@ -198,7 +197,6 @@ def compute_quadrant_max(file_handler, image, degree_max):
     return quadrant_mask, mtoc_quad
 
 def reindex_quadrant_mask(quad_mask, mtoc_quad):
-    print(mtoc_quad)
     if mtoc_quad == 1:
         return quad_mask
     elif mtoc_quad == 2:

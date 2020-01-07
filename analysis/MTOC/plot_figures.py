@@ -69,6 +69,7 @@ def main():
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     bootstrap_mpi = configData["BOOTSTRAP_MPI"]
     mime_type = configData["PNG_IMAGES_MIME_TYPE"]
+    colors=configData["COLORS"]
 
 
 
@@ -99,7 +100,7 @@ def main():
     else:
         figname=check_dir(path.analysis_dir + 'MTOC/figures/') + 'mrna_paired_mpis.png'
 
-    bar_profile_median(mpis, genes, 'mrna', figname, err)
+    bar_profile_median(mpis, genes, figname, err, colors)
 
     # plot boxplot cytoplasmic mpi
     #dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC', 'MTOC leading edge'], var_name='Quadrants')
@@ -139,7 +140,7 @@ def main():
         figname=check_dir(path.analysis_dir + 'MTOC/figures/') + 'periph_protein_paired_mpis.png'
     else:
         figname=check_dir(path.analysis_dir + 'MTOC/figures/') + 'protein_paired_mpis.png'
-    bar_profile_median(mpis,proteins,'protein',figname,err)
+    bar_profile_median(mpis,proteins,figname,err, colors)
 
     # plot boxplot cytoplasmic mpi
     #dd = pd.melt(df_sorted, id_vars=['Gene'], value_vars=['MTOC', 'Non MTOC1', 'MTOC leading edge'], var_name='Quadrants')

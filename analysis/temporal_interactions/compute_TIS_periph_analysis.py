@@ -62,12 +62,9 @@ def permutations_test(interactions, fwdints):
     for score in rs:
         if score > rs0:
             count += 1
-    print(count)
-    print(float(len(rs)))
     if count==0:
         count=1
     p = float(count / float(len(rs)))
-    print(p)
     stat = rs1
     return p, stat, ranking
 
@@ -107,7 +104,7 @@ def plot_bar_profile(data, genes, ylabel, figname, colors):
     ind = np.arange(N)
     width = 0.35
     ax.set_xlim(-width, len(ind) + width)
-    ax.set_ylim(0, y_lim + 0.1)
+    #ax.set_ylim(0, y_lim + 0.1)
     ax.set_title('')
     ax.set_xticks(ind)
     ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
@@ -128,7 +125,6 @@ def main():
     mtoc_file_name = configData["MTOC_FILE_NAME"]
     colors = configData["COLORS"]
 
-    limit="10"
     enable_logger()
     mrnas = ["beta_actin", "arhgdia", "gapdh", "pard3"]
     mrna_timepoints = ["2h", "3h", "4h", "5h"]
