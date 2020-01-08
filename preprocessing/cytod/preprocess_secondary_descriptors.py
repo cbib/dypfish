@@ -44,9 +44,9 @@ def main():
         for image in image_list:
             idsc.set_cell_mask_distance_map(input_file_handler, secondary_file_handler, image, contours_num,image_width, image_height, max_cell_radius)
             if 'mrna' in image:
-                idsc.set_spots_peripheral_distance_2D(input_file_handler, secondary_file_handler, image)
-            idsc.set_cell_area(input_file_handler, secondary_file_handler, image, size_coeff)
-            idsc.set_nucleus_area(input_file_handler, secondary_file_handler, image, size_coeff)
+                 idsc.set_spots_peripheral_distance_2D(input_file_handler, secondary_file_handler, image)
+            # idsc.set_cell_area(input_file_handler, secondary_file_handler, image, size_coeff)
+            # idsc.set_nucleus_area(input_file_handler, secondary_file_handler, image, size_coeff)
 
 
 if __name__ == "__main__":

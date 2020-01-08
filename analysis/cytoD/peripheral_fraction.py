@@ -160,7 +160,7 @@ def mrna_peripheral_fraction_profile(
         }
 
     #plot.fraction_profile(fractions, fraction, genes, fig_file_path_name, colors)
-    plot.bar_profile(fractions, genes, graph_file_path_name)
+    plot.bar_profile(fractions, genes, graph_file_path_name, colors)
 
     assert(os.path.isfile(graph_file_path_name))
 
@@ -209,7 +209,7 @@ def protein_peripheral_fraction_profile(
         }
 
     #plot.fraction_profile(fractions, fraction, genes, fig_file_path_name, colors)
-    plot.bar_profile(fractions, genes, graph_file_path_name)
+    plot.bar_profile(fractions, genes, graph_file_path_name, colors)
 
     assert(os.path.isfile(graph_file_path_name))
 
@@ -227,7 +227,6 @@ def histogram_peripheral_profile(
     mime_type,
     colors,
     periph_fraction_cst,
-    raw_images_dir_path_name,
     save_into_dir_path_name,
     ext_logger=None
     ):
@@ -245,7 +244,6 @@ def histogram_peripheral_profile(
         slashed_molecule_type = [("/%s" % m) for m in molecule_type]
         periph_fraction = []
         for gene in genes:
-            #print(gene)
             image_list = helps.preprocess_image_list2(
                 basic_h5_file_handler,
                 slashed_molecule_type[0],
@@ -267,7 +265,7 @@ def histogram_peripheral_profile(
             "mime_type": mime_type
             }
 
-        plot.bar_profile(periph_fraction, genes, graph_file_path_name)
+        plot.bar_profile(periph_fraction, genes, graph_file_path_name, colors)
         assert(os.path.isfile(graph_file_path_name))
 
         if ext_logger:
@@ -464,7 +462,7 @@ def main(
                 molecule_type=['mrna'],
                 genes=genes,
                 mime_type=mime_type,
-                fraction=10,
+                fraction=periph_fraction_cst,
                 colors=plot_colors,
                 basic_h5_file_handler=basic_h5_file_handler,
                 save_into_dir_path_name=save_into_dir_path_name
@@ -482,7 +480,7 @@ def main(
                 molecule_type=['protein'],
                 genes=proteins,
                 mime_type=mime_type,
-                fraction=10,
+                fraction=periph_fraction_cst,
                 colors=plot_colors,
                 basic_h5_file_handler=basic_h5_file_handler,
                 save_into_dir_path_name=save_into_dir_path_name
@@ -533,24 +531,23 @@ def main(
 
 
 
-        # Section to compute bar plot peripheral fraction
-        try:
-            graphs_details = histogram_peripheral_profile(
-                basic_h5_file_handler=basic_h5_file_handler,
-                secondary_h5_file_handler=secondary_h5_file_handler,
-                genes=genes,
-                proteins=proteins,
-                mime_type=mime_type,
-                colors=plot_colors,
-                periph_fraction_cst=periph_fraction_cst,
-                raw_images_dir_path_name=raw_images_dir_path_name,
-                save_into_dir_path_name=save_into_dir_path_name
-                )
-            resulting_graphs_details_as_list += graphs_details
-
-        except Exception as e:
-            errors.append("Could not generate histogram peripheral profile graphs.")
-            raise
+        # # Section to compute bar plot peripheral fraction
+        # try:
+        #     graphs_details = histogram_peripheral_profile(
+        #         basic_h5_file_handler=basic_h5_file_handler,
+        #         secondary_h5_file_handler=secondary_h5_file_handler,
+        #         genes=genes,
+        #         proteins=proteins,
+        #         mime_type=mime_type,
+        #         colors=plot_colors,
+        #         periph_fraction_cst=periph_fraction_cst,
+        #         save_into_dir_path_name=save_into_dir_path_name
+        #         )
+        #     resulting_graphs_details_as_list += graphs_details
+        #
+        # except Exception as e:
+        #     errors.append("Could not generate histogram peripheral profile graphs.")
+        #     raise
 
 
 
@@ -567,7 +564,7 @@ if __name__ == "__main__":
     enable_logger()
 
     raw_images_dir_path_name = path.path_data
-    save_into_dir_path_name = os.path.join(path.analysis_dir, "analysis_cytod/figures/peripheral_fraction/")
+    save_into_dir_path_name = os.path.join(path.analysis_dir, "cytoD/figures/peripheral_fraction/")
 
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)

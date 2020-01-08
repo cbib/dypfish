@@ -25,6 +25,7 @@ def main():
     genes = configData["GENES"]
     basic_file_name = configData["BASIC_FILE_NAME"]
     molecule_types = configData["MOLECULE_TYPES"]
+    colors=configData["COLORS"]
     check_dir(path.analysis_dir + 'cytoD/figures/')
 
 
@@ -36,6 +37,6 @@ def main():
                 cytoplasmic_transcripts.append(adsc.compute_cytoplasmic_total(image_list, file_handler, path.path_data))
             plot_filename = molecule_type + '_total_cytoplasmic_transcript_arhgdia_cytod.png'
             figname = check_dir(path.analysis_dir + 'cytoD/figures/cyt_total/') + plot_filename
-            plot.bar_profile(cytoplasmic_transcripts, genes, figname)
+            plot.bar_profile(cytoplasmic_transcripts, genes, figname, colors)
 if __name__ == "__main__":
     main()

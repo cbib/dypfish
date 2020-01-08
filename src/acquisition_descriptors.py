@@ -127,8 +127,8 @@ def build_histogram_mrna_periph_fraction_2D(sec_file_handler,image_list,fraction
     arr = []
     for image in image_list:
         spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance_2D(sec_file_handler, image)
-        arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction])) / float(
-            len(spots_peripheral_distance)))
+        print(spots_peripheral_distance)
+        arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction])) / float(len(spots_peripheral_distance)))
 
     return arr
 
@@ -173,7 +173,6 @@ def compute_degree_of_clustering_wo_MTOC(image_list,file_handler):
 def compute_cytoplasmic_spread_2D(image_list, file_handler, image_width, image_height):
     cyt_spreads=[]
     for image in image_list:
-        print(image)
         if 'mrna' in image:
             cyt_spread=image_descriptors.compute_mrna_cytoplasmic_spread_2D(file_handler,image,image_width,image_height)
         else:

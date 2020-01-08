@@ -7,6 +7,7 @@ from __future__ import print_function
 from helpers import *
 from scipy import ndimage as ndi
 from skimage.restoration import denoise_nl_means
+from skimage.measure import regionprops
 logger = logging.getLogger('DYPFISH IMAGE DESCRIPTORS')
 
 
@@ -930,8 +931,22 @@ def compute_mrna_cytoplasmic_spread(file_handler, image, image_width, image_heig
 # to evaluate degree of spread
 def compute_mrna_cytoplasmic_spread_2D(file_handler, image, image_width, image_height):
     cell_mask = get_cell_mask(file_handler, image)
-    nucleus_centroid = get_nucleus_centroid(file_handler, image)
+    nucleus_mask=get_nucleus_mask(file_handler,image)
+
+    try:
+        nucleus_centroid = get_nucleus_centroid(file_handler, image)
+        nucleus_centroid_autocompute=()
+        rp = measure.regionprops(nucleus_mask)
+        for r in rp:
+            nucleus_centroid_autocompute =(r.centroid[1],r.centroid[0])
+
+        assert (nucleus_centroid_autocompute[0]==nucleus_centroid[0] and nucleus_centroid_autocompute[1]==nucleus_centroid[1] ), 'nucleus centroid is not correctly defined for %r' % image
+
+    except (AssertionError):
+        nucleus_centroid=nucleus_centroid_autocompute
     spots = get_spots(file_handler, image)
+
+    # Compute all possible distance in a matrix [512x512]
     ds1 = np.matlib.repmat(range(0, image_width), image_width, 1) - nucleus_centroid[0]
     ds2 = np.matlib.repmat(np.asmatrix(np.arange(0, image_height).reshape(image_height, 1)), 1, image_height) - nucleus_centroid[1]
     dsAll = np.power(ds1, 2) + np.power(ds2, 2)
@@ -953,6 +968,7 @@ def compute_mrna_cytoplasmic_spread_2D(file_handler, image, image_width, image_h
     points_dists = np.matrix(points_dist_list)
     points_dists = points_dists.reshape((counter, 1))
     plane_map_dist = np.multiply(cell_mask, dsAll)
+
 
     # S : Average distance of a cytoplasmic voxel from the nucleus centroid
     S = plane_map_dist.sum() / cell_mask.sum()
@@ -983,16 +999,20 @@ def compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points,
     #assert(cytoplasm_mask==nucleus_mask)
     assert (cytoplasm_mask.shape==nucleus_mask.shape), 'cytoplasm mask and nucleus mask do not have same size'
     cell_mask_distance_map = np.zeros((cytoplasm_mask.shape[0],cytoplasm_mask.shape[1]), dtype=np.int)
+
     for index in range(contours_num):
         if index == 0:
             peripheral_mask = nucleus_mask
         else:
             contour_num = contours_num - index
             peripheral_mask = create_mask(contour_points[:, contour_num, 1], contour_points[:, contour_num, 0],(cytoplasm_mask.shape[0],cytoplasm_mask.shape[1]))
+
             peripheral_mask &= cytoplasm_mask
+
         cell_mask_distance_map[(peripheral_mask == 1)] = index +1
 
     cell_mask_distance_map[(cytoplasm_mask == 0)] = 0
+
     return cell_mask_distance_map
 
 def set_cell_mask_distance_map(file_handler, output_file_handler, image, contours_num,image_width, image_height, max_cell_radius):
@@ -1004,11 +1024,21 @@ def set_cell_mask_distance_map(file_handler, output_file_handler, image, contour
     assert (not cell_mask_distance_map.size), 'cell_mask_distance_map already defined for %r' % image
     cell_mask = get_cell_mask(file_handler, image).astype(int)
     nucleus_mask = get_nucleus_mask(file_handler, image).astype(int)
-    nucleus_centroid = get_nucleus_centroid(file_handler, image).transpose()
+    #nucleus_centroid = get_nucleus_centroid(file_handler, image).transpose()
     contour_points = np.zeros((360, 100, 2))
     cytoplasm_mask = (cell_mask == 1) & (nucleus_mask == 0)
 
-    #print(nucleus_centroid)
+    try:
+        nucleus_centroid = get_nucleus_centroid(file_handler, image).transpose()
+        nucleus_centroid_autocompute=()
+        rp = measure.regionprops(nucleus_mask)
+        for r in rp:
+            nucleus_centroid_autocompute =(r.centroid[1],r.centroid[0])
+
+        assert (nucleus_centroid_autocompute[0]==nucleus_centroid[0] and nucleus_centroid_autocompute[1]==nucleus_centroid[1] ), 'nucleus centroid is not correctly defined for %r' % image
+
+    except (AssertionError):
+        nucleus_centroid=nucleus_centroid_autocompute
 
     # for each degree, analyse the line segment between the nucleus and the periphery
     for degree in range(360):
@@ -1018,7 +1048,6 @@ def set_cell_mask_distance_map(file_handler, output_file_handler, image, contour
                                                                    x_slope, y_slope)
         nucleus_edge_point, cytoplasm_edge_point = compute_edge_points(nucleus_segment, cytoplasm_segment)
         segment_length = cytoplasm_edge_point - nucleus_edge_point
-
 
         for index in range(contours_num):
             point = nucleus_edge_point + segment_length * index / contours_num
