@@ -27,6 +27,7 @@ def cytoplasmic_spread(
     genes,
     mime_type,
     molecule_type,
+    colors,
     image_width,
     image_height,
     save_into_dir_path_name,
@@ -60,7 +61,10 @@ def cytoplasmic_spread(
     # for each gene in genes list, compute cytoplasmic spread
     cyt_spreads = []
 
+
     for gene in genes:
+        if ext_logger:
+            ext_logger.debug("Computing cytoplasmic spread for " + gene)
         image_list = helps.preprocess_image_list2(
             basic_h5_file_handler,
             '/' + molecule_type,
@@ -75,7 +79,7 @@ def cytoplasmic_spread(
                 )
             )
 
-    plot.bar_profile(cyt_spreads, genes, graph_file_path_name)
+    plot.bar_profile(cyt_spreads, genes, graph_file_path_name,colors)
     assert(os.path.isfile(graph_file_path_name))
 
     if ext_logger:
@@ -91,9 +95,13 @@ def cytoplasmic_spread_dynamic_profiles(
     basic_h5_file_handler,
     genes,
     proteins,
+    colors,
+    timepoints_num_mrna,
+    timepoints_num_protein,
+    image_width,
+    image_height,
     mime_type,
     save_into_dir_path_name,
-    raw_images_dir_path_name=None,
     ext_logger=None
     ):
     """
@@ -125,13 +133,14 @@ def cytoplasmic_spread_dynamic_profiles(
         basic_h5_file_handler,
         adsc.compute_cytoplasmic_spread,
         basic_h5_file_handler,
-        raw_images_dir_path_name
+        image_width,
+        image_height
         )
 
     try:
         for mrna_data, protein_data, i in data_generator:
             gene = genes[i]
-            colour = plot_colors[i]
+            colour = colors[i]
 
             if ext_logger:
                 ext_logger.debug("Processing gene : %s..." % gene)
@@ -150,6 +159,8 @@ def cytoplasmic_spread_dynamic_profiles(
                 plot.dynamic_profiles(
                     mrna_data,
                     protein_data,
+                    timepoints_num_mrna,
+                    timepoints_num_protein,
                     gene,
                     colour,
                     'Time(hrs)',
@@ -183,7 +194,6 @@ def cytoplasmic_spread_dynamic_profiles(
 
 def main(
     save_into_dir_path_name,
-    raw_images_dir_path_name=None,
     ext_logger=None
     ):
     # Required descriptors: spots, IF, zero level, cell mask, nucleus_centroid and height_map
@@ -198,6 +208,10 @@ def main(
     mime_type = configData["PNG_IMAGES_MIME_TYPE"]
     image_width = configData["IMAGE_WIDTH"]
     image_height = configData["IMAGE_HEIGHT"]
+    timepoints_num_protein=configData["TIMEPOINTS_NUM_PROTEIN"]
+    timepoints_num_mrna=configData["TIMEPOINTS_NUM_MRNA"]
+
+    colors=configData["COLORS"]
 
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as basic_h5_file_handler:
 
@@ -206,6 +220,7 @@ def main(
             genes=genes,
             mime_type=mime_type,
             molecule_type='mrna',
+            colors=colors,
             image_width=image_width,
             image_height=image_height,
             save_into_dir_path_name=save_into_dir_path_name,
@@ -218,6 +233,7 @@ def main(
             genes=proteins,
             mime_type=mime_type,
             molecule_type='protein',
+            colors=colors,
             image_width=image_width,
             image_height=image_height,
             save_into_dir_path_name=save_into_dir_path_name,
@@ -229,9 +245,13 @@ def main(
             basic_h5_file_handler=basic_h5_file_handler,
             genes=genes,
             proteins=proteins,
+            colors=colors,
+            timepoints_num_mrna=timepoints_num_mrna,
+            timepoints_num_protein=timepoints_num_protein,
+            image_width=image_width,
+            image_height=image_height,
             mime_type=mime_type,
             save_into_dir_path_name=save_into_dir_path_name,
-            raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
             )
         resulting_graphs_details_as_list += graphs_details
@@ -245,14 +265,14 @@ def main(
 
 if __name__ == "__main__":
 
-    enable_logger()
+    logger=enable_logger()
 
     save_into_dir_path_name = os.path.join(path.analysis_dir, "cytoplasmic_spread/figures/")
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)
 
     resulting_graphs_details = main(
-        save_into_dir_path_name
+        save_into_dir_path_name,logger
         )
 
     print("\nThe following graphs were generated in directory %s :\n" % save_into_dir_path_name)
