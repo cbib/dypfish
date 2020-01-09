@@ -313,7 +313,7 @@ def histogram_peripheral_profile(
             "mime_type": mime_type
             }
 
-        plot.bar_profile(periph_fraction, proteins, graph_file_path_name)
+        plot.bar_profile(periph_fraction, proteins, graph_file_path_name,colors)
 
         assert(os.path.isfile(graph_file_path_name))
 

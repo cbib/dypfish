@@ -328,6 +328,7 @@ def calculate_random_mpi(MTOC, nMTOC, bootstrap_mpi):
 def calculate_mpi(MTOC,nMTOC):
     scores = []
     tmp = MTOC - np.nanmedian(nMTOC)
+    #tmp = np.subtract(np.array(MTOC), np.array(nMTOC))
     for elem in tmp.flatten():
         scores.append(elem)
     scores = np.array(scores)
@@ -338,7 +339,7 @@ def calculate_mpi(MTOC,nMTOC):
             nneg += 1
         else:
             npos += 1
-    mpi = (float(npos) / len(scores)) * 2 - 1
+    mpi = ((float(npos) / len(scores)) * 2) - 1
     p = binom.cdf(nneg, len(scores), 0.5)
     return (mpi, p)
 

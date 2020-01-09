@@ -45,9 +45,9 @@ if __name__ == "__main__":
             cytoplasmic_total = []
             for gene in mrnas:
                 image_list = helps.preprocess_image_list2(file_handler, molecule_type, gene)
-                cytoplasmic_total.append(adsc.compute_cytoplasmic_total(image_list, file_handler, path_data))
+                cytoplasmic_total.append(adsc.compute_cytoplasmic_total(image_list, file_handler))
             figname= check_dir(analysis_dir + 'nocodazole/figures/cytoplasmic_total/') + molecule_type +'_total_cytoplasmic_transcript.png'
-            plot.bar_profile(cytoplasmic_total, mrnas, figname)
+            plot.bar_profile(cytoplasmic_total, mrnas, figname, colors)
 
 
 

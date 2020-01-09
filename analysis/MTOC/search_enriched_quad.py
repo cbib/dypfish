@@ -41,7 +41,11 @@ def main():
             h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name, "r") as second_file_handler, \
             h5py.File(path.data_dir + input_dir_name + '/' + mtoc_file_name, "r") as mtoc_file_handler:
         compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        #compute_mrna_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+
         compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        #compute_protein_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+
 
 
 def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData):
@@ -73,9 +77,75 @@ def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler,
             image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
             for image in tqdm.tqdm(image_list, desc="Processing images"):
                 if is_periph:
-                    spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image)
+                    spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image, False)
                 else:
-                    spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler,image_width, image_height, volume_offset, volume_coeff, image)
+                    spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler,image_width, image_height, volume_offset, volume_coeff, image, False)
+                num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
+                mtoc_spot = spot_by_quad[:, :, 1] == 1
+                non_mtoc_spot = spot_by_quad[:, :, 1] == 0
+                for i in range(90):
+                    global_index.append(image.split("/")[4] + "_" + str(i + 1))
+                    global_image.append(image.split("/")[4])
+                    global_mrna.append(mrna)
+                    global_timepoint.append(timepoint)
+                global_mtoc.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
+                for i in range(0, 270, 3):
+                    # TODO : has to be extend
+                    global_non_mtoc1.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][0])
+                    global_non_mtoc2.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][1])
+                    global_non_mtoc3.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][2])
+
+                # quadrant number is 1 if it is in the leading edge
+                if num_mtoc_quadrant == 1:
+                    global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
+                else:
+                    for i in range(90):
+                        global_mtoc_leading.append(np.nan)
+    # TODO: add non_MTOC 1, 2 and 3
+    df = pd.DataFrame(
+        {'Image': global_image, 'Gene': global_mrna, 'timepoint': global_timepoint, 'MTOC': global_mtoc,
+         'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1, 'Non MTOC2': global_non_mtoc2,
+         'Non MTOC3': global_non_mtoc3}, index=global_index)
+    if is_periph:
+        df.to_csv(
+            check_dir(
+                path.analysis_dir + 'MTOC/dataframe/') + 'periph_global_mtoc_file_mrna.csv')
+    else:
+        df.to_csv(check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'global_mtoc_file_mrna.csv')
+
+
+def compute_mrna_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData):
+    # mrna part
+    logger = enable_logger()
+    molecule_type = ['/mrna']
+    mrnas = configData["GENES"]
+    timepoints = configData["TIMEPOINTS_MRNA"]
+    peripheral_fraction_threshold = configData["PERIPHERAL_FRACTION_THRESHOLD"]
+    image_width = configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
+    volume_offset= configData["VOLUME_OFFSET"]
+    size_coefficient=configData["SIZE_COEFFICIENT"]
+    volume_coeff= ((1 / size_coefficient)**2) * 0.3
+
+    global_mtoc = []
+    global_non_mtoc1 = []
+    global_non_mtoc2 = []
+    global_non_mtoc3 = []
+    global_mtoc_leading = []
+    global_mrna = []
+    global_image = []
+    global_index = []
+    global_timepoint = []
+    for mrna in tqdm.tqdm(mrnas, desc="Processing mRNAs"):
+        logger.info("Computing for mRNA %s", mrna)
+        for timepoint in tqdm.tqdm(timepoints, desc="Processing timepoints"):
+            logger.info("Computing for mRNA %s : timepoint %s", mrna, timepoint)
+            image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
+            for image in tqdm.tqdm(image_list, desc="Processing images"):
+                if is_periph:
+                    spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image, True)
+                else:
+                    spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler,image_width, image_height, volume_offset, volume_coeff, image, True)
                 num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
                 mtoc_spot = spot_by_quad[:, :, 1] == 1
                 non_mtoc_spot = spot_by_quad[:, :, 1] == 0
@@ -104,10 +174,9 @@ def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler,
     if is_periph:
         df.to_csv(
             check_dir(
-                path.analysis_dir + 'MTOC/dataframe/') + 'periph_global_mtoc_file_mrna.csv')
+                path.analysis_dir + 'MTOC/dataframe/') + 'periph_global_mtoc_file_mrna_normalized.csv')
     else:
-        df.to_csv(check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'global_mtoc_file_mrna.csv')
-
+        df.to_csv(check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'global_mtoc_file_mrna_normalized.csv')
 
 def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, sec_file_handler, configData):
     # protein part
@@ -135,9 +204,9 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
             image_list = helps.preprocess_image_list3(file_handler, molecule_type, protein, [timepoint])
             for image in tqdm.tqdm(image_list, desc="Processing images"):
                 intensity_by_quad = \
-                    idsc.search_periph_protein_quadrants(file_handler, sec_file_handler,peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image) if is_periph \
+                    idsc.search_periph_protein_quadrants(file_handler, sec_file_handler,peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image, False) if is_periph \
                         else \
-                    idsc.search_protein_quadrants(file_handler, sec_file_handler,image_width, image_height, volume_offset, volume_coeff, image)
+                    idsc.search_protein_quadrants(file_handler, sec_file_handler,image_width, image_height, volume_offset, volume_coeff, image, False)
                 mtoc_intensity = intensity_by_quad[:, :, 1] == 1
                 non_mtoc_intensity = intensity_by_quad[:, :, 1] == 0
                 num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
@@ -173,6 +242,70 @@ def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handl
         df.to_csv(
             check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'global_mtoc_file_protein.csv')
 
+
+def compute_protein_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, sec_file_handler, configData):
+    # protein part
+    logger = enable_logger()
+    molecule_type = ['/protein']
+    proteins = configData["PROTEINS"]
+    timepoints = configData["TIMEPOINTS_PROTEIN"]
+    peripheral_fraction_threshold = configData["PERIPHERAL_FRACTION_THRESHOLD"]
+    image_width = configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
+    volume_offset= configData["VOLUME_OFFSET"]
+    size_coefficient = configData["SIZE_COEFFICIENT"]
+    volume_coeff = ((1 / size_coefficient) ** 2) * 0.3
+    global_protein = []
+    global_mtoc = []
+    global_non_mtoc1 = []
+    global_non_mtoc2 = []
+    global_non_mtoc3 = []
+    global_mtoc_leading = []
+    global_image = []
+    global_index = []
+    global_timepoint = []
+    for protein in tqdm.tqdm(proteins, desc="Processing proteins"):
+        for timepoint in tqdm.tqdm(timepoints, desc="Processing timepoints"):
+            image_list = helps.preprocess_image_list3(file_handler, molecule_type, protein, [timepoint])
+            for image in tqdm.tqdm(image_list, desc="Processing images"):
+                intensity_by_quad = \
+                    idsc.search_periph_protein_quadrants(file_handler, sec_file_handler,peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image, True) if is_periph \
+                        else \
+                    idsc.search_protein_quadrants(file_handler, sec_file_handler,image_width, image_height, volume_offset, volume_coeff, image, True)
+                mtoc_intensity = intensity_by_quad[:, :, 1] == 1
+                non_mtoc_intensity = intensity_by_quad[:, :, 1] == 0
+                num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
+
+                for i in range(90):
+                    # needed for final boxplot
+                    global_index.append(image.split("/")[4] + "_" + str(i + 1))
+                    global_image.append(image.split("/")[4])
+                    global_protein.append(protein)
+                    global_timepoint.append(timepoint)
+                global_mtoc.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
+                for i in range(0, 270, 3):
+                    # TODO: has to be extend
+                    global_non_mtoc1.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][0])
+                    global_non_mtoc2.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][1])
+                    global_non_mtoc3.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][2])
+                    # global_non_mtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3]))
+                if num_mtoc_quadrant == 1:
+                    global_mtoc_leading.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
+                else:
+                    for i in range(90):
+                        global_mtoc_leading.append(np.nan)
+    # TODO: add non_MTOC 1, 2 and 3
+    df = pd.DataFrame({'Image': global_image, 'Gene': global_protein, 'timepoint': global_timepoint,
+                       'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1,
+                       'Non MTOC2': global_non_mtoc2, 'Non MTOC3': global_non_mtoc3},
+                      index=global_index)
+    if is_periph:
+        df.to_csv(
+            check_dir(
+                path.analysis_dir + 'MTOC/dataframe/') + 'periph_global_mtoc_file_protein_normalized.csv')
+    else:
+        df.to_csv(
+            check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'global_mtoc_file_protein_normalized.csv')
 
 if __name__ == "__main__":
     main()

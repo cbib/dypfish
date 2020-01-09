@@ -11,7 +11,7 @@ import h5py
 import src.image_descriptors as idsc
 import src.path as path
 import src.plot as plot
-from src.utils import check_dir, loadconfig
+from src.utils import check_dir, loadconfig, enable_logger
 
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
@@ -165,7 +165,7 @@ if __name__ == "__main__":
             image_cpt = 0
             for im in secondary_file_handler[molecule_type[0] + '/' + gene + '/' + timepoint]:
                 total_image += 1
-            w = 40
+            w = 30
             h = 2*total_image
             for im in secondary_file_handler[molecule_type[0] + '/' + gene + '/' + timepoint]:
                 sec_image = molecule_type[0] + '/' + gene + '/' + timepoint + '/' + im
@@ -198,7 +198,7 @@ if __name__ == "__main__":
                 cell_area = get_cell_area(cell_mask)
                 spot_surfacic_density = len(spots_reduced) / float(cell_area)
                 cell_width=cell_mask.shape[1] -240
-                band_n = 4.0
+                band_n = 100.0
                 quadrat_edge = cell_width / band_n
                 grid_1d = np.zeros((int(band_n)))
 
@@ -218,13 +218,13 @@ if __name__ == "__main__":
                 ax0 = plt.subplot()
                 ax0.set_yticks([])
                 major_ticks = np.arange(0,  int(band_n)+1, 1)
-                ax0.tick_params(axis='both', which='major', labelsize=20)
+                ax0.tick_params(axis='both', which='major', labelsize=10)
                 ax0.set_xticks(major_ticks)
-                plt.imshow(grid_mat,  cmap='coolwarm',aspect=band_n/3)
+                plt.imshow(grid_mat,cmap='coolwarm',aspect=band_n/4)
                 plt.ylim((0,0.4))
                 image_cpt+=1
                 plt.savefig(check_dir(path.analysis_dir+"/muscle_data/heatmap/"+"bucket_"+ str(int(band_n)))+"/mrna_distribution_" + gene + "_" + timepoint +"_image_"+str(image_cpt)+ ".png")
                 plt.close()
             vmr_values_sig.append(np.sum(np.array(vmr_values)>0)/float(len(vmr_values)))
-        figname="clustering_index.png"
-        plot.bar_profile(vmr_values_sig, genes,figname)
+        #figname=check_dir(path.analysis_dir+"/muscle_data/figures/")+"clustering_index.png"
+        #plot.bar_profile(vmr_values_sig, genes,figname, colors)

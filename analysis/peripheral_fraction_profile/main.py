@@ -165,7 +165,7 @@ def histogram_peripheral_profile(
             "mime_type": PNG_IMAGES_MIME_TYPE
             }
 
-        plot.bar_profile(periph_fraction, genes, graph_file_path_name)
+        plot.bar_profile(periph_fraction, genes, graph_file_path_name,colors)
         assert(os.path.isfile(graph_file_path_name))
 
         if ext_logger:
@@ -213,7 +213,7 @@ def histogram_peripheral_profile(
             "mime_type": PNG_IMAGES_MIME_TYPE
             }
 
-        plot.bar_profile(periph_fraction, proteins, graph_file_path_name)
+        plot.bar_profile(periph_fraction, proteins, graph_file_path_name, colors)
 
         assert(os.path.isfile(graph_file_path_name))
 
@@ -319,6 +319,7 @@ def peripheral_fraction_dynamic_profile(
 
 
 def main(
+        logger,
     save_into_dir_path_name
     ):
     assert os.path.isdir(save_into_dir_path_name)
@@ -340,6 +341,7 @@ def main(
     basic_file_name = configData["BASIC_FILE_NAME"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
     num_contours = configData["NUM_CONTOURS"]
+    colors=configData["COLORS"]
 
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as basic_h5_file_handler, \
          h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name, "r") as secondary_h5_file_handler:
@@ -352,7 +354,7 @@ def main(
                 molecule_type=['mrna'],
                 genes=genes,
                 num_contours=num_contours,
-                colors=plot_colors,
+                colors=colors,
                 compute_peripheral_fraction_profiles=adsc.compute_mrna_peripheral_fraction_profiles_3D,
                 timepoints=None,
                 save_into_dir_path_name=save_into_dir_path_name
@@ -370,10 +372,10 @@ def main(
                 molecule_type=['protein'],
                 genes=proteins,
                 num_contours=num_contours,
-                colors=plot_colors,
+                colors=colors,
                 compute_peripheral_fraction_profiles=adsc.compute_protein_peripheral_fraction_profiles_3D,
                 timepoints=None,
-                save_into_dir_path_name=save_into_dir_path_name
+                save_into_dir_path_name=save_into_dir_path_name,
             )
             resulting_graphs_details_as_list += graphs_details
 
@@ -390,7 +392,7 @@ def main(
                 secondary_h5_file_handler=secondary_h5_file_handler,
                 genes=genes,
                 proteins=proteins,
-                colors=plot_colors,
+                colors=colors,
                 periph_fraction_cst=periph_fraction_cst,
                 save_into_dir_path_name=save_into_dir_path_name
                 )
@@ -409,7 +411,7 @@ def main(
                 proteins=proteins,
                 timepoints_num_mrna=timepoints_num_mrna,
                 timepoints_num_protein=timepoints_num_protein,
-                colors=plot_colors,
+                colors=colors,
                 periph_fraction_cst=periph_fraction_cst,
                 mrna_tp=timepoints_mrna,
                 protein_tp=timepoints_protein,
@@ -430,13 +432,14 @@ def main(
 
 if __name__ == "__main__":
 
-    enable_logger()
+    logger=enable_logger()
 
     save_into_dir_path_name = os.path.join(path.analysis_dir, "peripheral_fraction_profile/figures/")
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)
 
     resulting_graphs_details, errors = main(
+        logger,
         save_into_dir_path_name=save_into_dir_path_name
         )
 

@@ -15,7 +15,7 @@ import math
 from scipy import interpolate
 import src.image_descriptors as idsc
 import src.path as path
-from src.utils import check_dir, loadconfig
+from src.utils import check_dir, loadconfig, enable_logger
 
 logger = logging.getLogger('DYPFISH_HELPERS')
 logger.setLevel(logging.DEBUG)

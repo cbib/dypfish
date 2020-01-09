@@ -125,7 +125,7 @@ def bar_profile_median(median,genes, figname, err, colors):
            yerr=err,
            error_kw=dict(elinewidth=1, ecolor='black'))
     ax.set_xlim(-width, len(ind) + width)
-    ax.set_ylim(np.min(median)-np.min(err)-2, np.max(median)+np.max(err)+1)
+    ax.set_ylim(np.min(median)-np.min(err), np.max(median)+np.max(err)+0.5)
     ax.set_xticks([])
     fig.savefig(figname)
     plt.close()
@@ -295,7 +295,7 @@ def dynamic_profiles(mrna_data,protein_data,timepoints_num_mrna, timepoints_num_
     plt.yticks(fontsize=30)
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     ax.set_xlim(1, 8)
-    #ax.set_ylim(-2, 3)
+    ax.set_ylim(-2, 3)
     x_mrna = np.arange(np.min(timepoints_num_mrna), np.max(timepoints_num_mrna), 0.01)
     spl = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[0, :],k=len(timepoints_num_mrna)-1)
     spl_upp = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[1, :],k=len(timepoints_num_mrna)-1)
@@ -320,6 +320,7 @@ def dynamic_profiles(mrna_data,protein_data,timepoints_num_mrna, timepoints_num_
                     interpolate=False)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+
     ax.set_title(gene)
     plt.savefig(figpath,format='png')
 

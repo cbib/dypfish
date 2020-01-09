@@ -37,22 +37,22 @@ def peripheral_fraction_profile(file_handler,molecule_type,genes,fraction,colors
         for gene in genes:
             image_list = helps.preprocess_image_list2(file_handler, molecule_type, gene)
             if molecule_type=="mrna":
-                fractions.append(adsc.build_histogram_mrna_periph_fraction(file_handler, image_list, fraction,path_data,basic_file_handler))
+                fractions.append(adsc.build_histogram_mrna_periph_fraction_2D(file_handler, image_list, fraction,path_data,basic_file_handler))
             else:
                 fractions.append(adsc.build_histogram_protein_periph_fraction(file_handler, image_list, fraction,path_data,basic_file_handler))
         figname = check_dir(path.analysis_dir + 'nocodazole/figures/peripheral_fraction/')+molecule_type+'_peripheral_fraction_'+str(fraction)+'.png'
-        plot.bar_profile(fractions,genes,figname)
+        plot.bar_profile(fractions,genes,figname, colors)
     else:
         for image_t in image_type:
             fractions = []
             for gene in genes:
                 image_list = helps.preprocess_image_list5(file_handler, molecule_type, gene,image_t)
                 if molecule_type == "mrna":
-                    fractions.append(adsc.build_histogram_mrna_periph_fraction(file_handler, image_list, fraction, path_data,basic_file_handler))
+                    fractions.append(adsc.build_histogram_mrna_periph_fraction_2D(file_handler, image_list, fraction, path_data,basic_file_handler))
                 else:
                     fractions.append(adsc.build_histogram_protein_periph_fraction(file_handler, image_list, fraction, path_data,basic_file_handler))
             figname = check_dir(path.analysis_dir + 'nocodazole/figures/peripheral_fraction/') +gene_root_name+'_peripheral_fraction_' +image_t+'_'+ str(fraction) + '.png'
-            plot.bar_profile(fractions, genes, figname)
+            plot.bar_profile(fractions, genes, figname, colors)
 
 
 def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, genes, proteins, colors, path_data,cell_type,image_type,periph_fraction_cst):
@@ -64,14 +64,14 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, gene
             periph_fraction.append(adsc.compute_mrna_periph_fraction(image_list,basic_file_handler, secondary_file_handler, periph_fraction_cst))
         figname = check_dir(path.analysis_dir + 'nocodazole/figures/peripheral_fraction/')+molecule_type[
             0] +'_peripheral_fraction.png'
-        plot.bar_profile(periph_fraction, genes, figname)
+        plot.bar_profile(periph_fraction, genes, figname, colors)
         molecule_type = ['/protein']
         periph_fraction = []
         for protein in proteins:
             image_list = helps.preprocess_image_list2(basic_file_handler, molecule_type[0], protein)
             periph_fraction.append(adsc.compute_protein_periph_fraction(image_list,basic_file_handler, secondary_file_handler,  periph_fraction_cst))
         figname = check_dir(path.analysis_dir + 'nocodazole/figures/peripheral_fraction/') +molecule_type[0] +'_peripheral_fraction.png'
-        plot.bar_profile(periph_fraction, proteins,  figname)
+        plot.bar_profile(periph_fraction, proteins,  figname, colors)
     else:
         for image_t in image_type:
             periph_fraction = []
@@ -82,7 +82,7 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, gene
                     adsc.compute_mrna_periph_fraction(image_list,basic_file_handler, secondary_file_handler,periph_fraction_cst))
             figname = check_dir(path.analysis_dir + 'nocodazole/figures/peripheral_fraction/') + \
                       molecule_type[0] +'_'+image_t+ 'peripheral_fraction.svg'
-            plot.bar_profile(periph_fraction, genes, figname)
+            plot.bar_profile(periph_fraction, genes, figname, colors)
             molecule_type = ['/protein']
             periph_fraction = []
             for protein in proteins:
@@ -90,7 +90,7 @@ def histogram_peripheral_profile(basic_file_handler,secondary_file_handler, gene
                 periph_fraction.append(adsc.compute_protein_periph_fraction(image_list,basic_file_handler, secondary_file_handler, periph_fraction_cst))
             figname = check_dir(path.analysis_dir + 'nocodazole/figures/peripheral_fraction/') + \
                       molecule_type[0] + '_' + image_t + '_peripheral_fraction.svg'
-            plot.bar_profile(periph_fraction, proteins, figname)
+            plot.bar_profile(periph_fraction, proteins, figname, colors)
 
 if __name__ == "__main__":
     # Required descriptors: spots_peripheral_distance, height_map, zero_level and spots

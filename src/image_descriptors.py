@@ -526,7 +526,7 @@ def compute_cytoplasmic_volume(file_handler, image, second_file_handler, volume_
 
 def compute_protein_density_normalization_factor(file_handler, image, second_file_handler,volume_offset, volume_coeff):
     # compute density normalization factor
-    cytoplasmic_protein_count = compute_protein_cytoplasmic_total(file_handler, image, path.path_data)
+    cytoplasmic_protein_count = compute_protein_cytoplasmic_total(file_handler, image)
     cytoplasmic_volume = compute_cytoplasmic_volume(file_handler, image, second_file_handler, volume_offset, volume_coeff)
     normalization_factor = cytoplasmic_protein_count / cytoplasmic_volume
     assert normalization_factor > 0
@@ -540,7 +540,7 @@ def compute_mrna_density_normalization_factor(file_handler, image, second_file_h
     assert normalization_factor > 0
     return normalization_factor
 
-def search_mrna_quadrants(file_handler, second_file_handler, image_width, image_height,  volume_offset, volume_coeff, image):
+def search_mrna_quadrants(file_handler, second_file_handler, image_width, image_height,  volume_offset, volume_coeff, image, use_normalization=False):
     """
     For all possible subdivisions of the cell in quadrants (90 possible),
     computes the mRNA normalized density (enrichment vs cytoplasm) per quadrant.
@@ -587,12 +587,13 @@ def search_mrna_quadrants(file_handler, second_file_handler, image_width, image_
         spot_by_quad[degree, mtoc_quad - 1, 1] = 1
         for quad_num in range(1, 5):
             spot_by_quad[degree, quad_num - 1, 0] /= (np.sum(height_map[quadrant_mask == quad_num]) * volume_coeff)
-            spot_by_quad[degree, quad_num - 1, 0] /= normalization_factor
+            if (use_normalization):
+                spot_by_quad[degree, quad_num - 1, 0] /= normalization_factor
     return spot_by_quad
 
 
 # Calculates the quadrant mask for the MTOC
-def search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image):
+def search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image,use_normalization=False):
     print(image)
     mtoc_position = get_mtoc_position(file_handler, image)
     cell_mask_dist_map = get_cell_mask_distance_map(second_file_handler, image)
@@ -629,11 +630,12 @@ def search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_f
         spot_by_quad[i, mtoc_quad - 1, 1] += 1
         for quad_num in range(1, 5):
             spot_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[(peripheral_binary_mask == 1) & (quadrant_mask == quad_num)]) * volume_coeff
-            spot_by_quad[i, quad_num - 1, 0] /= normalization_factor
+            if (use_normalization):
+                spot_by_quad[i, quad_num - 1, 0] /= normalization_factor
     return spot_by_quad
 
 # Calculates the quadrant mask for the MTOC
-def search_protein_quadrants(file_handler, second_file_handler,image_width, image_height, volume_offset, volume_coeff, image):
+def search_protein_quadrants(file_handler, second_file_handler,image_width, image_height, volume_offset, volume_coeff, image,use_normalization=False):
     print(image)
     quadrants = get_quadrants(file_handler, image)
     assert (not quadrants.size), 'mtoc_quadrant already defined for %r' % image
@@ -672,12 +674,13 @@ def search_protein_quadrants(file_handler, second_file_handler,image_width, imag
             if quad_num == mtoc_quad:
                 intensity_by_quad[i, mtoc_quad - 1, 1] = 1
             intensity_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[quadrant_mask == quad_num]) * volume_coeff
-            intensity_by_quad[i, quad_num - 1, 0] /= normalization_factor
+            if (use_normalization):
+                intensity_by_quad[i, quad_num - 1, 0] /= normalization_factor
     return intensity_by_quad
 
 
 # Calculates the quadrant mask for the MTOC
-def search_periph_protein_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image):
+def search_periph_protein_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image,use_normalization=False):
     print(image)
     quadrants = get_quadrants(file_handler, image)
     assert (not quadrants.size), 'mtoc_quadrant already defined for %r' % image
@@ -718,7 +721,8 @@ def search_periph_protein_quadrants(file_handler, second_file_handler, periphera
             if quad_num == mtoc_quad:
                 intensity_by_quad[i, mtoc_quad - 1, 1] += 1
             intensity_by_quad[i, quad_num - 1, 0] /= np.sum(height_map[(peripheral_binary_mask == 1) & (quadrant_mask == quad_num)]) * volume_coeff
-            intensity_by_quad[i, quad_num - 1, 0] /= normalization_factor
+            if (use_normalization):
+                intensity_by_quad[i, quad_num - 1, 0] /= normalization_factor
 
     return intensity_by_quad
 

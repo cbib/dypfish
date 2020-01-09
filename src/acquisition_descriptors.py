@@ -127,7 +127,6 @@ def build_histogram_mrna_periph_fraction_2D(sec_file_handler,image_list,fraction
     arr = []
     for image in image_list:
         spots_peripheral_distance = image_descriptors.get_spots_peripheral_distance_2D(sec_file_handler, image)
-        print(spots_peripheral_distance)
         arr.append(float(len(spots_peripheral_distance[spots_peripheral_distance <= fraction])) / float(len(spots_peripheral_distance)))
 
     return arr

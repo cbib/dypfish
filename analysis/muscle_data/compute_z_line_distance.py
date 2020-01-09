@@ -197,14 +197,14 @@ if __name__ == "__main__":
     image_height = configData["IMAGE_HEIGHT"]
 
     molecule_type = ['/mrna']
-    # genes = ['actn2', 'gapdh']
-    # timepoints = ['mature']
-    # colors = ['#0A3950', '#1E95BB', '#A1BA6D']
-    # with h5py.File(path.data_dir + input_dir_name + '/' + basic_file_name, "a") as file_handler,h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name, "a") as muscle_file_handler:
-    #
-    #     all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes, timepoints, z_line_spacing)
-    #     df = pd.DataFrame(all_median_profiles)
-    #     df.to_csv(check_dir(path.analysis_dir + 'muscle_data/dataframe/') + "all_median_profiles_by_slice_mature_remove_bad_slice.csv")
+    genes = ['actn2', 'gapdh']
+    timepoints = ['mature']
+    colors = ['#0A3950', '#1E95BB', '#A1BA6D']
+    with h5py.File(path.data_dir + input_dir_name + '/' + basic_file_name, "a") as file_handler,h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name, "a") as muscle_file_handler:
+
+        all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes, timepoints, z_line_spacing)
+        df = pd.DataFrame(all_median_profiles)
+        df.to_csv(check_dir(path.analysis_dir + 'muscle_data/dataframe/') + "all_median_profiles_by_slice_mature_remove_bad_slice.csv")
 
 
     genes = ['actn2']
