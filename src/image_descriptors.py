@@ -858,7 +858,7 @@ def compute_mrna_cytoplasmic_total(file_handler, image):
     return counter
 
 
-def compute_protein_cytoplasmic_total(file_handler, image, path_data):
+def compute_protein_cytoplasmic_total(file_handler, image):
     # print(image)
 
     # need to find a way to deal with raw image if necessary

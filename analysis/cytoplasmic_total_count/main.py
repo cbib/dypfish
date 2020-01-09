@@ -26,8 +26,8 @@ def cytoplasmic_total_count(
     genes,
     molecule_type,
     save_into_dir_path_name,
+    colors,
     mime_type,
-    raw_images_dir_path_name=None,
     ext_logger=None
     ):
     assert os.path.isdir(save_into_dir_path_name)
@@ -50,7 +50,6 @@ def cytoplasmic_total_count(
             adsc.compute_cytoplasmic_total(
                 image_list,
                 basic_h5_file_handler,
-                path_data=raw_images_dir_path_name
                 )
             )
 
@@ -61,7 +60,7 @@ def cytoplasmic_total_count(
         "mime_type": mime_type
         }
 
-    plot.bar_profile(cytoplasmic_total, genes, graph_file_path_name)
+    plot.bar_profile(cytoplasmic_total, genes, graph_file_path_name,colors)
 
     assert(os.path.isfile(graph_file_path_name))
 
@@ -101,7 +100,6 @@ def cytoplasmic_total_dynamic_profiles(
         basic_h5_file_handler,
         adsc.compute_cytoplasmic_total,
         basic_h5_file_handler,
-        raw_images_dir_path_name
         )
 
     try:
@@ -163,7 +161,6 @@ def cytoplasmic_total_dynamic_profiles(
 
 def main(
     save_into_dir_path_name,
-    raw_images_dir_path_name=None,
     ext_logger=None
     ):
 
@@ -182,6 +179,7 @@ def main(
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     mime_type=configData["PNG_IMAGES_MIME_TYPE"]
     basic_file_name = configData["BASIC_FILE_NAME"]
+    colors=configData["COLORS"]
 
 
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "r") as basic_h5_file_handler:
@@ -191,8 +189,8 @@ def main(
             genes=genes,
             molecule_type='mrna',
             save_into_dir_path_name=save_into_dir_path_name,
+            colors=colors,
             mime_type=mime_type,
-            raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
             )
         resulting_graphs_details_as_list.append(graph_details)
@@ -202,8 +200,8 @@ def main(
             genes=proteins,
             molecule_type='protein',
             save_into_dir_path_name=save_into_dir_path_name,
+            colors=colors,
             mime_type=mime_type,
-            raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
             )
         resulting_graphs_details_as_list.append(graph_details)
@@ -218,7 +216,6 @@ def main(
             timepoints_num_protein=timepoints_num_protein,
             save_into_dir_path_name=save_into_dir_path_name,
             mime_type=mime_type,
-            raw_images_dir_path_name=raw_images_dir_path_name,
             ext_logger=ext_logger
             )
         resulting_graphs_details_as_list += graphs_details
@@ -232,14 +229,15 @@ def main(
 
 if __name__ == "__main__":
 
-    enable_logger()
+    logger=enable_logger()
 
     save_into_dir_path_name = os.path.join(path.analysis_dir, "cytoplasmic_total_count/figures/")
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)
 
     resulting_graphs_details = main(
-        save_into_dir_path_name
+        save_into_dir_path_name,
+        logger
         )
 
     print("\nThe following graphs were generated in directory %s :\n" % save_into_dir_path_name)

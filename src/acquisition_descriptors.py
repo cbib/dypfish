@@ -192,12 +192,12 @@ def compute_cytoplasmic_spread(image_list, file_handler,image_width,image_height
     return cyt_spreads
 
 
-def compute_cytoplasmic_total(image_list,file_handler, path_data):
+def compute_cytoplasmic_total(image_list,file_handler):
     total_cyts=[]
     for image in image_list:
         if 'mrna' in image:
             total_cyt=image_descriptors.compute_mrna_cytoplasmic_total(file_handler,image)
         else:
-            total_cyt=image_descriptors.compute_protein_cytoplasmic_total(file_handler,image,path_data)
+            total_cyt=image_descriptors.compute_protein_cytoplasmic_total(file_handler,image)
         total_cyts.append(total_cyt)
     return total_cyts
