@@ -35,7 +35,7 @@ def main():
     h_star_file_name = configData["HSTAR_FILE_NAME"]
     colors= configData["COLORS"]
 
-    check_dir(path.analysis_dir + 'CHX/figures/')
+    check_dir(path.analysis_dir + 'chx/figures/')
     # produce bar plot for degree of clustering
     with h5py.File(path.data_dir+input_dir_name+'/'+h_star_file_name, "a") as input_file_handler:
 
