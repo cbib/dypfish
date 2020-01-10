@@ -238,22 +238,15 @@ Defines a spatial distribution profile of mRNAs and proteins for images acquired
 
 ###### Temporal interaction analysis
 Measures the interdependence between the mRNA and protein dynamics. **This analysis needs the results of the MTOC Polarity Index analysis to be performed.**
-*PERIPHERAL_FRACTION_THRESHOLD is used to define peripheral area.*
+This analysis can be run in peripheral mode using the -p arg. PERIPHERAL_FRACTION_THRESHOLD is used to defined the peripheral area.
 
 For the cytoplasmique analysis: 
 ```
-        python analysis/temporal_interactions/compute_TIS_by_quad_df.py -i original
+        python analysis/temporal_interactions/search_TIS.py -i original
 
-        python analysis/temporal_interactions/compute_TIS_analysis.py -i original
+        python analysis/temporal_interactions/plot_TIS.py -i original
 ```
 
-
-For the peripheral analysis:
-```
-        python analysis/temporal_interactions/compute_TIS_by_periph_quad_df.py -i original
-
-        python analysis/temporal_interactions/compute_TIS_periph_analysis.py -i original
-```
 
 ###### Degree of clustering analysis 
 The degree of clustering is a unitless measure that can be used to compare clustering between different molecules and conditions.

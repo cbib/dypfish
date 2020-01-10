@@ -14,8 +14,11 @@ from src.utils import enable_logger, plot_colors, check_dir, loadconfig
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+parser.add_argument("--peripheral", "-p", help='boolean flag: perform peripheral computation or not',action="store_true", default=False)
+
 args = parser.parse_args()
 input_dir_name = args.input_dir_name
+is_periph = args.peripheral
 
 
 def permutations(orig_list):
@@ -86,15 +89,17 @@ def get_forward_interactions(mrna_timepoints, protein_timepoints):
                 fwd_interactions[x, y] = 1
     return fwd_interactions
 
-def calculate_temporal_interaction_score(mrna_data, protein_data):
-    S1 = get_forward_interactions([2, 3, 4, 5], [2, 3, 5, 7])
-    interactions = np.zeros((4, 4))
-    for i in range(4):
-        for j in range(4):
+def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
+    S1 = get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
+    interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
+    for i in range(len(timepoint_num_mrna)):
+        for j in range(len(timepoint_num_protein)):
             interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
     (p, stat, ranking) = permutations_test(interactions, S1)
     tis = (100 - stat) / 64.0
     return tis, p, ranking
+
+
 
 def plot_bar_profile(data, genes, ylabel, figname, colors):
     ax = plt.axes()
@@ -115,12 +120,13 @@ def plot_bar_profile(data, genes, ylabel, figname, colors):
 
 def main():
     enable_logger()
-
     configData = loadconfig(input_dir_name)
     mrnas = configData["GENES"][0:4]
     mrna_timepoints = configData["TIMEPOINTS_MRNA"]
     prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
     colors = configData["COLORS"]
+    timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
+    timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
 
     tiss = []
     p_vals = []
@@ -130,12 +136,20 @@ def main():
         prot_list = []
         for timepoint in mrna_timepoints:
             print(mrna, timepoint)
-            mrna_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_mrna.csv",index_col=0)
+            if (is_periph):
+                print(is_periph)
+                mrna_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/periph_" + mrna + '_' + timepoint + "_mrna.csv",index_col=0)
+            else:
+                mrna_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_mrna.csv",index_col=0)
             mrna_list.append(mrna_df.median(axis=0).values)
         for timepoint in prot_timepoints:
-            prot_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_protein.csv",index_col=0)
+            if (is_periph):
+                prot_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/periph_" + mrna + '_' + timepoint + "_protein.csv",index_col=0)
+            else:
+                prot_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_protein.csv",index_col=0)
+
             prot_list.append(prot_df.median(axis=0).values)
-        (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list)
+        (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list, timepoints_num_mrna, timepoints_num_protein)
         tiss.append(tis)
         p_vals.append(p)
         im = np.flipud(np.kron(ranking, np.ones((10, 10))))
@@ -149,13 +163,24 @@ def main():
         ax.yaxis.set(ticks=np.arange(0.5, 4.5, 1), ticklabels=myyticklabels)
         ax.set_title(mrna)
         fig_path = check_dir(path.analysis_dir + 'temporal_interactions/figures/')
-        plt.savefig(fig_path + mrna + '_TIS_correlation_ranking.svg', format='svg')
+        if (is_periph):
+            plt.savefig(fig_path + mrna + '_TIS_correlation_ranking.svg', format='svg')
+        else:
+            plt.savefig(fig_path + 'periph_' + mrna + '_TIS_correlation_ranking.svg', format='svg')
         plt.close()
         count_gene += 1
 
     ylabel = 'Global temporal interaction score'
-    figname = path.analysis_dir + 'temporal_interactions/figures/TIS.svg'
+
+    if(is_periph):
+        figname = path.analysis_dir + 'temporal_interactions/figures/TIS_periph.svg'
+    else:
+        figname = path.analysis_dir + 'temporal_interactions/figures/TIS.svg'
     plot.bar_profile(tiss, mrnas, figname,colors)
+
+
+
+
 
 if __name__ == "__main__":
     main()

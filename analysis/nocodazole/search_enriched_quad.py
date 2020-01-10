@@ -18,8 +18,7 @@ from src.utils import enable_logger, check_dir, loadconfig
 pd.set_option('display.max_rows', 500)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--peripheral", "-p", help='boolean flag: perform peripheral computation or not',
-                    action="store_true", default=False)
+parser.add_argument("--peripheral", "-p", help='boolean flag: perform peripheral computation or not',action="store_true", default=False)
 parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
 
 args = parser.parse_args()
