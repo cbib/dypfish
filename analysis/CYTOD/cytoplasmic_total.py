@@ -26,7 +26,7 @@ def main():
     basic_file_name = configData["BASIC_FILE_NAME"]
     molecule_types = configData["MOLECULE_TYPES"]
     colors=configData["COLORS"]
-    check_dir(path.analysis_dir + 'cytoD/figures/')
+    check_dir(path.analysis_dir + 'CYTOD/figures/')
 
 
     with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as file_handler:
@@ -36,7 +36,7 @@ def main():
                 image_list = helps.preprocess_image_list2(file_handler, molecule_type, gene)
                 cytoplasmic_transcripts.append(adsc.compute_cytoplasmic_total(image_list, file_handler))
             plot_filename = molecule_type + '_total_cytoplasmic_transcript_arhgdia_cytod.png'
-            figname = check_dir(path.analysis_dir + 'cytoD/figures/cyt_total/') + plot_filename
+            figname = check_dir(path.analysis_dir + 'CYTOD/figures/cyt_total/') + plot_filename
             plot.bar_profile(cytoplasmic_transcripts, genes, figname, colors)
 if __name__ == "__main__":
     main()

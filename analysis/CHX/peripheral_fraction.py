@@ -5,6 +5,7 @@ import os
 from collections import OrderedDict
 import numpy as np
 import h5py
+import sys
 import argparse
 import src.plot as plot
 import src.acquisition_descriptors as adsc
@@ -33,7 +34,7 @@ def peripheral_profile(
     assert os.path.isdir(save_into_dir_path_name)
 
     timepoint = timepoint if timepoint else 'All'
-    graph_file_name = 'peripheral_fraction_' + timepoint + '_timepoint_' + molecule_type[0]+ '_'+ str(num_contours) + 'contours.png'
+    graph_file_name = 'peripheral_fraction_' + molecule_type[0]+ '_'+ str(num_contours) + 'contours.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
     graph_metadata = {
         "file_name": graph_file_name,
@@ -142,7 +143,7 @@ def mrna_peripheral_fraction_profile(
             gene
             )
         fractions.append(
-            adsc.build_histogram_mrna_periph_fraction_2D(
+            adsc.build_histogram_mrna_periph_fraction(
                 secondary_h5_file_handler,
                 image_list,
                 fraction,
@@ -150,7 +151,6 @@ def mrna_peripheral_fraction_profile(
                 basic_h5_file_handler
                 )
             )
-    #print(fractions)
     graph_file_name = molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name,graph_file_name)
 
@@ -160,7 +160,7 @@ def mrna_peripheral_fraction_profile(
         }
 
     #plot.fraction_profile(fractions, fraction, genes, fig_file_path_name, colors)
-    plot.bar_profile(fractions, genes, graph_file_path_name, colors)
+    plot.bar_profile(fractions, genes, graph_file_path_name,colors)
 
     assert(os.path.isfile(graph_file_path_name))
 
@@ -200,6 +200,9 @@ def protein_peripheral_fraction_profile(
                 basic_h5_file_handler
                 )
             )
+    #print(fractions)
+    #import sys
+    #sys.exit
     graph_file_name = molecule_type[0]+'_peripheral_fraction_'+str(fraction)+'.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name,graph_file_name)
 
@@ -208,7 +211,7 @@ def protein_peripheral_fraction_profile(
         "mime_type": mime_type
         }
 
-    #plot.fraction_profile(fractions, fraction, genes, fig_file_path_name, colors)
+    #plot.fraction_profile(fractions, fraction, genes, graph_file_path_name, colors)
     plot.bar_profile(fractions, genes, graph_file_path_name, colors)
 
     assert(os.path.isfile(graph_file_path_name))
@@ -250,11 +253,11 @@ def histogram_peripheral_profile(
                 gene
                 )
             periph_fraction.append(
-                adsc.compute_mrna_periph_fraction(
+                adsc.compute_protein_periph_fraction(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
-                    periph_fraction_cst
+                    periph_fraction_cst,
                     )
                 )
 
@@ -265,7 +268,7 @@ def histogram_peripheral_profile(
             "mime_type": mime_type
             }
 
-        plot.bar_profile(periph_fraction, genes, graph_file_path_name, colors)
+        plot.bar_profile(periph_fraction, genes, graph_file_path_name,colors)
         assert(os.path.isfile(graph_file_path_name))
 
         if ext_logger:
@@ -302,7 +305,7 @@ def histogram_peripheral_profile(
                     image_list,
                     basic_h5_file_handler,
                     secondary_h5_file_handler,
-                    periph_fraction_cst
+                    periph_fraction_cst,
                     )
                 )
 
@@ -345,7 +348,6 @@ def peripheral_fraction_dynamic_profile(
     periph_fraction_cst,
     mrna_tp,
     protein_tp,
-    raw_images_dir_path_name,
     save_into_dir_path_name,
     ext_logger=None
     ):
@@ -362,9 +364,8 @@ def peripheral_fraction_dynamic_profile(
         adsc.compute_protein_periph_fraction,
         basic_h5_file_handler,
         secondary_h5_file_handler,
-        periph_fraction_cst,
-        raw_images_dir_path_name
-        )
+        periph_fraction_cst
+    )
 
     try:
 
@@ -423,7 +424,6 @@ def peripheral_fraction_dynamic_profile(
 
 def main(
 
-    raw_images_dir_path_name,
     save_into_dir_path_name
     ):
     assert os.path.isdir(save_into_dir_path_name)
@@ -443,27 +443,29 @@ def main(
     proteins = configData["PROTEINS"]
     timepoints_mrna = configData["TIMEPOINTS_MRNA"]
     timepoints_protein = configData["TIMEPOINTS_PROTEIN"]
-
+    timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
+    timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     mime_type = configData["PNG_IMAGES_MIME_TYPE"]
     basic_file_name = configData["BASIC_FILE_NAME"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
     periph_fraction_cst = configData["PERIPHERAL_FRACTION_THRESHOLD"]
     num_contours=configData["NUM_CONTOURS"]
+    colors=configData["COLORS"]
 
     with h5py.File(path.data_dir+input_dir_name+"/"+basic_file_name, "r") as basic_h5_file_handler, \
          h5py.File(path.data_dir+input_dir_name+"/"+secondary_file_name, "r") as secondary_h5_file_handler:
 
 
-        # Section to build peripheral profile fraction 10 and 30
+        # Section to build peripheral profile fraction set in config.json
         try:
             #here we used FISH continuous signal cause there is no FISH discrete Data for CHX analysis
-            graph_details = mrna_peripheral_fraction_profile(
+            graph_details = protein_peripheral_fraction_profile(
                 secondary_h5_file_handler=secondary_h5_file_handler,
                 molecule_type=['mrna'],
                 genes=genes,
                 mime_type=mime_type,
                 fraction=periph_fraction_cst,
-                colors=plot_colors,
+                colors=colors,
                 basic_h5_file_handler=basic_h5_file_handler,
                 save_into_dir_path_name=save_into_dir_path_name
             )
@@ -473,7 +475,7 @@ def main(
             errors.append("Could not generate peripheral fraction profile graph for mrna.")
             raise
 
-        # Section to build peripheral profile fraction 10 and 30
+        # Section to build peripheral profile fraction set in config.json
         try:
             graph_details = protein_peripheral_fraction_profile(
                 secondary_h5_file_handler=secondary_h5_file_handler,
@@ -481,7 +483,7 @@ def main(
                 genes=proteins,
                 mime_type=mime_type,
                 fraction=periph_fraction_cst,
-                colors=plot_colors,
+                colors=colors,
                 basic_h5_file_handler=basic_h5_file_handler,
                 save_into_dir_path_name=save_into_dir_path_name
             )
@@ -491,47 +493,47 @@ def main(
             errors.append("Could not generate peripheral fraction profile graph fro protein.")
             raise
 
-        try:
-            graphs_details = peripheral_profiles(
-                basic_h5_file_handler=basic_h5_file_handler,
-                secondary_h5_file_handler=secondary_h5_file_handler,
-                molecule_type=['mrna'],
-                genes=genes,
-                mime_type=mime_type,
-                num_contours=num_contours,
-                colors=plot_colors,
-                compute_peripheral_fraction_profiles=adsc.compute_mrna_peripheral_fraction_profiles_2D,
-                timepoints=None,
-                save_into_dir_path_name=save_into_dir_path_name
-            )
-            resulting_graphs_details_as_list += graphs_details
-
-        except Exception as e:
-            errors.append("Could not generate peripheral profiles graphs.")
-            raise
-
-        try:
-            graphs_details = peripheral_profiles(
-                basic_h5_file_handler=basic_h5_file_handler,
-                secondary_h5_file_handler=secondary_h5_file_handler,
-                molecule_type=['protein'],
-                genes=proteins,
-                mime_type=mime_type,
-                num_contours=num_contours,
-                colors=plot_colors,
-                compute_peripheral_fraction_profiles=adsc.compute_protein_peripheral_fraction_profiles_3D,
-                timepoints=None,
-                save_into_dir_path_name=save_into_dir_path_name
-            )
-            resulting_graphs_details_as_list += graphs_details
-
-        except Exception as e:
-            errors.append("Could not generate peripheral profiles graphs.")
-            raise
-
-
-
-        # # Section to compute bar plot peripheral fraction
+        # try:
+        #     graphs_details = peripheral_profiles(
+        #         basic_h5_file_handler=basic_h5_file_handler,
+        #         secondary_h5_file_handler=secondary_h5_file_handler,
+        #         molecule_type=['mrna'],
+        #         genes=genes,
+        #         mime_type=mime_type,
+        #         num_contours=num_contours,
+        #         colors=colors,
+        #         compute_peripheral_fraction_profiles=adsc.compute_protein_peripheral_fraction_profiles_3D,
+        #         timepoints=None,
+        #         save_into_dir_path_name=save_into_dir_path_name
+        #     )
+        #     resulting_graphs_details_as_list += graphs_details
+        #
+        # except Exception as e:
+        #     errors.append("Could not generate peripheral profiles graphs.")
+        #     raise
+        #
+        # try:
+        #     graphs_details = peripheral_profiles(
+        #         basic_h5_file_handler=basic_h5_file_handler,
+        #         secondary_h5_file_handler=secondary_h5_file_handler,
+        #         molecule_type=['protein'],
+        #         genes=proteins,
+        #         mime_type=mime_type,
+        #         num_contours=num_contours,
+        #         colors=colors,
+        #         compute_peripheral_fraction_profiles=adsc.compute_protein_peripheral_fraction_profiles_3D,
+        #         timepoints=None,
+        #         save_into_dir_path_name=save_into_dir_path_name
+        #     )
+        #     resulting_graphs_details_as_list += graphs_details
+        #
+        # except Exception as e:
+        #     errors.append("Could not generate peripheral profiles graphs.")
+        #     raise
+        #
+        #
+        #
+        #Section to compute bar plot peripheral fraction
         # try:
         #     graphs_details = histogram_peripheral_profile(
         #         basic_h5_file_handler=basic_h5_file_handler,
@@ -539,7 +541,7 @@ def main(
         #         genes=genes,
         #         proteins=proteins,
         #         mime_type=mime_type,
-        #         colors=plot_colors,
+        #         colors=colors,
         #         periph_fraction_cst=periph_fraction_cst,
         #         save_into_dir_path_name=save_into_dir_path_name
         #         )
@@ -549,7 +551,26 @@ def main(
         #     errors.append("Could not generate histogram peripheral profile graphs.")
         #     raise
 
-
+        # Section to produce plot interpolation (dynamic profile) of peripheral fraction by timepoint
+        try:
+            graphs_details = peripheral_fraction_dynamic_profile(
+                basic_h5_file_handler=basic_h5_file_handler,
+                secondary_h5_file_handler=secondary_h5_file_handler,
+                genes=genes,
+                proteins=proteins,
+                mime_type=mime_type,
+                timepoints_num_mrna=timepoints_num_mrna,
+                timepoints_num_protein=timepoints_num_protein,
+                colors=colors,
+                periph_fraction_cst=periph_fraction_cst,
+                mrna_tp=timepoints_mrna,
+                protein_tp=timepoints_protein,
+                save_into_dir_path_name=save_into_dir_path_name,
+            )
+            resulting_graphs_details_as_list += graphs_details
+        except Exception as e:
+            errors.append("Could not generate peripheral fraction dynamic profile graphs.")
+            raise
 
 
     resulting_graphs_details_as_odict = OrderedDict()
@@ -562,15 +583,13 @@ def main(
 if __name__ == "__main__":
 
     enable_logger()
-
-    raw_images_dir_path_name = path.path_data
-    save_into_dir_path_name = os.path.join(path.analysis_dir, "cytoD/figures/peripheral_fraction/")
+    check_dir(path.analysis_dir + 'CHX/figures/')
+    save_into_dir_path_name = os.path.join(path.analysis_dir, "CHX/figures/peripheral_fraction")
 
     if not os.path.isdir(save_into_dir_path_name):
         os.mkdir(save_into_dir_path_name)
 
     resulting_graphs_details, errors = main(
-        raw_images_dir_path_name=raw_images_dir_path_name,
         save_into_dir_path_name=save_into_dir_path_name
         )
 
