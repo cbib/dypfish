@@ -73,19 +73,23 @@ def main():
     timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
     timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
     bootstrap_mpi = configData["BOOTSTRAP_MPI"]
+    mime_type = configData["PNG_IMAGES_MIME_TYPE"]
     colors=configData["COLORS"]
 
-    check_dir(path.analysis_dir + 'MTOC/figures/')
-    if (check_dir_only(path.analysis_dir + 'MTOC/figures/')==False):
+
+
+
+    check_dir(path.analysis_dir + 'nocodazole/figures/')
+    if (check_dir_only(path.analysis_dir + 'nocodazole/figures/')==False):
         sys.exit(1)
 
     enable_logger()
     if is_periph:
-        df_filename_m=check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'periph_global_mtoc_file_mrna.csv'
-        df_filename_p=check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'periph_global_mtoc_file_protein.csv'
+        df_filename_m=check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'periph_global_mtoc_file_mrna.csv'
+        df_filename_p=check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'periph_global_mtoc_file_protein.csv'
     else:
-        df_filename_m=check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'global_mtoc_file_mrna.csv'
-        df_filename_p=check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'global_mtoc_file_protein.csv'
+        df_filename_m=check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'global_mtoc_file_mrna.csv'
+        df_filename_p=check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'global_mtoc_file_protein.csv'
 
     #mrna part
     df_m = pd.read_csv(df_filename_m)
@@ -102,16 +106,16 @@ def main():
     # plot bar plot MPI
     mpis,err=compute_mpis(df_sorted_m,bootstrap_mpi)
     if is_periph:
-        figname=check_dir(path.analysis_dir + 'MTOC/figures/') + 'periph_mrna_paired_mpis.png'
+        figname=check_dir(path.analysis_dir + 'nocodazole/figures/') + 'periph_mrna_paired_mpis.png'
     else:
-        figname=check_dir(path.analysis_dir + 'MTOC/figures/') + 'mrna_paired_mpis.png'
+        figname=check_dir(path.analysis_dir + 'nocodazole/figures/') + 'mrna_paired_mpis.png'
     bar_profile_median(mpis, genes, figname, err, colors)
 
     mpis, err = compute_mpis(df_sorted_p, bootstrap_mpi)
     if is_periph:
-        figname = check_dir(path.analysis_dir + 'MTOC/figures/') + 'periph_protein_paired_mpis.png'
+        figname = check_dir(path.analysis_dir + 'nocodazole/figures/') + 'periph_protein_paired_mpis.png'
     else:
-        figname = check_dir(path.analysis_dir + 'MTOC/figures/') + 'protein_paired_mpis.png'
+        figname = check_dir(path.analysis_dir + 'nocodazole/figures/') + 'protein_paired_mpis.png'
     bar_profile_median(mpis, proteins, figname, err, colors)
 
 
@@ -147,7 +151,7 @@ def main():
             mpi, p = stan.calculate_mpi(line['MTOC'].values, nonMTOC)
             print(tpt, mpi)
             mpis.append(mpi)
-        mrna_data = np.zeros((3, 4))
+        mrna_data = np.zeros((3, len(timepoints_num_mrna)))
         counter = 0
         for timepoint in timepoints_mrna:
             print(genes[i], '_', timepoint)
@@ -184,7 +188,7 @@ def main():
                 print(tpt, mpi)
                 mpis.append(mpi)
             counter = 0
-            protein_data = np.zeros((3, 4))
+            protein_data = np.zeros((3, len(timepoints_num_mrna)))
             for timepoint in timepoints_protein:
                 err = np.median(np.abs(
                     np.tile(np.median(random_mpis[counter]), (1, len(random_mpis[counter]))) - random_mpis[counter]))
@@ -196,13 +200,13 @@ def main():
                 counter += 1
             # protein_data = protein_data / np.mean(protein_data[0, :])
 
-        figname = check_dir(path.analysis_dir + 'MTOC/figures/') + 'periph_' if is_periph else '' + 'MPI_' + genes[
+        figname = check_dir(path.analysis_dir + 'nocodazole/figures/') + 'periph_' if is_periph else '' + 'MPI_' + genes[
             i] + '.png'
         if is_periph:
             figname = check_dir(
-                path.analysis_dir + 'MTOC/figures/') + 'periph_MPI_' + genes[i] + '.png'
+                path.analysis_dir + 'nocodazole/figures/') + 'periph_MPI_' + genes[i] + '.png'
         else:
-            figname = check_dir(path.analysis_dir + 'MTOC/figures/') + 'MPI_' + genes[i] + '.png'
+            figname = check_dir(path.analysis_dir + 'nocodazole/figures/') + 'MPI_' + genes[i] + '.png'
         dynamic_profiles(mrna_data, protein_data, timepoints_num_mrna, timepoints_num_protein, genes[i], plot_colors[i],
                          '', '', figname)
 
@@ -214,12 +218,12 @@ def main():
 
     if is_periph:
         print ('Periph mode')
-        df_filename_m=check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'periph_global_mtoc_file_mrna_normalized.csv'
-        df_filename_p=check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'periph_global_mtoc_file_protein_normalized.csv'
+        df_filename_m=check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'periph_global_mtoc_file_mrna_normalized.csv'
+        df_filename_p=check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'periph_global_mtoc_file_protein_normalized.csv'
     else:
         print ('Global mode')
-        df_filename_m=check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'global_mtoc_file_mrna_normalized.csv'
-        df_filename_p=check_dir(path.analysis_dir + 'MTOC/dataframe/') + 'global_mtoc_file_protein_normalized.csv'
+        df_filename_m=check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'global_mtoc_file_mrna_normalized.csv'
+        df_filename_p=check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'global_mtoc_file_protein_normalized.csv'
 
     # mrna part
     df_m = pd.read_csv(df_filename_m)
@@ -239,9 +243,9 @@ def main():
     dd=dd.replace('Non MTOC3', 'Non MTOC')
     dd=dd.replace(0.000000, np.nan)
     if is_periph:
-        figname=check_dir(path.analysis_dir + 'MTOC/figures/') + 'periph_mrna_boxplot_MTOC_enrichment.png'
+        figname=check_dir(path.analysis_dir + 'nocodazole/figures/') + 'periph_mrna_boxplot_MTOC_enrichment.png'
     else:
-        figname=check_dir(path.analysis_dir + 'MTOC/figures/') + 'mrna_boxplot_MTOC_enrichment.png'
+        figname=check_dir(path.analysis_dir + 'nocodazole/figures/') + 'mrna_boxplot_MTOC_enrichment.png'
     # log values for plotting
     dd['value'] = dd['value'].apply(np.log2)
     sns_boxplot(dd,my_pal,figname)
@@ -256,9 +260,9 @@ def main():
     dd = dd.replace('Non MTOC2', 'Non MTOC')
     dd = dd.replace('Non MTOC3', 'Non MTOC')
     if is_periph:
-        figname=check_dir(path.analysis_dir + 'MTOC/figures/') + 'periph_protein_boxplot_MTOC_enrichment.png'
+        figname=check_dir(path.analysis_dir + 'nocodazole/figures/') + 'periph_protein_boxplot_MTOC_enrichment.png'
     else:
-        figname=check_dir(path.analysis_dir + 'MTOC/figures/') + 'protein_boxplot_MTOC_enrichment.png'
+        figname=check_dir(path.analysis_dir + 'nocodazole/figures/') + 'protein_boxplot_MTOC_enrichment.png'
     # log values for plotting
     dd['value'] = dd['value'].apply(np.log2)
     sns_boxplot(dd,my_pal,figname)

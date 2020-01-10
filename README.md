@@ -209,6 +209,12 @@ Measures how evenly a molecule is spread across the cell
         python analysis/cytoplasmic_spread/main.py -i original
 ```
 
+###### Volume corrected noise measure
+In order to measure gene expression noise while accounting for cell volume, we computed the volume corrected noise measure Nm for micropatterned and standardly cultured cells.
+```
+        python analysis/volume_corrected_noise_measure/main.py -i original
+```
+
 ###### Stability analysis 
 Compares the reproducibility of distributions in standard cultured and micropatterned cells
 ```
@@ -255,13 +261,8 @@ The degree of clustering is a unitless measure that can be used to compare clust
         python analysis/degree_of_clustering/main.py -i original
 ```
 
-### specific analysis
+### Specific analysis
 
-###### Volume corrected noise measure (Spots density analysis) 
-In order to measure gene expression noise while accounting for cell volume, we computed the volume corrected noise measure Nm for micropatterned and standardly cultured cells.
-```
-        python analysis/spots_density/main.py -i cultured
-```
 
 ###### Nocodazole analysis
 Adaptations of the previous methods to the case of nocodazole treated cells.

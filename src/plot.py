@@ -177,6 +177,25 @@ def bar_profile(data,genes,figname,colors):
     ax.set_xticklabels(["" for i in range(0, N)])
     plt.savefig(figname,format='png')
 
+def bar_profile_simple(data,figname,colors):
+    plt.figure()
+    ax = plt.axes()
+    ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
+    for axis in ['left']:
+        ax.spines[axis].set_linewidth(3)
+    plt.yticks(fontsize=20)
+    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
+    N = len(data)
+    ind = np.arange(N)
+    width = 0.35
+    ax.bar(ind, data, width, color=colors)
+    ax.set_xlim(-width, len(ind) + width)
+    ax.set_ylim(0, 0.7)
+    ax.set_xticks(ind)
+    ax.set_xticklabels(["" for i in range(0, N)])
+    plt.savefig(figname,format='png')
+
+
 def fraction_profile(fractions,fraction,genes,figname,colors):
     ax = plt.axes()
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
@@ -225,7 +244,7 @@ def histogram_noise_measured(nm_arhgdia,nm_arhgdia_cultured):
     xTickMarks = ["", ""]
     ax.set_xticks(ind)
     ax.bar(ind, [nm_arhgdia,nm_arhgdia_cultured], width, color=plot_colors)
-    plt.savefig(path.analysis_dir + "/spots_density/figures/Volume-corrected_noise_measure.png", format='png')
+    plt.savefig(path.analysis_dir + "volume_corrected_noise_measure/figures/Volume-corrected_noise_measure.png", format='png')
 
 def noise_measured_dynamic_profile(nms, gene, color):
     x_mrna = np.arange(2, 5, 0.01)
@@ -260,7 +279,7 @@ def noise_measured_dynamic_profile(nms, gene, color):
     ax.set_axisbelow(True)
     ax.yaxis.grid(color='gray', linestyle='dashed')
     ax.set_title(gene)
-    plt.savefig(path.analysis_dir + "/spots_density/figures/nm_profile_" + gene+".png", format='png')
+    plt.savefig(path.analysis_dir + "volume_corrected_noise_measure/figures/nm_dynamic_profile_" + gene+".png", format='png')
 
 def profile(profiles, genes, slice_number, figname,figtitle,colors,save=False):
     fig = plt.figure(figsize=(15, 10))
@@ -282,7 +301,7 @@ def profile(profiles, genes, slice_number, figname,figtitle,colors,save=False):
 
 
 # compare descriptor profile for mrna/protein over time
-def dynamic_profiles(mrna_data,protein_data,timepoints_num_mrna, timepoints_num_protein, gene,plot_color,xlabel,ylabel,figpath):
+def dynamic_profiles(mrna_data,protein_data,timepoints_num_mrna, timepoints_num_protein, gene, plot_color,xlabel,ylabel,figpath):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     for tick in ax.xaxis.get_major_ticks():
@@ -303,6 +322,7 @@ def dynamic_profiles(mrna_data,protein_data,timepoints_num_mrna, timepoints_num_
     m_y_new = spl(x_mrna)
     m_y_new_upp = spl_upp(x_mrna)
     m_y_new_down = spl_low(x_mrna)
+    plt.plot(x_mrna, m_y_new, linestyle="-", color=plot_color)
     plt.plot(x_mrna, m_y_new_upp, linestyle="-", color=plot_color)
     plt.plot(x_mrna, m_y_new_down, linestyle="-", color=plot_color)
     ax.fill_between(x_mrna, m_y_new_upp, m_y_new_down, facecolor=plot_color, alpha=0.5, interpolate=False)
@@ -314,6 +334,7 @@ def dynamic_profiles(mrna_data,protein_data,timepoints_num_mrna, timepoints_num_
     p_y_new = spl(x_protein)
     p_y_new_upp = spl_upp(x_protein)
     p_y_new_down = spl_low(x_protein)
+    plt.plot(x_protein, p_y_new, linestyle="--", label="Protein", color=plot_color)
     plt.plot(x_protein, p_y_new_upp, linestyle="--", label="Protein", color=plot_color)
     plt.plot(x_protein, p_y_new_down, linestyle="--", color=plot_color)
     ax.fill_between(x_protein, p_y_new_upp, p_y_new_down, facecolor=plot_color, alpha=0.25,

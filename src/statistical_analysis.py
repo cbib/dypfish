@@ -37,8 +37,8 @@ def compare_volume_corrected_nm(file_handler, sec_file_handler, acquisition1, ac
 
 
 # Implements equation 17 (supplemental)of padovan-merhar et al. 2015
-def compute_volume_corrected_nm(file_handler, image_list):
-    cell_volume=[idsc.compute_cell_volume(file_handler,image) for image in image_list]
+def compute_volume_corrected_nm(file_handler, image_list, volume_offset, volume_coeff):
+    cell_volume=[idsc.compute_cell_volume(file_handler, volume_offset, image, volume_coeff) for image in image_list]
     transcount = [len(idsc.get_spots(file_handler, image)) for image in image_list]
     coeffs = np.polyfit(cell_volume, transcount, 1)
     a = coeffs[1]
@@ -51,8 +51,8 @@ def compute_volume_corrected_nm(file_handler, image_list):
     return nm
 
 # Implements equation 17 (supplemental)of padovan-merhar et al. 2015
-def compute_surface_corrected_nm(file_handler, image_list):
-    cell_surface= [idsc.get_cell_area(file_handler, image) for image in image_list]
+def compute_surface_corrected_nm(file_handler, image_list, size_coeff):
+    cell_surface= [idsc.get_cell_mask(file_handler, image).sum() * math.pow((1 / size_coeff), 2) for image in image_list]
     transcount = [len(idsc.get_spots(file_handler, image)) for image in image_list]
     coeffs = np.polyfit(cell_surface, transcount, 1)
     a = coeffs[1]

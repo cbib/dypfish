@@ -40,13 +40,8 @@ def main():
 
     configData = loadconfig(input_dir_name)
     mrnas = configData["GENES"][0:4]
-    # proteins = configData["PROTEINS"]
-    mrna_timepoints = configData["TIMEPOINTS_MRNA"]
-    prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
     basic_file_name = configData["BASIC_FILE_NAME"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
-    mtoc_file_name = configData["MTOC_FILE_NAME"]
-    colors = configData["COLORS"]
 
     ## Control reproducibility mrna distribution for arhgdia and arhgdia cultured
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name, "a") as file_handler, \

@@ -73,7 +73,6 @@ def get_data(basic_h5_file_handler,
 
 
 def get_data_wo_nucleus(basic_h5_file_handler,
-        secondary_h5_file_handler,
         genes,
         molecule_type,
         timepoints,
@@ -100,22 +99,16 @@ def get_data_wo_nucleus(basic_h5_file_handler,
                 )
             transcript_count=[]
             cyt_transcript_count=[]
-            #transcript_count+=[len(idsc.get_spots(basic_h5_file_handler, x)) for x in image_list]
             cell_area=[]
             cell_area_wo_nucleus = []
             nucleus_area=[]
-            #cell_area_wo_nucleus=[get_cell_area_wo_nucleus(basic_h5_file_handler, x) for x in image_list]
-            #nucleus_area=[idsc.get_nucleus_area(secondary_h5_file_handler, x) for x in image_list]
 
-            #1cell_area_wo_nucleus.append(get_cell_area_wo_nucleus(basic_h5_file_handler, x) / nucleus_n)
-            #nucleus_area=[idsc.get_nucleus_area(secondary_h5_file_handler, x) for x in image_list]
-
-            #nucleus_area.append(idsc.get_nucleus_area(secondary_h5_file_handler, x) / nucleus_n)
             image_cleaned_list=[]
             for x in image_list:
 
 
                 if (len(get_cytoplasmic_spots(basic_h5_file_handler, x))>=20):
+
                     image_cleaned_list.append(x)
                     nucleus_n = idsc.count_nucleus(basic_h5_file_handler, x)
                     transcript_count.append(len(idsc.get_spots(basic_h5_file_handler, x))/nucleus_n)
@@ -127,7 +120,6 @@ def get_data_wo_nucleus(basic_h5_file_handler,
                     nuc_area=nucleus_mask.sum() * math.pow((1 / size_coeff), 2)
                     nucleus_area.append(nuc_area / nucleus_n)
 
-            #print(np.max(np.array(cyt_transcript_count)))
             transcripts_count.append(cyt_transcript_count)
             cell_areas.append(cell_area_wo_nucleus)
             nucleus_areas.append(nucleus_area)
@@ -140,8 +132,7 @@ def get_data_wo_nucleus(basic_h5_file_handler,
             tmp2=tmp-np.median(tmp)
             df["ecart"] = tmp2
             graph_file_name = gene+'.csv'
-            graph_file_path_name = os.path.join("/Users/benjamin/Downloads/dypfish/analysis/spots_density/figures/", graph_file_name)
-            #print(graph_file_path_name)
+            graph_file_path_name = os.path.join(path.analysis_dir+"spots_density/figures/", graph_file_name)
             df.to_csv(graph_file_path_name)
 
 
@@ -163,7 +154,6 @@ def get_cell_area_wo_nucleus(basic_h5_file_handler, image, size_coeff):
         nucleus_mask=idsc.get_nucleus_mask(basic_h5_file_handler,image)
         cell_mask[nucleus_mask==1]=0
         cell_area= cell_mask.sum() * math.pow((1 / size_coeff), 2)
-
         return cell_area
 
 
@@ -254,7 +244,6 @@ def compare_spots_density(
 
 def compare_spots_density_micropatterned_wo_nucleus(
         basic_h5_file_handler,
-        secondary_h5_file_handler,
         genes,
         molecule_type,
         colors,
@@ -264,7 +253,6 @@ def compare_spots_density_micropatterned_wo_nucleus(
         ext_logger=None
     ):
     nucleus_areas,cell_areas,transcripts_count=get_data_wo_nucleus(basic_h5_file_handler,
-        secondary_h5_file_handler,
         genes,
         molecule_type,
         timepoints,
@@ -280,6 +268,7 @@ def compare_spots_density_micropatterned_wo_nucleus(
 
 
     plot.sns_linear_regression(cell_areas[0],transcripts_count[0],colors[0],graph_file_path_name)
+
     assert(os.path.isfile(graph_file_path_name))
     if ext_logger:
         ext_logger.debug("Graph generated on path : %s" % graph_file_path_name)
@@ -387,7 +376,6 @@ def compare_spots_density_standard(
 
 def compare_spots_density_standard_wo_nucleus(
         basic_h5_file_handler,
-        secondary_h5_file_handler,
         genes,
         molecule_type,
         colors,
@@ -397,12 +385,11 @@ def compare_spots_density_standard_wo_nucleus(
         ext_logger=None
     ):
     nucleus_areas,cell_areas,transcripts_count=get_data_wo_nucleus(basic_h5_file_handler,
-        secondary_h5_file_handler,
         genes,
         molecule_type,
         timepoints,
         size_coeff)
-
+    print(nucleus_areas)
 
     graph_file_name = 'cell_area_wo_nucleus_vs_transcript_count_standard_distplot.png'
     graph_file_path_name = os.path.join(save_into_dir_path_name, graph_file_name)
@@ -490,6 +477,7 @@ def main(
     save_into_dir_path_name,
     ext_logger=None
     ):
+
     assert os.path.isdir(save_into_dir_path_name)
     resulting_graphs_details_as_list = []
     errors = []
@@ -510,6 +498,8 @@ def main(
     slashed_molecule_type = [("/%s" % m) for m in molecule_type]
 
     with h5py.File(path.data_dir+input_dir_name+'/'+basic_file_name,  "r") as basic_h5_file_handler, h5py.File(path.data_dir+input_dir_name+'/'+secondary_file_name,  "r") as secondary_h5_file_handler:
+
+
         # try:
         #
         #     graph_details = compare_spots_density_histogram_micropatterned(
@@ -601,10 +591,10 @@ def main(
         #
         #     errors.append("Could not generate spots density graphs for standard culture cells.")
         #
+
         try:
             graph_details = compare_spots_density_micropatterned_wo_nucleus(
                 basic_h5_file_handler=basic_h5_file_handler,
-                secondary_h5_file_handler=secondary_h5_file_handler,
                 genes=genes,
                 molecule_type=molecule_type,
                 colors=colors,
@@ -622,7 +612,6 @@ def main(
         try:
             graph_details = compare_spots_density_standard_wo_nucleus(
                 basic_h5_file_handler=basic_h5_file_handler,
-                secondary_h5_file_handler=secondary_h5_file_handler,
                 genes=genes,
                 colors=colors,
                 molecule_type=molecule_type,
@@ -680,6 +669,7 @@ def main(
 
 
 if __name__ == "__main__":
+
     enable_logger()
 
     save_into_dir_path_name = os.path.join(path.analysis_dir, "spots_density/figures/")

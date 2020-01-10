@@ -1,285 +1,312 @@
-#!/usr/bin/python
-# encoding: UTF-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import logging
-import sys
-import argparse
-import numpy as np
+'''Build a dataframe containing mrna and protein normalised distributions between MTOC quadrant,
+   MTOC leading edge quadrant and non MTOC quadrants'''
+
 import h5py
+import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import tqdm
+import argparse
+import src.helpers as helps
 import src.image_descriptors as idsc
 import src.path as path
-import src.helpers as helps
-import tqdm
-from src.utils import loadconfig,check_dir
-from pylab import setp
+from src.utils import enable_logger, check_dir, loadconfig
 
 pd.set_option('display.max_rows', 500)
-
-logger = logging.getLogger('DYPFISH_HELPERS')
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(filename)s - %(message)s', "%Y-%m-%d %H:%M:%S")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-logger.info("Running %s", sys.argv[0])
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--peripheral", "-p", help='boolean flag: perform peripheral computation or not',
                     action="store_true", default=False)
-
 parser.add_argument("--input_dir_name", "-i", help='input dir where to find h5 files and configuration file', type=str)
+
 args = parser.parse_args()
-input_dir_name = args.input_dir_name
 is_periph = args.peripheral
+input_dir_name = args.input_dir_name
 
 
-def box_plot_concentrations(k1, k2, title, figname):
-    fig, ax = plt.subplots(1, 1)
-    plt.boxplot([np.matrix(k1), np.matrix(k2)], 'gD')
-    plt.ylabel('Mean mrna concentration (total mrna spots) by quadrant')
-    plt.title(title)
-    y_lim = np.max(k1)
-    plt.axis([0, 2.5, 0, y_lim + y_lim / 10])
-    plt.axis([0, 2.5, -1, y_lim])
-    MTOC_patch = mpatches.Patch(label='1 - Quadrants with MTOC')
-    noMTOC_patch = mpatches.Patch(label='2 - Other quadrants')
-    plt.legend(handles=[MTOC_patch, noMTOC_patch])
-    ax.yaxis.grid(color='gray', linestyle='dashed')
-    plt.savefig(figname)
-    plt.close()
-
-
-# function for setting the colors of the box plots pairs
-def setBoxColors(bp):
-    setp(bp['boxes'][0], color='blue')
-    setp(bp['caps'][0], color='blue')
-    setp(bp['caps'][1], color='blue')
-    setp(bp['whiskers'][0], color='blue')
-    setp(bp['whiskers'][1], color='blue')
-    setp(bp['fliers'][0], color='blue')
-    setp(bp['fliers'][1], color='blue')
-    setp(bp['medians'][0], color='blue')
-    setp(bp['boxes'][1], color='red')
-    setp(bp['caps'][2], color='red')
-    setp(bp['caps'][3], color='red')
-    setp(bp['whiskers'][2], color='red')
-    setp(bp['whiskers'][3], color='red')
-    setp(bp['fliers'][2], color='red')
-    setp(bp['fliers'][3], color='red')
-    setp(bp['medians'][1], color='red')
-
-
-def plot_bar_profile(data, genes, y_limit, ylabel, figname, colors):
-    ax = plt.axes()
-    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    N = len(genes)
-    y_lim_max = np.max(data) + 0.2
-    y_lim_min = np.min(data) - 0.2
-    print(y_lim_max)
-    ind = np.arange(N)
-    width = 0.35
-    rects1 = ax.bar(ind, data, width,
-                    color=colors)
-    ax.set_xlim(-width, len(ind) + width)
-    ax.set_ylim(y_lim_min, y_lim_max)
-    ax.set_ylabel(ylabel)
-    ax.set_title('')
-    ax.set_xticks(ind)
-    plt.legend([gene for gene in genes], loc='upper right')
-    ax.legend(rects1, genes, prop={'size': 8})
-    plt.savefig(figname, format='svg')
-    plt.show()
-
-
-def plot_bar_profile_2_series(data, data_noc, genes, noc_genes, y_limit, ylabel, figname, colors):
-    ax = plt.axes()
-    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    N = len(genes)
-    y_lim_max = np.max(data) + 0.2
-    y_lim_min = np.min(data) - 0.4
-    print(y_lim_max)
-    ind = np.arange(N)
-    width = 0.35
-    rects1 = ax.bar(ind, data, width,
-                    color=['grey', 'grey'])
-    rects2 = ax.bar(ind + width, data_noc, width,
-                    color=['#1E95BB', '#F16C1B'])
-    ax.set_xlim(-width, len(ind) + width)
-    ax.set_ylim(y_lim_min, y_lim_max)
-    ax.set_ylabel(ylabel)
-    ax.set_title('')
-    ax.set_xticks(ind + width)
-    ax.set_xticklabels(('arhgdia', 'pard3'))
-    ax.legend((rects1[0], rects2[0]), ('control', 'Nocodazole'))
-    plt.savefig(figname, format='svg')
-    plt.show()
-
-
-if __name__ == "__main__":
-    # Required descriptors: spots, IF, cell mask an height_map
-
-
+def main():
+    check_dir(path.analysis_dir + 'nocodazole/dataframe/')
     configData = loadconfig(input_dir_name)
-    mrnas = configData["GENES"]
-    proteins = configData["PROTEINS"]
-    mrna_timepoints = configData["TIMEPOINTS_MRNA"]
-    prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
+
     basic_file_name = configData["BASIC_FILE_NAME"]
     secondary_file_name = configData["SECONDARY_FILE_NAME"]
     mtoc_file_name = configData["MTOC_FILE_NAME"]
-    colors = configData["COLORS"]
-    peripheral_fraction_threshold = configData["PERIPHERAL_FRACTION_THRESHOLD"]
-    image_width = configData["IMAGE_WIDTH"]
-    image_height = configData["IMAGE_HEIGHT"]
-    volume_offset = configData["VOLUME_OFFSET"]
-    size_coefficient = configData["SIZE_COEFFICIENT"]
-    volume_coeff = ((1 / size_coefficient) ** 2) * 0.3
 
-
-
-
+    # Required descriptors: spots, IF, cell mask and height_map
+    # annotations for the number of the quadrant containing the mtoc comes from the mtoc5.h5
     with h5py.File(path.data_dir + input_dir_name + '/' + basic_file_name, "r") as file_handler, \
             h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name, "r") as second_file_handler, \
             h5py.File(path.data_dir + input_dir_name + '/' + mtoc_file_name, "r") as mtoc_file_handler:
-        molecule_type = ['/mrna']
-        global_mean_mtoc = []
-        global_mean_mtoc_leading = []
-        global_mean_non_mtoc = []
-        global_max_mtoc = []
-        global_max_mtoc_leading = []
-        global_max_non_mtoc = []
-        global_mtoc = []
-        global_non_mtoc1 = []
-        global_non_mtoc2 = []
-        global_non_mtoc3 = []
-        global_mtoc_leading = []
-        global_mrna = []
-        global_image = []
-        global_index = []
-        global_timepoint = []
-        global_mpis = []
-        global_p = []
-        global_degree = []
-        for mrna in tqdm.tqdm(mrnas, desc="Processing mRNAs"):
-            print(mrna)
-            spots_mtoc_all = []
-            spots_non_mtoc_all = []
-            for timepoint in tqdm.tqdm(mrna_timepoints, desc="Processing timepoints"):
-                mean_spots_mtoc = []
-                mean_spots_non_mtoc = []
-                image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
-                for image in tqdm.tqdm(image_list, desc="Processing images"):
-                    if is_periph:
-                        spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, second_file_handler,
-                                                                         peripheral_fraction_threshold, image_width,
-                                                                         image_height, volume_offset, volume_coeff,
-                                                                         image)
-                    else:
-                        spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler, image_width,
-                                                                  image_height, volume_offset, volume_coeff, image)
+        compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        compute_mrna_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
 
-                    mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)
-                    mtoc_spot = spot_by_quad[:, :, 1] == 1
-                    non_mtoc_spot = spot_by_quad[:, :, 1] == 0
+        compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        compute_protein_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+
+
+
+def compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData):
+    # mrna part
+    logger = enable_logger()
+    molecule_type = ['/mrna']
+    mrnas = configData["GENES"]
+    timepoints = configData["TIMEPOINTS_MRNA"]
+    peripheral_fraction_threshold = configData["PERIPHERAL_FRACTION_THRESHOLD"]
+    image_width = configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
+    volume_offset= configData["VOLUME_OFFSET"]
+    size_coefficient=configData["SIZE_COEFFICIENT"]
+    volume_coeff= ((1 / size_coefficient)**2) * 0.3
+
+    global_mtoc = []
+    global_non_mtoc1 = []
+    global_non_mtoc2 = []
+    global_non_mtoc3 = []
+    global_mtoc_leading = []
+    global_mrna = []
+    global_image = []
+    global_index = []
+    global_timepoint = []
+    for mrna in tqdm.tqdm(mrnas, desc="Processing mRNAs"):
+        logger.info("Computing for mRNA %s", mrna)
+        for timepoint in tqdm.tqdm(timepoints, desc="Processing timepoints"):
+            logger.info("Computing for mRNA %s : timepoint %s", mrna, timepoint)
+            image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
+            for image in tqdm.tqdm(image_list, desc="Processing images"):
+                if is_periph:
+                    spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image, False)
+                else:
+                    spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler,image_width, image_height, volume_offset, volume_coeff, image, False)
+                num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
+                mtoc_spot = spot_by_quad[:, :, 1] == 1
+                non_mtoc_spot = spot_by_quad[:, :, 1] == 0
+                for i in range(90):
+                    global_index.append(image.split("/")[4] + "_" + str(i + 1))
+                    global_image.append(image.split("/")[4])
+                    global_mrna.append(mrna)
+                    global_timepoint.append(timepoint)
+                global_mtoc.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
+                for i in range(0, 270, 3):
+                    # TODO : has to be extend
+                    global_non_mtoc1.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][0])
+                    global_non_mtoc2.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][1])
+                    global_non_mtoc3.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][2])
+
+                # quadrant number is 1 if it is in the leading edge
+                if num_mtoc_quadrant == 1:
+                    global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
+                else:
                     for i in range(90):
-                        global_index.append(image.split("/")[4] + "_" + str(i + 1))
-                        global_image.append(image.split("/")[4])
-                        global_mrna.append(mrna)
-                        global_timepoint.append(timepoint)
-                    global_mtoc.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
-                    for i in range(0, 270, 3):
-                        # global_nmtoc.append(np.mean(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i+3]))
-                        global_non_mtoc1.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][0])
-                        global_non_mtoc2.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][1])
-                        global_non_mtoc3.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][2])
-                    if mtoc_quad_j == 1:
-                        global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
-                    else:
-                        for i in range(90):
-                            global_mtoc_leading.append(np.nan)
-
-        df = pd.DataFrame(
-            {'Image': global_image, 'Gene': global_mrna, 'timepoint': global_timepoint, 'MTOC': global_mtoc,
-             'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1, 'Non MTOC2': global_non_mtoc2,
-             'Non MTOC3': global_non_mtoc3}, index=global_index)
-
-        if is_periph:
-            df.to_csv(
-                check_dir(
-                    path.analysis_dir + input_dir_name+ '/dataframe/') + 'periph_global_mtoc_file_mrna.csv')
-        else:
-            df.to_csv(check_dir(path.analysis_dir + input_dir_name+ '/dataframe/') + 'global_mtoc_file_mrna.csv')
+                        global_mtoc_leading.append(np.nan)
+    # TODO: add non_MTOC 1, 2 and 3
+    df = pd.DataFrame(
+        {'Image': global_image, 'Gene': global_mrna, 'timepoint': global_timepoint, 'MTOC': global_mtoc,
+         'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1, 'Non MTOC2': global_non_mtoc2,
+         'Non MTOC3': global_non_mtoc3}, index=global_index)
+    if is_periph:
+        df.to_csv(
+            check_dir(
+                path.analysis_dir + 'nocodazole/dataframe/') + 'periph_global_mtoc_file_mrna.csv')
+    else:
+        df.to_csv(check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'global_mtoc_file_mrna.csv')
 
 
+def compute_mrna_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData):
+    # mrna part
+    logger = enable_logger()
+    molecule_type = ['/mrna']
+    mrnas = configData["GENES"]
+    timepoints = configData["TIMEPOINTS_MRNA"]
+    peripheral_fraction_threshold = configData["PERIPHERAL_FRACTION_THRESHOLD"]
+    image_width = configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
+    volume_offset= configData["VOLUME_OFFSET"]
+    size_coefficient=configData["SIZE_COEFFICIENT"]
+    volume_coeff= ((1 / size_coefficient)**2) * 0.3
 
-        molecule_type = ['/protein']
-        mean_intensities_mtoc = []
-        mean_intensities_non_mtoc = []
-        global_mean_mtoc = []
-        global_protein = []
-        global_timepoint = []
-        global_mean_mtoc_leading = []
-        global_mean_non_mtoc = []
-        global_max_mtoc = []
-        global_max_mtoc_leading = []
-        global_max_non_mtoc = []
-        global_mtoc = []
-        global_non_mtoc1 = []
-        global_non_mtoc2 = []
-        global_non_mtoc3 = []
-        global_mtoc_leading = []
-        global_image = []
-        global_index = []
-        global_timepoint = []
-        global_mpis = []
-        global_p = []
-        global_degree = []
-        for protein in tqdm.tqdm(proteins, desc="Processing proteins"):
-            for timepoint in tqdm.tqdm(mrna_timepoints, desc="Processing timepoints"):
+    global_mtoc = []
+    global_non_mtoc1 = []
+    global_non_mtoc2 = []
+    global_non_mtoc3 = []
+    global_mtoc_leading = []
+    global_mrna = []
+    global_image = []
+    global_index = []
+    global_timepoint = []
+    for mrna in tqdm.tqdm(mrnas, desc="Processing mRNAs"):
+        logger.info("Computing for mRNA %s", mrna)
+        for timepoint in tqdm.tqdm(timepoints, desc="Processing timepoints"):
+            logger.info("Computing for mRNA %s : timepoint %s", mrna, timepoint)
+            image_list = helps.preprocess_image_list3(file_handler, molecule_type, mrna, [timepoint])
+            for image in tqdm.tqdm(image_list, desc="Processing images"):
+                if is_periph:
+                    spot_by_quad = idsc.search_periph_mrna_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image, True)
+                else:
+                    spot_by_quad = idsc.search_mrna_quadrants(file_handler, second_file_handler,image_width, image_height, volume_offset, volume_coeff, image, True)
+                num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
+                mtoc_spot = spot_by_quad[:, :, 1] == 1
+                non_mtoc_spot = spot_by_quad[:, :, 1] == 0
+                for i in range(90):
+                    global_index.append(image.split("/")[4] + "_" + str(i + 1))
+                    global_image.append(image.split("/")[4])
+                    global_mrna.append(mrna)
+                    global_timepoint.append(timepoint)
+                global_mtoc.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
+                for i in range(0, 270, 3):
+                    # TODO : has to be extend
+                    global_non_mtoc1.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][0])
+                    global_non_mtoc2.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][1])
+                    global_non_mtoc3.append(spot_by_quad[non_mtoc_spot][:, 0].flatten()[i:i + 3][2])
+                # quadrant number is 1 if it is in the leading edge
+                if num_mtoc_quadrant == 1:
+                    global_mtoc_leading.extend(spot_by_quad[mtoc_spot][:, 0].flatten())
+                else:
+                    for i in range(90):
+                        global_mtoc_leading.append(np.nan)
+    # TODO: add non_MTOC 1, 2 and 3
+    df = pd.DataFrame(
+        {'Image': global_image, 'Gene': global_mrna, 'timepoint': global_timepoint, 'MTOC': global_mtoc,
+         'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1, 'Non MTOC2': global_non_mtoc2,
+         'Non MTOC3': global_non_mtoc3}, index=global_index)
+    if is_periph:
+        df.to_csv(
+            check_dir(
+                path.analysis_dir + 'nocodazole/dataframe/') + 'periph_global_mtoc_file_mrna_normalized.csv')
+    else:
+        df.to_csv(check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'global_mtoc_file_mrna_normalized.csv')
 
-                image_list = helps.preprocess_image_list3(file_handler, molecule_type, protein, [timepoint])
-                for image in tqdm.tqdm(image_list, desc="Processing images"):
-
-                    intensity_by_quad =idsc.search_periph_protein_quadrants(file_handler, second_file_handler, peripheral_fraction_threshold,
-                                                         image_width, image_height, volume_offset, volume_coeff,
-                                                         image) if is_periph \
+def compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, sec_file_handler, configData):
+    # protein part
+    logger = enable_logger()
+    molecule_type = ['/protein']
+    proteins = configData["PROTEINS"]
+    timepoints = configData["TIMEPOINTS_PROTEIN"]
+    peripheral_fraction_threshold = configData["PERIPHERAL_FRACTION_THRESHOLD"]
+    image_width = configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
+    volume_offset= configData["VOLUME_OFFSET"]
+    size_coefficient = configData["SIZE_COEFFICIENT"]
+    volume_coeff = ((1 / size_coefficient) ** 2) * 0.3
+    global_protein = []
+    global_mtoc = []
+    global_non_mtoc1 = []
+    global_non_mtoc2 = []
+    global_non_mtoc3 = []
+    global_mtoc_leading = []
+    global_image = []
+    global_index = []
+    global_timepoint = []
+    for protein in tqdm.tqdm(proteins, desc="Processing proteins"):
+        for timepoint in tqdm.tqdm(timepoints, desc="Processing timepoints"):
+            image_list = helps.preprocess_image_list3(file_handler, molecule_type, protein, [timepoint])
+            for image in tqdm.tqdm(image_list, desc="Processing images"):
+                intensity_by_quad = \
+                    idsc.search_periph_protein_quadrants(file_handler, sec_file_handler,peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image, False) if is_periph \
                         else \
-                        idsc.search_protein_quadrants(file_handler, second_file_handler, image_width, image_height,
-                                                      volume_offset, volume_coeff, image)
+                    idsc.search_protein_quadrants(file_handler, sec_file_handler,image_width, image_height, volume_offset, volume_coeff, image, False)
+                mtoc_intensity = intensity_by_quad[:, :, 1] == 1
+                non_mtoc_intensity = intensity_by_quad[:, :, 1] == 0
+                num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
 
-                    intensity_by_quad = idsc.search_protein_quadrants(file_handler, second_file_handler, image_width, image_height, volume_offset, volume_coeff, image)
-                    mtoc_intensity = intensity_by_quad[:, :, 1] == 1
-                    non_mtoc_intensity = intensity_by_quad[:, :, 1] == 0
-                    mtoc_quad_j = idsc.get_mtoc_quad(mtoc_file_handler, image)
+                for i in range(90):
+                    # needed for final boxplot
+                    global_index.append(image.split("/")[4] + "_" + str(i + 1))
+                    global_image.append(image.split("/")[4])
+                    global_protein.append(protein)
+                    global_timepoint.append(timepoint)
+                global_mtoc.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
+                for i in range(0, 270, 3):
+                    # TODO: has to be extend
+                    global_non_mtoc1.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][0])
+                    global_non_mtoc2.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][1])
+                    global_non_mtoc3.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][2])
+                    # global_non_mtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3]))
+                if num_mtoc_quadrant == 1:
+                    global_mtoc_leading.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
+                else:
                     for i in range(90):
-                        global_index.append(image.split("/")[4] + "_" + str(i + 1))
-                        global_image.append(image.split("/")[4])
-                        global_protein.append(protein)
-                        global_timepoint.append(timepoint)
-                    global_mtoc.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
-                    for i in range(0, 270, 3):
-                        global_non_mtoc1.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][0])
-                        global_non_mtoc2.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][1])
-                        global_non_mtoc3.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][2])
-                    if mtoc_quad_j == 1:
-                        global_mtoc_leading.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
-                    else:
-                        for i in range(90):
-                            global_mtoc_leading.append(np.nan)
-        df = pd.DataFrame({'Image': global_image, 'Gene': global_protein, 'timepoint': global_timepoint,
-                           'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1,
-                           'Non MTOC2': global_non_mtoc2, 'Non MTOC3': global_non_mtoc3},
-                          index=global_index)
+                        global_mtoc_leading.append(np.nan)
+    # TODO: add non_MTOC 1, 2 and 3
+    df = pd.DataFrame({'Image': global_image, 'Gene': global_protein, 'timepoint': global_timepoint,
+                       'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1,
+                       'Non MTOC2': global_non_mtoc2, 'Non MTOC3': global_non_mtoc3},
+                      index=global_index)
+    if is_periph:
+        df.to_csv(
+            check_dir(
+                path.analysis_dir + 'nocodazole/dataframe/') + 'periph_global_mtoc_file_protein.csv')
+    else:
+        df.to_csv(
+            check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'global_mtoc_file_protein.csv')
 
-        if is_periph:
-            df.to_csv(
-                check_dir(
-                    path.analysis_dir + input_dir_name+ '/dataframe/') + 'periph_global_mtoc_file_protein.csv')
-        else:
-            df.to_csv(
-                check_dir(path.analysis_dir + input_dir_name+ '/dataframe/') + 'global_mtoc_file_protein.csv')
+
+def compute_protein_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, sec_file_handler, configData):
+    # protein part
+    logger = enable_logger()
+    molecule_type = ['/protein']
+    proteins = configData["PROTEINS"]
+    timepoints = configData["TIMEPOINTS_PROTEIN"]
+    peripheral_fraction_threshold = configData["PERIPHERAL_FRACTION_THRESHOLD"]
+    image_width = configData["IMAGE_WIDTH"]
+    image_height = configData["IMAGE_HEIGHT"]
+    volume_offset= configData["VOLUME_OFFSET"]
+    size_coefficient = configData["SIZE_COEFFICIENT"]
+    volume_coeff = ((1 / size_coefficient) ** 2) * 0.3
+    global_protein = []
+    global_mtoc = []
+    global_non_mtoc1 = []
+    global_non_mtoc2 = []
+    global_non_mtoc3 = []
+    global_mtoc_leading = []
+    global_image = []
+    global_index = []
+    global_timepoint = []
+    for protein in tqdm.tqdm(proteins, desc="Processing proteins"):
+        for timepoint in tqdm.tqdm(timepoints, desc="Processing timepoints"):
+            image_list = helps.preprocess_image_list3(file_handler, molecule_type, protein, [timepoint])
+            for image in tqdm.tqdm(image_list, desc="Processing images"):
+                intensity_by_quad = \
+                    idsc.search_periph_protein_quadrants(file_handler, sec_file_handler,peripheral_fraction_threshold, image_width, image_height, volume_offset, volume_coeff, image, True) if is_periph \
+                        else \
+                    idsc.search_protein_quadrants(file_handler, sec_file_handler,image_width, image_height, volume_offset, volume_coeff, image, True)
+                mtoc_intensity = intensity_by_quad[:, :, 1] == 1
+                non_mtoc_intensity = intensity_by_quad[:, :, 1] == 0
+                num_mtoc_quadrant = idsc.get_mtoc_quad(mtoc_file_handler, image)
+
+                for i in range(90):
+                    # needed for final boxplot
+                    global_index.append(image.split("/")[4] + "_" + str(i + 1))
+                    global_image.append(image.split("/")[4])
+                    global_protein.append(protein)
+                    global_timepoint.append(timepoint)
+                global_mtoc.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
+                for i in range(0, 270, 3):
+                    # TODO: has to be extend
+                    global_non_mtoc1.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][0])
+                    global_non_mtoc2.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][1])
+                    global_non_mtoc3.append(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3][2])
+                    # global_non_mtoc.append(np.mean(intensity_by_quad[non_mtoc_intensity][:, 0].flatten()[i:i + 3]))
+                if num_mtoc_quadrant == 1:
+                    global_mtoc_leading.extend(intensity_by_quad[mtoc_intensity][:, 0].flatten())
+                else:
+                    for i in range(90):
+                        global_mtoc_leading.append(np.nan)
+    # TODO: add non_MTOC 1, 2 and 3
+    df = pd.DataFrame({'Image': global_image, 'Gene': global_protein, 'timepoint': global_timepoint,
+                       'MTOC': global_mtoc, 'MTOC leading edge': global_mtoc_leading, 'Non MTOC1': global_non_mtoc1,
+                       'Non MTOC2': global_non_mtoc2, 'Non MTOC3': global_non_mtoc3},
+                      index=global_index)
+    if is_periph:
+        df.to_csv(
+            check_dir(
+                path.analysis_dir + 'nocodazole/dataframe/') + 'periph_global_mtoc_file_protein_normalized.csv')
+    else:
+        df.to_csv(
+            check_dir(path.analysis_dir + 'nocodazole/dataframe/') + 'global_mtoc_file_protein_normalized.csv')
+
+if __name__ == "__main__":
+    main()
 

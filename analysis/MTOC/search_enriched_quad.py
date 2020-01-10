@@ -40,11 +40,11 @@ def main():
     with h5py.File(path.data_dir + input_dir_name + '/' + basic_file_name, "r") as file_handler, \
             h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name, "r") as second_file_handler, \
             h5py.File(path.data_dir + input_dir_name + '/' + mtoc_file_name, "r") as mtoc_file_handler:
-        compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
-        #compute_mrna_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        #compute_mrna_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        compute_mrna_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
 
         compute_protein_counts_per_quadrant(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
-        #compute_protein_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
+        compute_protein_counts_per_quadrant_normalized(file_handler, is_periph, mtoc_file_handler, second_file_handler, configData)
 
 
 

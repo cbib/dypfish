@@ -86,11 +86,11 @@ def get_forward_interactions(mrna_timepoints, protein_timepoints):
                 fwd_interactions[x, y] = 1
     return fwd_interactions
 
-def calculate_temporal_interaction_score(mrna_data, protein_data):
-    S1 = get_forward_interactions([2, 3, 4, 5], [2, 3, 5, 7])
-    interactions = np.zeros((4, 4))
-    for i in range(4):
-        for j in range(4):
+def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
+    S1 = get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
+    interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
+    for i in range(len(timepoint_num_mrna)):
+        for j in range(len(timepoint_num_protein)):
             interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
     (p, stat, ranking) = permutations_test(interactions, S1)
     tis = (100 - stat) / 64.0
@@ -117,19 +117,14 @@ def main():
 
     configData = loadconfig(input_dir_name)
     mrnas = configData["GENES"][0:4]
-    # proteins = configData["PROTEINS"]
     mrna_timepoints = configData["TIMEPOINTS_MRNA"]
     prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
-    basic_file_name = configData["BASIC_FILE_NAME"]
-    secondary_file_name = configData["SECONDARY_FILE_NAME"]
-    mtoc_file_name = configData["MTOC_FILE_NAME"]
     colors = configData["COLORS"]
+    timepoints_num_mrna = configData["TIMEPOINTS_NUM_MRNA"]
+    timepoints_num_protein = configData["TIMEPOINTS_NUM_PROTEIN"]
 
     enable_logger()
-    mrnas = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-    mrna_timepoints = ["2h", "3h", "4h", "5h"]
-    proteins = ["beta_actin", "arhgdia", "gapdh", "pard3"]
-    prot_timepoints = ["2h", "3h", "5h", "7h"]
+
     tiss = []
     p_vals = []
     count_gene = 0
@@ -147,12 +142,10 @@ def main():
                 path.analysis_dir + "temporal_interactions/dataframe/periph_" + mrna + '_' + timepoint + "_protein.csv",
                 index_col=0)
             prot_list.append(prot_df.median(axis=0).values)
-        (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list)
+        (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list, timepoints_num_mrna, timepoints_num_protein)
         tiss.append(tis)
         p_vals.append(p)
-        #print(ranking)
         im = np.flipud(np.kron(ranking, np.ones((10, 10))))
-        #print(im)
         plt.imshow(im, extent=[0, 4, 0, 4], cmap='GnBu', interpolation='nearest')
         ax = plt.axes()
         ax.set_ylabel("mRNA  - Time (hrs)")

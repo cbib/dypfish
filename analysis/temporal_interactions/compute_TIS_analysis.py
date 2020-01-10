@@ -118,14 +118,9 @@ def main():
 
     configData = loadconfig(input_dir_name)
     mrnas = configData["GENES"][0:4]
-    #proteins = configData["PROTEINS"]
     mrna_timepoints = configData["TIMEPOINTS_MRNA"]
     prot_timepoints = configData["TIMEPOINTS_PROTEIN"]
-    basic_file_name = configData["BASIC_FILE_NAME"]
-    secondary_file_name = configData["SECONDARY_FILE_NAME"]
-    mtoc_file_name = configData["MTOC_FILE_NAME"]
     colors = configData["COLORS"]
-
 
     tiss = []
     p_vals = []
@@ -135,14 +130,10 @@ def main():
         prot_list = []
         for timepoint in mrna_timepoints:
             print(mrna, timepoint)
-            mrna_df = pd.read_csv(
-                path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_mrna.csv",
-                index_col=0)
+            mrna_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_mrna.csv",index_col=0)
             mrna_list.append(mrna_df.median(axis=0).values)
         for timepoint in prot_timepoints:
-            prot_df = pd.read_csv(
-                path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_protein.csv",
-                index_col=0)
+            prot_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_protein.csv",index_col=0)
             prot_list.append(prot_df.median(axis=0).values)
         (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list)
         tiss.append(tis)
