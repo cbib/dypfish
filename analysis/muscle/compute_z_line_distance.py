@@ -204,7 +204,7 @@ if __name__ == "__main__":
 
         all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes, timepoints, z_line_spacing)
         df = pd.DataFrame(all_median_profiles)
-        df.to_csv(check_dir(path.analysis_dir + 'muscle_data/dataframe/') + "all_median_profiles_by_slice_mature_remove_bad_slice.csv")
+        df.to_csv(check_dir(path.analysis_dir + 'muscle/dataframe/') + "all_median_profiles_by_slice_mature_remove_bad_slice.csv")
 
 
     genes = ['actn2']
@@ -212,13 +212,13 @@ if __name__ == "__main__":
     with h5py.File(path.data_dir + input_dir_name + '/' + basic_file_name, "a") as file_handler, h5py.File(path.data_dir + input_dir_name + '/' + secondary_file_name,"a") as muscle_file_handler:
         all_median_profiles = compute_zline_distance(file_handler, muscle_file_handler, molecule_type, genes,timepoints,z_line_spacing)
         df = pd.DataFrame(all_median_profiles)
-        df.to_csv(check_dir(path.analysis_dir + 'muscle_data/dataframe/') + "all_median_profiles_by_slice_immature_remove_bad_slice.csv")
+        df.to_csv(check_dir(path.analysis_dir + 'muscle/dataframe/') + "all_median_profiles_by_slice_immature_remove_bad_slice.csv")
     all_median_profiles = []
-    plot_name = check_dir(path.analysis_dir + 'muscle_data/figures/') + 'z_line_distance' + str(z_line_spacing) + 'contours_mature_remove_bad_slice.png'
+    plot_name = check_dir(path.analysis_dir + 'muscle/figures/') + 'z_line_distance' + str(z_line_spacing) + 'contours_mature_remove_bad_slice.png'
     figure_title = 'z line spots distance profile'
     genes = ["actn2 mature", "gapdh mature", "actn2 immature"]
-    df = pd.read_csv(path.analysis_dir + "muscle_data/dataframe/all_median_profiles_by_slice_mature_remove_bad_slice.csv",index_col=0)
-    df_im = pd.read_csv(path.analysis_dir + "muscle_data/dataframe/all_median_profiles_by_slice_immature_remove_bad_slice.csv",index_col=0)
+    df = pd.read_csv(path.analysis_dir + "muscle/dataframe/all_median_profiles_by_slice_mature_remove_bad_slice.csv",index_col=0)
+    df_im = pd.read_csv(path.analysis_dir + "muscle/dataframe/all_median_profiles_by_slice_immature_remove_bad_slice.csv",index_col=0)
     all_median_profiles.append(df.ix[0].values)
     all_median_profiles.append(df.ix[1].values)
     all_median_profiles.append(df_im.ix[0].values)

@@ -230,12 +230,6 @@ This analysis can be run in peripheral mode using the -p arg. PERIPHERAL_FRACTIO
         python analysis/MTOC/plot_figures.py -i original
 ```
 
-###### mRNA / Protein distribution profile (Correlation profile analysis) 
-Defines a spatial distribution profile of mRNAs and proteins for images acquired at a given time point
-```
-        python analysis/correlation_profile/main.py -i original
-```
-
 ###### Temporal interaction analysis
 Measures the interdependence between the mRNA and protein dynamics. **This analysis needs the results of the MTOC Polarity Index analysis to be performed.**
 This analysis can be run in peripheral mode using the -p arg. PERIPHERAL_FRACTION_THRESHOLD is used to defined the peripheral area.
@@ -247,6 +241,11 @@ For the cytoplasmique analysis:
         python analysis/temporal_interactions/plot_TIS.py -i original
 ```
 
+###### mRNA / Protein distribution profile (Correlation profile analysis) 
+Defines a spatial distribution profile of mRNAs and proteins for images acquired at a given time point
+```
+        python analysis/correlation_profile/main.py -i original
+```
 
 ###### Degree of clustering analysis 
 The degree of clustering is a unitless measure that can be used to compare clustering between different molecules and conditions.
@@ -273,24 +272,24 @@ Adaptations of the previous methods to the case of nocodazole treated cells.
 ###### CytoD analysis
 Adaptations of the previous methods to the case of cytoD treated cells.
 ```
-        python analysis/cytoD/cytoplasmic_spread.py -i cytod
-        python analysis/cytoD/cytoplasmic_total.py -i cytod
-        python analysis/cytoD/peripheral_fraction.py -i cytod
+        python analysis/cytod/cytoplasmic_spread.py -i cytod
+        python analysis/cytod/cytoplasmic_total.py -i cytod
+        python analysis/cytod/peripheral_fraction.py -i cytod
 ```
 
 ###### CHX analysis
 Adaptations of the previous methods to the case of CHX treated cells.
 ```
-        python analysis/CHX/degree_of_clustering.py -i chx
-        python analysis/CHX/peripheral_fraction.py -i chx
+        python analysis/chx/degree_of_clustering.py -i chx
+        python analysis/chx/peripheral_fraction.py -i chx
 ```
 
 ###### Muscle analysis
 Adaptations of the previous methods to the case of muscle cells.
 ```
-        python analysis/muscle_data/compute_z_line_distance.py -i muscle
-        python analysis/muscle_data/quadrat_analysis_graph.py-i muscle
-        python analysis/muscle_data/quadrat_analysis_heatmap.py-i muscle
+        python analysis/muscle/compute_z_line_distance.py -i muscle
+        python analysis/muscle/quadrat_analysis_graph.py-i muscle
+        python analysis/muscle/quadrat_analysis_heatmap.py-i muscle
 ```
 
 ## Outputs:

@@ -228,6 +228,6 @@ if __name__ == "__main__":
 				circle2 = Ellipse((band_n-1, 5.5),width=1, height=11,clip_on=True,color='lightgreen')
 				ax1.set_ylim((0,12))
 				ax1.set_xlim((0, band_n-1))
-				plt.savefig(check_dir(path.analysis_dir+"/muscle_data/graph/"+"bucket_"+ str(int(band_n)))+"/mrna_distribution_" + gene + "_" + timepoint +"_image_"+str(image_cpt)+ ".png")
+				plt.savefig(check_dir(path.analysis_dir+"/muscle/graph/"+"bucket_"+ str(int(band_n)))+"/mrna_distribution_" + gene + "_" + timepoint +"_image_"+str(image_cpt)+ ".png")
 				plt.close()
 				image_cpt+=1

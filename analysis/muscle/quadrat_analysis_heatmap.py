@@ -223,7 +223,7 @@ if __name__ == "__main__":
                 plt.imshow(grid_mat,cmap='coolwarm',aspect=band_n/4)
                 plt.ylim((0,0.4))
                 image_cpt+=1
-                plt.savefig(check_dir(path.analysis_dir+"/muscle_data/heatmap/"+"bucket_"+ str(int(band_n)))+"/mrna_distribution_" + gene + "_" + timepoint +"_image_"+str(image_cpt)+ ".png")
+                plt.savefig(check_dir(path.analysis_dir+"/muscle/heatmap/"+"bucket_"+ str(int(band_n)))+"/mrna_distribution_" + gene + "_" + timepoint +"_image_"+str(image_cpt)+ ".png")
                 plt.close()
             vmr_values_sig.append(np.sum(np.array(vmr_values)>0)/float(len(vmr_values)))
         #figname=check_dir(path.analysis_dir+"/muscle_data/figures/")+"clustering_index.png"
