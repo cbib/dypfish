@@ -137,7 +137,6 @@ def main():
         for timepoint in mrna_timepoints:
             print(mrna, timepoint)
             if (is_periph):
-                print(is_periph)
                 mrna_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/periph_" + mrna + '_' + timepoint + "_mrna.csv",index_col=0)
             else:
                 mrna_df = pd.read_csv(path.analysis_dir + "temporal_interactions/dataframe/" + mrna + '_' + timepoint + "_mrna.csv",index_col=0)
@@ -163,6 +162,7 @@ def main():
         ax.yaxis.set(ticks=np.arange(0.5, 4.5, 1), ticklabels=myyticklabels)
         ax.set_title(mrna)
         fig_path = check_dir(path.analysis_dir + 'temporal_interactions/figures/')
+
         if (is_periph):
             plt.savefig(fig_path + mrna + '_TIS_correlation_ranking.svg', format='svg')
         else:

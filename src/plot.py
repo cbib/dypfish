@@ -59,7 +59,7 @@ def linear_regression(
     for axis in ['bottom', 'left']:
         ax1.spines[axis].set_linewidth(3)
         ax2.spines[axis].set_linewidth(3)
-    print(graph_file_path_name)
+    #print(graph_file_path_name)
     plt.savefig(graph_file_path_name, format="png")
     plt.close()
 
@@ -239,7 +239,7 @@ def histogram_noise_measured(nm_arhgdia,nm_arhgdia_cultured):
     ind = np.arange(1,3)
     width = 0.25
     #ax.set_xlim(-width * 2, len(ind) + width)
-    ax.set_ylim(0, 0.5)
+    ax.set_ylim(0, 0.8)
     ax.set_title('')
     xTickMarks = ["", ""]
     ax.set_xticks(ind)

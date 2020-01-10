@@ -58,9 +58,8 @@ def main():
             timepoints = ["2h", "3h", "4h", "5h"]
             nms=[]
             for timepoint in timepoints:
-                #print(genes[i], '_', timepoint)
+                print(genes[i], '_', timepoint)
                 image_list = helps.preprocess_image_list3(file_handler, molecule_type, genes[i], [timepoint])
-                print(image_list)
                 nm = stan.compute_volume_corrected_nm(file_handler, image_list, volume_offset, volume_coeff)
                 nms.append(nm)
             plot.noise_measured_dynamic_profile(nms,genes[i],colors[i])

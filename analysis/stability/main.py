@@ -96,7 +96,6 @@ def main():
         plt.plot(np.mean(total_mads_arhgdia_cultured, axis=0),color='black')
         ax.set_xlim(0, 40)
         plt.savefig(path.analysis_dir + "/stability/figures/stability_analysis.png")
-        plt.show()
 
 if __name__ == "__main__":
     main()

@@ -59,7 +59,7 @@ def main():
                 periph_frac = adsc.compute_mrna_periph_fraction(image_list, file_handler, secondary_file_handler, 10)
                 prof_m[cpt_g, 1, cpt_tp]=np.median(periph_frac)
 
-                cyt_total=adsc.compute_cytoplasmic_total(image_list, file_handler, path.path_data)
+                cyt_total=adsc.compute_cytoplasmic_total(image_list, file_handler)
                 prof_m[cpt_g, 2, cpt_tp]=np.median(cyt_total)
 
                 dof = adsc.compute_degree_of_clustering(image_list, hstar_file_handler, mtoc_file_handler)
@@ -87,7 +87,7 @@ def main():
                 periph_frac = adsc.compute_protein_periph_fraction(image_list,file_handler, secondary_file_handler, 10)
                 prof_p[cpt_g, 1, cpt_tp] = np.median(periph_frac)
 
-                cyt_total = adsc.compute_cytoplasmic_total(image_list, file_handler, path.path_data)
+                cyt_total = adsc.compute_cytoplasmic_total(image_list, file_handler)
                 prof_p[cpt_g, 2, cpt_tp] = np.median(cyt_total)
 
                 dof = adsc.compute_degree_of_clustering(image_list, hstar_file_handler, mtoc_file_handler)
