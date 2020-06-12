@@ -1,3 +1,8 @@
-analysis/*/figures
-data/*
-src/*.pyc
+/data/exemple_dataframe/
+venv
+*.png
+*.hdf
+*.h5
+.idea
+*.hdf5
+.DS_Store

@@ -1,670 +1,66 @@
-from __future__ import print_function
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import hashlib
-import warnings
-import os
-import pandas
-warnings.filterwarnings("ignore",category =RuntimeWarning)
 import math
-import h5py
-import matplotlib.pyplot as plt
-import numpy as np
+import pathlib
+from typing import List
+
+from colormap import rgb2hex
 from numpy import matlib
-from scipy import signal
-from skimage import draw
-from skimage import measure
-from skimage import io
-import path
+import numpy as np
+from scipy.stats import *
+import pandas as pd
+import itertools
 import constants
-from logger import *
-
-logger = logging.getLogger('DYPFISH_HELPERS')
-
-def copy_dataset_and_attributes(input_path, output_path, datasets, attributes):
-    input_file = h5py.File(input_path, 'a')
-    for mol_type in input_file:
-        print(mol_type)
-        for mol_name in input_file[mol_type]:
-            print(mol_name)
-            for timepoint in input_file[mol_type + '/' + mol_name]:
-                for image in input_file[mol_type + '/' + mol_name + '/' + timepoint]:
-                    image_path = mol_type + '/' + mol_name + '/' + timepoint + '/' + image
-                    print(image_path)
-                    for dataset in datasets:
-                        if dataset in input_file[image_path].keys():
-                            old_path = mol_type + '/' + mol_name + '/' + timepoint + '/' + image + '/' + dataset
-                            new_path = mol_type + '/' + mol_name + '/' + timepoint + '/' + image + '/' + dataset
-                            command = '/home/ben/Bureau/hdf5-1.8.18/tools/h5copy/h5copy -p -i ' + input_path + ' -o ' + output_path + ' -s ' + old_path + ' -d ' + new_path
-                            os.system(command)
-                    for attribute in attributes:
-                        if attribute in input_file['/' + image_path].attrs.keys():
-                            old_path = mol_type + '/' + mol_name + '/' + timepoint + '/' + image + '/' + attribute
-                            new_path = mol_type + '/' + mol_name + '/' + timepoint + '/' + image + '/' + attribute
-                            command = '/home/ben/Bureau/hdf5-1.8.18/tools/h5copy/h5copy -p -i ' + input_path + ' -o ' + output_path + ' -s ' + old_path + ' -d ' + new_path
-                            os.system(command)
-    input_file.close()
+from path import global_root_dir
+from repository import H5RepositoryWithCheckpoint
+from mpi_calculator import DensityStats
 
 
-def create_mask(row_coordinates, column_coordinates, image_shape):
-    rr, cc = draw.polygon(row_coordinates, column_coordinates, shape=image_shape)
-    mask = np.zeros(image_shape, dtype=np.bool)
-    mask[rr, cc] = True
-    return mask
-
-def get_quantized_grid(q, Q):
-    tmp = np.matrix(np.arange(Q))
-    qxs = matlib.repmat(tmp.transpose(), 1, Q)
-    qys = matlib.repmat(tmp, Q, 1)
-    qxs = np.kron(qxs, np.ones((q, q)))
-    print(qxs)
-    plt.imshow(qxs)
-    plt.show()
-    qys = np.kron(qys, np.ones((q, q)))
-    return qxs, qys
-
-
-def get_IF_image_z_summed(molecule, gene, timepoint, image_number,path_data):
-    if 'scratch' in path_data:
-        IF_image_path = path_data +'/'+ molecule  + '/' + gene + timepoint + '/' + image_number.split('_')[0]+'_'+image_number.split('_')[1] + '/IF.tif'
-    elif 'supp_data' in path_data:
-        IF_image_path = path_data +'/'+ molecule  + '/' + gene + '/' + timepoint + '/' + image_number + '/IF.tif'
-    else:
-        IF_image_path = path_data +'/'+ molecule  + '/' + gene + '_' + timepoint + '/image_' + image_number + '/IF.tif'
-    print(IF_image_path)
-    IF = io.imread(IF_image_path, plugin='tifffile')
-    IF = np.sum(IF, axis=0)
-    return IF
-
-
-def get_IF_image(molecule, type, timepoint, image_number,path_data):
-    if 'scratch' in path_data:
-        IF_image_path = path_data +'/'+ molecule  + '/' + type + timepoint + '/' + image_number.split('_')[0]+'_'+image_number.split('_')[1] + '/IF.tif'
-    else:
-        IF_image_path = path_data +'/'+ molecule  + '/' + type + '_' + timepoint + '/image_' + image_number + '/IF.tif'
-    IF = io.imread(IF_image_path, plugin='tifffile')
-    return IF
-
-
-def save_plot_mask_spots_mrna(cell_mask, nucleus_mask, mtoc_position, nucleus_centroid, spots, csv_path):
-    xs = spots[:, 0]
-    ys = spots[:, 1]
-    fig = plt.figure(figsize=(5, 5))
-    plt.scatter(xs, ys, color='blue', marker="o", facecolors='none', linewidths=0.5)
-    plt.imshow(cell_mask, cmap='gray')
-    contours = measure.find_contours(nucleus_mask, 0.8)
-    for n, contour in enumerate(contours):
-        plt.plot(contour[:, 1], contour[:, 0], color='red', linewidth=2)
-    img_path = csv_path.split("saveDetections_noforce_8080/FISH.tif.csv")[0]
-    img_path = img_path + 'new_mask.png'
-    plt.xticks([])
-    plt.yticks([])
-    plt.savefig(img_path)
-    plt.close()
-
-
-def save_plot_mask_spots_protein(cell_mask, nucleus_mask, mtoc_position, nucleus_centroid,image_dir):
-
-
-    fig = plt.figure(figsize=(5, 5))
-    plt.imshow(cell_mask, cmap='gray')
-    contours = measure.find_contours(nucleus_mask, 0.8)
-    plt.scatter(mtoc_position[0], mtoc_position[1], color='green', marker="d", linewidths=3)
-    plt.scatter(nucleus_centroid[0], nucleus_centroid[1], color='black', marker="x", linewidths=3)
-    for n, contour in enumerate(contours):
-        plt.plot(contour[:, 1], contour[:, 0], color='blue', linewidth=2)
-
-    img_path = image_dir + 'new_mask.png'
-    plt.xticks([])
-    plt.yticks([])
-    plt.savefig(img_path)
-    plt.close()
-
-
-def plot_mask_and_spots(cell_mask, nucleus_mask, mtoc_position, nucleus_centroid, spots):
-    xs = spots[:, 0]
-    ys = spots[:, 1]
-    plt.imshow(cell_mask, cmap='gray')
-    # Find contours at a constant value of 0.8
-    contours = measure.find_contours(nucleus_mask, 0.8)
-    for n, contour in enumerate(contours):
-        plt.plot(contour[:, 1], contour[:, 0], color='red', linewidth=2)
-    plt.scatter(xs, ys, color='blue', marker="o", facecolors='none', linewidths=0.5)
-
-def plot_mask(mask):
-    plt.imshow(mask, cmap='gray')
-    plt.show()
-
-def build_quadrant_mask(index,image_width,image_height):
-    quad_mask = np.zeros((image_width, image_height))
-    end = image_width-1
-    for i in range(int(image_width/2)):
-        if index == 1:
-            quad_mask[i, i + 1:end - i + 1] = 1
-        elif index == 2:
-            quad_mask[i + 1:end - i + 1, end - i] = 1
-        elif index == 3:
-            quad_mask[end - i, i:end - i] = 1
-        else:
-            quad_mask[i:end - i, i] = 1
-    return quad_mask
-
-
-def check_presence(h5_file, image_path, datasets, attributes):
-    all_found = True
-    for key in datasets:
-        if key not in h5_file[image_path].keys():
-            all_found = False
-    for key in attributes:
-        if key not in h5_file[image_path].attrs.keys():
-            all_found = False
-    return all_found
-
-
-def check_absence(h5_file, image_path, datasets, attributes):
-    not_found = True
-    for key in datasets:
-        if key in h5_file[image_path].keys():
-            not_found = False
-    for key in attributes:
-        if key in h5_file[image_path].attrs.keys():
-            not_found = False
-    return not_found
-
-
-# build path from preliminary h5 files with basic descriptors
-# need to be changed later to parse files system and find tif files later
-def build_gene_and_spots_image_path(h5_file, molecule_type, raw_data_dir):
-    image_path_list = []
-    spots_file_path = []
-    for gene_name in h5_file[molecule_type]:
-        for timepoint in h5_file[molecule_type + '/' + gene_name]:
-            for image in h5_file[molecule_type + '/' + gene_name + '/' + timepoint]:
-                image_path = molecule_type + '/' + gene_name + '/' + timepoint + '/' + image
-                image_path_list.append(image_path)
-                spots_file = raw_data_dir + gene_name + '/mrna_' + timepoint + '/image_' + image + '/saveDetections_noforce_8080/FISH.tif.csv'
-                spots_file_path.append(spots_file)
-    return image_path_list, spots_file_path
-
-# build an image list using molecule type and gene name
-def build_image_list(file_handler, molecule, gene):
-    image_list = []
-    for timepoint in file_handler[molecule + '/' + gene]:
-        for i in file_handler[molecule + '/' + gene + '/' + timepoint]:
-            image = molecule + '/' + gene + '/' + timepoint + '/' + i
-            image_list.append(image)
-    return image_list
-
-# build an image list using molecule type and gene name and timepoint
-def build_image_list_2(file_handler, molecule, gene, timepoints):
-    image_list = []
-    for timepoint in timepoints:
-        for i in file_handler[molecule + '/' + gene + '/' + timepoint]:
-            image = molecule + '/' + gene + '/' + timepoint + '/' + i
-            image_list.append(image)
-    return image_list
-
-def count_nucleus(file_handler, image):
-    count = 0
-    for dataset in file_handler[image]:
-        if "nucleus_centroid" in dataset:
-            count += 1
-    if count == 0:
-        count = 1
-    return count
-
-def preprocess_image(file_handler):
-    """build path from preliminar h5 files with basic descriptors"""
-    image_path_list = []
-    for molecule in file_handler:
-        for gene_name in file_handler[molecule]:
-            for timepoint in file_handler[molecule + '/' + gene_name]:
-                for image in file_handler[molecule + '/' + gene_name + '/' + timepoint]:
-                    image_path = molecule + '/' + gene_name + '/' + timepoint + '/' + image
-                    image_path_list.append(image_path)
-    return image_path_list
-
-
-def preprocess_image_list_1(file_handler, genes):
-    """build path from preliminar h5 files with basic descriptors"""
-    image_path_list = []
-    for molecule in file_handler:
-        for gene in genes:
-            for timepoint in file_handler[molecule + '/' + gene]:
-                for image in file_handler[molecule + '/' + gene + '/' + timepoint]:
-                    image_path = molecule + '/' + gene + '/' + timepoint + '/' + image
-                    image_path_list.append(image_path)
-    return image_path_list
-
-def preprocess_image_list(file_handler, molecule_type):
-    """build path from preliminar h5 files with basic descriptors"""
-    image_path_list = []
-    for molecule in molecule_type:
-        for gene_name in file_handler[molecule]:
-            for timepoint in file_handler[molecule + '/' + gene_name]:
-                for image in file_handler[molecule + '/' + gene_name + '/' + timepoint]:
-                    image_path = molecule + '/' + gene_name + '/' + timepoint + '/' + image
-                    image_path_list.append(image_path)
-    return image_path_list
-
-
-def preprocess_image_list2(file_handler, molecule, gene_name):
-    """build path from preliminar h5 files with basic descriptors"""
-    image_path_list = []
-    for timepoint in file_handler['/' +molecule + '/' + gene_name]:
-        for image in file_handler[molecule + '/' + gene_name + '/' + timepoint]:
-            image_path = molecule + '/' + gene_name + '/' + timepoint + '/' + image
-            image_path_list.append(image_path)
-    return image_path_list
-
-def preprocess_image_list3(file_handler, molecule_type, gene, timepoints):
-    """build path from preliminar h5 files with basic descriptors"""
-    image_path_list = []
-    for molecule in molecule_type:
-        for timepoint in timepoints:
-            node = molecule + '/' + gene + '/' + timepoint
-            if node in file_handler:
-                for image in file_handler[node]:
-                    image_path = molecule + '/' + gene + '/' + timepoint + '/' + image
-                    image_path_list.append(image_path)
-    return image_path_list
-
-
-def preprocess_image_list4(file_handler, molecule_type, gene, timepoints,image_t):
-    """build path from preliminar h5 files with basic descriptors"""
-    image_path_list = []
-    for molecule in molecule_type:
-        for timepoint in timepoints:
-            for image in file_handler[molecule + '/' + gene + '/' + timepoint]:
-                if image_t in image:
-                    image_path = molecule + '/' + gene + '/' + timepoint + '/' + image
-                    image_path_list.append(image_path)
-    return image_path_list
-
-
-def preprocess_image_list5(file_handler, molecule,gene_name,image_t):
-    """build path from preliminar h5 files with basic descriptors"""
-    image_path_list = []
-    for timepoint in file_handler[molecule + '/' + gene_name]:
-        for image in file_handler[molecule + '/' + gene_name + '/' + timepoint]:
-            if image_t in image:
-                image_path = molecule + '/' + gene_name + '/' + timepoint + '/' + image
-                image_path_list.append(image_path)
-    return image_path_list
-
-
-
-def print_attrs(name, obj):
-    print(name)
-    try:
-        for key, val in obj.attrs.iteritems():
-            print("    %s: %s" % (key, val))
-    except IOError:
-        print("Fail on name %s" % (name,))
-
-def list_h5_file_content(h5_file):
-    with h5py.File(h5_file, 'r') as h5_file:
-        print(h5_file)
-        print(list(h5_file.keys()))
-        h5_file.visititems(print_attrs)
-    return True
-
-def get_cube(x):
-    x = abs(x)
-    return int(round(x ** (1. / 3)))
-
-def calc_dist(p1,p2):
-    return math.sqrt((p2[0] - p1[0]) ** 2 +
-                     (p2[1] - p1[1]) ** 2 +
-                     (p2[2] - p1[2]) ** 2)
-
-
-def ripley_k_random_measure_2D(IF,my_lambda,nuw,r_max):
-
-    IF_rev = IF[::-1,::-1]
-    P=signal.convolve(IF,IF_rev)
-
-    # distance map(dist from origin)
-    dMap = np.zeros((P.shape[0], P.shape[1]))
-    for x in range(P.shape[0]):
-        for y in range( P.shape[1]):
-            d = (x - IF.shape[0]) ** 2 + (y - IF.shape[1]) ** 2;
-            dMap[x, y] = math.sqrt(d)
-
-    # sum convolution using dMap
-    K = np.zeros((r_max, 1))
-    for dist in range(r_max):
-        K[dist] = P[dMap[:,:] <= dist].sum()
-
-    K = K * (1 / (my_lambda * nuw)) - (1 / my_lambda )
-
-    return K
-
-
-def ripley_k_random_measure(IF,my_lambda,nuw,max_cell_radius,image_width, image_height):
-    # make convolution in 2D - approximates 3D convolution as Z dimension is thin
-
-    IF_2D=np.sum(IF,axis=2)
-    IF_2D_rev = IF_2D[::-1,::-1]
-    P=signal.convolve(IF_2D,IF_2D_rev)
-
-
-    # distance map(dist from origin)
-    dMap = np.zeros((image_width * 2 - 1, image_height * 2 - 1))
-    for x in range(image_width * 2 - 1):
-        for y in range(image_height * 2 - 1):
-            d = (x - image_width) ** 2 + (y - image_height) ** 2;
-            dMap[x, y] = math.sqrt(d)
-
-
-    # sum convolution using dMap
-    K = np.zeros((max_cell_radius, 1))
-    for m in range(max_cell_radius):
-        K[m] = P[dMap[:,:] <= m].sum()
-    K = K * (1 / (my_lambda ** 2 * nuw)) - (1 / my_lambda )
-    return K
-
-def ripley_k_point_process_2d(spots, my_lambda, nuw, r_max):
-    n_spots = len(spots)
-    K = np.zeros((r_max, 1))
-    # add description
-    for i in range(n_spots):
-        ds = np.zeros((n_spots-1,1))
-        for j in range(2):
-            a = np.ma.array(spots[:, j], mask=False)
-            a.mask[i] = True
-            ds=np.add(ds.flatten(), np.square(spots[i, j] - a.compressed()))
-        ds = np.sqrt(ds)
-        if n_spots - 1 < r_max:
-            for m in range(n_spots - 1):
-                K[int(math.ceil(ds[m])):int(r_max)] = K[int(math.ceil(ds[m])):int(r_max)] + 1
-        else:
-
-            for m in range(r_max):
-                K[m] = K[m] + ds[ds <= m].sum()
-    K = K * (1 / (my_lambda**2 * nuw))
-    return K
-
-def ripley_k_point_process(spots, my_lambda, nuw, max_cell_radius, pixels_in_slice):
-    n_spots = len(spots)
-    K = np.zeros((max_cell_radius, 1))
-    for i in range(n_spots):
-        ds = np.zeros((n_spots-1,1))
-        for j in range(3):
-            a = np.ma.array(spots[:, j], mask=False)
-            a.mask[i] = True
-            if j==2:
-                ds=np.add(ds.flatten(), np.square((spots[i, j] - a.compressed()) * pixels_in_slice))
+def checkpoint_decorator(path, dtype):
+    def real_checkpoint_decorator(decorated_method):
+        def wrapper(instance, *args, **kwargs):
+            tgt_path = instance._path + path
+            if not instance._repository.is_present(tgt_path):
+                # logger.debug("Computing value for {} using {}", tgt_path, decorated_method)
+                value = decorated_method(instance, *args, **kwargs)
+                instance._repository.save_descriptor(tgt_path, value=value, dtype=dtype)
             else:
-                ds=np.add(ds.flatten(), np.square(spots[i, j] - a.compressed()))
-        ds = np.sqrt(ds)
-        if n_spots - 1 < max_cell_radius:
-            for m in range(n_spots - 1):
-                K[int(math.ceil(ds[m])):int(max_cell_radius)] = K[int(math.ceil(ds[m])):int(max_cell_radius)] + 1
-        else:
-            for m in range(max_cell_radius):
-                K[m] = K[m] + ds[ds <= m].sum()
-    K = K * (1 / (my_lambda**2 * nuw))
-    return K
+                # logger.debug("Reloading value for {} for {}", tgt_path, decorated_method)
+                value = np.array(instance._repository.get(tgt_path)).astype(dtype)
+            return value
 
-def clustering_index_random_measure_2d(IF, cell_mask_2d, max_cell_radius=400, simulation_number=20):
+        return wrapper
+
+    return real_checkpoint_decorator
 
 
-    nuw = (np.sum(cell_mask_2d[:, :] == 1)) #* constants.SURFACE_COEFFICIENT
-    my_lambda = float(np.sum(IF[:, :])) / float(nuw)
-    k = ripley_k_random_measure_2D(IF, my_lambda, nuw, max_cell_radius)
-    k_sim = np.zeros((simulation_number, max_cell_radius))
-
-    # simulate n list of random intensity and run ripley_k
-    indsAll = np.where(cell_mask_2d[:, :] == 1)
-
-    for t in range(simulation_number):
-        print('simulation ', t)
-        inds_permuted = np.random.permutation(range(len(indsAll[0])))
-        I_samp=np.zeros(IF.shape)
-        for u in range(len(inds_permuted)):
-            new_x = indsAll[0][inds_permuted[u]]
-            old_x = indsAll[0][u]
-            new_y = indsAll[1][inds_permuted[u]]
-            old_y = indsAll[1][u]
-
-            I_samp[new_x,new_y]=IF[old_x,old_y]
-
-        k_sim[t, :]=ripley_k_random_measure_2D(I_samp,my_lambda,nuw, max_cell_radius).flatten()
-
-    h_star = np.zeros((max_cell_radius, 1))
-    h = np.subtract(np.sqrt(k / math.pi), np.arange(1, max_cell_radius + 1).reshape((max_cell_radius, 1)))
-    h_sim = np.sqrt(k_sim / math.pi) - matlib.repmat(np.matrix(np.arange(1, max_cell_radius + 1)),simulation_number, 1)
-    h_sim_sorted = np.sort(h_sim)
-    h_sim_sorted = np.sort(h_sim_sorted[:, :], axis=0)
-
-    synth95 = h_sim_sorted[int(round(0.95 * simulation_number)), :]
-    synth50 = h_sim_sorted[int(round(0.5 * simulation_number)), :]
-    synth5 = h_sim_sorted[int(round(0.05 * simulation_number)), :]
-
-    # Compute delta between .95 percentile against .5 percentile
-    delta1 = synth95 - synth50
-    # Compute delta between .5 percentile against .05 percentile
-    delta2 = synth50 - synth5
-
-    inds = np.where(h == synth50)
-    h_star[inds[0], :] = 0
-
-    idx_sup = []
-    for i in range(max_cell_radius):
-        if h[i, 0] > synth50[0,i]:
-            idx_sup.append(i)
-
-    if len(idx_sup) > 0:
-        tmp = np.subtract(h[idx_sup, 0].astype(float), synth50[0,idx_sup].astype(float))
-        h_star[idx_sup, 0] = tmp
-
-    idx_inf = []
-    for i in range(max_cell_radius):
-        if h[i, 0] < synth50[0,i]:
-            idx_inf.append(i)
-    if len(idx_inf) > 0:
-        tmp = - np.subtract(synth50[0,idx_inf].astype(float), h[idx_inf, 0].astype(float))
-        h_star[idx_inf, 0] = tmp
-    h_star[h_star == - np.inf] = 0
-    h_star[h_star == np.inf] = 0
-
-    return h_star
+def volume_coeff():
+    return ((1 / constants.dataset_config['SIZE_COEFFICIENT']) ** 2) * 0.3
 
 
-def clustering_index_random_measure(IF, cell_mask_3d, pixels_in_slice, image_width, image_height, max_cell_radius=400, simulation_number=20):
-    nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * pixels_in_slice
-    my_lambda = float(np.sum(IF[:, :, :])) / float(nuw)
-    k = ripley_k_random_measure(IF, my_lambda, nuw, max_cell_radius)
-    k_sim = np.zeros((simulation_number, max_cell_radius))
-
-    # simulate n list of random spots and run ripley_k
-    indsAll = np.where(cell_mask_3d[:, :, :] == 1)
-    for t in range(simulation_number):
-        #print('simulation ', t)
-        inds_permuted = np.random.permutation(range(len(indsAll[0])))
-        I_samp=np.zeros(IF.shape)
-        for u in range(len(inds_permuted)):
-            new_x = indsAll[0][inds_permuted[u]]
-            old_x = indsAll[0][u]
-            new_y = indsAll[1][inds_permuted[u]]
-            old_y = indsAll[1][u]
-            new_z = indsAll[2][inds_permuted[u]]
-            old_z = indsAll[2][u]
-            I_samp[new_x,new_y,new_z]=IF[old_x,old_y,old_z]
-        k_sim[t, :]=ripley_k_random_measure(I_samp,my_lambda,nuw,max_cell_radius,image_width, image_height).flatten()
-
-    h_star = np.zeros((max_cell_radius, 1))
-    h=k
-    h_sim=k_sim
-    h_sim_sorted = np.sort(h_sim)
-    h_sim_sorted = np.sort(h_sim_sorted, axis=0)
-    synth95 = h_sim_sorted[int(round(0.95 * simulation_number)), :]
-    synth50 = h_sim_sorted[int(round(0.5 * simulation_number)), :]
-    synth5 = h_sim_sorted[int(round(0.05 * simulation_number)), :]
-
-    # Compute delta between .95 percentile against .5 percentile
-    delta1 = synth95 - synth50
-
-    # Compute delta between .5 percentile against .05 percentile
-    delta2 = synth50 - synth5
-
-    inds = np.where(h == synth50)
-    h_star[inds[0], :] = 0
-
-    idx_sup = []
-    for i in range(max_cell_radius):
-        if h[i, 0] > synth50[i]:
-            idx_sup.append(i)
-    if len(idx_sup) > 0:
-        tmp = np.subtract(h[idx_sup, 0].astype(float), synth50[idx_sup].astype(float))
-        tmp = tmp / delta1[idx_sup]
-        h_star[idx_sup, 0] = tmp
-
-    idx_inf = []
-    for i in range(max_cell_radius):
-        if h[i, 0] < synth50[i]:
-            idx_inf.append(i)
-    if len(idx_inf) > 0:
-        tmp = np.subtract(synth50[idx_inf].astype(float), h[idx_inf, 0].astype(float))
-        tmp = - tmp / delta2[idx_inf]
-        h_star[idx_inf, 0] = tmp
-
-    h_star[h_star == - np.inf] = 0
-    h_star[h_star == np.inf] = 0
-
-    return h_star
+def surface_coeff():
+    return ((1 / constants.dataset_config['SIZE_COEFFICIENT']) ** 2)
 
 
-# clustering index point process for muscle data
-def clustering_index_point_process_2d(spots, cell_mask_2d,size_coeff, max_cell_radius, simulation_number=20):
-    n_spots = len(spots)
+def rotate_meshgrid(xx, yy, radians=0):
+    """
+    Rotate a meshgrid counter clockwise by an angle
+    """
+    R = None
+    R = np.array([[np.cos(radians), np.sin(radians)],
+                  [-np.sin(radians), np.cos(radians)]])
 
-    # Nuw is the whole volume of the cell
-    nuw = (np.sum(cell_mask_2d[:, :] == 1)) * size_coeff
-
-    # spots volumic density
-    my_lambda = float(n_spots) / float(nuw)
-    k = ripley_k_point_process_2d(spots, my_lambda, nuw, max_cell_radius)
-    k_sim = np.zeros((simulation_number, max_cell_radius))
-
-    #simulate n list of random spots and run ripley_k
-    indsAll = np.where(cell_mask_2d[:, :] == 1)
-    for t in range(simulation_number):
-        #print("simulation" + str(t))
-        inds_permuted = np.random.permutation(range(len(indsAll[0])))
-        indsT = inds_permuted[0:n_spots]
-        spots_random = np.zeros(spots.shape)
-        for i in range(len(spots)):
-            spots_random[i, 0] = indsAll[0][indsT[i]]
-            spots_random[i, 1] = indsAll[1][indsT[i]]
-        tmp_k=ripley_k_point_process_2d(spots_random,my_lambda,nuw,max_cell_radius).flatten()
-        k_sim[t,:]=tmp_k
-    h_star=np.zeros((max_cell_radius,1))
-
-    # Build related statistics derived from Ripley's K function
-    # normalize K
-    h = np.subtract(np.sqrt(k /  math.pi),np.arange(1, max_cell_radius + 1).reshape((max_cell_radius, 1)))
-    h_sim = (np.sqrt(k_sim /  math.pi)) - matlib.repmat(np.matrix(np.arange(1, max_cell_radius + 1)), simulation_number, 1)
-    h_sim_sorted = np.sort(h_sim)
-    h_sim_sorted=np.sort(h_sim_sorted[:,::-1],axis=0)
-    synth95 = h_sim_sorted[int(round(0.95 * simulation_number)), :]
-    synth50 = h_sim_sorted[int(round(0.5 * simulation_number)), :]
-    synth5 = h_sim_sorted[int(round(0.05 * simulation_number)), :]
-
-    # Compute delta between .95 percentile against .5 percentile
-    delta1 = synth95 - synth50
-
-    # Compute delta between .5 percentile against .05 percentile
-    delta2 = synth50 - synth5
-    inds = np.where(h == synth50)
-    h_star[inds[0], :] = 0
-    idx_sup=[]
-    for i in range(max_cell_radius):
-        if h[i, 0] > synth50[0, i]:
-            idx_sup.append(i)
-    if len(idx_sup)>0:
-        tmp = np.subtract(h[idx_sup, 0].astype(float),synth50[0, idx_sup].astype(float))
-        tmp = tmp / delta1[0, idx_sup]
-        h_star[idx_sup, 0] = tmp
-    idx_inf = []
-    for i in range(max_cell_radius):
-        if h[i, 0] < synth50[0, i]:
-            idx_inf.append(i)
-    if len(idx_inf) > 0:
-        tmp = np.subtract(synth50[0, idx_inf].astype(float), h[idx_inf, 0].astype(float))
-        tmp = - tmp / delta2[0, idx_inf]
-        h_star[idx_inf, 0] = tmp
-    h_star[h_star == - np.inf] = 0
-    h_star[h_star == np.inf] = 0
-    return h_star
+    return np.einsum('ji, mni -> jmn', R, np.dstack([xx, yy]))
 
 
-def clustering_index_point_process(spots, cell_mask_3d, pixels_in_slice, max_cell_radius=400, simulation_number=20):
-    n_spots = len(spots)
-    # Nuw is the whole volume of the cell
-    nuw = (np.sum(cell_mask_3d[:, :, :] == 1)) * pixels_in_slice
-    #print (spots.shape)
-    # spots volumic density
-    my_lambda = float(n_spots) / float(nuw)
-    k = ripley_k_point_process(spots, my_lambda, nuw, max_cell_radius, pixels_in_slice)
-    k_sim = np.zeros((simulation_number, max_cell_radius))
+def rotate_point(self, center_point, point, angle):
+    """
+    counter-clockwise rotate a point around the center_point; angle is in degrees.
+    regular cartesian coordinates are used
+    """
 
-    #simulate n list of random spots and run ripley_k
-    indsAll = np.where(cell_mask_3d[:, :, :] == 1)
-    for t in range(simulation_number):
-        #print("simulation"+str(t))
-        inds_permuted = np.random.permutation(range(len(indsAll[0])))
-        indsT = inds_permuted[0:n_spots]
-        spots_random = np.zeros(spots.shape)
-        for i in range(len(spots)):
-            spots_random[i, 0] = indsAll[0][indsT[i]]
-            spots_random[i, 1] = indsAll[1][indsT[i]]
-            spots_random[i, 2] = indsAll[2][indsT[i]]
-        tmp_k=ripley_k_point_process(spots_random,my_lambda,nuw,max_cell_radius).flatten()
-        k_sim[t,:]=tmp_k
-    h_star=np.zeros((max_cell_radius,1))
-
-    # Build related statistics derived from Ripley's K function
-    # normalize K
-    h = np.subtract(np.power(((k * 3) / (4 * math.pi)), 1./3), np.arange(1,max_cell_radius+1).reshape((max_cell_radius, 1)))
-    h_sim = (np.power(((k_sim * 3) / (4 * math.pi)), 1./3)) - matlib.repmat(np.matrix(np.arange(1,max_cell_radius+1)), simulation_number, 1)
-    h_sim_sorted = np.sort(h_sim)
-    h_sim_sorted=np.sort(h_sim_sorted[:,::-1],axis=0)
-    synth95 = h_sim_sorted[int(round(0.95 * simulation_number)), :]
-    synth50 = h_sim_sorted[int(round(0.5 * simulation_number)), :]
-    synth5 = h_sim_sorted[int(round(0.05 * simulation_number)), :]
-
-    # Compute delta between .95 percentile against .5 percentile
-    delta1 = synth95 - synth50
-
-    # Compute delta between .5 percentile against .05 percentile
-    delta2 = synth50 - synth5
-    inds = np.where(h == synth50)
-    h_star[inds[0], :] = 0
-    idx_sup=[]
-    for i in range(max_cell_radius):
-        if h[i, 0] > synth50[0, i]:
-            idx_sup.append(i)
-    if len(idx_sup)>0:
-        tmp = np.subtract(h[idx_sup, 0].astype(float),synth50[0, idx_sup].astype(float))
-        tmp = tmp / delta1[0, idx_sup]
-        h_star[idx_sup, 0] = tmp
-    idx_inf = []
-    for i in range(max_cell_radius):
-        if h[i, 0] < synth50[0, i]:
-            idx_inf.append(i)
-    if len(idx_inf) > 0:
-        tmp = np.subtract(synth50[0, idx_inf].astype(float), h[idx_inf, 0].astype(float))
-        tmp = - tmp / delta2[0, idx_inf]
-        h_star[idx_inf, 0] = tmp
-    h_star[h_star == - np.inf] = 0
-    h_star[h_star == np.inf] = 0
-    #print(h_star)
-    return h_star
-
-
-# counter-clockwise rotate a point around the center_point; angle is in degrees
-def rotate_point(center_point, point, angle):
     angle = math.radians(angle)
     temp_point = [point[0] - center_point[0], point[1] - center_point[1]]
     temp_point = (temp_point[0] * math.cos(angle) - temp_point[1] * math.sin(angle),
@@ -673,40 +69,184 @@ def rotate_point(center_point, point, angle):
     return temp_point
 
 
-def slope_from_points(point1, point2):
+def slope_from_points(self, point1, point2):
     if (point2[1] != point1[1]):
-        return (point2[0].astype(np.float) - point1[0].astype(np.float)) / (
-            point2[1].astype(np.float) - point1[1].astype(np.float))
+        return (point2[0] - point1[0]) / (point2[1] - point1[1])
     else:
         return 0
 
 
-# Rotate a meshgrid clockwise by an angle
-def rotate_meshgrid(xx, yy, radians=0):
-    R = np.array([[np.cos(radians), np.sin(radians)],
-                  [-np.sin(radians), np.cos(radians)]])
-    return np.einsum('ji, mni -> jmn', R, np.dstack([xx, yy]))
-
-
-
-
-def sign(point1, point2, point3):
-    s = (point1[0] - point3[0]) * (point2[1] - point3[1]) - (point2[0] - point3[0]) * (point1[1] - point3[1])
-    return s
-
 def find_nearest(array, value):
+    """
+    Returns the index in the array where the value is the closest to the one in the argument
+    """
     idx = (np.abs(array - value)).argmin()
     return idx
 
 
-def prune_intensities(image,zero_level, image_width, image_height):
-    IF_image_path = path.raw_data_dir + '/' + image.split('/')[2] + '/' + image.split('/')[1] + '_' + \
-                         image.split('/')[3] + '/image_' + image.split('/')[4] + '/IF.tif'
-    IF = io.imread(IF_image_path, plugin='tifffile')
-    vol_block = np.zeros((image_width, image_height, zero_level))
-    for c_slice in range(0, zero_level):
-        vol_block[:, :, c_slice] = IF[c_slice,:,:]
-    return vol_block
+def create_dir_if_needed_for_filepath(file_path):
+    try:
+        pathlib.Path(file_path).parent.mkdir(parents=True)
+    except FileExistsError:
+        return
+
+
+def unit_circle(size, r) -> np.ndarray:
+    """
+    Create a matrix size x size with a circular mask of radius r in the center
+    :return: an array of int
+    """
+    assert (size > r * 2), "Can't create a circular mask of radius greater or equal to the square's side"
+    m = np.zeros((size, size))
+
+    # specify circle centre ij
+    ci, cj = int(size / 2), int(size / 2)
+
+    # Create index arrays to m
+    i, j = np.meshgrid(np.arange(m.shape[0]), np.arange(m.shape[1]))
+
+    # calculate distance of all points to centre
+    dist = np.sqrt((i - ci) ** 2 + (j - cj) ** 2)
+
+    # Assign value of 1 to those points where dist<cr:
+    m[np.where(dist < r)] = 1
+
+    return m.astype(int)
+
+
+def compute_statistics_random_h_star(h_sim: np.ndarray, max_cell_radius=None, simulation_number=None) -> (
+        List[int], List[int], List[int]):
+    """
+    Build related statistics derived from Ripley's K function, normalize K
+    """
+    simulation_number = simulation_number or constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]
+    max_cell_radius = max_cell_radius or constants.analysis_config["MAX_CELL_RADIUS"]
+
+    h_sim = np.power((h_sim * 3) / (4 * math.pi), 1. / 3) - matlib.repmat(np.arange(1, max_cell_radius + 1),
+                                                                          simulation_number, 1)
+    h_sim_sorted = np.sort(h_sim)
+    h_sim_sorted = np.sort(h_sim_sorted[:, ::-1], axis=0)
+    synth95 = h_sim_sorted[int(np.floor(
+        0.95 * simulation_number))]  # TODO : difference with V0 : floor since if the numbers are high we get simulation_sumber here
+    synth50 = h_sim_sorted[int(np.floor(0.5 * simulation_number))]
+    synth5 = h_sim_sorted[int(np.floor(0.05 * simulation_number))]
+
+    return synth5, synth50, synth95
+
+
+def compute_h_star(h: np.ndarray, synth5: List[int], synth50: List[int], synth95: List[int],
+                   max_cell_radius=None) -> np.ndarray:
+    """
+    Compute delta between .95 percentile and .5 percentile; between .5 percentile and .05 percentile
+    Fill the h_star array accordingly
+    """
+    max_cell_radius = max_cell_radius or constants.analysis_config["MAX_CELL_RADIUS"]
+    delta1 = synth95 - synth50
+    delta2 = synth50 - synth5
+    idx_equal_median = np.where(h == synth50)[0]
+    h_star = np.zeros(max_cell_radius)
+    h_star[idx_equal_median] = 0
+    idx_greater_median = np.where(h > synth50)[0]
+    h_star[idx_greater_median] = (h[idx_greater_median] - synth50[idx_greater_median]) / delta1[idx_greater_median]
+    idx_less_median = np.where(h < synth50)[0]
+    h_star[idx_less_median] = -(synth50[idx_less_median] - h[idx_less_median]) / delta2[idx_less_median]
+    h_star[h_star == - np.inf] = 0
+    h_star[h_star == np.inf] = 0
+    return h_star
+
+
+def color_variant(hex_color, brightness_offset=1):
+    """ takes a color like #87c95f and produces a lighter or darker variant """
+    if len(hex_color) != 7:
+        raise Exception("Passed %s into color_variant(), needs to be in #87c95f format." % hex_color)
+    rgb_hex = [hex_color[x:x + 2] for x in [1, 3, 5]]
+    new_rgb_int = [int(hex_value, 16) + brightness_offset for hex_value in rgb_hex]
+    new_rgb_int = [min([255, max([0, i])]) for i in new_rgb_int]  # make sure new values are between 0 and 255
+    # hex() produces "0x88", we want just "88"
+    return rgb2hex(new_rgb_int[0], new_rgb_int[1], new_rgb_int[2])
+
+
+def detect_outliers(data, threshold=3):
+    mean = np.nanmean(data)
+    std = np.nanstd(data)
+    outliers = []
+    for x in data:
+        z_score = (x - mean) / std
+
+        if np.abs(z_score) > threshold:
+            outliers.append(x)
+    return outliers
+
+
+def open_repo():
+    dataset_root_fp = pathlib.Path(
+        constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
+    primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
+    secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
+    repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
+    return repo
+
+
+####TIS PART
+
+def reindex_quadrant_mask(quad_mask, mtoc_quad, quad_num=4):
+    df = pd.DataFrame(quad_mask)
+    df = df.applymap(lambda x: x - mtoc_quad + 1 if x >= mtoc_quad else (x + quad_num - mtoc_quad + 1 if x > 0 else 0))
+    quad_mask = np.array(df)
+    return quad_mask
+
+
+def permutations(orig_list):
+    if not isinstance(orig_list, list):
+        orig_list = list(orig_list)
+    yield orig_list
+    if len(orig_list) == 1:
+        return
+    for n in sorted(orig_list):
+        new_list = orig_list[:]
+        pos = new_list.index(n)
+        del (new_list[pos])
+        new_list.insert(0, n)
+        for resto in permutations(new_list[1:]):
+            if new_list[:1] + resto != orig_list:
+                yield new_list[:1] + resto
+
+
+def using_indexed_assignment(x):
+    "https://stackoverflow.com/a/5284703/190597 (Sven Marnach)"
+    result = np.empty(len(x), dtype=int)
+    temp = x.argsort()
+    result[temp] = np.arange(len(x))
+    return result
+
+
+def permutations_test(interactions, fwdints, size=4):
+    fwdints = fwdints.astype(bool)
+    vals = interactions.flatten()
+    indx = using_indexed_assignment(vals)
+    one_matrix = np.ones((size, size)).astype(int)
+    indx_matrix = np.matrix(indx.reshape((size, size)))
+    indx_matrix = np.add(indx_matrix, one_matrix)
+    ranking = indx_matrix.copy()
+    rs0 = np.sum(indx_matrix[fwdints[:]])
+    rs1 = np.sum(indx_matrix[fwdints[:] == 0])
+    perms = [x for x in itertools.permutations(np.arange(size), size)]
+    nps = len(perms)
+    rs = []
+    for p1 in range(nps):
+        for p2 in range(nps):
+            test = indx_matrix.copy()
+            for i in range(size):
+                for j in range(size):
+                    np.random.shuffle(test[:, i])
+            rs.append(np.sum(test[fwdints[:]]))
+    count = 0
+    for score in rs:
+        if score > rs0:
+            count += 1
+    p = float(count / float(len(rs)))
+    stat = rs1
+    return p, stat, ranking
 
 
 def pearsoncorr(vec1, vec2):
@@ -717,3 +257,40 @@ def pearsoncorr(vec1, vec2):
     val = np.mean(vec1b * vec2b) / (np.std(vec1) * np.std(vec2))
     return val
 
+
+def get_forward_interactions(mrna_timepoints, protein_timepoints):
+    X = len(mrna_timepoints)
+    Y = len(protein_timepoints)
+    fwd_interactions = np.zeros((X, Y))
+    for x in range(X):
+        for y in range(Y):
+            if protein_timepoints[y] > mrna_timepoints[x]:
+                fwd_interactions[x, y] = 1
+    return fwd_interactions
+
+
+def get_quantized_grid(q, Qx, Qy):
+    tmp_x = np.matrix(np.arange(Qx))
+    tmp_y = np.matrix(np.arange(Qy))
+    qxs = matlib.repmat(tmp_x.transpose(), 1, Qx)
+    qys = matlib.repmat(tmp_y, Qy, 1)
+    qxs = np.kron(qxs, np.ones((q, q)))
+    qys = np.kron(qys, np.ones((q, q)))
+    return qxs, qys
+
+
+def reduce_z_line_mask(z_lines, spots):
+    cpt_z = 1
+    z_lines_idx = []
+    for z_line_mask in z_lines:
+        spots_reduced = spots[spots[:, 2] == cpt_z]
+        if len(spots_reduced) > 25 and len(spots_reduced) < 2000:
+            z_lines_idx.append(cpt_z)
+        cpt_z += 1
+    return z_lines_idx
+
+
+def compute_minimal_distance(segment_summed):
+    for i in range(15):
+        if segment_summed[i] != 0:
+            return i

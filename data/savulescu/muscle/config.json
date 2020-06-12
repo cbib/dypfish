@@ -1,0 +1,23 @@
+{
+    "PNG_IMAGES_MIME_TYPE" : "image/png",
+    "BOOTSTRAP_MPI" : 100,
+    "SIZE_COEFFICIENT" : 9.75,
+    "VOLUME_OFFSET" : 1,
+    "PERIPHERAL_FRACTION_THRESHOLD" : 10,
+    "NUM_CONTOURS" : 100,
+    "MAX_CELL_RADIUS" : 300,
+    "DET_TOLERANCE" : 0.00000001,
+    "RIPLEY_K_SIMULATION_NUMBER" : 20,
+    "STRIPE_NUM" : 3,
+    "SLICE_THICKNESS" : 0.3,
+    "Z_LINE_SPACING" : 20,
+    "MOLECULE_TYPES": ["mrna"],
+    "GENES" : ["actn2", "gapdh"],
+    "TIMEPOINTS_PROTEIN":["immature", "mature"],
+    "TIMEPOINTS_MRNA":["immature", "mature"],
+    "PRIMARY_FILE_NAME":"basic.h5",
+    "SECONDARY_FILE_NAME":"secondary.h5",
+    "HSTAR_FILE_NAME":"not defined",
+    "MTOC_FILE_NAME":"not defined"
+
+}

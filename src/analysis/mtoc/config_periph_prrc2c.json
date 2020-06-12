@@ -1,0 +1,28 @@
+{
+  "PNG_IMAGES_MIME_TYPE": "image/png",
+  "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/mtoc/output_peripheral",
+  "FIGURE_NAME_FORMAT_MTOC_ENRICHMENT": "{molecule_type}_prrc2c_MTOC_enrichment.png",
+  "FIGURE_NAME_FORMAT_PLOT_RATIO": "{molecule_type}_prrc2c_ratio_plot.png",
+  "FIGURE_NAME_FORMAT_MPI": "{molecule_type}_prrc2c_MPI.png",
+  "MPI_SUB_SAMPLE_SIZE": 100,
+  "PERIPHERAL_FRACTION_THRESHOLD": 30,
+  "NUM_CONTOURS": 100,
+  "MAX_CELL_RADIUS": 300,
+  "DET_TOLERANCE": 0.00000001,
+  "PIXEL_PER_VOXEL": 16,
+  "VOXELS_PER_IMAGE": 512,
+  "RIPLEY_K_SIMULATION_NUMBER": 20,
+  "STRIPE_NUM": 3,
+  "Z_LINE_SPACING": 20,
+  "SPOTS_MIN": 60,
+  "MIN_SNR": 0,
+  "MIN_SPOT_NUM": 100,
+  "MIN_SPOTS_NUM_IN_CYTOPLASM": 10,
+  "MIN_HEIGHT_MAP_AREA": 20000,
+  "MRNA_GENES_LABEL" : ["Arhgdia","-Prrc2c"],
+  "MRNA_GENES" : ["arhgdia"],
+  "PROTEINS" : ["arhgdia"],
+  "PLOT_COLORS" : ["#0A3950", "#1E95BB"],
+  "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/prrc2c/config.json"
+}
+

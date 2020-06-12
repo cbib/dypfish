@@ -1,0 +1,21 @@
+{
+  "PNG_IMAGES_MIME_TYPE": "image/png",
+  "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/cytoplasmic_spread/output",
+  "FIGURE_NAME_FORMAT": "prrc2c_{molecule_type}_cytoplasmic_spread.png",
+  "MPI_SUB_SAMPLE_SIZE": 100,
+  "PERIPHERAL_FRACTION_THRESHOLD": 30,
+  "NUM_CONTOURS": 100,
+  "MAX_CELL_RADIUS": 300,
+  "DET_TOLERANCE": 0.00000001,
+  "PIXEL_PER_VOXEL": 16,
+  "VOXELS_PER_IMAGE": 512,
+  "RIPLEY_K_SIMULATION_NUMBER": 20,
+  "STRIPE_NUM": 3,
+  "Z_LINE_SPACING": 20,
+  "MIN_SPOT_NUM": 10,
+  "MRNA_GENES" : ["arhgdia/control", "arhgdia/prrc2c_depleted"],
+  "PROTEINS" : ["arhgdia/control", "arhgdia/prrc2c_depleted"],
+  "PLOT_COLORS" : ["#0A3950", "#1E95BB"],
+  "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/prrc2c/config.json"
+}
+

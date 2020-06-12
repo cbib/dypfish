@@ -1,0 +1,26 @@
+{
+  "PNG_IMAGES_MIME_TYPE": "image/png",
+  "FIGURE_OUTPUT_PATH": ".",
+  "FIGURE_NAME_FORMAT": "{molecule_type}_peripheral_fraction_{fraction}.png",
+  "MPI_SUB_SAMPLE_SIZE": 100,
+  "PERIPHERAL_FRACTION_THRESHOLD": 30,
+  "NUM_CONTOURS": 100,
+  "MAX_CELL_RADIUS": 300,
+  "DET_TOLERANCE": 0.00000001,
+  "PIXEL_PER_VOXEL": 16,
+  "VOXELS_PER_IMAGE": 512,
+  "RIPLEY_K_SIMULATION_NUMBER": 20,
+  "STRIPE_NUM": 3,
+  "Z_LINE_SPACING": 20,
+  "MIN_SPOT_NUM": 10,
+  "SPOTS_MIN": 50,
+  "MAX_SPOT_NUM": 2000,
+  "MIN_SNR": 0,
+<<<<<<< HEAD
+  "MIN_HEIGHT_MAP_AREA": 20000,
+=======
+  "MIN_SPOTS_NUM_IN_CYTOPLASM": 10,
+>>>>>>> ea14db7a46370edfd0ef5f3ab721e3268535f8fa
+  "DATASET_CONFIG_PATH": "{root_dir}/data/example_hdf5/example_datasets_config.json"
+}
+

@@ -1,0 +1,22 @@
+{
+    "SIZE_COEFFICIENT": 9.75,
+    "VOLUME_OFFSET": 1,
+    "DET_TOLERANCE": 0.00000001,
+    "PIXEL_PER_VOXEL": 16,
+    "VOXELS_PER_IMAGE": 512,
+    "IMAGE_WIDTH": 512,
+    "IMAGE_HEIGHT": 512,
+    "SLICE_THICKNESS": 0.3,
+    "Z_LINE_SPACING": 20,
+    "MOLECULE_TYPES": ["mrna", "protein"],
+    "MRNA_GENES": ["arhgdia", "arhgdia_nocodazole"],
+    "PROTEINS": ["arhgdia", "arhgdia_nocodazole"],
+    "TIMEPOINTS_PROTEIN":[ "3h","5h"],
+    "TIMEPOINTS_MRNA": ["3h","5h"],
+    "TIMEPOINTS_NUM_PROTEIN": [3, 5],
+    "TIMEPOINTS_NUM_MRNA": [3, 5],
+    "PRIMARY_FILE_NAME": "basic.h5",
+    "SECONDARY_FILE_NAME": "secondary.h5",
+    "MTOC_FILE_NAME": "mtoc.h5"
+}
+
