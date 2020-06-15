@@ -152,11 +152,7 @@ Here is a example of a degree_of_clustering analysis json config file
 
 ```
 
-To run it on your own data, first the data has to be compiled in the HDF5 file
- 
-format and second, you need to create the corresponding configuration files called config.json 
-
-in dataset and analysis folders. 
+To run it on your own data, first the data has to be compiled in the HDF5 file format and second, you need to create the corresponding configuration files called config.json in dataset and analysis folders. 
 
 Then you have to create a folder in the data repository called "Your_data_label" and put all your h5 files as the corresponding config files
 
