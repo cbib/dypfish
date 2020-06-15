@@ -10,7 +10,6 @@
     "RIPLEY_K_SIMULATION_NUMBER" : 20,
     "STRIPE_NUM" : 3,
     "SLICE_THICKNESS" : 0.3,
-    "Z_LINE_SPACING" : 20,
     "MOLECULE_TYPES": ["mrna"],
     "GENES" : ["actn2", "gapdh"],
     "TIMEPOINTS_PROTEIN":["immature", "mature"],

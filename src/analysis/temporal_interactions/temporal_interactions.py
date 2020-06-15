@@ -51,7 +51,7 @@ def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_
 
 def compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num = 4):
     prot_tis_dict={}
-    stripes = 3
+    stripes = constants.analysis_config['STRIPE_NUM']
     for gene in constants.analysis_config['PROTEINS']:
         prot_median = []
         for timepoint in constants.dataset_config['TIMEPOINTS_PROTEIN']:
@@ -66,7 +66,7 @@ def compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, qua
 
 def compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num = 4):
     mrna_tis_dict={}
-    stripes = 3
+    stripes = constants.analysis_config['STRIPE_NUM']
     for gene in constants.analysis_config['MRNA_GENES']:
         mrna_median = []
         for timepoint in constants.dataset_config['TIMEPOINTS_MRNA']:

@@ -18,7 +18,7 @@ Datasets corresponding to the data analyzed in the manuscript "DypFISH: Dynamic 
 # Installation
 
 ## System Requirements
-DypFISH installation requires an Unix environment with [python 2.7](python 2.7 (http://www.python.org/))
+DypFISH installation requires an Unix environment with [python 3.7](python 2.7 (http://www.python.org/))
 DypFISH was implemented in Python and tested under Linux environment.
 
 In order to run DypFISH your installation should include [pip](https://pypi.org/project/pip/)
@@ -77,13 +77,10 @@ Here is the content of the data repository :
     * original
         * basic.h5
         * secondary.h5
-        * hstar.h5
-        * mtoc.h5
         * config.json
     * nocodazole
         * basic.h5
         * secondary.h5
-        * mtoc.h5
         * config.json
     * cytod
         * basic.h5
@@ -92,7 +89,6 @@ Here is the content of the data repository :
     * chx
         * basic.h5
         * secondary.h5
-        * hstar.h5
         * config.json
     * muscle
         * basic.h5
@@ -103,47 +99,68 @@ Here is the content of the data repository :
         * secondary.h5
         * config.json
         
-## Configuration file        
+## Configuration files
+There are two types of config file: Dataset config files and
+Analysis config file. One should be located in the corresponding
+dataset repository and the other is located in the analysis folder respectively.      
         
-Here is a example of json config file
+Here is a example of a dataset json config file
 ```
 {
-    "PNG_IMAGES_MIME_TYPE" : "image/png",
-    "BOOTSTRAP_MPI" : 100,
     "SIZE_COEFFICIENT" : 9.75,
     "VOLUME_OFFSET" : 1,
-    "PERIPHERAL_FRACTION_THRESHOLD" : 30,
-    "NUM_CONTOURS" : 100,
     "MAX_CELL_RADIUS" : 300,
-    "DET_TOLERANCE" : 0.00000001,
     "PIXEL_PER_VOXEL" : 16,
     "VOXELS_PER_IMAGE" : 512,
-    "RIPLEY_K_SIMULATION_NUMBER" : 20,
-    "IMG_DIMENSION" : [512,512],
     "STRIPE_NUM" : 3,
     "IMAGE_WIDTH" : 512,
     "IMAGE_HEIGHT" : 512,
     "SLICE_THICKNESS" : 0.3,
-    "Z_LINE_SPACING" : 20,
     "PIXELS_IN_SLICE" : "0.3 * 9.75",
     "VOLUME_COEFFICIENT" : "((1 / SIZE_COEFFICIENT)**2) * 0.3",
-    
     "MOLECULE_TYPES": ["mrna", "protein"],
-    "GENES" : ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"],
-    "PROTEINS" : ["beta_actin", "arhgdia", "gapdh", "pard3"],
+    "MRNA_GENES" : ["arhgdia", "beta_actin", "gapdh", "pard3", "pkp4", "rab13"],
+    "PROTEINS" : ["arhgdia", "beta_actin", "gapdh", "pard3"],
     "TIMEPOINTS_MRNA" : ["2h", "3h", "4h", "5h"],
     "TIMEPOINTS_PROTEIN" : ["2h", "3h", "5h", "7h"],
     "TIMEPOINTS_NUM_MRNA":[2, 3, 4, 5],
     "TIMEPOINTS_NUM_PROTEIN":[2, 3, 5, 7],
-    "BASIC_FILE_NAME":"basic.h5",
-    "SECONDARY_FILE_NAME":"secondary.h5",
-    "HSTAR_FILE_NAME":"h_star.h5",
-    "MTOC_FILE_NAME":"mtoc.h5"
+    "PRIMARY_FILE_NAME":"basic.h5",
+    "SECONDARY_FILE_NAME":"secondary.h5"
 }
 
 ```
 
-To run it on your own data, first the data has to be compiled in the HDF5 file format and second, you need to create the corresponding configuration files called config.json. 
+Here is a example of a degree_of_clustering analysis json config file
+```
+{
+  "PNG_IMAGES_MIME_TYPE": "image/png",
+  "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/degree_of_clustering/output",
+  "FIGURE_NAME_FORMAT": "{molecule_type}_degree_of_clustering.png",
+  "MPI_SUB_SAMPLE_SIZE": 100,
+  "PERIPHERAL_FRACTION_THRESHOLD": 30,
+  "NUM_CONTOURS": 100,
+  "MAX_CELL_RADIUS": 300,
+  "DET_TOLERANCE": 0.00000001,
+  "PIXEL_PER_VOXEL": 16,
+  "VOXELS_PER_IMAGE": 512,
+  "RIPLEY_K_SIMULATION_NUMBER": 20,
+  "STRIPE_NUM": 3,
+  "Z_LINE_SPACING": 20,
+  "MIN_SPOT_NUM": 10,
+  "MRNA_GENES" : ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"],
+  "PROTEINS" : ["beta_actin", "arhgdia", "gapdh", "pard3"],
+  "PLOT_COLORS" : ["#0A3950", "#1E95BB", "#A1BA6D", "#F16C1B", "#C02A18", "#E9CB45"],
+  "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/original/config.json"
+}
+
+```
+
+To run it on your own data, first the data has to be compiled in the HDF5 file
+ 
+format and second, you need to create the corresponding configuration files called config.json 
+
+in dataset and analysis folders. 
 
 Then you have to create a folder in the data repository called "Your_data_label" and put all your h5 files as the corresponding config files
 
@@ -161,150 +178,110 @@ Version 2.0 will include automatic parsing of gene names.
 ## Available analysis
 
 The package contains one main script by general analysis called main.py that coordinates the execution of the whole analysis.
-Here is the list of availbale analysis
+Here is the list of available analyses
 
 * Cytoplasmic total count
+* Cytoplasmic spread
+* Degree of clustering
+* MTOC Polarity Index
+* Muscle cell
 * Peripheral fraction 
+* Spots density
+* Stability
+* Temporal interactions
 * Volume corrected noise measure (analysis_density)
 * Cytoplasmic spread
-* Stability
-* MTOC Polarity Index
-* mRNA / Protein distribution profile (Correlation profile analysis)
-* Temporal interaction
-* Degree of clustering
- 
- 
-For the following analyses, you have to run the script corresponding to the sub analysis you needed (peripheral_fraction.py, cytoplasmic_spread.py, etc..). 
- * nocodazole 
- * cytod 
- * chx
- * muscle
- 
+
 For more details see section specific analysis:
 
 ### General analysis
 
 DypFish implements several analysis:
 
-
 This section describes how the user must call it from the DypFISH root folder `dypfish/`.
-
 
 ###### Cytoplasmic total count analysis
 The cytoplasmic total count descriptor was calculated as the number of transcripts or protein within the cytoplasm.
 ```
-        python analysis/cytoplasmic_total_count/main.py -i original
+        python3.7 analysis/cytoplasmic_total_count/cytoplasmic_total_count.py
+```
+
+###### Cytoplasmic spread analysis
+Measures how evenly a molecule is spread across the cell
+```
+        python3.7 analysis/cytoplasmic_spread/cytoplasmic_spread.py
+```
+
+###### Degree of clustering analysis 
+The degree of clustering is a unitless measure that can be used to compare clustering between different molecules and conditions.
+```
+        python3.7 analysis/degree_of_clustering/degree_of_clustering.py
+```
+
+###### MTOC Polarity Index 
+Defines a polarity index that measures the enrichment of mRNA or protein signal for a given image acquisition series.
+For the cytoplasmic analysis: 
+
+```
+        python3.7 analysis/mtoc/mtoc_analysis.py
+```
+For the peripheral analysis: 
+
+```
+        python3.7 analysis/mtoc/mtoc_periph_analysis.py
+```
+
+###### Muscle cell analysis 
+Defines densities in muscle cells that measures the enrichment of mRNA or protein signal for a given image acquisition series.
+```
+        python3.7 analysis/muscle/density_analysis.py
 ```
 
 ###### Peripheral fraction analysis 
 Based on the cell masks, we calculated the peripheral fraction of mRNA and proteins at a given percent p of the radial distance.
 this percent p can be defined in config.json as PERIPHERAL_FRACTION_THRESHOLD
 ```
-        python analysis/peripheral_fraction_profile/main.py -i original
+        python3.7 analysis/peripheral_fraction_profile/peripheral_fraction_profile.py
 ```
 
-###### Cytoplasmic spread analysis
-Measures how evenly a molecule is spread across the cell
+###### spots density analysis 
+Based on the cell masks and nucleus mask and mRNA, we compared nucleus/Cell area vs total transcript count betweeen micropatterned cells and standard cultured cells
 ```
-        python analysis/cytoplasmic_spread/main.py -i original
-```
-
-###### Volume corrected noise measure
-In order to measure gene expression noise while accounting for cell volume, we computed the volume corrected noise measure Nm for micropatterned and standardly cultured cells.
-```
-        python analysis/volume_corrected_noise_measure/main.py -i original
+        python3.7 analysis/spots_density/compare_cell_characterictics.py
 ```
 
 ###### Stability analysis 
 Compares the reproducibility of distributions in standard cultured and micropatterned cells
 ```
-        python analysis/stability/main.py -i original
-```
-
-###### MTOC Polarity Index 
-Defines a polarity index that measures the enrichment of mRNA or protein signal for a given image acquisition series.
-This analysis can be run in peripheral mode using the -p arg. PERIPHERAL_FRACTION_THRESHOLD is used to defined the peripheral area.
-```
-        python analysis/MTOC/search_enriched_quad.py -i original
-
-        python analysis/MTOC/plot_figures.py -i original
+        python3.7 analysis/stability/stability_peripheral_fraction.py
 ```
 
 ###### Temporal interaction analysis
-Measures the interdependence between the mRNA and protein dynamics. **This analysis needs the results of the MTOC Polarity Index analysis to be performed.**
-This analysis can be run in peripheral mode using the -p arg. PERIPHERAL_FRACTION_THRESHOLD is used to defined the peripheral area.
-
-For the cytoplasmique analysis: 
+Measures the interdependence between the mRNA and protein dynamics.
 ```
-        python analysis/temporal_interactions/search_TIS.py -i original
-
-        python analysis/temporal_interactions/plot_TIS.py -i original
+        python3.7 analysis/temporal_interactions/temporal_interactions.py
 ```
 
-###### mRNA / Protein distribution profile (Correlation profile analysis) 
-Defines a spatial distribution profile of mRNAs and proteins for images acquired at a given time point
+###### Volume corrected noise measure
+In order to measure gene expression noise while accounting for cell volume, we computed the volume corrected noise measure Nm for micropatterned and standardly cultured cells.
 ```
-        python analysis/correlation_profile/main.py -i original
-```
-
-###### Degree of clustering analysis 
-The degree of clustering is a unitless measure that can be used to compare clustering between different molecules and conditions.
-```
-        python analysis/degree_of_clustering/main.py -i original
+        python3.7 analysis/volume_corrected_noise_measure/volume_corrected.py
 ```
 
-### Specific analysis
-
-
-###### Nocodazole analysis
-Adaptations of the previous methods to the case of nocodazole treated cells.
-```
-        python analysis/nocodazole/cytoplasmic_spread.py -i nocodazole
-        python analysis/nocodazole/cytoplasmic_total_count.py -i nocodazole
-        python analysis/nocodazole/peripheral_fraction.py -i nocodazole
-        python analysis/nocodazole/search_enriched_quad.py -i nocodazole
-        python analysis/nocodazole/compute_TIS_by_quad_df.py -i nocodazole
-        python analysis/nocodazole/compute_TIS_by_periph_quad_df.py -i nocodazole
-        python analysis/nocodazole/compute_TIS_analysis.py -i nocodazole
-        python analysis/nocodazole/compute_TIS_periph_analysis.py -i nocodazole
-        python analysis/nocodazole/plot_figures_MTOC.py -i nocodazole
-```
-###### CytoD analysis
-Adaptations of the previous methods to the case of cytoD treated cells.
-```
-        python analysis/cytod/cytoplasmic_spread.py -i cytod
-        python analysis/cytod/cytoplasmic_total.py -i cytod
-        python analysis/cytod/peripheral_fraction.py -i cytod
-```
-
-###### CHX analysis
-Adaptations of the previous methods to the case of CHX treated cells.
-```
-        python analysis/chx/degree_of_clustering.py -i chx
-        python analysis/chx/peripheral_fraction.py -i chx
-```
-
-###### Muscle analysis
-Adaptations of the previous methods to the case of muscle cells.
-```
-        python analysis/muscle/compute_z_line_distance.py -i muscle
-        python analysis/muscle/quadrat_analysis_graph.py-i muscle
-        python analysis/muscle/quadrat_analysis_heatmap.py-i muscle
-```
 
 ## Outputs:
 
 The output files produced by DypFish will be stored in the corresponding analysis figures and dataframe folders. 
 As an example here are the outputs produced by the cytoplasmic spread analysis, based on the full data from the website, as described in the Data Input section :
 ```
-        analysis/cytoplasmic_spread/figures/cyt_spread_arhgdia.png
-        analysis/cytoplasmic_spread/figures/cyt_spread_beta_actin_.png
-        analysis/cytoplasmic_spread/figures/cyt_spread_gapdh.png
-        analysis/cytoplasmic_spread/figures/cyt_spread_pard3.png
-        analysis/cytoplasmic_spread/figures/cyt_spread_pkp4.png
-        analysis/cytoplasmic_spread/figures/cyt_spread_rab13.png
-        analysis/cytoplasmic_spread/figures/mrna_cytoplamsic_spread.png
-        analysis/cytoplasmic_spread/figures/protein_cytoplamsic_spread.png
+        analysis/cytoplasmic_spread/output/cyt_spread_arhgdia.png
+        analysis/cytoplasmic_spread/output/cyt_spread_beta_actin_.png
+        analysis/cytoplasmic_spread/output/cyt_spread_gapdh.png
+        analysis/cytoplasmic_spread/output/cyt_spread_pard3.png
+        analysis/cytoplasmic_spread/output/cyt_spread_pkp4.png
+        analysis/cytoplasmic_spread/output/cyt_spread_rab13.png
+        analysis/cytoplasmic_spread/output/mrna_cytoplasmic_spread.png
+        analysis/cytoplasmic_spread/output/protein_cytoplasmic_spread.png
 ```
 
 # Getting help
@@ -317,7 +294,7 @@ For any information or help running DypFISH, you can get in touch with:
 
 # LICENSE MIT
 
-    Copyright (c) 2018 
+    Copyright (c) 2020 
     Benjamin Dartigues (1)  (benjamin.dartigues@u-bordeaux.fr)
     Emmanuel Bouilhol (1,2) (emmanuel.bouilhol@u-bordeaux.fr 
     Hayssam Soueidan (1)    (massyah@gmail.com)
