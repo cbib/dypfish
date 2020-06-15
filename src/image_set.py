@@ -13,7 +13,7 @@ import scipy.stats as stats
 from repository import Repository
 from image import ImageWithSpots, ImageWithIntensities, ImageWithMTOC, \
     ImageWithSpotsAndIntensities, ImageWithSpotsAndMTOC, ImageWithSpotsAndIntensitiesAndMTOC, \
-    ImageWithIntensitiesAndMTOC, ImageMultiNucleus, ImageMultiNucleusWithSpots, imageWithSpotsAndZlines
+    ImageWithIntensitiesAndMTOC, ImageMultiNucleus, ImageMultiNucleusWithSpots, imageWithSpotsAndZlines, imageMultiNucleusWithSpotsAndZlines
 from image3d import Image3d, Image3dWithSpots, Image3dWithIntensities, \
     Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC, Image3dWithSpotsAndIntensitiesAndMTOC, Image3dMultiNucleus, Image3dMultiNucleusWithSpots
 
@@ -31,6 +31,7 @@ class ImageSet(object):
         self.images = []
         all_paths = self._repository.get_image_path_list(self.path_list)
         for p in all_paths:
+            has_multi_nucleus_spots_and_zlines = imageMultiNucleusWithSpotsAndZlines.is_a(self._repository, p)
             has_spots_and_zlines = imageWithSpotsAndZlines.is_a(self._repository, p)
             has_multi_nucleus = ImageMultiNucleus.is_a(self._repository, p)
             has_spots_multi_nucleus = ImageMultiNucleusWithSpots.is_a(self._repository, p)
@@ -91,6 +92,8 @@ class ImageSet(object):
                     img = Image3d(self._repository, p)
                 elif is_with_spots_and_intensities_and_MTOC:
                     img = ImageWithSpotsAndIntensitiesAndMTOC(self._repository, p)
+                elif has_multi_nucleus_spots_and_zlines:
+                    img = imageMultiNucleusWithSpotsAndZlines(self._repository, p)
                 elif has_spots_and_zlines:
                     img = imageWithSpotsAndZlines(self._repository, p)
                 elif is_with_spots_and_MTOC:
@@ -339,9 +342,7 @@ class ImageSet(object):
     def compute_volume_corrected_nm(self):
         #image: ImageMultiNucleusWithSpots
         cell_volume= [image.compute_cell_volume() for image in self.images]
-        #cell_volume=[idsc.compute_cell_volume() for image in self.images]
         transcount = [len(image.get_spots()) for image in self.images]
-        #transcount = [len(idsc.get_spots(file_handler, image)) for image in image_list]
         coeffs = np.polyfit(cell_volume, transcount, 1)
         a = coeffs[1]
         b = coeffs[0]
@@ -356,9 +357,7 @@ class ImageSet(object):
     def compute_surface_corrected_nm(self):
         image: ImageMultiNucleusWithSpots
         cell_surface = [image.compute_cell_area() for image in self.images]
-        #cell_surface= [idsc.get_cell_mask(file_handler, image).sum() * math.pow((1 / size_coeff), 2) for image in image_list]
         transcount = [len(image.get_spots()) for image in self.images]
-        #transcount = [len(idsc.get_spots(file_handler, image)) for image in image_list]
         coeffs = np.polyfit(cell_surface, transcount, 1)
         a = coeffs[1]
         b = coeffs[0]
@@ -368,3 +367,30 @@ class ImageSet(object):
         exp_mrnas = (np.mean(transcount) ** 2)
         nm = (variance_mrnas - variance_expected_mrnas) / exp_mrnas
         return nm
+
+    def compute_cell_mask_between_nucleus_centroid(self):
+        image: imageMultiNucleusWithSpotsAndZlines
+        nuc_dist = []
+        nucs_pos = []
+        cell_masks = []
+        nucs_dist = []
+        for im in self.images:
+            cell_mask = im.get_cell_mask()
+            nucleus_centroids = im.get_multiple_nucleus_centroid()
+            nucleus_centroid = np.sort(nucleus_centroids, axis=0)
+            im_mask = []
+            nucs = []
+            nuc_pos = []
+            for nuc_n in range(len(nucleus_centroid) - 1):
+                cell_mask_copy = cell_mask.copy()
+                nuc_pos.append([nucleus_centroid[nuc_n][0], nucleus_centroid[nuc_n + 1][0]])
+                nuc_dist.append(nucleus_centroid[nuc_n + 1][0] - nucleus_centroid[nuc_n][0])
+                nucs.append(nucleus_centroid[nuc_n + 1][0] - nucleus_centroid[nuc_n][0])
+                cell_mask_copy[:, 0:nucleus_centroid[nuc_n][0]] = 0
+                cell_mask_copy[:, nucleus_centroid[nuc_n + 1][0]::] = 0
+                im_mask.append(cell_mask_copy)
+            nucs_dist.append(nucs)
+            cell_masks.append(im_mask)
+            nucs_pos.append(nuc_pos)
+
+        return nuc_dist, nucs_dist, cell_masks, nucs_pos

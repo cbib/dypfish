@@ -545,3 +545,27 @@ def plot_figure(total_mads_arhgdia, total_mads_arhgdia_cultured, figname):
     ax.set_xlim(0, 40)
     plt.savefig(figname)
     plt.close()
+
+def spline_graph(grid_mat, figname, band_n=100):
+    ax1 = plt.subplot()
+    x_mrna = np.arange(0, band_n, 0.5)
+    fact = np.max(np.array(grid_mat)) / 10
+    data = (np.array(grid_mat).flatten() / fact).astype(int) + 1
+    spl = interpolate.UnivariateSpline(np.arange(0, band_n, 1), data)
+    m_y_new = spl(x_mrna)
+    plt.plot(x_mrna, m_y_new)
+    ax1.set_ylim((0, 12))
+    ax1.set_xlim((0, band_n - 1))
+    plt.savefig(figname)
+    plt.close()
+
+def heatmap(grid_mat, figname, band_n=100):
+    ax0 = plt.subplot()
+    ax0.set_yticks([])
+    major_ticks = np.arange(0, int(band_n) + 1, 1)
+    ax0.tick_params(axis='both', which='major', labelsize=5)
+    ax0.set_xticks(major_ticks)
+    plt.imshow(grid_mat, cmap='coolwarm', aspect=band_n / 4)
+    plt.ylim((0, 0.4))
+    plt.savefig(figname)
+    plt.close()

@@ -269,6 +269,9 @@ def get_forward_interactions(mrna_timepoints, protein_timepoints):
     return fwd_interactions
 
 
+
+##### muscle data helpers functions
+
 def get_quantized_grid(q, Qx, Qy):
     tmp_x = np.matrix(np.arange(Qx))
     tmp_y = np.matrix(np.arange(Qy))
@@ -289,8 +292,34 @@ def reduce_z_line_mask(z_lines, spots):
         cpt_z += 1
     return z_lines_idx
 
-
 def compute_minimal_distance(segment_summed):
     for i in range(15):
         if segment_summed[i] != 0:
             return i
+
+def keep_cell_mask_spots(spots, cell_mask):
+    new_spots_list = []
+    for spot in spots:
+        if cell_mask[spot[1], spot[0]] == 1:
+            new_spots_list.append(spot)
+    return new_spots_list
+
+
+def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
+    z_lines_idx = reduce_z_line_mask(z_lines, spots_reduced)
+    spots_reduced = spots_reduced[z_lines_idx[0] <= spots_reduced[:, 2]]
+    spots_reduced = spots_reduced[spots_reduced[:, 2] <= z_lines_idx[len(z_lines_idx) - 1]]
+    spot_surfacic_density = len(spots_reduced) / float(np.sum(cell_mask == 1))
+    cell_width = cell_mask.shape[1] - 240
+    quadrat_edge = cell_width / band_n
+    grid_1d = np.zeros((int(band_n)))
+    for spot in spots_reduced:
+        if spot[0] > 120 and spot[0] < cell_mask.shape[1] - 120:
+            x = int(np.floor((spot[0] - 120) / quadrat_edge))
+            grid_1d[x] += 1
+    grid = [val for val in grid_1d]
+    grid_mat = np.matrix(grid).reshape((1, len(grid)))
+    grid_mat /= quadrat_edge
+    grid_mat /= spot_surfacic_density
+
+    return grid_mat
