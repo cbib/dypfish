@@ -18,7 +18,7 @@ Datasets corresponding to the data analyzed in the manuscript "DypFISH: Dynamic 
 # Installation
 
 ## System Requirements
-DypFISH installation requires an Unix environment with [python 3.7](python 2.7 (http://www.python.org/))
+DypFISH installation requires an Unix environment with [python 3.7](python 3.7 (http://www.python.org/))
 DypFISH was implemented in Python and tested under Linux environment.
 
 In order to run DypFISH your installation should include [pip](https://pypi.org/project/pip/)
