@@ -2,6 +2,7 @@ CHX Dataset corresponding to the data analyzed in the manuscript "DypFISH: Dynam
 
 image list:
 
+```
 Arhgdia mRNA standard cultured cells tp:1h NoStimulationII
 mrna/arhgdia_cultured/1h/NoStimulationII_1
 mrna/arhgdia_cultured/1h/NoStimulationII_10
@@ -109,3 +110,4 @@ mrna/arhgdia_cultured/3h/6
 mrna/arhgdia_cultured/3h/7
 mrna/arhgdia_cultured/3h/8
 mrna/arhgdia_cultured/3h/9
+```

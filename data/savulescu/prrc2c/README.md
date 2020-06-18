@@ -1,7 +1,7 @@
 cytod Dataset corresponding to the data analyzed in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org)
 
 image list paths:
-
+```
 mrna/arhgdia/control/1
 mrna/arhgdia/control/10_1
 mrna/arhgdia/control/11
@@ -62,3 +62,4 @@ mrna/arhgdia/prrc2c_depleted/4
 mrna/arhgdia/prrc2c_depleted/6
 mrna/arhgdia/prrc2c_depleted/7
 mrna/arhgdia/prrc2c_depleted/8
+```
