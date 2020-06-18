@@ -1,0 +1,1 @@
+This is a the graphic result output folder
