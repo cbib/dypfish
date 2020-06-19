@@ -6,7 +6,7 @@ DypFISH : Dynamic Patterned FISH
 DypFISH is a python library designed for the analysis of mRNA and protein distributions in single cell confocal images.
 Using this library it is possible to analyse patterns of clustering of mRNA and proteins, dependencies of mRNA-protein localization on MTOC orientation as well as interdependent dynamics globally and at specific subcellular locations. 
 
-Input to the DypFISH library functions are preprocessed images stored in HDF5 files. Examples of analysis scripts that use our library for different spatial and temporal statistics on mRNA FISH and protein IF data are also provided.
+DypFISH library functions take as input the preprocessed images stored in HDF5 files. Examples of analysis scripts that use our library for different spatial and temporal statistics on mRNA FISH and protein IF data are also provided.
 
 # Provided datasets
 
@@ -84,7 +84,15 @@ If you wish to run the pipeline on your own data, place the HDF5 file in the `dy
         
 ### Configuration files
 
-There are two types of configuration files: `dataset configuration` files and `analysis configuration` files, both in json format. A given `dataset configuration` file  should be located in the same directory as the corresponding HDF5 file, it describes the content of the HDF5 file (molecules, their names, certain fixed image parameters such as height and width etc). An example `example_datasets_config.json` is provided in the data archive on [dypfish.org](http://dypfish.org).
+There are two types of configuration files: `dataset configuration` files and `analysis configuration` files, both in json format. A given `dataset configuration` file refers to the corresponding HDF file by specifying its name, for example `basic.h5`:
+```
+"PRIMARY_FILE_NAME": "basic.h5"
+```
+It should be located in the same directory as the corresponding HDF5 file, and describes its content (molecules, their names, certain fixed image parameters such as height and width etc). It also provides the file name to store derived (secondary) image descriptors computated by various functions of the library in order to speedup the (re)execution of scripts; for example:
+```
+"SECONDARY_FILE_NAME": "secondary.h5"
+```
+An example `example_datasets_config.json` is provided in the data archive on [dypfish.org](http://dypfish.org).
         
 Here is a example of a dataset json config file:
 ```
