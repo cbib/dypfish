@@ -57,6 +57,13 @@ Each HDF5 file contains serie(s) of images to be analysed. Each set of images is
 	----molecule acquisition image number (image\_1, image\_2, 1, 2, etc...)\
 ```
 
+Each image (leafs in the HDF5 file) contains the required basic image descriptors obtained by image preprocessing. These descriptors are the following:
+* `cell_mask`, `nucleus_mask` and `nucleus_centroid` **required**
+* `spots` coordinated for FISH images (mRNA) **required**
+* `IF` for summed intensities for immunofluorescence images (protein) **required**
+* `height_map` and `zero_level` for 3D images
+* `mtoc_position` for the MTOC's coordinates
+
 ![Arhgdia H2](http://image.noelshack.com/fichiers/2018/50/3/1544607676-capture-du-2018-12-12-10-31-06.png)
 
 Examples of HDF5 encoding of image acquisitions can be found in `dypfish/analysis/example_hdf5/`. These files are provided *only* as an example of data formatting. To download data and run the code please download HDF5 files avalaible on the [dypfish.org](http://dypfish.org).
