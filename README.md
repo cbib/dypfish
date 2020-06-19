@@ -92,57 +92,10 @@ It should be located in the same directory as the corresponding HDF5 file, and d
 ```
 "SECONDARY_FILE_NAME": "secondary.h5"
 ```
-An example `example_datasets_config.json` is provided in the data archive on [dypfish.org](http://dypfish.org).
-        
-Here is a example of a dataset json config file:
-```
-{
-    "SIZE_COEFFICIENT" : 9.75,
-    "VOLUME_OFFSET" : 1,
-    "MAX_CELL_RADIUS" : 300,
-    "PIXEL_PER_VOXEL" : 16,
-    "VOXELS_PER_IMAGE" : 512,
-    "STRIPE_NUM" : 3,
-    "IMAGE_WIDTH" : 512,
-    "IMAGE_HEIGHT" : 512,
-    "SLICE_THICKNESS" : 0.3,
-    "PIXELS_IN_SLICE" : "0.3 * 9.75",
-    "VOLUME_COEFFICIENT" : "((1 / SIZE_COEFFICIENT)**2) * 0.3",
-    "MOLECULE_TYPES": ["mrna", "protein"],
-    "MRNA_GENES" : ["arhgdia", "beta_actin", "gapdh", "pard3", "pkp4", "rab13"],
-    "PROTEINS" : ["arhgdia", "beta_actin", "gapdh", "pard3"],
-    "TIMEPOINTS_MRNA" : ["2h", "3h", "4h", "5h"],
-    "TIMEPOINTS_PROTEIN" : ["2h", "3h", "5h", "7h"],
-    "TIMEPOINTS_NUM_MRNA":[2, 3, 4, 5],
-    "TIMEPOINTS_NUM_PROTEIN":[2, 3, 5, 7],
-    "PRIMARY_FILE_NAME":"basic.h5",
-    "SECONDARY_FILE_NAME":"secondary.h5"
-}
+An full example `example_datasets_config.json` is provided on [dypfish.org](http://dypfish.org) and `configuration files` for the datasets used in the publications are located in the same archive as the HDF5 files.
 
-```
+The `analysis configuration` file  should be located located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. An example of an `analysis confguration` file is provided in the `src/tests` directory, `test_config.json`, and covers the needs of unit testing; `srs/analysis` subfolders contain `analysis configuration files` for the corresponding analysis.
 
-The `analysis configuration` file  should be located located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. An example of an `analysis confguration` file is provided in the src/tests directory, `test_config.json`, and covers the needs of unit testing.
-
-Here is a example (`degree_of_clustering analysis` json analysis configuration file):
-```
-{
-  "PNG_IMAGES_MIME_TYPE": "image/png",
-  "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/degree_of_clustering/output",
-  "FIGURE_NAME_FORMAT": "{molecule_type}_degree_of_clustering.png",
-  "MPI_SUB_SAMPLE_SIZE": 100,
-  "PERIPHERAL_FRACTION_THRESHOLD": 30,
-  "NUM_CONTOURS": 100,
-  "RIPLEY_K_SIMULATION_NUMBER": 20,
-  "STRIPE_NUM": 3,
-  "Z_LINE_SPACING": 20,
-  "MIN_SPOT_NUM": 10,
-  "MRNA_GENES" : ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"],
-  "PROTEINS" : ["beta_actin", "arhgdia", "gapdh", "pard3"],
-  "PLOT_COLORS" : ["#0A3950", "#1E95BB", "#A1BA6D", "#F16C1B", "#C02A18", "#E9CB45"],
-  "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/original/config.json"
-}
-
-```
 
 ## Prepping the input data
 
@@ -153,7 +106,7 @@ To run the analysis on your own data, first the images have to be preprocessed a
 
 ## Available analysis
 
-Analysis scripts and corresponding `analysis configuration` files that were used for the DypFISH paper are provided as examples of how the DypFISH library can be used. They are contained in the `src/analysis` directory and are supposed to be run on the data contained in the provided data archive.
+Analysis scripts and corresponding `analysis configuration` files that were used to generate the figures in the DypFISH paper are provided as examples of how the DypFISH library can be used. They are contained in the `src/analysis` directory and are supposed to be run on the data contained in the provided data archive.
 
 # Getting help
 
