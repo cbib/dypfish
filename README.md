@@ -46,7 +46,9 @@ Add the current directory to the Python path:
     
 ## Input data
 
-DypFISH takes preprocessed images in HDF5 format as input. [Click here](https://www.hdfgroup.org/solutions/hdf5/) for further informations on the HDF5 format. 
+DypFISH takes (i) preprocessed images in HDF5 format and (ii) configuration files as input. [Click here](https://www.hdfgroup.org/solutions/hdf5/) for further informations on the HDF5 format. 
+
+### HDF5 files
 
 Each HDF5 file contains serie(s) of images to be analysed. Each set of images is characterized according to the molecule type (mRNA or protein), name of the molecule and possibly additional information such as e.g. timepoints. This information is organized within the HDF5 hierarchy as shown below; the lowest level in the HDF5 file corresponds to individual images.
 
@@ -71,46 +73,12 @@ Examples of HDF5 encoding of image acquisitions can be found in `dypfish/analysi
 In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data_and_conf.zip), place the zip file in the root directory `dypfish/` and unzip it there. This creates the directory `dypfish/data/` and all the  subfolders containing data in HDF5 files and enables running the pipeline. 
 
 If you wish to run the pipeline on your own data, place the HDF5 file in the `dypfish/data/name_of_your_data` directory and modify the source code (see below).
-
-## Data settings
-
-If you wish to run DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
-and the code will be executable as is. 
-
-Here is the content of the data repository :
-
-* data
-    * original
-        * basic.h5
-        * secondary.h5
-        * config.json
-    * nocodazole
-        * basic.h5
-        * secondary.h5
-        * config.json
-    * cytod
-        * basic.h5
-        * secondary.h5
-        * config.json    
-    * chx
-        * basic.h5
-        * secondary.h5
-        * config.json
-    * muscle
-        * basic.h5
-        * secondary.h5
-        * config.json
-    * cultured
-        * basic.h5
-        * secondary.h5
-        * config.json
         
-## Configuration files
-There are two types of config file: Dataset config files and
-Analysis config file. One should be located in the corresponding
-dataset repository and the other is located in the analysis folder respectively.      
+### Configuration files
+
+There are two types of configuration files: `dataset config` files and `analysis config` files, both in json format. A given `dataset config` file  should be located in the same directory as the corresponding HDF5 file, it describes the content of the HDF5 file (molecules, their names, certain fixed image parameters such as height and width etc)
         
-Here is a example of a dataset json config file
+Here is a example of a dataset json config file:
 ```
 {
     "SIZE_COEFFICIENT" : 9.75,
@@ -137,7 +105,7 @@ Here is a example of a dataset json config file
 
 ```
 
-Here is a example of a degree_of_clustering analysis json config file
+The `analysis config` file  should be located located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. Here is a example (`degree_of_clustering analysis` json analysis configuration file):
 ```
 {
   "PNG_IMAGES_MIME_TYPE": "image/png",
@@ -157,6 +125,11 @@ Here is a example of a degree_of_clustering analysis json config file
 }
 
 ```
+
+### Prepping the input data
+
+If you wish to test the DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
+and the try running the analysis. 
 
 To run it on your own data, first the data has to be compiled in the HDF5 file format and second, you need to create the corresponding configuration files called config.json in dataset and analysis folders. 
 
