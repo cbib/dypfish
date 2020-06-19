@@ -12,7 +12,7 @@ Input to the DypFISH library functions are preprocessed images stored in HDF5 fi
 
 Datasets corresponding to the data analyzed in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org)
 
-# Installation
+# Installing DypFISH 
 
 ## System Requirements
 DypFISH installation requires an Unix environment with [python 3.7](python 3.7 (http://www.python.org/))
@@ -20,7 +20,7 @@ DypFISH was implemented in Python 3 and tested under Linux environment.
 
 In order to run DypFISH your installation should include [pip](https://pypi.org/project/pip/)
          
-## Installing DypFISH 
+## Installation 
 
 The full installation process should take less than 15 minutes on a standard computer.
 
@@ -43,6 +43,10 @@ Then install python dependencies :
 Add the current directory to the Python path:
 
 `export PYTHONPATH=${PYTHONPATH}:$(pwd)`
+
+# Using the DypFISH 
+
+DypFISH runs in a command line environment. The runtime is dependent on the hardware, certain analysis can be time consuming.
 
 ## Code organization
 
@@ -139,118 +143,9 @@ and the try running the analysis scripts in the `src/analysis` folder.
 
 To run the analysis on your own data, first the images have to be preprocessed and put in the HDF5 file format and second, you need to create the corresponding configuration files in dataset and analysis folders. 
 
-# Using the DypFISH 
-
-DypFISH runs in a command line environment. The runtime is dependent on the hardware, certain analysis can be time consuming.
-
 ## Available analysis
 
-The package contains one main script by general analysis called main.py that coordinates the execution of the whole analysis.
-Here is the list of available analyses
-
-* Cytoplasmic total count
-* Cytoplasmic spread
-* Degree of clustering
-* MTOC Polarity Index
-* Muscle cell
-* Peripheral fraction 
-* Spots density
-* Stability
-* Temporal interactions
-* Volume corrected noise measure (analysis_density)
-* Cytoplasmic spread
-
-For more details see section specific analysis:
-
-### General analysis
-
-DypFish implements several analysis:
-
-This section describes how the user must call it from the DypFISH root folder `dypfish/`.
-
-###### Cytoplasmic total count analysis
-The cytoplasmic total count descriptor was calculated as the number of transcripts or protein within the cytoplasm.
-```
-        python3.7 analysis/cytoplasmic_total_count/cytoplasmic_total_count.py
-```
-
-###### Cytoplasmic spread analysis
-Measures how evenly a molecule is spread across the cell
-```
-        python3.7 analysis/cytoplasmic_spread/cytoplasmic_spread.py
-```
-
-###### Degree of clustering analysis 
-The degree of clustering is a unitless measure that can be used to compare clustering between different molecules and conditions.
-```
-        python3.7 analysis/degree_of_clustering/degree_of_clustering.py
-```
-
-###### MTOC Polarity Index 
-Defines a polarity index that measures the enrichment of mRNA or protein signal for a given image acquisition series.
-For the cytoplasmic analysis: 
-
-```
-        python3.7 analysis/mtoc/mtoc_analysis.py
-```
-For the peripheral analysis: 
-
-```
-        python3.7 analysis/mtoc/mtoc_periph_analysis.py
-```
-
-###### Muscle cell analysis 
-Defines densities in muscle cells that measures the enrichment of mRNA or protein signal for a given image acquisition series.
-```
-        python3.7 analysis/muscle/density_analysis.py
-```
-
-###### Peripheral fraction analysis 
-Based on the cell masks, we calculated the peripheral fraction of mRNA and proteins at a given percent p of the radial distance.
-this percent p can be defined in config.json as PERIPHERAL_FRACTION_THRESHOLD
-```
-        python3.7 analysis/peripheral_fraction_profile/peripheral_fraction_profile.py
-```
-
-###### spots density analysis 
-Based on the cell masks and nucleus mask and mRNA, we compared nucleus/Cell area vs total transcript count betweeen micropatterned cells and standard cultured cells
-```
-        python3.7 analysis/spots_density/compare_cell_characterictics.py
-```
-
-###### Stability analysis 
-Compares the reproducibility of distributions in standard cultured and micropatterned cells
-```
-        python3.7 analysis/stability/stability_peripheral_fraction.py
-```
-
-###### Temporal interaction analysis
-Measures the interdependence between the mRNA and protein dynamics.
-```
-        python3.7 analysis/temporal_interactions/temporal_interactions.py
-```
-
-###### Volume corrected noise measure
-In order to measure gene expression noise while accounting for cell volume, we computed the volume corrected noise measure Nm for micropatterned and standardly cultured cells.
-```
-        python3.7 analysis/volume_corrected_noise_measure/volume_corrected.py
-```
-
-
-## Outputs:
-
-The output files produced by DypFish will be stored in the corresponding analysis figures and dataframe folders. 
-As an example here are the outputs produced by the cytoplasmic spread analysis, based on the full data from the website, as described in the Data Input section :
-```
-        analysis/cytoplasmic_spread/output/cyt_spread_arhgdia.png
-        analysis/cytoplasmic_spread/output/cyt_spread_beta_actin_.png
-        analysis/cytoplasmic_spread/output/cyt_spread_gapdh.png
-        analysis/cytoplasmic_spread/output/cyt_spread_pard3.png
-        analysis/cytoplasmic_spread/output/cyt_spread_pkp4.png
-        analysis/cytoplasmic_spread/output/cyt_spread_rab13.png
-        analysis/cytoplasmic_spread/output/mrna_cytoplasmic_spread.png
-        analysis/cytoplasmic_spread/output/protein_cytoplasmic_spread.png
-```
+Analysis scripts and corresponding `analysis configuration` files that were used for the DypFISH paper are provided as examples of how the DypFISH library can be used. They are contained in the `src/analysis` directory and are supposed to be run on the data contained in the provided data archive.
 
 # Getting help
 
