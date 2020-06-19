@@ -48,7 +48,7 @@ Add the current directory to the Python path:
 
 DypFISH takes preprocessed images in HDF5 format as input. [Click here](https://www.hdfgroup.org/solutions/hdf5/) for further informations on the HDF5 format. 
 
-Each HDF5 file corresponds to a particular analysis and contains serie(s) of images to be analysed. Each set of images is characterized according to the molecule type (mRNA or protein), name of the molecule and possibly additional information such as e.g. timepoints. 
+Each HDF5 file contains serie(s) of images to be analysed. Each set of images is characterized according to the molecule type (mRNA or protein), name of the molecule and possibly additional information such as e.g. timepoints. This information is organized within the HDF5 hierarchy as shown below; the lowest level in the HDF5 file corresponds to individual images.
 
 ```
 	-molecule_type (mrna, protein, etc.. )\
