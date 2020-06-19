@@ -3,23 +3,20 @@ DypFISH : Dynamic Patterned FISH
 
 # Introduction
 
-A large number of mRNAs exhibit tightly controlled localization patterns specific to particular cell types, which can act as determinants of protein localization patterns through processes such as local translation. Here we describe DypFISH, an approach to investigate the relationship between mRNA and corresponding protein distributions over time by combining micropatterning of cells with Nipkow disk confocal microscopy at high resolution. 
-We introduce a range of analytical techniques for quantitatively interrogating single molecule RNA FISH data in combination with protein immunolabeling. Strikingly, our results show that micropatterning of cells reduces variation in subcellular mRNA and protein distributions, allowing the characterization of their localization and dynamics with high reproducibility.
-The method reveals patterns of clustering, strong dependency of mRNA-protein localization on MTOC orientation and interdependent dynamics globally and at specific subcellular locations. We establish a robust approach that is broadly applicable to a wide range of systems.
+DypFISH is a python library designed for the analysis of mRNA and protein distributions in single cell confocal images.
+Using this library it is possible to analyse patterns of clustering of mRNA and proteins, dependencies of mRNA-protein localization on MTOC orientation as well as interdependent dynamics globally and at specific subcellular locations. 
 
-DypFISH is a python library designed for the analysis of confocal microscopy images.
-Using HDF5 files, users can run spatial and temporal statistics on mRNA FISH and protein IF data.
+Input to the DypFISH library functions are preprocessed images stored in HDF5 files. Examples of analysis scripts that use our library for different spatial and temporal statistics on mRNA FISH and protein IF data are also provided.
 
-# Datasets
+# Provided datasets
 
 Datasets corresponding to the data analyzed in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org)
-
 
 # Installation
 
 ## System Requirements
 DypFISH installation requires an Unix environment with [python 3.7](python 3.7 (http://www.python.org/))
-DypFISH was implemented in Python and tested under Linux environment.
+DypFISH was implemented in Python 3 and tested under Linux environment.
 
 In order to run DypFISH your installation should include [pip](https://pypi.org/project/pip/)
          
@@ -39,7 +36,6 @@ Install pip and system dependicies (debian-like system, else replace apt-get wit
 
 `chmod +x apt-install.sh ; ./apt-install.sh`
 
-
 Then install python dependencies :
 
 `sudo pip install -r requirements.txt`
@@ -48,7 +44,8 @@ Add the current directory to the Python path:
 
 `export PYTHONPATH=${PYTHONPATH}:$(pwd)`
     
-## Data input:
+## Input data
+
 DypFISH takes HDF5 files as input. [Click here](https://www.hdfgroup.org/solutions/hdf5/) for further informations on the HDF5 format.
 
 ```
