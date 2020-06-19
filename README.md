@@ -43,6 +43,12 @@ Then install python dependencies :
 Add the current directory to the Python path:
 
 `export PYTHONPATH=${PYTHONPATH}:$(pwd)`
+
+## Code organization
+
+* `src` directory contains the python library
+* `src/analysis` directory contains the implemented high-level analysis scripts that produced the fugures in the DypFISH paper
+* `src/tests` directory contains unit tests
     
 ## Input data
 
@@ -66,9 +72,7 @@ Each image (leafs in the HDF5 file) contains the required basic image descriptor
 * `height_map` and `zero_level` for 3D images
 * `mtoc_position` for the MTOC's coordinates
 
-![Arhgdia H2](http://image.noelshack.com/fichiers/2018/50/3/1544607676-capture-du-2018-12-12-10-31-06.png)
-
-Examples of HDF5 encoding of image acquisitions can be found in `dypfish/analysis/example_hdf5/`. These files are provided *only* as an example of data formatting. To download data and run the code please download HDF5 files avalaible on the [dypfish.org](http://dypfish.org).
+An example of an HDF5 file can be found in `dypfish/analysis/example_hdf5/`. This file is provided *only* as an example of data formatting and unit testing of the code. It is part of the downloadable data avalaible on the [dypfish.org](http://dypfish.org).
 
 In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data_and_conf.zip), place the zip file in the root directory `dypfish/` and unzip it there. This creates the directory `dypfish/data/` and all the  subfolders containing data in HDF5 files and enables running the pipeline. 
 
@@ -76,7 +80,7 @@ If you wish to run the pipeline on your own data, place the HDF5 file in the `dy
         
 ### Configuration files
 
-There are two types of configuration files: `dataset config` files and `analysis config` files, both in json format. A given `dataset config` file  should be located in the same directory as the corresponding HDF5 file, it describes the content of the HDF5 file (molecules, their names, certain fixed image parameters such as height and width etc)
+There are two types of configuration files: `dataset configuration` files and `analysis configuration` files, both in json format. A given `dataset configuration` file  should be located in the same directory as the corresponding HDF5 file, it describes the content of the HDF5 file (molecules, their names, certain fixed image parameters such as height and width etc). An example `example_datasets_config.json` is provided in the data archive on [dypfish.org](http://dypfish.org).
         
 Here is a example of a dataset json config file:
 ```
@@ -105,7 +109,9 @@ Here is a example of a dataset json config file:
 
 ```
 
-The `analysis config` file  should be located located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. Here is a example (`degree_of_clustering analysis` json analysis configuration file):
+The `analysis configuration` file  should be located located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. An example of an `analysis confguration` file is provided in the src/tests directory, `test_config.json`, and covers the needs of unit testing.
+
+Here is a example (`degree_of_clustering analysis` json analysis configuration file):
 ```
 {
   "PNG_IMAGES_MIME_TYPE": "image/png",
@@ -126,25 +132,16 @@ The `analysis config` file  should be located located in the same folder as the 
 
 ```
 
-### Prepping the input data
+## Prepping the input data
 
 If you wish to test the DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
-and the try running the analysis. 
+and the try running the analysis scripts in the `src/analysis` folder. 
 
-To run it on your own data, first the data has to be compiled in the HDF5 file format and second, you need to create the corresponding configuration files called config.json in dataset and analysis folders. 
+To run the analysis on your own data, first the images have to be preprocessed and put in the HDF5 file format and second, you need to create the corresponding configuration files in dataset and analysis folders. 
 
-Then you have to create a folder in the data repository called "Your_data_label" and put all your h5 files as the corresponding config files
+# Using the DypFISH 
 
-
-
-# Using the Pipeline
-
-DypFISH runs in a command line environment. 
-
-The runtime is dependent on the hardware.
-
-
-Version 2.0 will include automatic parsing of gene names.
+DypFISH runs in a command line environment. The runtime is dependent on the hardware, certain analysis can be time consuming.
 
 ## Available analysis
 
