@@ -10,7 +10,7 @@ DypFISH library functions take as input the preprocessed images stored in HDF5 f
 
 # Provided datasets
 
-Datasets corresponding to the data analyzed in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org)
+Datasets corresponding to the results presented in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org). `data` directory both contains the corresponding `datset configuration` files (see explanation below) as well as plays the role of a place holder for the available data after download. 
 
 # Installing DypFISH 
 
@@ -53,6 +53,7 @@ DypFISH runs in a command line environment. The runtime is dependent on the hard
 * `src` directory contains the python library
 * `src/analysis` directory contains the implemented high-level analysis scripts that produced the fugures in the DypFISH paper
 * `src/tests` directory contains unit tests
+* `data` directory contains `dataset configuration` files for the (i) example of a dataset in `data/example_hdf5` and all the analysis performed for the paper
     
 ## Input data
 
@@ -76,11 +77,11 @@ Each image (leafs in the HDF5 file) contains the required basic image descriptor
 * `height_map` and `zero_level` for 3D images
 * `mtoc_position` for the MTOC's coordinates
 
-An example of an HDF5 file can be found in `dypfish/data/example_hdf5/`. This file is provided *only* as an example of data formatting and unit testing of the code. It is part of the downloadable data avalaible on the [dypfish.org](http://dypfish.org).
+An example of an HDF5 file `basic.h5` is available for download and should be placed in `data/example_hdf5/`. This file is provided *both* as an example of data formatting and for unit testing of the code. It is part of the downloadable data avalaible on the [dypfish.org](http://dypfish.org).
 
-In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data_and_conf.zip), place the zip file in the root directory `dypfish/` and unzip it there. This creates the directory `dypfish/data/` and all the  subfolders containing data in HDF5 files and enables running the pipeline. 
+In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data_and_conf.zip), place the zip file in the root directory `dypfish/` and unzip it there. This populates the directory `dypfish/data/` and all the subfolders with HDF5 files and enables running and testing the pipeline. 
 
-If you wish to run the pipeline on your own data, place the HDF5 file in the `dypfish/data/name_of_your_data` directory and modify the source code (see below).
+If you wish to run the pipeline on your own data, place the HDF5 file in the `dypfish/data/name_of_your_data` directory and modify the analysis scripts to refer to your dataset files.
         
 ### Configuration files
 
@@ -88,14 +89,15 @@ There are two types of configuration files: `dataset configuration` files and `a
 ```
 "PRIMARY_FILE_NAME": "basic.h5"
 ```
-It should be located in the same directory as the corresponding HDF5 file, and describes its content (molecules, their names, certain fixed image parameters such as height and width etc). It also provides the file name to store derived (secondary) image descriptors computated by various functions of the library in order to speedup the (re)execution of scripts; for example:
+It should be located in the same directory as the corresponding HDF5 file, and describes its content (molecules, their names, certain fixed image parameters such as height and width etc). It also provides the file name to store derived (secondary) image descriptors computed by various functions of the library in order to avoid recomputation when running the scripts; for example:
 ```
 "SECONDARY_FILE_NAME": "secondary.h5"
 ```
 An full example `example_datasets_config.json` is provided on [dypfish.org](http://dypfish.org) and `configuration files` for the datasets used in the publications are located in the same archive as the HDF5 files.
 
-The `analysis configuration` file  should be located located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. An example of an `analysis confguration` file is provided in the `src/tests` directory, `test_config.json`, and covers the needs of unit testing; `srs/analysis` subfolders contain `analysis configuration files` for the corresponding analysis.
+The `analysis configuration` file  should be located located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. An example of an `analysis confguration` file is provided in the `src/tests` directory, `test_config.json`, and covers the needs of unit testing; `srs/analysis` subfolders contain `analysis configuration` files for the corresponding analysis.
 
+Thus, an `analysis configuration` file indicates where is located the `dataset configuration` file, which in its turn points to the HDF5 file contianing the preprocessed images and to the HDF5 file that will be created durung the analysis and conain the intermediary results.
 
 ## Prepping the input data
 
