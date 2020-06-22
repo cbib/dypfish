@@ -76,7 +76,7 @@ Each image (leafs in the HDF5 file) contains the required basic image descriptor
 * `height_map` and `zero_level` for 3D images
 * `mtoc_position` for the MTOC's coordinates
 
-An example of an HDF5 file can be found in `dypfish/analysis/example_hdf5/`. This file is provided *only* as an example of data formatting and unit testing of the code. It is part of the downloadable data avalaible on the [dypfish.org](http://dypfish.org).
+An example of an HDF5 file can be found in `dypfish/data/example_hdf5/`. This file is provided *only* as an example of data formatting and unit testing of the code. It is part of the downloadable data avalaible on the [dypfish.org](http://dypfish.org).
 
 In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data_and_conf.zip), place the zip file in the root directory `dypfish/` and unzip it there. This creates the directory `dypfish/data/` and all the  subfolders containing data in HDF5 files and enables running the pipeline. 
 
