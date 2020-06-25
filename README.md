@@ -69,7 +69,7 @@ and the try running the analysis scripts in the `src/analysis` folder.
 
 ## Running available analysis on your data
 
-To run the analysis on your own data, first the images have to be preprocessed and put in the HDF5 file format and second, you need to create the corresponding configuration files in dataset and analysis folders. 
+To run the analysis on your own data, first the images have to be preprocessed and put in the HDF5 file format and second, you need to create the corresponding configuration files in dataset and analysis folders (see below). 
 
 ## Available analysis
 
