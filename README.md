@@ -44,6 +44,14 @@ Add the src directory to the Python path:
 
 Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any script with enviroments variables configured are provided in the `tools` subdirectory.
 
+## Code organization
+
+* `src` directory contains the python library
+* `src/analysis` directory contains the implemented high-level analysis scripts that produced the figures in the DypFISH paper
+* `src/tests` directory contains unit tests
+* `data` directory contains placeholder subdirectories for (i) an example HDF5 dataset  `data/example_hdf5` and (ii) all the datasets analysed for the paper
+* `tools` directory contains venv setup scripts
+
 ## Running unit tests 
 
 * Download the [test dataset](http://dypfish.org/file/zip/example_hdf5.zip), move it to the `example_hdf5` under the `data` folder and unzip it there
@@ -54,23 +62,33 @@ Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any
 
 DypFISH runs in a command line environment. The runtime is dependent on the hardware, certain analysis can be time consuming.
 
-## Code organization
+## Running available analysis on the provided data
 
-* `src` directory contains the python library
-* `src/analysis` directory contains the implemented high-level analysis scripts that produced the figures in the DypFISH paper
-* `src/tests` directory contains unit tests
-* `data` directory contains `dataset configuration` files for the (i) example of a dataset in `data/example_hdf5` and all the analysis performed for the paper
+If you wish to test the DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
+and the try running the analysis scripts in the `src/analysis` folder. 
+
+## Running available analysis on your data
+
+To run the analysis on your own data, first the images have to be preprocessed and put in the HDF5 file format and second, you need to create the corresponding configuration files in dataset and analysis folders. 
+
+## Available analysis
+
+Analysis scripts and corresponding `analysis configuration` files that were used to generate the figures in the DypFISH paper are provided as examples of how the DypFISH library can be used. They are contained in the `src/analysis` directory and are supposed to be run on the data in the provided data archive.
+
+## Your own analysis
+
+You can write your own analysis scripts by placing them in the `analysis` directory and using classes and functions provided in the library (`src`).
     
-## Input data
+## Input data format
 
-DypFISH takes (i) preprocessed images in HDF5 format and (ii) configuration files as input. [Click here](https://www.hdfgroup.org/solutions/hdf5/) for further informations on the HDF5 format. 
+DypFISH takes *(i) preprocessed images in HDF5 format* and *(ii) configuration files* as input. [Click here](https://www.hdfgroup.org/solutions/hdf5/) for further informations on the HDF5 format. 
 
 ### HDF5 files
 
 Each HDF5 file contains serie(s) of images to be analysed. Each set of images is characterized according to the molecule type (mRNA or protein), name of the molecule and possibly additional information such as e.g. timepoints. This information is organized within the HDF5 hierarchy as shown below; the lowest level in the HDF5 file corresponds to individual images.
 
 ```
-	-molecule_type (mrna, protein, etc.. )\
+        -molecule_type (mrna, protein, etc.. )\
 	--molecule name (arghdia, beat-actin, etc.)\
 	---molecule acquisiton time (2h, 3h, 4h, etc..)\
 	----molecule acquisition image number (image\_1, image\_2, 1, 2, etc...)\
@@ -104,17 +122,6 @@ An full example `example_datasets_config.json` is provided on [dypfish.org](http
 The `analysis configuration` file  should be located located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. An example of an `analysis confguration` file is provided in the `src/tests` directory, `test_config.json`, and covers the needs of unit testing; `srs/analysis` subfolders contain `analysis configuration` files for the corresponding analysis.
 
 Thus, an `analysis configuration` file indicates where is located the `dataset configuration` file, which in its turn points to the HDF5 file contianing the preprocessed images and to the HDF5 file that will be created durung the analysis and conain the intermediary results.
-
-## Prepping the input data
-
-If you wish to test the DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
-and the try running the analysis scripts in the `src/analysis` folder. 
-
-To run the analysis on your own data, first the images have to be preprocessed and put in the HDF5 file format and second, you need to create the corresponding configuration files in dataset and analysis folders. 
-
-## Available analysis
-
-Analysis scripts and corresponding `analysis configuration` files that were used to generate the figures in the DypFISH paper are provided as examples of how the DypFISH library can be used. They are contained in the `src/analysis` directory and are supposed to be run on the data contained in the provided data archive.
 
 # Getting help
 
