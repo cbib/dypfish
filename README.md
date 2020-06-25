@@ -10,7 +10,9 @@ DypFISH library functions take as input the preprocessed images stored in HDF5 f
 
 # Provided datasets
 
-Datasets corresponding to the results presented in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org). `data` directory both contains the corresponding `datset configuration` files (see explanation below) as well as plays the role of a place holder for the available data after download. 
+Datasets corresponding to the results presented in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org).
+They should be appropriately placed under the `data` subdirectory, e.g. the `chx` dataset should uncompressed in the `data/savulescu/chx` subfolder.  
+Each subdirectory  in `data` contains a README, configuration files (see explanation below) and will eventually stores all analysis results.
 
 # Installing DypFISH 
 
@@ -36,12 +38,17 @@ Then install python dependencies :
 
 `pip install -r requirements.txt`
 
-Add the current directory to the Python path:
+Add the src directory to the Python path:
 
-`export PYTHONPATH=${PYTHONPATH}:$(pwd)`
+`export PYTHONPATH=${PYTHONPATH}:$(pwd)/src`
 
 Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any script with enviroments variables configured are provided in the `tools` subdirectory.
 
+## Running unit tests 
+
+* Download the [test dataset](http://dypfish.org/file/zip/example_hdf5.zip), decompress it, and move the `example_hdf5` under the `data` folder,
+* Place yoursefl in the root directory, then `python -m unittest`,
+* Expect ~80 unit tests to be run in ~130seconds.   
 
 # Using DypFISH 
 
