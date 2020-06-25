@@ -1,4 +1,4 @@
-## Datasets for Savulescu et al. manuscript
+## Datasets for _Savulescu et al._ manuscript
 
 This directory contains the `dataset configuration` files for data analyzed in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and 
 Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. The HDF files themselves are available on the [accompanying website](http://dypfish.org)
