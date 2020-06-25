@@ -5,12 +5,11 @@ Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. Th
 
 The datasets are the following:
 ```
-  -original\
-  -nocodazole\
-  -cytod\
-  -chx\
-  -prrc2c\
+  -original
+  -nocodazole
+  -cytod
+  -chx
+  -prrc2c
   -muscle
 ```
-
 The content of each dataset is described in the corresponding directory.
