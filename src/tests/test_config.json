@@ -16,11 +16,8 @@
   "SPOTS_MIN": 50,
   "MAX_SPOT_NUM": 2000,
   "MIN_SNR": 0,
-<<<<<<< HEAD
   "MIN_HEIGHT_MAP_AREA": 20000,
-=======
   "MIN_SPOTS_NUM_IN_CYTOPLASM": 10,
->>>>>>> ea14db7a46370edfd0ef5f3ab721e3268535f8fa
   "DATASET_CONFIG_PATH": "{root_dir}/data/example_hdf5/example_datasets_config.json"
 }
 

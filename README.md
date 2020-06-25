@@ -10,14 +10,17 @@ DypFISH library functions take as input the preprocessed images stored in HDF5 f
 
 # Provided datasets
 
-Datasets corresponding to the results presented in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org). `data` directory both contains the corresponding `datset configuration` files (see explanation below) as well as plays the role of a place holder for the available data after download. 
+Datasets corresponding to the results presented in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org).
+They should be appropriately placed under the `data` subdirectory, e.g. the `chx` dataset should uncompressed in the `data/savulescu/chx` subfolder.  
+Each subdirectory  in `data` contains a README, configuration files (see explanation below) and will eventually stores all analysis results.
 
 # Installing DypFISH 
 
 ## System Requirements
-DypFISH installation requires an Unix environment with [python 3.7](http://www.python.org/). It was tested under Linux environment.
+DypFISH installation requires an Unix environment with [python 3.7](http://www.python.org/). 
+It was tested under Linux and MacOS environments.
 
-In order to run DypFISH your installation should include [pip](https://pypi.org/project/pip/)
+In order to run DypFISH your installation should include [pip](https://pypi.org/project/pip/).
          
 ## Installation 
 
@@ -31,26 +34,30 @@ Go to the DypFISH root folder
 
 `cd dypfish/`
 
-Install pip and system dependicies (debian-like system, else replace apt-get with appropriate package manager):
-
-`chmod +x apt-install.sh ; ./apt-install.sh`
-
 Then install python dependencies :
 
-`sudo pip install -r requirements.txt`
+`pip install -r requirements.txt`
 
-Add the current directory to the Python path:
+Add the src directory to the Python path:
 
-`export PYTHONPATH=${PYTHONPATH}:$(pwd)`
+`export PYTHONPATH=${PYTHONPATH}:$(pwd)/src`
 
-# Using the DypFISH 
+Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any script with enviroments variables configured are provided in the `tools` subdirectory.
+
+## Running unit tests 
+
+* Download the [test dataset](http://dypfish.org/file/zip/example_hdf5.zip), decompress it, and move the `example_hdf5` under the `data` folder,
+* Place yoursefl in the root directory, then `python -m unittest`,
+* Expect ~80 unit tests to be run in ~130seconds.   
+
+# Using DypFISH 
 
 DypFISH runs in a command line environment. The runtime is dependent on the hardware, certain analysis can be time consuming.
 
 ## Code organization
 
 * `src` directory contains the python library
-* `src/analysis` directory contains the implemented high-level analysis scripts that produced the fugures in the DypFISH paper
+* `src/analysis` directory contains the implemented high-level analysis scripts that produced the figures in the DypFISH paper
 * `src/tests` directory contains unit tests
 * `data` directory contains `dataset configuration` files for the (i) example of a dataset in `data/example_hdf5` and all the analysis performed for the paper
     
