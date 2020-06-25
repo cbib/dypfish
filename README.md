@@ -18,7 +18,7 @@ Each subdirectory  in `data` contains a README, configuration files (see explana
 
 ## System Requirements
 DypFISH installation requires an Unix environment with [python 3.7](http://www.python.org/). 
-DypFISH was implemented in Python 3 and tested under Linux environment.
+It was tested under Linux and MacOS environments.
 
 In order to run DypFISH your installation should include [pip](https://pypi.org/project/pip/).
          
