@@ -46,8 +46,8 @@ Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any
 
 ## Running unit tests 
 
-* Download the [test dataset](http://dypfish.org/file/zip/example_hdf5.zip), decompress it, and move the `example_hdf5` under the `data` folder,
-* Place yoursefl in the root directory, then `python -m unittest`,
+* Download the [test dataset](http://dypfish.org/file/zip/example_hdf5.zip), move it to the `example_hdf5` under the `data` folder and unzip it there
+* Place yoursefl in the root directory, then execute `python -m unittest`
 * Expect ~80 unit tests to be run in ~130seconds.   
 
 # Using DypFISH 
