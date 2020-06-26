@@ -124,17 +124,13 @@ def plot_protein_histogram_peripheral_fraction():
     logger.info("Generated image at {}", tgt_fp)
 
 
-
 # Figure S2B : mRNA peripheral fraction at 30% for beta-actin, arhgdia, gapdh, pard3, pkp4, rab13
-
 # to obtain 10% plots, change the config_original file accordingly: PERIPHERAL_FRACTION_THRESHOLD = 10
 logger.info("Peripheral fraction histogram for mRNA the original data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,"src/analysis/peripheral_fraction_profile/config_original.json"))
 plot_mrna_histogram_peripheral_fraction()
 
-
-# Figure 2B : Comparison of the enrichment of 5 mRNAs with respect to Gapdh mRNA in a peripheral cellular
-
+# Figure 2B : Comparison of the enrichment of 5 mRNAs with respect to Gapdh mRNA in a peripheral cellular-
 # region whose width varies from 0-100% of the radial distance from the plasma membrane to the nucleus.
 logger.info("Peripheral fraction profile for the mRNA original data")
 plot_mrna_peripheral_fraction_profiles()
@@ -146,8 +142,6 @@ constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src
 plot_protein_histogram_peripheral_fraction()
 
 # Figure S2C : mrna treated as intensity data peripheral fraction at 30% for CHX arhgdia and pard3
-
-# Figure S2C (TODO) peripheral fraction CHX -> mrna barplot 10 and 30%
 # to obtain 10% plots, change the config_original file accordingly: PERIPHERAL_FRACTION_THRESHOLD = 10
 logger.info("Peripheral fraction for the CHX data")
 plot_mrna_intensity_histogram_peripheral_fraction()
@@ -158,15 +152,12 @@ constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,"src/
 plot_mrna_histogram_peripheral_fraction_2D()
 plot_protein_histogram_peripheral_fraction()
 
-
 # Figure 5C bottom panel: 2D data : peripheral fraction nocodazole arhgdia, pard3 at 30% -> barplot mrna and protein
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,"src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json"))
 plot_mrna_histogram_peripheral_fraction_2D()
 plot_protein_histogram_peripheral_fraction()
 
-
 # Figure S5C : mRNA peripheral fraction at 30% for arhgdia, cytod
-# (TODO) Figure Figure S5C : arhgdia, cytod -> mrna and protein
 # to obtain 10% plots, change the config_original file accordingly: PERIPHERAL_FRACTION_THRESHOLD = 10
 logger.info("Peripheral fraction for the cytod data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,"src/analysis/peripheral_fraction_profile/config_cytod.json"))
