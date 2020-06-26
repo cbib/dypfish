@@ -1,6 +1,6 @@
 ## Data
 
-This directory contains placeholder subdirectories for (i) an example HDF5 dataset `data/example_hdf5` and (ii) all the datasets analysed in the paper.
+This directory contains placeholder subdirectories for (i) an example HDF5 dataset `data/example_hdf5` and (ii) all the datasets analysed in the paper `data/savulescu`.
 
 ### example_hdf5
 This folder is **mandatory to install and run unit tests**.
