@@ -9,6 +9,7 @@ from loguru import logger
 
 import constants
 import plot
+from plot import compute_heatmap
 import helpers
 import numpy as np
 from repository import H5RepositoryWithCheckpoint
@@ -17,36 +18,6 @@ from image_set import ImageSet
 from path import global_root_dir
 import itertools
 import matplotlib.pyplot as plt
-from scipy import stats
-
-
-
-def pearsoncorr(vec1, vec2):
-    mu1 = np.mean(vec1)
-    mu2 = np.mean(vec2)
-    vec1b = vec1 - mu1
-    vec2b = vec2 - mu2
-    val = np.mean(vec1b * vec2b) / (np.std(vec1) * np.std(vec2))
-    print(val)
-    return val
-
-def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
-    S1 = helpers.get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
-    interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
-    for i in range(len(timepoint_num_mrna)):
-        for j in range(len(timepoint_num_protein)):
-            #interactions[i, j] = pearsoncorr(list(mrna_data[i]), list(protein_data[j]))
-            interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
-    (p, stat, ranking) = helpers.permutations_test(interactions, S1, size=len(timepoint_num_mrna))
-    if len(timepoint_num_mrna)==4:
-        #TODO if matrix 4 * 4
-        tis = (100 - stat) / 64.0
-    else:
-        # TODO if matrix 2 * 2
-        tis = (12 - stat) / 3.0
-
-    return tis, p, ranking
-
 
 
 def compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num = 4):
@@ -80,27 +51,7 @@ def compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadra
     return mrna_tis_dict
 
 
-def compute_heatmap(ranking, gene, size=4, xtickslabel=['2h', '3h', '5h', '7h'], ytickslabel = ['2h', '3h', '4h', '5h']):
-    im = np.flipud(np.kron(ranking, np.ones((10, 10))))
-    plt.imshow(im, extent=[0, size, 0, size], cmap='GnBu', interpolation='nearest')
-    ax = plt.axes()
-    ax.set_ylabel("mRNA  - Time (hrs)")
-    ax.set_xlabel("Protein  - Time (hrs)")
-    myxticklabels = xtickslabel
-    ax.xaxis.set(ticks=np.arange(0.5, size + 0.5, 1), ticklabels=myxticklabels)
-    myyticklabels = ytickslabel
-    ax.yaxis.set(ticks=np.arange(0.5, size + 0.5, 1), ticklabels=myyticklabels)
-    ax.set_title(gene)
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
-    plt.savefig(tgt_fp)
-    plt.close()
-
-
 # Figure 5C et 5D Analysis TIS for original data
-
-
 logger.info("Temporal interaction score for the mRNA original data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_original.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
@@ -108,21 +59,11 @@ primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FIL
 secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
 analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
 
-
 target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), "original_mrna_dataframe.csv")
-
-#mrna_df=pd.DataFrame(columns=['Gene'])
 mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-#mrna_df = pd.concat([mrna_df, pd.DataFrame(mrna_tis_dict)])
-#mrna_df.to_csv(target_df_fp)
-#mrna_df = pd.read_csv(target_df_fp, index_col=None)
 
 target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), "original_protein_dataframe.csv")
-#prot_df=pd.DataFrame(columns=['Gene'])
 prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-#prot_df = pd.concat([prot_df, pd.DataFrame(prot_tis_dict)])
-#prot_df.to_csv(target_df_fp)
-#prot_df = pd.read_csv(target_df_fp, index_col=None)
 
 
 tiss=[]
@@ -131,8 +72,6 @@ for gene in constants.analysis_config['PROTEINS']:
     mrna_list= mrna_tis_dict[gene]
     prot_list = prot_tis_dict[gene]
     print("gene:", gene)
-    #mrna_list = mrna_df['Gene'].values
-    #prot_list = prot_df['Gene'].values
     (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list, constants.dataset_config['TIMEPOINTS_NUM_MRNA'], constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
     tiss.append(tis)
     p_vals.append(p)
@@ -143,11 +82,8 @@ tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(roo
 plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
 
 
-
-# Figure 6E Analysis TIS for nocodazole arhgdia et pard3 data
-
-
-logger.info("Temporal interaction score for the mRNA nocodazole data")
+# Figure 6E Analysis TIS for nocodazole arhgdia data
+logger.info("Temporal interaction score for the mRNA nocodazole arhgdia data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_nocodazole_arhgdia.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
 primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
@@ -177,7 +113,7 @@ tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
 plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
 
-
+# Figure 6E Analysis TIS for nocodazole pard3 data
 logger.info("Temporal interaction score for the mRNA pard3 nocodazole data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_nocodazole_pard3.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent

@@ -13,6 +13,7 @@ from scipy.stats import *
 import pandas as pd
 import itertools
 import constants
+from scipy import stats
 from path import global_root_dir
 from repository import H5RepositoryWithCheckpoint
 from mpi_calculator import DensityStats
@@ -323,3 +324,20 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
     grid_mat /= spot_surfacic_density
 
     return grid_mat
+
+
+def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
+    S1 = helpers.get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
+    interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
+    for i in range(len(timepoint_num_mrna)):
+        for j in range(len(timepoint_num_protein)):
+            interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
+    (p, stat, ranking) = helpers.permutations_test(interactions, S1, size=len(timepoint_num_mrna))
+    if len(timepoint_num_mrna)==4:
+        #TODO if matrix 4 * 4
+        tis = (100 - stat) / 64.0
+    else:
+        # TODO if matrix 2 * 2
+        tis = (12 - stat) / 3.0
+
+    return tis, p, ranking

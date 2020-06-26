@@ -569,3 +569,21 @@ def heatmap(grid_mat, figname, band_n=100):
     plt.ylim((0, 0.4))
     plt.savefig(figname)
     plt.close()
+
+
+def compute_heatmap(ranking, gene, size=4, xtickslabel=['2h', '3h', '5h', '7h'], ytickslabel = ['2h', '3h', '4h', '5h']):
+    im = np.flipud(np.kron(ranking, np.ones((10, 10))))
+    plt.imshow(im, extent=[0, size, 0, size], cmap='GnBu', interpolation='nearest')
+    ax = plt.axes()
+    ax.set_ylabel("mRNA  - Time (hrs)")
+    ax.set_xlabel("Protein  - Time (hrs)")
+    myxticklabels = xtickslabel
+    ax.xaxis.set(ticks=np.arange(0.5, size + 0.5, 1), ticklabels=myxticklabels)
+    myyticklabels = ytickslabel
+    ax.yaxis.set(ticks=np.arange(0.5, size + 0.5, 1), ticklabels=myyticklabels)
+    ax.set_title(gene)
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+    plt.savefig(tgt_fp)
+    plt.close()
