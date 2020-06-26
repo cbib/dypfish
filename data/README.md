@@ -8,4 +8,4 @@ Find more information on the readme under data/example_hdf5/
 
 ### savulescu
 This folder contains subdirectories necessary to run the analysis from the paper.
-All the data are available on http://dypfish.org/ or from the download scripts under data/savulescu/
+All the data are available on http://dypfish.org/
