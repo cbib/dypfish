@@ -36,8 +36,6 @@ primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FIL
 secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
 analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
 
-# @####################
-
 imageset = ImageSet(analysis_repo, ["mrna/arhgdia/3h/"], force2D=True)
 spots_peripheral_distances = imageset.compute_spots_peripheral_distance()
 
