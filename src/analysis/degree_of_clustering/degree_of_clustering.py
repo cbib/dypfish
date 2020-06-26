@@ -37,14 +37,8 @@ def process_data(gene, molecule_type, timepoints):
 
 
 
+# Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5)
 
-
-# ################################### ################################## ################################## #################################
-# ################################### ################################## ################################## #################################
-# ###                                 Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5)
-# ################################### ################################## ################################## #################################
-# ################################### ################################## ################################## #################################
-#
 logger.info("Degree of clustering for the original data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/degree_of_clustering/config_original.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
@@ -72,12 +66,8 @@ plot.bar_profile_median(gene2median_mrna_degree_of_clustering.values(), gene2med
 logger.info("Generated image at {}", tgt_fp)
 
 
-# ################################### ################################## ################################## #################################
-# ################################### ################################## ################################## #################################
-# ###                                 Figure 2E right panel: plots the log protein degree of clustering normalized by log(0.01)
-# ################################### ################################## ################################## #################################
-# ################################### ################################## ################################## #################################
-#
+# Figure 2E right panel: plots the log protein degree of clustering normalized by log(0.01)
+
 logger.info("Degree of clustering for the original protein data")
 base = math.log(0.01)
 gene2median_mrna_degree_of_clustering = {}
@@ -99,12 +89,8 @@ plot.bar_profile_median(gene2median_mrna_degree_of_clustering.values(), gene2med
 logger.info("Generated image at {}", tgt_fp)
 
 
-# ################################### ################################## ################################## #################################
-# ################################### ################################## ################################## #################################
-# ###                                 Figure 2F  : Dynamic profile of degree of clustering for original data
-# ################################### ################################## ################################## #################################
-# ################################### ################################## ################################## #################################
-#
+# Figure 2F  : Dynamic profile of degree of clustering for original data
+
 plot_colors = constants.analysis_config['PLOT_COLORS']
 for i, gene in enumerate(constants.analysis_config['MRNA_GENES']):
     mrna_data=process_data(gene, "mrna", constants.dataset_config['TIMEPOINTS_MRNA'])
@@ -117,7 +103,7 @@ for i, gene in enumerate(constants.analysis_config['MRNA_GENES']):
     plot.dynamic_profiles(mrna_data, protein_data, gene, 'Time(hrs)', 'Degree of clustering(*)',tgt_fp, plot_colors[i])
 
 
-####Figure 2G bottom panel : plots the log mRNA degree of clustering normalized by log(0.5)
+# Figure 2G bottom panel : plots the log mRNA degree of clustering normalized by log(0.5)
 
 logger.info("Degree of clustering for the chx data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/degree_of_clustering/config_chx.json"))
@@ -148,7 +134,7 @@ plot.bar_profile_median(gene2median_mrna_degree_of_clustering.values(), gene2med
 logger.info("Generated image at {}", tgt_fp)
 
 
-### Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5)
+# Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5)
 
 logger.info("Degree of clustering for the prcc2c data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/degree_of_clustering/config_prrc2c.json"))
@@ -178,11 +164,7 @@ logger.info("Generated image at {}", tgt_fp)
 
 
 
-################################### ################################## ################################## #################################
-################################### ################################## ################################## #################################
-###                                 Figure XXXX right panel: plots the log protein degree of clustering normalized by log(0.01)
-################################### ################################## ################################## #################################
-################################### ################################## ################################## #################################
+# Figure XXXX right panel: plots the log protein degree of clustering normalized by log(0.01)
 
 logger.info("Degree of clustering for the prcc2c protein data")
 base = math.log(0.01)

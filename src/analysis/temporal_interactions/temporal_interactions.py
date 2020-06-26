@@ -98,11 +98,7 @@ def compute_heatmap(ranking, gene, size=4, xtickslabel=['2h', '3h', '5h', '7h'],
     plt.close()
 
 
-# # # ################################## ################################## ################################## #################################
-# # # ################################## ################################## ################################## #################################
-# # # # #                               Figure 5C et 5D Analysis TIS for original data
-# # # ################################## ################################## ################################## #################################
-# # # ################################## ################################## ################################## #################################
+# Figure 5C et 5D Analysis TIS for original data
 
 
 logger.info("Temporal interaction score for the mRNA original data")
@@ -148,102 +144,70 @@ plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
 
 
 
-# # # ################################## ################################## ################################## #################################
-# # # ################################## ################################## ################################## #################################
-# # # # #                               Figure 6E Analysis TIS for nocodazole arhgdia et pard3 data
-# # # ################################## ################################## ################################## #################################
-# # # ################################## ################################## ################################## #################################
+# Figure 6E Analysis TIS for nocodazole arhgdia et pard3 data
 
 
-# logger.info("Temporal interaction score for the mRNA nocodazole data")
-# constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_nocodazole_arhgdia.json"))
-# dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
-# primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
-# secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
-# analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
-#
-# logger.info("Analysis Temporal interaction score for nocodazole arhgdia FISH data")
-# target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-#                             "arhdgia_nocodazole_mrna_dataframe.csv")
-# #mrna_df=pd.DataFrame(columns=['Gene'])
-# mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-# #mrna_df = pd.concat([mrna_df, pd.DataFrame(mrna_tis_dict)])
-# #mrna_df.to_csv(target_df_fp)
-#
-# #mrna_df = pd.read_csv(target_df_fp, index_col=None)
-#
-# logger.info("Analysis MTOC enrichment for the nocodazole arhgdia IF data")
-# target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-#                             "arhdgia_nocodazole_protein_dataframe.csv")
-#
-# #prot_df=pd.DataFrame(columns=['Gene'])
-# prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-# #prot_df = pd.concat([prot_df, pd.DataFrame(prot_tis_dict)])
-# #prot_df.to_csv(target_df_fp)
-#
-# #prot_df = pd.read_csv(target_df_fp, index_col=None)
-#
-# tiss=[]
-# p_vals=[]
-# for gene in constants.analysis_config['PROTEINS']:
-#     mrna_list= mrna_tis_dict[gene]
-#     prot_list = prot_tis_dict[gene]
-#     #mrna_list = mrna_df['Gene'].values
-#     #prot_list = prot_df['Gene'].values
-#     (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list, constants.dataset_config['TIMEPOINTS_NUM_MRNA'], constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
-#     tiss.append(tis)
-#     p_vals.append(p)
-#     compute_heatmap(ranking, gene)
-#
-# tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
-# tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
-# plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
+logger.info("Temporal interaction score for the mRNA nocodazole data")
+constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_nocodazole_arhgdia.json"))
+dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
+primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
+secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
+analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
+
+logger.info("Analysis Temporal interaction score for nocodazole arhgdia FISH data")
+target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                            "arhdgia_nocodazole_mrna_dataframe.csv")
+mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
+logger.info("Analysis MTOC enrichment for the nocodazole arhgdia IF data")
+target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                            "arhdgia_nocodazole_protein_dataframe.csv")
+
+prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
+tiss=[]
+p_vals=[]
+for gene in constants.analysis_config['PROTEINS']:
+    mrna_list= mrna_tis_dict[gene]
+    prot_list = prot_tis_dict[gene]
+    (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list, constants.dataset_config['TIMEPOINTS_NUM_MRNA'], constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
+    tiss.append(tis)
+    p_vals.append(p)
+    compute_heatmap(ranking, gene)
+
+tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
+tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
+plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
 
 
+logger.info("Temporal interaction score for the mRNA pard3 nocodazole data")
+constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_nocodazole_pard3.json"))
+dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
+primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
+secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
+analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
+
+logger.info("Analysis Temporal interaction score for nocodazole pard3 FISH data")
+target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                            "pard3_nocodazole_mrna_dataframe.csv")
+mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
 
 
+logger.info("Analysis MTOC enrichment for the nocodazole pard3 IF data")
+target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                            "pard3_nocodazole_protein_dataframe.csv")
 
-# logger.info("Temporal interaction score for the mRNA pard3 nocodazole data")
-# constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_nocodazole_pard3.json"))
-# dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
-# primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
-# secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
-# analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
-#
-# logger.info("Analysis Temporal interaction score for nocodazole pard3 FISH data")
-# target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-#                             "pard3_nocodazole_mrna_dataframe.csv")
-# #mrna_df=pd.DataFrame(columns=['Gene'])
-# mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-# #mrna_df = pd.concat([mrna_df, pd.DataFrame(mrna_tis_dict)])
-# #mrna_df.to_csv(target_df_fp)
-#
-# #mrna_df = pd.read_csv(target_df_fp, index_col=None)
-#
-# logger.info("Analysis MTOC enrichment for the nocodazole pard3 IF data")
-# target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-#                             "pard3_nocodazole_protein_dataframe.csv")
-#
-# #prot_df=pd.DataFrame(columns=['Gene'])
-# prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-# #prot_df = pd.concat([prot_df, pd.DataFrame(prot_tis_dict)])
-# #prot_df.to_csv(target_df_fp)
-#
-# #prot_df = pd.read_csv(target_df_fp, index_col=None)
-#
-# tiss=[]
-# p_vals=[]
-# for gene in constants.analysis_config['PROTEINS']:
-#     mrna_list= mrna_tis_dict[gene]
-#     prot_list = prot_tis_dict[gene]
-#     #mrna_list = mrna_df['Gene'].values
-#     #prot_list = prot_df['Gene'].values
-#     (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list, constants.dataset_config['TIMEPOINTS_NUM_MRNA'], constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
-#     tiss.append(tis)
-#     p_vals.append(p)
-#     compute_heatmap(ranking, gene, size=2, xtickslabel=['3h','5h'], ytickslabel=['3h','5h'])
-#
-# tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
-# tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
-# plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
+prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
+
+tiss=[]
+p_vals=[]
+for gene in constants.analysis_config['PROTEINS']:
+    mrna_list= mrna_tis_dict[gene]
+    prot_list = prot_tis_dict[gene]
+    (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list, constants.dataset_config['TIMEPOINTS_NUM_MRNA'], constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
+    tiss.append(tis)
+    p_vals.append(p)
+    compute_heatmap(ranking, gene, size=2, xtickslabel=['3h','5h'], ytickslabel=['3h','5h'])
+
+tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
+tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
+plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
 
