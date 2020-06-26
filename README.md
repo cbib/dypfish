@@ -28,6 +28,7 @@ The full installation process should take less than 15 minutes on a standard com
 
 Clone the repository from [github](https://github.com/cbib/DypFISH)
 
+
 `git clone https://github.com/cbib/dypfish.git`
 
 Go to the DypFISH root folder
