@@ -8,27 +8,30 @@ import constants
 import plot
 import numpy as np
 import math
+from helpers import open_repo
 
 from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
 
-def compute_degree_of_clustering(genes_list, base, molecule_type):
 
-    gene2median_mrna_degree_of_clustering = {}
-    gene2error_mrna_degree_of_clustering = {}
+
+def compute_degree_of_clustering(genes_list, base, repo, molecule_type):
+    gene2median_degree_of_clustering = {}
+    gene2error_degree_of_clustering = {}
     for gene in genes_list:
-        image_set = ImageSet(analysis_repo, ['%s/%s/' % molecule_type, gene])
+        print(gene)
+        image_set = ImageSet(repo, ['{0}/{1}/'.format(molecule_type, gene)])
         # degree_of_clustering = np.array(image_set.compute_mtoc_dependent_degree_of_clustering())
         degree_of_clustering = np.array(image_set.compute_degree_of_clustering())
 
         median_degree_of_clustering = np.median(degree_of_clustering)
-        gene2median_mrna_degree_of_clustering[gene] = math.log(median_degree_of_clustering) - base
+        gene2median_degree_of_clustering[gene] = math.log(median_degree_of_clustering) - base
         err = np.median(np.abs(median_degree_of_clustering - degree_of_clustering))
-        gene2error_mrna_degree_of_clustering[gene] = math.log(median_degree_of_clustering + err) - math.log(
+        gene2error_degree_of_clustering[gene] = math.log(median_degree_of_clustering + err) - math.log(
             median_degree_of_clustering) - base
-    return gene2median_mrna_degree_of_clustering, gene2error_mrna_degree_of_clustering
+    return gene2median_degree_of_clustering, gene2error_degree_of_clustering
 
 
 ''' 
@@ -51,11 +54,14 @@ if __name__ == '__main__':
         conf_full_path = pathlib.Path(global_root_dir, conf[0])
         constants.init_config(analysis_config_js_path=conf_full_path)
         repo = open_repo()
+
         ## mRNA
         genes_list = constants.dataset_config['MRNA_GENES']
         mrna_time_points = constants.dataset_config['TIMEPOINTS_MRNA']
         base = math.log(0.5)
-        gene2median_degree_of_clustering, gene2error_degree_of_clustering = compute_degree_of_clustering(genes_list, base, molecule_type="mrna")
+        gene2median_degree_of_clustering, gene2error_degree_of_clustering = compute_degree_of_clustering(genes_list,
+                                                                                                         base, repo,
+                                                                                                         molecule_type="mrna")
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
@@ -64,13 +70,13 @@ if __name__ == '__main__':
                                 gene2error_degree_of_clustering.values(), figname=tgt_fp)
         logger.info("Generated image at {}", tgt_fp)
 
-        ## proteins
+        ## Proteins
         protein_time_points = constants.dataset_config['TIMEPOINTS_PROTEIN']
         protein_list = constants.dataset_config['PROTEINS']
         base = math.log(0.01)
 
-        gene2median_degree_of_clustering, gene2error_degree_of_clustering = compute_degree_of_clustering(genes_list,
-                                                                                                         base,
+        gene2median_degree_of_clustering, gene2error_degree_of_clustering = compute_degree_of_clustering(protein_list,
+                                                                                                         base, repo,
                                                                                                          molecule_type="protein")
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="protein")
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
@@ -79,5 +85,4 @@ if __name__ == '__main__':
                                 gene2median_degree_of_clustering.keys(),
                                 gene2error_degree_of_clustering.values(), figname=tgt_fp)
         logger.info("Generated image at {}", tgt_fp)
-
 
