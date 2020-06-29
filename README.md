@@ -26,6 +26,16 @@ Download paper data (if you want to reproduce the paper's figures) :
 ```sh
 sh download_data_paper.sh
 ```
+
+USAGE :
+
+At Dypish's root : 
+
+```sh
+export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
+python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py
+```
+
 -----------------------------------------------------------------------------------------------------
 
 
@@ -77,6 +87,7 @@ Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any
 # Using DypFISH 
 
 DypFISH runs in a command line environment. The runtime is dependent on the hardware, certain analysis can be time consuming.
+
 
 ## Running available analysis on the provided data
 
