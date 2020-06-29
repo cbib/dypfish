@@ -12,6 +12,7 @@
   "RIPLEY_K_SIMULATION_NUMBER": 20,
   "STRIPE_NUM": 3,
   "Z_LINE_SPACING": 20,
+  "MIN_SPOT_NUM": 10,
   "MIN_HEIGHT_MAP_AREA": 20000,
   "MRNA_GENES" : ["arhgdia", "beta_actin", "gapdh", "pard3", "pkp4", "rab13"],
   "PROTEINS" : ["arhgdia", "beta_actin", "gapdh", "pard3"],
