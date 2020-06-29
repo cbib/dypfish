@@ -156,6 +156,48 @@ def compute_h_star(h: np.ndarray, synth5: List[int], synth50: List[int], synth95
     return h_star
 
 
+def compute_statistics_random_h_star_2d(h_sim: np.ndarray, max_cell_radius=None, simulation_number=None) -> (
+        List[int], List[int], List[int]):
+    """
+    Build related statistics derived from Ripley's K function, normalize K
+    """
+    simulation_number = simulation_number or constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]
+    max_cell_radius = max_cell_radius or constants.analysis_config["MAX_CELL_RADIUS"]
+
+    h_sim = np.sqrt((h_sim / math.pi)) - matlib.repmat(np.arange(1, max_cell_radius + 1), simulation_number, 1)
+    h_sim_sorted = np.sort(h_sim)
+    # TODO this line below was in VO
+    h_sim_sorted = np.sort(h_sim_sorted[:, :], axis=0)
+    # TODO this line below was in V1
+    # h_sim_sorted = np.sort(h_sim_sorted[:, ::-1], axis=0)
+    synth95 = h_sim_sorted[int(np.floor(
+        0.95 * simulation_number))]  # TODO : difference with V0 : floor since if the numbers are high we get simulation_sumber here
+    synth50 = h_sim_sorted[int(np.floor(0.5 * simulation_number))]
+    synth5 = h_sim_sorted[int(np.floor(0.05 * simulation_number))]
+
+    return synth5, synth50, synth95
+
+
+def compute_h_star_2d(h: np.ndarray, synth5: List[int], synth50: List[int], synth95: List[int],
+                   max_cell_radius=None) -> np.ndarray:
+    """
+    Compute delta between .95 percentile and .5 percentile; between .5 percentile and .05 percentile
+    Fill the h_star array accordingly
+    """
+    max_cell_radius = max_cell_radius or constants.analysis_config["MAX_CELL_RADIUS"]
+    #delta1 = synth95 - synth50
+    #delta2 = synth50 - synth5
+    idx_equal_median = np.where(h == synth50)[0]
+    h_star = np.zeros(max_cell_radius)
+    h_star[idx_equal_median] = 0
+    idx_greater_median = np.where(h > synth50)[0]
+    h_star[idx_greater_median] = (h[idx_greater_median] - synth50[idx_greater_median])
+    idx_less_median = np.where(h < synth50)[0]
+    h_star[idx_less_median] = -(synth50[idx_less_median] - h[idx_less_median])
+    h_star[h_star == - np.inf] = 0
+    h_star[h_star == np.inf] = 0
+    return h_star
+
 def color_variant(hex_color, brightness_offset=1):
     """ takes a color like #87c95f and produces a lighter or darker variant """
     if len(hex_color) != 7:
