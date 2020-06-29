@@ -13,6 +13,7 @@
   "STRIPE_NUM": 3,
   "Z_LINE_SPACING": 20,
   "MIN_SPOT_NUM": 10,
+  "MIN_SNR": 1,
   "MIN_HEIGHT_MAP_AREA": 20000,
   "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/nocodazole/config.json",
   "PLOT_COLORS" :  ["#0A3950", "#1E95BB", "#A1BA6D", "#F16C1B"],
