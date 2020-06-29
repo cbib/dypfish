@@ -515,7 +515,7 @@ class ImageWithIntensities(Image):
         cytoplasmic_area = self.compute_cell_area()
         return cytoplasmic_intensity_count / cytoplasmic_area
 
-    @checkpoint_decorator(CLUSTERING_INDICES_PATH_SUFFIX, dtype=np.float)
+    @helpers.checkpoint_decorator(CLUSTERING_INDICES_PATH_SUFFIX, dtype=np.float)
     def get_clustering_indices(self):
         return self.compute_clustering_indices()
     """
