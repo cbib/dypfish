@@ -37,6 +37,5 @@
   "PRIMARY_FILE_NAME": "basic.h5",
   "SECONDARY_FILE_NAME": "secondary.h5",
   "HSTAR_FILE_NAME": "h_star.h5",
-  "MTOC_FILE_NAME": "mtoc.h5",
-  "MIN_SPOTS_NUM_IN_CYTOPLASM": 10
+  "MTOC_FILE_NAME": "mtoc.h5"
 }

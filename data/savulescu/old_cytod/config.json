@@ -8,7 +8,6 @@
     "VOXELS_PER_IMAGE" : 512,
     "IMAGE_WIDTH" : 512,
     "IMAGE_HEIGHT" : 512,
-    "STRIPE_NUM" : 3,
     "SLICE_THICKNESS" : 0.3,
     "MOLECULE_TYPES": ["mrna", "protein"],
     "MRNA_GENES" : ["arhgdia_control", "arhgdia_cytod"],

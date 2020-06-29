@@ -7,7 +7,6 @@
     "IMAGE_WIDTH": 512,
     "IMAGE_HEIGHT": 512,
     "SLICE_THICKNESS": 0.3,
-    "Z_LINE_SPACING": 20,
     "MOLECULE_TYPES": ["mrna", "protein"],
     "MRNA_GENES": ["arhgdia", "arhgdia_nocodazole", "pard3", "pard3_nocodazole"],
     "PROTEINS": ["arhgdia", "arhgdia_nocodazole", "pard3", "pard3_nocodazole"],
