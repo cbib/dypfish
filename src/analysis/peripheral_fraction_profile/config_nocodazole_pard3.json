@@ -15,6 +15,7 @@
   "Z_LINE_SPACING": 20,
   "MIN_SNR": 1,
   "MIN_SPOT_NUM": 10,
+  "MIN_HEIGHT_MAP_AREA": 20000,
   "MRNA_GENES": ["pard3", "pard3_nocodazole"],
   "PROTEINS": ["pard3", "pard3_nocodazole"],
   "PLOT_COLORS" : ["#A1BA6D", "#d3deba"],
