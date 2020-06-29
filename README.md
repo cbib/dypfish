@@ -66,7 +66,7 @@ DypFISH runs in a command line environment. The runtime is dependent on the hard
 ## Running available analysis on the provided data
 
 If you wish to test the DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
-and the try running the analysis scripts in the `src/analysis` folder. 
+and try running the analysis scripts in the `src/analysis` folder. 
 
 ## Running available analysis on your data
 
@@ -120,7 +120,7 @@ It should be located in the same directory as the corresponding HDF5 file, and d
 ```
 An full example `example_datasets_config.json` is provided on [dypfish.org](http://dypfish.org) and `configuration files` for the datasets used in the publications are located in the same archive as the HDF5 files.
 
-The `analysis configuration` file  should be located located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. An example of an `analysis confguration` file is provided in the `src/tests` directory, `test_config.json`, and covers the needs of unit testing; `srs/analysis` subfolders contain `analysis configuration` files for the corresponding analysis.
+The `analysis configuration` file  should be located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. An example of an `analysis confguration` file is provided in the `src/tests` directory, `test_config.json`, and covers the needs of unit testing; `srs/analysis` subfolders contain `analysis configuration` files for the corresponding analysis.
 
 Thus, an `analysis configuration` file indicates where is located the `dataset configuration` file, which in its turn points to the HDF5 file contianing the preprocessed images and to the HDF5 file that will be created durung the analysis and conain the intermediary results.
 
