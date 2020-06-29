@@ -41,6 +41,7 @@ from constants import PERIPHERAL_TOTAL_INTENSITY_PATH_SUFFIX
 from constants import CYTOPLASMIC_INTENSITIES_PATH_SUFFIX
 from constants import QUADRANT_DENSITIES_PATH_SUFFIX
 from constants import PERIPHERAL_QUADRANT_DENSITIES_PATH_SUFFIX
+from constants import CLUSTERING_INDICES_PATH_SUFFIX
 
 
 class Image(object):
@@ -514,6 +515,63 @@ class ImageWithIntensities(Image):
         cytoplasmic_area = self.compute_cell_area()
         return cytoplasmic_intensity_count / cytoplasmic_area
 
+    @checkpoint_decorator(CLUSTERING_INDICES_PATH_SUFFIX, dtype=np.float)
+    def get_clustering_indices(self):
+        return self.compute_clustering_indices()
+    """
+    Compute degree of clustering in 2D
+    """
+    def compute_degree_of_clustering(self) -> int:
+        h_star = self.get_clustering_indices()
+        return np.array(h_star[h_star > 1] - 1).sum()
+
+    def compute_clustering_indices(self) -> np.ndarray:
+        """
+        Point process Ripkey-K computation for disks of radius r < MAX_CELL_RADIUS
+        :return: clustering indices for all r
+        Was : clustering_index_point_process
+        """
+        logger.info("Running {} simulations of Ripley-K for {}",
+                    constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
+
+        pixels_in_slice = numexpr.evaluate(constants.dataset_config["PIXELS_IN_SLICE"]).item()
+        IF = self.get_intensities()
+        cell_mask = self.get_cell_mask()
+        IF = IF.astype(float) * cell_mask
+        # TODO in VO we do not multiply by pixels_in_slice ???
+        nuw = (np.sum(cell_mask[:, :] == 1))  # * pixels_in_slice  # whole surface of the cell
+        my_lambda = float(np.sum(IF)) / float(nuw)  # volumic density
+        k = self.ripley_k_random_measure_2D(IF, my_lambda, nuw)
+        k_sim = np.zeros(
+            (constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], constants.analysis_config["MAX_CELL_RADIUS"]))
+        # simulate RIPLEY_K_SIMULATION_NUMBER list of random intensities and run ripley_k
+        indsAll = np.where(cell_mask[:, :] == 1)
+        for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):
+            inds_permuted = np.random.permutation(range(len(indsAll[0])))
+            I_samp = np.zeros(IF.shape)
+            for u in range(len(inds_permuted)):
+                I_samp[indsAll[0][inds_permuted[u]], indsAll[1][inds_permuted[u]]] = IF[indsAll[0][u], indsAll[1][u]]
+            k_sim[t, :] = self.ripley_k_random_measure_2D(I_samp, my_lambda, nuw).flatten()
+
+        h = np.subtract(np.sqrt(k / math.pi), np.arange(1, constants.analysis_config["MAX_CELL_RADIUS"] + 1).reshape(
+            (constants.analysis_config["MAX_CELL_RADIUS"], 1))).flatten()
+        synth5, synth50, synth95 = helpers.compute_statistics_random_h_star_2d(k_sim)
+        return helpers.compute_h_star_2d(h, synth5, synth50, synth95)
+
+    def ripley_k_random_measure_2D(self, IF, my_lambda, nuw):
+        IF_rev = IF[::-1, ::-1]
+        P = signal.convolve(IF, IF_rev)
+        dMap = np.zeros((P.shape[0], P.shape[1]))
+        p, q = np.meshgrid(range(P.shape[0]), range(P.shape[0]))
+        dMap = np.sqrt((p - IF.shape[0]) ** 2 + (q - IF.shape[1]) ** 2)
+        # sum convolution using dMap
+        K = np.zeros((constants.analysis_config["MAX_CELL_RADIUS"], 1))
+        for dist in range(constants.analysis_config["MAX_CELL_RADIUS"]):
+            K[dist] = P[dMap[:, :] <= dist].sum()
+        K = K * (1 / (my_lambda * nuw)) - (1 / my_lambda)
+
+        return K
+
 
 class ImageWithIntensitiesAndMTOC(ImageWithMTOC, ImageWithIntensities):
     @staticmethod
@@ -711,7 +769,6 @@ class ImageMultiNucleusWithSpots(ImageMultiNucleus, ImageWithSpots):
     @staticmethod
     def is_a(repo: Repository, path: str):
         return ImageMultiNucleus.is_a(repo, path) and ImageWithSpots.is_a(repo, path)
-
 
 
 class imageMultiNucleusWithSpotsAndZlines(ImageMultiNucleusWithSpots):
