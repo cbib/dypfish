@@ -14,6 +14,21 @@ Datasets corresponding to the results presented in the manuscript "DypFISH: Dyna
 They should be appropriately placed under the `data` subdirectory, e.g. the `chx` dataset should uncompressed in the `data/savulescu/chx` subfolder.  
 Each subdirectory  in `data` contains a README, configuration files (see explanation below) and will eventually stores all analysis results.
 
+
+THIS SHOULD NOT BE HERE : ---------------------------------------------------------------------------
+
+Donwload test data (mandatory to run unit tests) :
+```sh
+sh download_data_test.sh
+```
+
+Download paper data (if you want to reproduce the paper's figures) : 
+```sh
+sh download_data_paper.sh
+```
+-----------------------------------------------------------------------------------------------------
+
+
 # Installing DypFISH 
 
 ## System Requirements
