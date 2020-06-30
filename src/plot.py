@@ -561,7 +561,7 @@ def heatmap(grid_mat, figname, band_n=100):
     major_ticks = np.arange(0, int(band_n) + 1, 1)
     ax0.tick_params(axis='both', which='major', labelsize=5)
     ax0.set_xticks(major_ticks)
-    plt.imshow(grid_mat, cmap='coolwarm', aspect=band_n / 4)
+    plt.imshow(grid_mat, cmap='coolwarm', aspect=band_n / 3)
     plt.ylim((0, 0.4))
     plt.savefig(figname)
     plt.close()

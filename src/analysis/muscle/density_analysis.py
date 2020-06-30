@@ -12,7 +12,7 @@ from repository import H5RepositoryWithCheckpoint
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
 
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/muscle/config_muscle.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
@@ -20,10 +20,10 @@ primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FIL
 secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
 analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
 z_line_spacing = constants.analysis_config['Z_LINE_SPACING']
+band_n = constants.analysis_config['STRIPE_NUM']
 
 molecule_type = ['/mrna']
 genes = ['actn2-mature', 'gapdh-mature', 'actn2-immature']
-band_n = 60
 
 for g in genes:
     [gene, timepoint] = g.split("-")

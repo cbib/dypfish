@@ -369,12 +369,12 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
 
 
 def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
-    S1 = helpers.get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
+    S1 = get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
     interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
     for i in range(len(timepoint_num_mrna)):
         for j in range(len(timepoint_num_protein)):
             interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
-    (p, stat, ranking) = helpers.permutations_test(interactions, S1, size=len(timepoint_num_mrna))
+    (p, stat, ranking) = permutations_test(interactions, S1, size=len(timepoint_num_mrna))
     if len(timepoint_num_mrna)==4:
         #TODO if matrix 4 * 4
         tis = (100 - stat) / 64.0
