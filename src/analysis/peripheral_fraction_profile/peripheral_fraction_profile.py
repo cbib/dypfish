@@ -136,7 +136,6 @@ logger.info("Peripheral fraction profile for the mRNA original data")
 plot_mrna_peripheral_fraction_profiles()
 
 # Figure 2G upper panel: protein peripheral fraction at 30% for CHX arhgdia and pard3
-
 logger.info("Peripheral fraction for the CHX data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/peripheral_fraction_profile/config_chx.json"))
 plot_protein_histogram_peripheral_fraction()
