@@ -36,6 +36,7 @@ CELL_TOTAL_INTENSITY_PATH_SUFFIX = '/cell_total_intensity'
 CYTOPLASMIC_TOTAL_INTENSITY_PATH_SUFFIX = '/cytoplasmic_total_intensity'
 PERIPHERAL_TOTAL_INTENSITY_PATH_SUFFIX = '/peripheral_total_intensity'
 CYTOPLASMIC_INTENSITIES_PATH_SUFFIX = '/cytoplasmic_intensities'
+PERIPHERAL_INTENSITIES_PATH_SUFFIX = '/peripheral_intensities'
 QUADRANT_MASK_PATH_SUFFIX = '/quadrant_mask'
 
 # 3d image descriptors
