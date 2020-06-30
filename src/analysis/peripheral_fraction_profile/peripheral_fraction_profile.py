@@ -136,13 +136,13 @@ logger.info("Peripheral fraction profile for the mRNA original data")
 plot_mrna_peripheral_fraction_profiles()
 
 # Figure 2G upper panel: protein peripheral fraction at 30% for CHX arhgdia and pard3
-logger.info("Peripheral fraction for the CHX data")
+logger.info("Peripheral fraction for the protein CHX data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/peripheral_fraction_profile/config_chx.json"))
 plot_protein_histogram_peripheral_fraction()
 
 # Figure S2C : mrna treated as intensity data peripheral fraction at 30% for CHX arhgdia and pard3
 # to obtain 10% plots, change the config_original file accordingly: PERIPHERAL_FRACTION_THRESHOLD = 10
-logger.info("Peripheral fraction for the CHX data")
+logger.info("Peripheral fraction for the mRNA CHX data")
 plot_mrna_intensity_histogram_peripheral_fraction()
 
 # Figure 5C top panel: 2D data : peripheral fraction nocodazole arhgdia, pard3 at 30% -> barplot mrna and protein

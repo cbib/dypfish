@@ -16,7 +16,7 @@
   "MRNA_GENES": ["arhgdia_control", "arhgdia_cytod"],
   "PROTEINS": ["arhgdia_control", "arhgdia_cytod"],
   "PLOT_COLORS" : ["#0A3950", "#1E95BB"],
-  "MIN_SNR": 1,
+  "MIN_SNR": 0,
   "MIN_SPOT_NUM": 10,
   "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/cytod/config.json"
 }

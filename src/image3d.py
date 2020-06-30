@@ -761,7 +761,9 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
 
 
 class Image3dWithSpotsAndIntensitiesAndMTOC(Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC):
-    pass
+    @staticmethod
+    def is_a(repo: Repository, path: str):
+        return Image3dWithSpotsAndMTOC.is_a(repo, path) and Image3dWithIntensitiesAndMTOC.is_a(repo, path)
 
 
 class Image3dMultiNucleus(Image3d):
