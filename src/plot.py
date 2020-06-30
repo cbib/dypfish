@@ -68,10 +68,8 @@ def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type"
     mrna_err = list(dd[dd["Molecule_type"] == "mrna"][err])
     protein_values = list(dd[dd["Molecule_type"] == "protein"][y])
     protein_err = list(dd[dd["Molecule_type"] == "protein"][err])
-    print(protein_err)
     protein_err = [x if (float(x) < 0.0000000000001) else 0.05 for x in protein_err]
     mrna_err = [x if (float(x) < 0.0000000000001) else 0.05 for x in mrna_err]
-    print(protein_err)
     assert (len(mrna_values) == len(protein_values))
     assert (len(mrna_values) == len(mrna_err))
     ax.bar(idx1, mrna_values, width, color=my_pal["mrna"],
@@ -191,7 +189,6 @@ def bar_profile_simple(data, figname, plot_colors):
 
 def plot_MPI(density_stats: DensityStats, molecule_type):
     labels = density_stats.make_labels()
-    print("labels", labels)
     mpis, errs = density_stats.mpi()
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type=molecule_type)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
@@ -414,7 +411,6 @@ def dynamic_profiles(mrna_data, protein_data, gene, xlabel, ylabel, figpath, plo
     ax.set_xlim(1, 8)
     # ax.set_ylim(-2, 8)
     x_mrna = np.arange(np.min(timepoints_num_mrna), np.max(timepoints_num_mrna), 0.01)
-    print(mrna_data)
     spl = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[0, :], k=len(timepoints_num_mrna) - 1)
     spl_upp = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[1, :], k=len(timepoints_num_mrna) - 1)
     spl_low = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[2, :], k=len(timepoints_num_mrna) - 1)
