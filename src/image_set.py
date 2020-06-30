@@ -141,7 +141,7 @@ class ImageSet(object):
                 continue
 
             self.images.append(img)
-            logger.debug("Image created type - {} ", img.__class__.__name__)
+            logger.debug("Image type : {} ", img.__class__.__name__)
 
         logger.info("Initialized image set from {} with {} images", path_list, len(self.images))
 

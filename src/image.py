@@ -393,6 +393,79 @@ class ImageWithSpots(Image):
         cytoplasmic_area = self.compute_cell_area()
         return cytoplasmic_mrna_count / cytoplasmic_area
 
+    def ripley_k_point_process(self, nuw: float, my_lambda: float, spots=None, r_max: int = None) -> np.ndarray:
+        if spots is None: spots = self.get_spots()
+        n_spots = len(spots)
+        r_max = r_max or constants.analysis_config["MAX_CELL_RADIUS"]
+        K = np.zeros(r_max)
+        for i in range(n_spots):
+            # TODO : why only z_squared is computed in real size ?
+            mask = np.zeros((n_spots, 2));
+            mask[i, :] = 1
+            other_spots = np.ma.masked_where(mask == 1, np.ma.array(spots, mask=False)).compressed().reshape(n_spots - 1, 2)
+            x_squared = np.square(spots[i, 0] - other_spots[:, 0])
+            y_squared = np.square(spots[i, 1] - other_spots[:, 1])
+            ds = np.sqrt(x_squared + y_squared)
+            if n_spots - 1 < r_max:
+                for m in range(n_spots - 1):
+                    K[math.ceil(ds[m]):r_max] = K[math.ceil(ds[m]):r_max] + 1
+            else:
+                for m in range(r_max):
+                    K[m] = K[m] + ds[ds <= m].sum()
+        K = K * (1 / (my_lambda ** 2 * nuw))
+        return K
+
+    def compute_random_spots(self):
+        # simulate n list of random spots
+        cell_mask = self.get_cell_mask()
+        spots = self.get_spots()
+        n_spots = len(spots)
+        indsAll = np.where(cell_mask[:, :] == 1)
+        for t in range(simulation_number):
+            inds_permuted = np.random.permutation(range(len(indsAll[0])))
+            indsT = inds_permuted[0:n_spots]
+            spots_random = np.zeros(spots.shape)
+            for i in range(len(spots)):
+                spots_random[i, 0] = indsAll[0][indsT[i]]
+                spots_random[i, 1] = indsAll[1][indsT[i]]
+        return spots_random
+
+    def compute_clustering_indices(self) -> np.ndarray:
+        """
+        Point process Ripkey-K computation for disks of radius r < MAX_CELL_RADIUS
+        :return: clustering indices for all r
+        Was : clustering_index_point_process
+        """
+        logger.info("Running {} simulations of Ripley-K for {}",
+                    constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
+        spots = self.get_spots()
+        n_spots = len(spots)
+        pixels_in_slice = numexpr.evaluate(constants.dataset_config["PIXELS_IN_SLICE"]).item()
+
+        cell_mask = self.get_cell_mask()
+        nuw = (np.sum(cell_mask[:, :] == 1)) * ((1 / constants.dataset_config["SIZE_COEFFICIENT"])**2)  # whole surface of the cell
+        my_lambda = float(n_spots) / float(nuw)  # spot's volumic density
+
+        k = self.ripley_k_point_process(nuw=nuw, my_lambda=my_lambda)  # TODO : first call for _all_ spots while the subsequent only for those in the height_map
+        k_sim = np.zeros((constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], constants.analysis_config["MAX_CELL_RADIUS"]))
+
+        # simulate RIPLEY_K_SIMULATION_NUMBER lists of random spots and run ripley_k
+        for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):
+            random_spots = self.compute_random_spots()
+            tmp_k = self.ripley_k_point_process(spots=random_spots, nuw=nuw, my_lambda=my_lambda).flatten()
+            k_sim[t] = tmp_k
+        h = np.subtract(np.sqrt(k / math.pi), np.arange(1, constants.analysis_config["MAX_CELL_RADIUS"] + 1).reshape((constants.analysis_config["MAX_CELL_RADIUS"], 1)))
+
+        synth5, synth50, synth95 = helpers.compute_statistics_random_h_star_2d(h_sim=k_sim)
+        return helpers.compute_h_star_2d(h, synth5, synth50, synth95)
+
+    @helpers.checkpoint_decorator(CLUSTERING_INDICES_PATH_SUFFIX, dtype=np.float)
+    def get_clustering_indices(self):
+        return self.compute_clustering_indices()
+
+    def compute_degree_of_clustering(self) -> int:
+        h_star = self.get_clustering_indices()
+        return np.array(h_star[h_star > 1] - 1).sum()
 
 class ImageWithIntensities(Image):
     """ Represents an image with intensity data (e.g. from IF), has to have IF descriptor """
