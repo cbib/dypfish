@@ -43,6 +43,7 @@ class ImageSet(object):
             is_3d_with_spots_and_MTOC = Image3dWithSpotsAndMTOC.is_a(self._repository, p)
             is_with_intensities_and_MTOC = ImageWithIntensitiesAndMTOC.is_a(self._repository, p)
             is_with_spots_and_intensities_and_MTOC = ImageWithSpotsAndIntensitiesAndMTOC.is_a(self._repository, p)
+            is_3d_with_spots_and_intensities_and_MTOC = Image3dWithSpotsAndIntensitiesAndMTOC.is_a(self._repository, p)
             is_3d_with_intensities_and_MTOC = Image3dWithIntensitiesAndMTOC.is_a(self._repository, p)
             is_3d_multi_nucleus = Image3dMultiNucleus.is_a(self._repository, p)
             is_3d_spots_multi_nucleus = Image3dMultiNucleusWithSpots.is_a(self._repository, p)
@@ -78,7 +79,7 @@ class ImageSet(object):
                     img = Image3dMultiNucleusWithSpots(self._repository, p)
                 elif is_3d_multi_nucleus:
                     img = Image3dMultiNucleus(self._repository, p)
-                elif is_with_spots_and_intensities_and_MTOC:
+                elif is_3d_with_spots_and_intensities_and_MTOC:
                     img = Image3dWithSpotsAndIntensitiesAndMTOC(self._repository, p)
                 elif is_3d_with_spots_and_MTOC:
                     img = Image3dWithSpotsAndMTOC(self._repository, p)
