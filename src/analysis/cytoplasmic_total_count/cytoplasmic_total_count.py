@@ -26,7 +26,6 @@ def mrna_cytoplasmic_total_count():
     plot.bar_profile(gene2cyto_count.values(), gene2cyto_count.keys(), figname=tgt_fp)
     logger.info("Generated image at {}", tgt_fp)
 
-
 def intensities_cytoplasmic_total_count():
     gene2image_set = {}
     gene2cyto_count = {}
@@ -42,7 +41,7 @@ def intensities_cytoplasmic_total_count():
     logger.info("Generated image at {}", tgt_fp)
 
 
-# Figure S5A upper panel: arhgdia and arhgdia nocodazole cytoplasmic total count
+# Figure S6A upper panel: arhgdia and arhgdia nocodazole cytoplasmic total count
 # this should be called as soon as possible
 logger.info("Running cytoplasmic total count analysis for Nocodazole")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/cytoplasmic_total_count/config_nocodazole_arhgdia.json"))
@@ -55,7 +54,7 @@ analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_
 mrna_cytoplasmic_total_count()
 intensities_cytoplasmic_total_count()
 
-# Figure S5A : arhgdia and arhgdia nocodazole cytoplasmic total count
+# Figure S6A : arhgdia and arhgdia nocodazole cytoplasmic total count
 # this should be called as soon as possible
 logger.info("Running cytoplasmic total count analysis for Nocodazole")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/cytoplasmic_total_count/config_nocodazole_pard3.json"))
@@ -68,7 +67,7 @@ analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_
 mrna_cytoplasmic_total_count()
 intensities_cytoplasmic_total_count()
 
-# Figure S5A : arhgdia and arhgdia CytoD cytoplasmic total count
+# Figure S6A : arhgdia and arhgdia CytoD cytoplasmic total count
 logger.info("Running cytoplasmic total count analysis for CytoD")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/cytoplasmic_total_count/config_cytod.json"))
 
@@ -93,8 +92,8 @@ intensities_cytoplasmic_total_count()
 
 
 # Figure ?? : arhgdia and arhgdia original cytoplasmic total count
-logger.info("Running cytoplasmic total count analysis for prrc2c")
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/cytoplasmic_total_count/config_prrc2c.json"))
+logger.info("Running cytoplasmic total count analysis for original")
+constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/cytoplasmic_total_count/config_original.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
 primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
 secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
@@ -102,3 +101,5 @@ secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY
 analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
 mrna_cytoplasmic_total_count()
 intensities_cytoplasmic_total_count()
+
+
