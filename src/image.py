@@ -39,6 +39,7 @@ from constants import CELL_TOTAL_INTENSITY_PATH_SUFFIX
 from constants import CYTOPLASMIC_TOTAL_INTENSITY_PATH_SUFFIX
 from constants import PERIPHERAL_TOTAL_INTENSITY_PATH_SUFFIX
 from constants import CYTOPLASMIC_INTENSITIES_PATH_SUFFIX
+from constants import PERIPHERAL_INTENSITIES_PATH_SUFFIX
 from constants import QUADRANT_DENSITIES_PATH_SUFFIX
 from constants import PERIPHERAL_QUADRANT_DENSITIES_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
@@ -430,11 +431,7 @@ class ImageWithIntensities(Image):
         cytoplasmic_intensities = np.multiply(intensities, cytoplasm_mask)
         return cytoplasmic_intensities
 
-    def compute_peripheral_intensitie(self) -> np.ndarray:
-        intensities = self.get_intensities()
-        cytoplasm_mask = self.get_peripheral_mask()
-        cytoplasmic_intensities = np.multiply(intensities, cytoplasm_mask)
-        return cytoplasmic_intensities
+
 
     def compute_total_intensity(self) -> float:
         intensities = self.get_intensities()
@@ -449,8 +446,8 @@ class ImageWithIntensities(Image):
         return self.compute_cytoplasmic_total_intensity()
 
     def compute_peripheral_total_intensity(self) -> float:
-        peripheral_intensities = self.get_peripheral_intensities()
-        return peripheral_intensities.sum()
+        peripheral_intensity_mask = self.get_peripheral_intensity_mask()
+        return peripheral_intensity_mask.sum()
 
     @helpers.checkpoint_decorator(PERIPHERAL_TOTAL_INTENSITY_PATH_SUFFIX, dtype=np.float)
     def get_peripheral_total_intensity(self):
@@ -468,9 +465,21 @@ class ImageWithIntensities(Image):
     def get_cytoplasmic_intensities(self) -> np.ndarray:
         return self.compute_cytoplasmic_intensities()
 
-    @helpers.checkpoint_decorator(CYTOPLASMIC_INTENSITIES_PATH_SUFFIX, dtype=np.float)
-    def get_peripheral_intensities(self) -> np.ndarray:
-        return self.compute_peripheral_intensitie()
+    @helpers.checkpoint_decorator(PERIPHERAL_INTENSITIES_PATH_SUFFIX, dtype=np.float)
+    def get_peripheral_intensity_mask(self) -> np.ndarray:
+        return self.compute_peripheral_intensity_mask()
+
+
+    def compute_peripheral_intensity_mask(self) -> np.ndarray:
+        """
+         :returns: np.ndarray of floats (total intensity for each distance percentage from the periphery)
+         normalization is the responsibility of the caller
+        """
+        intensities = self.get_intensities()
+        peripheral_mask = self.get_peripheral_mask()
+        peripheral_intensity_mask = np.multiply(intensities, peripheral_mask)
+        return peripheral_intensity_mask
+
 
     def compute_peripheral_intensities(self) -> np.ndarray:
         """
