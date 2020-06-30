@@ -328,7 +328,7 @@ class ImageSet(object):
     #     return np.array([image.get_spots_peripheral_distance() for image in self.images])
 
     def compute_zline_distance(self, z_line_spacing):
-        image: ImageMultiNucleusWithSpots
+        image: imageMultiNucleusWithSpotsAndZlines
         total_profile = []
         image_counter = 0
         for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):

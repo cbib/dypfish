@@ -53,8 +53,6 @@ def compute_density_per_quadrant(repo, molecule_type, groupby, quadrants_num, qu
 
 configurations = [
     ["src/analysis/mtoc/config_periph_original.json", "", "",""],
-    ["src/analysis/mtoc/config_periph_nocodazole_arhgdia.json", "arhgdia", "+Nocodazole", "Gene"],
-    ["src/analysis/mtoc/config_periph_nocodazole_pard3.json", "pard3", "+Nocodazole", "Gene"],
     ["src/analysis/mtoc/config_periph_prrc2c.json", "arhgdia", "prrc2c_depleted", "Timepoint"]
 ]
 
@@ -116,11 +114,11 @@ if __name__ == '__main__':
             mpi_sample_size=mpi_sample_size
         )
         if conf[2]=="":
-            plot.compute_violin_plot_ratio(prot_df, 'protein')
+            #plot.compute_violin_plot_ratio(prot_df, 'protein')
             # # # # New Figure 3.C left mRNA MTOC enrichment for original data
             plot.compute_violin_plot_enrichment(prot_df, 'protein', limit_threshold=OUTLIERS_THRESHOLD)
         else:
-            plot.compute_categorical_violin_plot_ratio(prot_df, 'protein', limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], gene=conf[1], groupby=[conf[3]])
+            #plot.compute_categorical_violin_plot_ratio(prot_df, 'protein', limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], gene=conf[1], groupby=[conf[3]])
             plot.compute_categorical_violin_plot_enrichment(prot_df, 'protein', limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], groupby=conf[3])
 
         #plot.plot_mtoc_enrichment(prot_df, 'protein', limit_threshold=5)

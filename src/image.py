@@ -109,8 +109,6 @@ class Image(object):
         cell_mask = self.get_cell_mask()
         area = cell_mask.sum() * math.pow((1 / constants.dataset_config['SIZE_COEFFICIENT']),
                                           2)  # * by pixel dimensions
-        print(self._path)
-        print(area)
         return area
 
     @helpers.checkpoint_decorator(CELL_AREA_PATH_SUFFIX, float)
@@ -399,7 +397,6 @@ class ImageWithSpots(Image):
         r_max = r_max or constants.analysis_config["MAX_CELL_RADIUS"]
         K = np.zeros(r_max)
         for i in range(n_spots):
-            # TODO : why only z_squared is computed in real size ?
             mask = np.zeros((n_spots, 2));
             mask[i, :] = 1
             other_spots = np.ma.masked_where(mask == 1, np.ma.array(spots, mask=False)).compressed().reshape(n_spots - 1, 2)
@@ -440,8 +437,6 @@ class ImageWithSpots(Image):
                     constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
         spots = self.get_spots()
         n_spots = len(spots)
-        pixels_in_slice = numexpr.evaluate(constants.dataset_config["PIXELS_IN_SLICE"]).item()
-
         cell_mask = self.get_cell_mask()
         nuw = (np.sum(cell_mask[:, :] == 1)) * ((1 / constants.dataset_config["SIZE_COEFFICIENT"])**2)  # whole surface of the cell
         my_lambda = float(n_spots) / float(nuw)  # spot's volumic density
@@ -600,9 +595,7 @@ class ImageWithIntensities(Image):
     @helpers.checkpoint_decorator(CLUSTERING_INDICES_PATH_SUFFIX, dtype=np.float)
     def get_clustering_indices(self):
         return self.compute_clustering_indices()
-    """
-    Compute degree of clustering in 2D
-    """
+
     def compute_degree_of_clustering(self) -> int:
         h_star = self.get_clustering_indices()
         return np.array(h_star[h_star > 1] - 1).sum()

@@ -21,7 +21,6 @@ def compute_zline_distance(repo, molecule_list, timepoints, z_line_spacing):
             if image_set.__sizeof__() < 5:
                 logger.warning("Image set is small for {}", molecule)
             total_profile = image_set.compute_zline_distance(z_line_spacing)
-            print(total_profile)
             all_median_profiles.append(np.median(total_profile, axis=0))
     return all_median_profiles
 
