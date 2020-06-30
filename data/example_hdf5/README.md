@@ -1,6 +1,6 @@
 ## Datasets for example_hdf5
 
-This directory contains (i) an example of HDF5 file you should use if you want to build you own HDF5 file for your experiments, (ii) the `dataset configuration` file to run the unit tests. The HDF files themselves are available on the [accompanying website](http://dypfish.org)
+This directory is a placeholder for two files necessary to run unit tests: (1) an example of HDF5 file you should use if you want see how to structure an HDF5 file for your data, (2) the `dataset configuration`. Both are necessary to run the unit tests. The files themselves have to be dowloaded from the [accompanying website](http://dypfish.org)
 
 The example file contains:
 ```
