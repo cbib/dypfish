@@ -11,6 +11,7 @@ import constants
 import plot
 from plot import compute_heatmap
 import helpers
+from helpers import calculate_temporal_interaction_score
 import numpy as np
 from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
