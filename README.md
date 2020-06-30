@@ -1,4 +1,4 @@
-DypFISH : Dynamic Patterned FISH
+DypFISH
 ===
 
 # Introduction
