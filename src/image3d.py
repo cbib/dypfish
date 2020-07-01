@@ -839,10 +839,6 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
         cell_mask_dist_map[(nucleus_mask == 1)] = 0
-        peripheral_binary_mask = (cell_mask_dist_map > 0) & (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
-        print(peripheral_fraction_threshold)
-        print(peripheral_fraction_threshold/stripes)
-
         arr = np.zeros((stripes * quadrants_num))
 
         for i in range(int(np.floor(peripheral_fraction_threshold / stripes)), peripheral_fraction_threshold + 1, int(np.floor(peripheral_fraction_threshold / stripes))):
