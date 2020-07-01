@@ -59,7 +59,7 @@ dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].
 primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
 secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
 analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
-mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
+#mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
 prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
 
 

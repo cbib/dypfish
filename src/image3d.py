@@ -824,7 +824,7 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
 
         return arr / cytoplasmic_density
 
-    def compute_peripheral_max_density_MTOC_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
+    def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
         size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
         cytoplasmic_density = self.compute_cytoplasmic_density()
         nucleus_mask = self.get_nucleus_mask()
@@ -840,25 +840,28 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
         cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
         cell_mask_dist_map[(nucleus_mask == 1)] = 0
         peripheral_binary_mask = (cell_mask_dist_map > 0) & (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
-
+        print(peripheral_fraction_threshold)
+        print(peripheral_fraction_threshold/stripes)
 
         arr = np.zeros((stripes * quadrants_num))
 
-        for i in range((peripheral_fraction_threshold / stripes), peripheral_fraction_threshold + 1, (peripheral_fraction_threshold / stripes)):
+        for i in range(int(np.floor(peripheral_fraction_threshold / stripes)), peripheral_fraction_threshold + 1, int(np.floor(peripheral_fraction_threshold / stripes))):
             for j in range(1, quadrants_num + 1):
+
+                value = (i - (int(np.floor(peripheral_fraction_threshold / stripes)))) / 2 + j - 1
                 if np.sum(cell_mask[
-                              ((cell_mask_dist_map >= 1 + (i - (peripheral_fraction_threshold / stripes))) & (cell_mask_dist_map < i)) & (
+                              ((cell_mask_dist_map >= 1 + (i - int(np.floor(peripheral_fraction_threshold / stripes)))) & (cell_mask_dist_map < i)) & (
                                       quad_mask == j)]) == 0:
-                    value = (i * quadrants_num) + (j - 1)
+
                     arr[int(value)] += 0.0
                 else:
-                    IF_relative = float(np.sum(IF[((cell_mask_dist_map >= 1 + (i - (peripheral_fraction_threshold / stripes))) & (
+                    IF_relative = float(np.sum(IF[((cell_mask_dist_map >= 1 + (i - int(np.floor(peripheral_fraction_threshold / stripes)))) & (
                                 cell_mask_dist_map < i)) & (quad_mask == j)])) / np.sum(IF[cell_mask == 1]) / np.sum(
                         IF[cell_mask == 1])
-                    surface_relative = np.sum(cell_mask[((cell_mask_dist_map >= 1 + (i - (peripheral_fraction_threshold / stripes))) & (
+                    surface_relative = np.sum(cell_mask[((cell_mask_dist_map >= 1 + (i - int(np.floor(peripheral_fraction_threshold / stripes)))) & (
                                 cell_mask_dist_map < i)) & (quad_mask == j)]) * math.pow((1 / size_coeff), 2) / np.sum(
                         cell_mask[cell_mask == 1]) * math.pow((1 / size_coeff), 2)
-                    value = (i * quadrants_num) + (j - 1)
+
                     arr[int(value)] += IF_relative / surface_relative
 
         return arr / cytoplasmic_density

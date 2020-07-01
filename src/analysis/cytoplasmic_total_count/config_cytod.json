@@ -14,7 +14,7 @@
   "Z_LINE_SPACING": 20,
   "MIN_SPOT_NUM": 10,
   "MIN_HEIGHT_MAP_AREA": 20000,
-  "MIN_SNR": 1,
+  "MIN_SNR": 0,
   "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/cytod/config.json",
   "PLOT_COLORS" :  ["#0A3950", "#1E95BB", "#A1BA6D", "#F16C1B"],
   "MRNA_GENES": [
