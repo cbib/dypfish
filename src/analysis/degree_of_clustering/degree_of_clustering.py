@@ -3,6 +3,7 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
+import sys
 from loguru import logger
 import constants
 import plot
@@ -21,7 +22,6 @@ def compute_degree_of_clustering(genes_list, base, repo, molecule_type):
     gene2median_degree_of_clustering = {}
     gene2error_degree_of_clustering = {}
     for gene in genes_list:
-        print(gene)
         image_set = ImageSet(repo, ['{0}/{1}/'.format(molecule_type, gene)])
         # degree_of_clustering = np.array(image_set.compute_mtoc_dependent_degree_of_clustering())
         degree_of_clustering = np.array(image_set.compute_degree_of_clustering())
@@ -29,8 +29,7 @@ def compute_degree_of_clustering(genes_list, base, repo, molecule_type):
         median_degree_of_clustering = np.median(degree_of_clustering)
         gene2median_degree_of_clustering[gene] = math.log(median_degree_of_clustering) - base
         err = np.median(np.abs(median_degree_of_clustering - degree_of_clustering))
-        gene2error_degree_of_clustering[gene] = math.log(median_degree_of_clustering + err) - math.log(
-            median_degree_of_clustering) - base
+        gene2error_degree_of_clustering[gene] = math.log(median_degree_of_clustering + err) - math.log(median_degree_of_clustering) - base
     return gene2median_degree_of_clustering, gene2error_degree_of_clustering
 
 
@@ -62,9 +61,12 @@ if __name__ == '__main__':
         gene2median_degree_of_clustering, gene2error_degree_of_clustering = compute_degree_of_clustering(genes_list,
                                                                                                          base, repo,
                                                                                                          molecule_type="mrna")
+
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
+
+
         plot.bar_profile_median(gene2median_degree_of_clustering.values(),
                                 gene2median_degree_of_clustering.keys(),
                                 gene2error_degree_of_clustering.values(), figname=tgt_fp)
