@@ -17,7 +17,7 @@ configurations = [
     ["src/analysis/cytoplasmic_spread/config_nocodazole_arhgdia.json", "arhgdia", "Nocodazole+", "Gene"],
     #["src/analysis/peripheral_fraction_profile/config_chx.json", "arhgdia", "chx+", "Gene"],
     ["src/analysis/cytoplasmic_spread/config_nocodazole_pard3.json", "pard3", "Nocodazole+", "Gene"],
-    ["src/analysis/cytoplasmic_spread/config_prrc2c.json", "arhgdia", "prrc2c_depleted", "Timepoint"]
+    ["src/analysis/cytoplasmic_spread/config_prrc2c.json", "arhgdia", "prrc2c_depleted", "Timepoint"],
     ["src/analysis/cytoplasmic_spread/config_cytod.json", "arhgdia", "cytod+", "Gene"]
 ]
 
