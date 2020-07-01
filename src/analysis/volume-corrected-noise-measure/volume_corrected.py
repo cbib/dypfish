@@ -23,7 +23,7 @@ imageset = ImageSet(analysis_repo, ["mrna/arhgdia_cultured/"])
 nm_arhgdia_cultured = imageset.compute_surface_corrected_nm()
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_SURFACE']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured, tgt_fp)
+histogram_noise_measured(nm_arhgdia_cultured, nm_arhgdia, tgt_fp)
 
 # imageset = ImageSet(analysis_repo, ["mrna/arhgdia/3h/"])
 # nm_arhgdia = imageset.compute_volume_corrected_nm()
