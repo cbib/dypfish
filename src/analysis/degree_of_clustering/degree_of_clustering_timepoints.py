@@ -54,7 +54,7 @@ if __name__ == '__main__':
         # Figure 2F  : Dynamic profile of degree of clustering for original data
         plot_colors = constants.analysis_config['PLOT_COLORS']
         for i, gene in enumerate(constants.analysis_config['MRNA_GENES']):
-            mrna_data = process_data(gene, "mrna", constants.dataset_config['TIMEPOINTS_MRNA'])
+            mrna_data = process_data(gene, "mrna", repo, constants.dataset_config['TIMEPOINTS_MRNA'])
             if gene in constants.analysis_config['PROTEINS']:
                 protein_data = process_data(gene, "protein", repo, constants.dataset_config['TIMEPOINTS_PROTEIN'])
             # generate image
