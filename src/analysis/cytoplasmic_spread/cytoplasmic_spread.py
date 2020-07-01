@@ -9,6 +9,7 @@ import constants
 import plot
 from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
+from helpers import open_repo
 from path import global_root_dir
 
 
