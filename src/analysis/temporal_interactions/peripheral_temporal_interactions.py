@@ -54,16 +54,12 @@ def compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadra
 
 # Figure 5C et 5D Analysis TIS for original data
 logger.info("Temporal interaction score for the mRNA original data")
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_original.json"))
+constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_original_periph.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
 primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
 secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
 analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
-
-target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), "original_mrna_dataframe.csv")
 mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-
-target_df_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), "original_protein_dataframe.csv")
 prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
 
 
@@ -72,7 +68,6 @@ p_vals=[]
 for gene in constants.analysis_config['PROTEINS']:
     mrna_list= mrna_tis_dict[gene]
     prot_list = prot_tis_dict[gene]
-    print("gene:", gene)
     (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list, constants.dataset_config['TIMEPOINTS_NUM_MRNA'], constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
     tiss.append(tis)
     p_vals.append(p)
