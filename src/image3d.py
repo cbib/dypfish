@@ -824,7 +824,7 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
 
         return arr / cytoplasmic_density
 
-    def compute_peripheral_max_density_MTOC_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
+    def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
         size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
         cytoplasmic_density = self.compute_cytoplasmic_density()
         nucleus_mask = self.get_nucleus_mask()
