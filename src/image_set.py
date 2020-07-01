@@ -313,6 +313,23 @@ class ImageSet(object):
                 print(rte)
         return arr
 
+    def compute_peripheral_normalized_quadrant_and_slice_densities(self, quadrants_num=4, stripes=3):
+        """
+        build an array of densities per slices (quadrant by default) for all images
+        the array size is an n * m array where n is the number of images and m the number of slices.
+        For each image, the first slice is the one that contains the MTOC.
+        """
+        arr = np.zeros((len(self.images), stripes * quadrants_num))
+        for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
+            try:
+                cytoplasmic_density = image.compute_cytoplasmic_density()
+                #peripheral_density=image.compute_peripheral_density()
+                arr[i, :] = image.get_peripheral_quadrants_and_slices_densities(quadrants_num, stripes)
+                #arr[i, :] = arr[i, :] / cytoplasmic_density
+            except RuntimeError as rte:
+                print(rte)
+        return arr
+
     def mtoc_is_in_leading_edge(self):
         image: ImageWithMTOC
         return [image.mtoc_is_in_leading_edge() for image in self.images]

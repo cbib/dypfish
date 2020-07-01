@@ -27,6 +27,7 @@ from constants import QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX
 from constants import NUCLEUS_CENTROID_PATH_SUFFIX
 from constants import PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX
 
+
 from helpers import volume_coeff
 
 
@@ -594,6 +595,43 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
         max_quadrant_mask = helpers.reindex_quadrant_mask(max_quadrant_mask, mtoc_quad_num, quad_num=quadrants_num)
         return self.compute_density_per_quadrant_and_slices(max_quadrant_mask, stripes, quadrants_num=quadrants_num)
 
+    @helpers.checkpoint_decorator(PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX, dtype=np.float)
+    def get_peripheral_quadrants_and_slices_densities(self, quadrants_num=4, stripes=3):
+        return self.peripheral_split_in_quadrants_and_slices(quadrants_num=quadrants_num, stripes=stripes)
+
+    def peripheral_split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3) -> np.ndarray:
+        """
+        was : compute_max_density_MTOC_quadrant
+        For all possible subdivisions of the cell in n (n = quadrants_num) quadrants (360/quadrants_num degree possible)
+        computes the normalized density (vs whole cytoplasm) per quadrant
+        and keeps the subdivision such that the MTOC containing quadrant is the densiest.
+        The anchor for the computation is the MTOC containing quadrant.
+        Divide cell into n quadrants (n = quadrants_num) and m (m = stripes - 1) isolines, creating x compartments (x = stripes * quadrants_num)
+        Compartments are indexed from periphery to nucleus (0 to x-1), O-indexed compartment is the closest from periphery and located on MTOC quadrant)
+
+        Returns an array with the density values per quadrant and associated MTOC flags
+        """
+        if not quadrants_num in [2, 3, 4, 5, 6, 8, 9]:  # just in case
+            raise (RuntimeError, "Unexpected number of slices (quadrants) %i" % c)
+
+        max_density = 0.0
+        mtoc_position = self.get_mtoc_position()
+        height_map = self.adjust_height_map(cytoplasm=True)
+        max_quadrant_mask = np.zeros((np.shape(height_map)[0], np.shape(height_map)[1]))
+
+        degree_span = 360 // quadrants_num
+        for degree in range(degree_span):
+            quadrant_mask = self.compute_quadrant_mask(degree, quadrants_num)
+            mtoc_quad_num = quadrant_mask[mtoc_position[1], mtoc_position[0]]
+            # assign each spot to the corresponding quadrant excluding those in the nucleus
+            density_per_quadrant = self.compute_density_per_quadrant(mtoc_quad_num, quadrant_mask,
+                                                                     height_map, quadrants_num)
+            if density_per_quadrant[mtoc_quad_num - 1, 0] > max_density:
+                max_density = density_per_quadrant[mtoc_quad_num - 1, 0]
+                max_quadrant_mask = quadrant_mask
+        max_quadrant_mask = helpers.reindex_quadrant_mask(max_quadrant_mask, mtoc_quad_num, quad_num=quadrants_num)
+        return self.compute_peripheral_density_per_quadrant_and_slices(max_quadrant_mask, stripes, quadrants_num=quadrants_num)
+
 
 class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
     @staticmethod
@@ -681,6 +719,34 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
                                                                                                 2)
         return arr / cytoplasmic_density
 
+    def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
+        size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
+        cytoplasmic_density = self.compute_cytoplasmic_density()
+        peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
+        nucleus_mask = self.get_nucleus_mask()
+        cell_mask = self.get_cell_mask()
+        spots = self.get_spots()
+        cell_mask_dist_map = self.get_cell_mask_distance_map()
+        cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
+        cell_mask_dist_map[(nucleus_mask == 1)] = 0
+        arr = np.zeros((stripes * quadrants_num))
+        peripheral_binary_mask = (cell_mask_dist_map > 0) & (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
+
+        for spot in spots:
+            if peripheral_binary_mask[spot[1], spot[0]] == 0:
+                continue
+            quad = quad_mask[spot[1], spot[0]]
+            value = cell_mask_dist_map[spot[1], spot[0]]
+            if value == peripheral_fraction_threshold:
+                value = peripheral_fraction_threshold-1
+            slice_area = np.floor(value / (peripheral_fraction_threshold / stripes))
+            value = (int(slice_area) * quadrants_num) + int(quad - 1)
+            arr[int(value)] += 1.0 / np.sum(cell_mask[(((cell_mask_dist_map >= slice_area * np.floor(
+                (peripheral_fraction_threshold / stripes)) + 1) & (cell_mask_dist_map <= (slice_area + 1) * np.floor((peripheral_fraction_threshold / stripes)))) & (
+                                                               quad_mask == quad))]) * math.pow((1 / size_coeff),
+                                                                                                2)
+        return arr / cytoplasmic_density
+
 
 class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
 
@@ -755,6 +821,45 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
                                                          quad_mask == j))]) * math.pow((1 / size_coeff), 2)
                 value = (i * quadrants_num) + (j - 1)
                 arr[int(value)] += IF_sum / slice_volume
+
+        return arr / cytoplasmic_density
+
+    def compute_peripheral_max_density_MTOC_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
+        size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
+        cytoplasmic_density = self.compute_cytoplasmic_density()
+        nucleus_mask = self.get_nucleus_mask()
+        cell_mask = self.get_cell_mask()
+        IF = self.get_intensities()
+        IF[self.get_cytoplasm_mask() == 0] = 0
+        height_map = self.adjust_height_map()
+        # TODO this line below was added compared to dypfish V0
+        # TODO in the VO, we do not remove the nucleus area for protein analysis, only the cell area
+        height_map[self.get_cytoplasm_mask() == 0] = 0
+        peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
+        cell_mask_dist_map = self.get_cell_mask_distance_map()
+        cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
+        cell_mask_dist_map[(nucleus_mask == 1)] = 0
+        peripheral_binary_mask = (cell_mask_dist_map > 0) & (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
+
+
+        arr = np.zeros((stripes * quadrants_num))
+
+        for i in range((peripheral_fraction_threshold / stripes), peripheral_fraction_threshold + 1, (peripheral_fraction_threshold / stripes)):
+            for j in range(1, quadrants_num + 1):
+                if np.sum(cell_mask[
+                              ((cell_mask_dist_map >= 1 + (i - (peripheral_fraction_threshold / stripes))) & (cell_mask_dist_map < i)) & (
+                                      quad_mask == j)]) == 0:
+                    value = (i * quadrants_num) + (j - 1)
+                    arr[int(value)] += 0.0
+                else:
+                    IF_relative = float(np.sum(IF[((cell_mask_dist_map >= 1 + (i - (peripheral_fraction_threshold / stripes))) & (
+                                cell_mask_dist_map < i)) & (quad_mask == j)])) / np.sum(IF[cell_mask == 1]) / np.sum(
+                        IF[cell_mask == 1])
+                    surface_relative = np.sum(cell_mask[((cell_mask_dist_map >= 1 + (i - (peripheral_fraction_threshold / stripes))) & (
+                                cell_mask_dist_map < i)) & (quad_mask == j)]) * math.pow((1 / size_coeff), 2) / np.sum(
+                        cell_mask[cell_mask == 1]) * math.pow((1 / size_coeff), 2)
+                    value = (i * quadrants_num) + (j - 1)
+                    arr[int(value)] += IF_relative / surface_relative
 
         return arr / cytoplasmic_density
 
