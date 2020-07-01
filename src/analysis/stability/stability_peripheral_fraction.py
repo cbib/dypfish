@@ -15,8 +15,10 @@ from repository import H5RepositoryWithCheckpoint
 def mean_absolute_deviation(data, axis=None):
     return np.mean(np.absolute(data - np.mean(data, axis)), axis)
 
+
 def median_absolute_deviation(data, axis=None):
     return np.median(np.absolute(data - np.median(data, axis)), axis)
+
 
 def get_spots_peripheral_distance_2D(spots, nucleus_mask, cell_mask, periph_dist_map):
     spots_peripheral_distance_2D = []
@@ -58,7 +60,6 @@ for j in range(500):
     total_mads_arhgdia.append(mads)
 
 imageset = ImageSet(analysis_repo, ["mrna/arhgdia_cultured/"], force2D=True)
-
 
 spots_peripheral_distances = imageset.compute_spots_peripheral_distance()
 # spots_peripheral_distances = np.array([get_spots_peripheral_distance_2D(image.get_spots(), image.get_nucleus_mask(),image.get_cell_mask(),image.get_cell_mask_distance_map()) for image inimageset.get_images()])

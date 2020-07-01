@@ -45,4 +45,3 @@ tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
 plot.bar_profile(gene2cyto_count.values(), gene2cyto_count.keys(), figname=tgt_fp)
 logger.info("Generated image at {}", tgt_fp)
-

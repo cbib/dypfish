@@ -42,6 +42,7 @@ def plot_mrna_peripheral_fraction_profiles():
                  constants.analysis_config['NUM_CONTOURS'], figname=tgt_fp)
     logger.info("Generated image at {}", tgt_fp)
 
+
 # TODO : code redundancy below
 def plot_mrna_histogram_peripheral_fraction():
     dataset_root_fp = pathlib.Path(
@@ -56,12 +57,14 @@ def plot_mrna_histogram_peripheral_fraction():
         gene2histogram_mrna_periph_fraction[gene] = image_set.compute_histogram_spots_peripheral_counts()
     # generate image
     fraction = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_HISTOGRAM_FORMAT'].format(molecule_type="mrna", fraction=fraction)
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_HISTOGRAM_FORMAT'].format(molecule_type="mrna",
+                                                                                      fraction=fraction)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
     plot.bar_profile(gene2histogram_mrna_periph_fraction.values(), gene2histogram_mrna_periph_fraction.keys(),
                      figname=tgt_fp)
     logger.info("Generated image at {}", tgt_fp)
+
 
 def plot_mrna_histogram_peripheral_fraction_2D():
     dataset_root_fp = pathlib.Path(
@@ -72,11 +75,12 @@ def plot_mrna_histogram_peripheral_fraction_2D():
 
     gene2histogram_mrna_periph_fraction = {}
     for gene in constants.analysis_config['MRNA_GENES']:
-        image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene],force2D=True)
+        image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene], force2D=True)
         gene2histogram_mrna_periph_fraction[gene] = image_set.compute_histogram_spots_peripheral_counts()
     # generate image
     fraction = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_HISTOGRAM_FORMAT_2D'].format(molecule_type="mrna", fraction=fraction)
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_HISTOGRAM_FORMAT_2D'].format(molecule_type="mrna",
+                                                                                         fraction=fraction)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
     plot.bar_profile(gene2histogram_mrna_periph_fraction.values(), gene2histogram_mrna_periph_fraction.keys(),
@@ -85,7 +89,8 @@ def plot_mrna_histogram_peripheral_fraction_2D():
 
 
 def plot_mrna_intensity_histogram_peripheral_fraction():
-    dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
+    dataset_root_fp = pathlib.Path(
+        constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
     primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
     secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
     analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
@@ -104,8 +109,10 @@ def plot_mrna_intensity_histogram_peripheral_fraction():
                      figname=tgt_fp)
     logger.info("Generated image at {}", tgt_fp)
 
+
 def plot_protein_histogram_peripheral_fraction():
-    dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
+    dataset_root_fp = pathlib.Path(
+        constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
     primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
     secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
     analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
@@ -127,7 +134,8 @@ def plot_protein_histogram_peripheral_fraction():
 # Figure S2B : mRNA peripheral fraction at 30% for beta-actin, arhgdia, gapdh, pard3, pkp4, rab13
 # to obtain 10% plots, change the config_original file accordingly: PERIPHERAL_FRACTION_THRESHOLD = 10
 logger.info("Peripheral fraction histogram for mRNA the original data")
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,"src/analysis/peripheral_fraction_profile/config_original.json"))
+constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
+                                                           "src/analysis/peripheral_fraction_profile/config_original.json"))
 plot_mrna_histogram_peripheral_fraction()
 
 # Figure 2B : Comparison of the enrichment of 5 mRNAs with respect to Gapdh mRNA in a peripheral cellular-
@@ -137,7 +145,8 @@ plot_mrna_peripheral_fraction_profiles()
 
 # Figure 2G upper panel: protein peripheral fraction at 30% for CHX arhgdia and pard3
 logger.info("Peripheral fraction for the protein CHX data")
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/peripheral_fraction_profile/config_chx.json"))
+constants.init_config(
+    analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/peripheral_fraction_profile/config_chx.json"))
 plot_protein_histogram_peripheral_fraction()
 
 # Figure S2C : mrna treated as intensity data peripheral fraction at 30% for CHX arhgdia and pard3
@@ -147,25 +156,29 @@ plot_mrna_intensity_histogram_peripheral_fraction()
 
 # Figure 5C top panel: 2D data : peripheral fraction nocodazole arhgdia, pard3 at 30% -> barplot mrna and protein
 
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,"src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json"))
+constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
+                                                           "src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json"))
 plot_mrna_histogram_peripheral_fraction_2D()
 plot_protein_histogram_peripheral_fraction()
 
 # Figure 5C bottom panel: 2D data : peripheral fraction nocodazole arhgdia, pard3 at 30% -> barplot mrna and protein
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,"src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json"))
+constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
+                                                           "src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json"))
 plot_mrna_histogram_peripheral_fraction_2D()
 plot_protein_histogram_peripheral_fraction()
 
 # Figure S5C : mRNA peripheral fraction at 30% for arhgdia, cytod
 # to obtain 10% plots, change the config_original file accordingly: PERIPHERAL_FRACTION_THRESHOLD = 10
 logger.info("Peripheral fraction for the cytod data")
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,"src/analysis/peripheral_fraction_profile/config_cytod.json"))
+constants.init_config(
+    analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/peripheral_fraction_profile/config_cytod.json"))
 plot_mrna_histogram_peripheral_fraction()
 plot_protein_histogram_peripheral_fraction()
 
 # New Figure : mRNA peripheral fraction at 30% for arhgdia for control and prrc2c depleted
 # to obtain 10% plots, change the config_original file accordingly: PERIPHERAL_FRACTION_THRESHOLD = 10
 logger.info("Peripheral fraction for the prrc2c data")
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,"src/analysis/peripheral_fraction_profile/config_prrc2c.json"))
+constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
+                                                           "src/analysis/peripheral_fraction_profile/config_prrc2c.json"))
 plot_mrna_histogram_peripheral_fraction()
 plot_protein_histogram_peripheral_fraction()

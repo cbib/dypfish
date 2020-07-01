@@ -12,7 +12,8 @@ from image_set import ImageSet
 from path import global_root_dir
 
 # Figure S5B left: mrna cytoplasmic spread for cytod
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/cytoplasmic_spread/config_cytod.json"))
+constants.init_config(
+    analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/cytoplasmic_spread/config_cytod.json"))
 
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
 primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])

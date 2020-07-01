@@ -18,11 +18,7 @@ primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FIL
 secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
 analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
 
-# ################################## ################################## ################################## #################################
-# ################################## ################################## ################################## #################################
-###                                 Figure 1.D bottom left (cell area) Standard vs Micropatterned
-# ################################## ################################## ################################## #################################
-# ################################## ################################## ################################## #################################
+# Figure 1.D bottom left (cell area) Standard vs Micropatterned
 logger.info("cell area comparison for arhgdia et arhgdia_cultured 3h data")
 df_cell_area = pd.DataFrame(columns=["Gene", "value"])
 dict_Cell_area = {"Gene": [], "value": []}
@@ -44,11 +40,7 @@ tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_BOXPLOT'].format(
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
 sns_boxplot(df_cell_area, my_pal, tgt_fp)
 
-# ################################## ################################## ################################## #################################
-# ################################## ################################## ################################## #################################
-###                                 Figure 1.D bottom left (nucleus area) Standard vs Micropatterned
-# ################################## ################################## ################################## #################################
-# ################################## ################################## ################################## #################################
+# Figure 1.D bottom left (nucleus area) Standard vs Micropatterned
 logger.info("nucleus area comparison for arhgdia et arhgdia_cultured 3h data")
 df_nucleus_area = pd.DataFrame(columns=["Gene", "value"])
 dict_nucleus_area = {"Gene": [], "value": []}
@@ -70,11 +62,7 @@ tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_BOXPLOT'].format(
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
 sns_boxplot(df_nucleus_area, my_pal, tgt_fp)
 
-# ################################## ################################## ################################## #################################
-# ################################## ################################## ################################## #################################
-###                                 Figure 1.D Top right(transcript total count by cell area)Micropatterned cell
-# ################################## ################################## ################################## #################################
-# ################################## ################################## ################################## #################################
+# Figure 1.D Top right(transcript total count by cell area)Micropatterned cell
 dict_transcript_by_cell = {"total_transcript": [], "cell_area": []}
 [dict_transcript_by_cell["total_transcript"].append(image.compute_cytoplasmic_total_spots()) for image in
  ImageSet(analysis_repo, ["mrna/arhgdia/"]).get_images()]
@@ -85,11 +73,7 @@ tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(roo
 sns_linear_regression(dict_transcript_by_cell["cell_area"], dict_transcript_by_cell["total_transcript"], "#0A3950",
                       tgt_fp)
 
-# ################################## ################################## ################################## #################################
-# ################################## ################################## ################################## #################################
-###                                 Figure 1.D Top left (transcript total count by cell area) Cultured cells
-# ################################## ################################## ################################## #################################
-# ################################## ################################## ################################## #################################
+# Figure 1.D Top left (transcript total count by cell area) Cultured cells
 dict_transcript_by_cell = {"total_transcript": [], "cell_area": []}
 [dict_transcript_by_cell["total_transcript"].append(image.compute_cytoplasmic_total_spots()) for image in
  ImageSet(analysis_repo, ["mrna/arhgdia_cultured/3h/"]).get_images()]
