@@ -27,6 +27,15 @@ Download paper data (if you want to reproduce the paper's figures) :
 sh download_data_paper.sh
 ```
 
+RUN UNIT TESTS : 
+
+At dypfish's root : 
+
+```sh
+export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
+python -m unittest
+```
+
 USAGE :
 
 At Dypish's root : 
