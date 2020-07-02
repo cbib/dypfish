@@ -8,58 +8,71 @@ import constants
 import plot
 import numpy as np
 import math
-from helpers import open_repo
+
+import pandas as pd
+from helpers import open_repo, color_variant
 
 from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
 
-"""
-for each timepoint, process_data function compute median, low and up envelope
-normalize data by mean of median timepoint result
-"""
 
+def plot_dynamic_barplot(analysis_repo):
+    plot_colors = constants.analysis_config['PLOT_COLORS']
 
-def process_data(gene, molecule_type, repo, timepoints):
-    data = np.zeros((3, len(timepoints)))
-    for i in range(len(timepoints)):
-        image_set = ImageSet(repo, ["{0}/{1}/{2}/".format(molecule_type, gene, timepoints[i])])
-        # degree_of_clustering = np.array(image_set.compute_mtoc_dependent_degree_of_clustering())
-        degree_of_clustering = np.array(image_set.compute_degree_of_clustering())
-        results_median = np.median(degree_of_clustering)
-        err = np.median(
-            np.abs(np.tile(np.median(degree_of_clustering), (1, len(degree_of_clustering))) - degree_of_clustering))
-        upp_env = results_median + err
-        low_env = results_median - err
-        data[0, i] = results_median
-        data[1, i] = upp_env
-        data[2, i] = low_env
-    normalized_data = data / np.mean(data[0, :])
+    for i, gene in enumerate(constants.analysis_config['PROTEINS']):
+        df = pd.DataFrame(columns=["Gene", "Molecule_type", "Timepoint", "DoC"])
+        dict = {'Gene': [], 'Molecule_type': [], 'Timepoint': [], 'DoC': []}
+        cpt = 0
+        for tp in constants.dataset_config['TIMEPOINTS_MRNA']:
+            image_set = ImageSet(analysis_repo, ["{0}/{1}/{2}/".format("mrna", gene, tp)])
+            degree_of_clustering = np.array(image_set.compute_degree_of_clustering())
+            for Doc in degree_of_clustering:
+                dict["Gene"].append(gene)
+                dict["Molecule_type"].append("mrna")
+                dict["Timepoint"].append(tp)
+                if Doc > 0:
+                    dict["DoC"].append(math.log(Doc))
+                else:
+                    dict["DoC"].append(0)
+            cpt += 1
+        dict["DoC"] = dict["DoC"] / np.mean(dict["DoC"])
+        df = pd.concat([df, pd.DataFrame(dict)])
 
-    return normalized_data
+        dict = {'Gene': [], 'Molecule_type': [], 'Timepoint': [], 'DoC': []}
+        cpt = 0
+        for tp in constants.dataset_config['TIMEPOINTS_PROTEIN']:
+            image_set = ImageSet(analysis_repo, ["{0}/{1}/{2}/".format("protein", gene, tp)])
+            # degree_of_clustering = np.array(image_set.compute_mtoc_dependent_degree_of_clustering())
+            degree_of_clustering = np.array(image_set.compute_degree_of_clustering())
+            for Doc in degree_of_clustering:
+                dict["Gene"].append(gene)
+                dict["Molecule_type"].append("protein")
+                dict["Timepoint"].append(tp)
+                if Doc > 0 :
+                    dict["DoC"].append(math.log(Doc))
+                else:
+                    dict["DoC"].append(0)
+            cpt += 1
+        dict["DoC"] = dict["DoC"] / np.mean(dict["DoC"])
+        df = pd.concat([df, pd.DataFrame(dict)])
+        print(df)
+        tgt_image_name = constants.analysis_config['DYNAMIC_FIGURE_NAME_FORMAT'].format(gene=gene)
+        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                              tgt_image_name)
 
+        my_pal = {"mrna": str(plot_colors[i]), "protein": str(color_variant(plot_colors[i], +80))}
+        plot.sns_barplot_simple(df, my_pal, tgt_fp, x="Timepoint", y="DoC", hue="Molecule_type")
 
 configurations = [
     ["src/analysis/degree_of_clustering/config_original.json", "", "", ""]
 ]
 
+# # Figure 2F  : Dynamic profile of degree of clustering for original data
 if __name__ == '__main__':
     for conf in configurations:
         conf_full_path = pathlib.Path(global_root_dir, conf[0])
         constants.init_config(analysis_config_js_path=conf_full_path)
         repo = open_repo()
-
-        # Figure 2F  : Dynamic profile of degree of clustering for original data
-        plot_colors = constants.analysis_config['PLOT_COLORS']
-        for i, gene in enumerate(constants.analysis_config['MRNA_GENES']):
-            mrna_data = process_data(gene, "mrna", repo, constants.dataset_config['TIMEPOINTS_MRNA'])
-            if gene in constants.analysis_config['PROTEINS']:
-                protein_data = process_data(gene, "protein", repo, constants.dataset_config['TIMEPOINTS_PROTEIN'])
-            # generate image
-            tgt_image_name = constants.analysis_config['DYNAMIC_FIGURE_NAME_FORMAT'].format(gene=gene)
-            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                                  tgt_image_name)
-            plot.dynamic_profiles(mrna_data, protein_data, gene, 'Time(hrs)', 'Degree of clustering(*)', tgt_fp,
-                                  plot_colors[i])
-            #plot.plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: DensityStats,molecule_list, mrna_timepoint_list, protein_timepoint_list)
+        plot_dynamic_barplot(repo)
