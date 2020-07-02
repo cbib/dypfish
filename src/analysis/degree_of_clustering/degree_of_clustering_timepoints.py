@@ -32,10 +32,7 @@ def plot_dynamic_barplot(analysis_repo):
                 dict["Gene"].append(gene)
                 dict["Molecule_type"].append("mrna")
                 dict["Timepoint"].append(tp)
-                if Doc > 0:
-                    dict["DoC"].append(math.log(Doc))
-                else:
-                    dict["DoC"].append(0)
+                dict["DoC"].append(Doc)
             cpt += 1
         dict["DoC"] = dict["DoC"] / np.mean(dict["DoC"])
         df = pd.concat([df, pd.DataFrame(dict)])
@@ -50,10 +47,7 @@ def plot_dynamic_barplot(analysis_repo):
                 dict["Gene"].append(gene)
                 dict["Molecule_type"].append("protein")
                 dict["Timepoint"].append(tp)
-                if Doc > 0 :
-                    dict["DoC"].append(math.log(Doc))
-                else:
-                    dict["DoC"].append(0)
+                dict["DoC"].append(Doc)
             cpt += 1
         dict["DoC"] = dict["DoC"] / np.mean(dict["DoC"])
         df = pd.concat([df, pd.DataFrame(dict)])
