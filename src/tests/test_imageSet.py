@@ -98,10 +98,10 @@ class TestImageSet(TestCase):
                                  1.159107670776693]}
 
         self.assertEqual(len(dict), len(dict_to_test))
-        self.assertAlmostEqual(np.sum(dict['MTOC']), np.sum(dict_to_test['MTOC']), places=5)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC1']), np.sum(dict_to_test['Non MTOC1']), places=5)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC2']), np.sum(dict_to_test['Non MTOC2']), places=5)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC3']), np.sum(dict_to_test['Non MTOC3']), places=5)
+        self.assertAlmostEqual(np.sum(dict['MTOC']), np.sum(dict_to_test['MTOC']), places=3)
+        self.assertAlmostEqual(np.sum(dict['Non MTOC1']), np.sum(dict_to_test['Non MTOC1']), places=3)
+        self.assertAlmostEqual(np.sum(dict['Non MTOC2']), np.sum(dict_to_test['Non MTOC2']), places=3)
+        self.assertAlmostEqual(np.sum(dict['Non MTOC3']), np.sum(dict_to_test['Non MTOC3']), places=3)
 
     def test_compute_normalised_quadrant_densities_protein(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
@@ -118,10 +118,10 @@ class TestImageSet(TestCase):
                      1.2157700467455073]}
 
         self.assertEqual(len(dict), len(dict_to_test))
-        self.assertAlmostEqual(np.sum(dict['MTOC']), np.sum(dict_to_test['MTOC']), places=5)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC1']), np.sum(dict_to_test['Non MTOC1']), places=5)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC2']), np.sum(dict_to_test['Non MTOC2']), places=5)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC3']), np.sum(dict_to_test['Non MTOC3']), places=5)
+        self.assertAlmostEqual(np.sum(dict['MTOC']), np.sum(dict_to_test['MTOC']), places=3)
+        self.assertAlmostEqual(np.sum(dict['Non MTOC1']), np.sum(dict_to_test['Non MTOC1']), places=3)
+        self.assertAlmostEqual(np.sum(dict['Non MTOC2']), np.sum(dict_to_test['Non MTOC2']), places=3)
+        self.assertAlmostEqual(np.sum(dict['Non MTOC3']), np.sum(dict_to_test['Non MTOC3']), places=3)
 
     def test_mtoc_is_in_leading_edge(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
@@ -178,7 +178,7 @@ class TestImageSet(TestCase):
        0.00000000e+00, 1.82166033e-04, 4.64646470e-04, 3.66218402e-04]]
 
         self.assertEqual(len(result), len(test))
-        self.assertAlmostEqual(np.sum(result), np.sum(test), places=5)
+        self.assertAlmostEqual(np.sum(result), np.sum(test), places=3)
 
     def test_compute_zline_distance(self):
         image_set = ImageSet(self.repo, path_list=['mrna/actn2/immature/'])
