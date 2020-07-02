@@ -98,7 +98,7 @@ class TestImageSet(TestCase):
                                  1.159107670776693]}
 
         self.assertEqual(len(dict), len(dict_to_test))
-        self.assertAlmostEqual(np.sum(dict['MTOC']), np.sum(dict_to_test['MTOC']), places=3)
+        self.assertAlmostEqual(np.sum(dict['MTOC']), np.sum(dict_to_test['MTOC']), places=2)
         self.assertAlmostEqual(np.sum(dict['Non MTOC1']), np.sum(dict_to_test['Non MTOC1']), places=3)
         self.assertAlmostEqual(np.sum(dict['Non MTOC2']), np.sum(dict_to_test['Non MTOC2']), places=3)
         self.assertAlmostEqual(np.sum(dict['Non MTOC3']), np.sum(dict_to_test['Non MTOC3']), places=3)
