@@ -59,7 +59,7 @@ for j in range(500):
         mads.append(mse)
     total_mads_arhgdia.append(mads)
 
-imageset = ImageSet(analysis_repo, ["mrna/arhgdia_cultured/"], force2D=True)
+imageset = ImageSet(analysis_repo, ["mrna/arhgdia_cultured/3h"], force2D=True)
 
 spots_peripheral_distances = imageset.compute_spots_peripheral_distance()
 # spots_peripheral_distances = np.array([get_spots_peripheral_distance_2D(image.get_spots(), image.get_nucleus_mask(),image.get_cell_mask(),image.get_cell_mask_distance_map()) for image inimageset.get_images()])

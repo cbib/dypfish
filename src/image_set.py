@@ -306,9 +306,8 @@ class ImageSet(object):
         for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
             try:
                 cytoplasmic_density = image.compute_cytoplasmic_density()
-                #peripheral_density=image.compute_peripheral_density()
                 arr[i, :] = image.get_quadrants_and_slices_densities(quadrants_num, stripes)
-                #arr[i, :] = arr[i, :] / cytoplasmic_density
+                arr[i, :] = arr[i, :] / cytoplasmic_density
             except RuntimeError as rte:
                 print(rte)
         return arr
@@ -322,10 +321,9 @@ class ImageSet(object):
         arr = np.zeros((len(self.images), stripes * quadrants_num))
         for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
             try:
-                cytoplasmic_density = image.compute_cytoplasmic_density()
-                #peripheral_density=image.compute_peripheral_density()
+                peripheral_density=image.compute_peripheral_density()
                 arr[i, :] = image.get_peripheral_quadrants_and_slices_densities(quadrants_num, stripes)
-                #arr[i, :] = arr[i, :] / cytoplasmic_density
+                arr[i, :] = arr[i, :] / peripheral_density
             except RuntimeError as rte:
                 print(rte)
         return arr
