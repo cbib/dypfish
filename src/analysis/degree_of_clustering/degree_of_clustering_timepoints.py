@@ -15,7 +15,6 @@ from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
 
-
 """
 for each timepoint, process_data function compute median, low and up envelope
 normalize data by mean of median timepoint result

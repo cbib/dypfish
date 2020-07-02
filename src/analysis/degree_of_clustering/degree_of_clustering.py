@@ -17,7 +17,6 @@ from image_set import ImageSet
 from path import global_root_dir
 
 
-
 def compute_degree_of_clustering(genes_list, base, repo, molecule_type):
     gene2median_degree_of_clustering = {}
     gene2error_degree_of_clustering = {}
@@ -29,7 +28,8 @@ def compute_degree_of_clustering(genes_list, base, repo, molecule_type):
         median_degree_of_clustering = np.median(degree_of_clustering)
         gene2median_degree_of_clustering[gene] = math.log(median_degree_of_clustering) - base
         err = np.median(np.abs(median_degree_of_clustering - degree_of_clustering))
-        gene2error_degree_of_clustering[gene] = math.log(median_degree_of_clustering + err) - math.log(median_degree_of_clustering) - base
+        gene2error_degree_of_clustering[gene] = math.log(median_degree_of_clustering + err) - math.log(
+            median_degree_of_clustering) - base
     return gene2median_degree_of_clustering, gene2error_degree_of_clustering
 
 
@@ -66,7 +66,6 @@ if __name__ == '__main__':
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
 
-
         plot.bar_profile_median(gene2median_degree_of_clustering.values(),
                                 gene2median_degree_of_clustering.keys(),
                                 gene2error_degree_of_clustering.values(), figname=tgt_fp)
@@ -87,4 +86,3 @@ if __name__ == '__main__':
                                 gene2median_degree_of_clustering.keys(),
                                 gene2error_degree_of_clustering.values(), figname=tgt_fp)
         logger.info("Generated image at {}", tgt_fp)
-
