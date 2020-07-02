@@ -149,6 +149,7 @@ class TestImageSet(TestCase):
     def test_compute_normalized_quadrant_and_slice_densities(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=8, stripes = 3)
+        print(result)
         test=[[2.30111172e-04, 2.01989822e-05, 8.85521631e-05, 0.00000000e+00,
        0.00000000e+00, 1.26142488e-04, 0.00000000e+00, 5.88262094e-05,
        6.24553515e-04, 5.11497212e-04, 1.70200571e-04, 3.72120340e-04,

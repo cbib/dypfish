@@ -26,10 +26,11 @@ def compute_degree_of_clustering(genes_list, base, repo, molecule_type):
         degree_of_clustering = np.array(image_set.compute_degree_of_clustering())
 
         median_degree_of_clustering = np.median(degree_of_clustering)
-        gene2median_degree_of_clustering[gene] = math.log(median_degree_of_clustering) - base
-        err = np.median(np.abs(median_degree_of_clustering - degree_of_clustering))
-        gene2error_degree_of_clustering[gene] = math.log(median_degree_of_clustering + err) - math.log(
-            median_degree_of_clustering) - base
+        gene2median_degree_of_clustering[gene] = math.log(median_degree_of_clustering)
+
+        #Standard error computation
+        gene2error_degree_of_clustering[gene] = np.std(np.log(degree_of_clustering))/math.sqrt(len(degree_of_clustering))
+
     return gene2median_degree_of_clustering, gene2error_degree_of_clustering
 
 

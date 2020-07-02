@@ -62,3 +62,4 @@ if __name__ == '__main__':
                                   tgt_image_name)
             plot.dynamic_profiles(mrna_data, protein_data, gene, 'Time(hrs)', 'Degree of clustering(*)', tgt_fp,
                                   plot_colors[i])
+            #plot.plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: DensityStats,molecule_list, mrna_timepoint_list, protein_timepoint_list)
