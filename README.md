@@ -60,8 +60,11 @@ Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any
 ## Running unit tests 
 
 * Download the [test dataset](http://dypfish.org/file/zip/example_hdf5.zip), move it to the `example_hdf5` under the `data` folder and unzip it there
-* Place yoursefl in the root directory, then execute `python -m unittest`
+* Place yoursefl in the root directory, then execute: ```sh download_data_test.sh ```
+* When the download is complete execute `export PYTHONPATH=${PYTHONPATH}:$(pwd)/src`
+* To run the test, execute `python -m unittest`
 * Expect ~80 unit tests to be run in ~130seconds.   
+
 
 # Using DypFISH 
 
@@ -73,10 +76,6 @@ DypFISH runs in a command line environment. The runtime is dependent on the hard
 If you wish to test the DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
 and try running the analysis scripts in the `src/analysis` folder. 
 
-To donwload test data (mandatory to run unit tests):
-```sh
-sh download_data_test.sh
-```
 
 To download the data from the paper: 
 ```sh
@@ -88,13 +87,6 @@ To run the available analysis on the provided data (At DypFish's root):
 ```sh
 export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
 python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py
-```
-
-To run Unit tests (At DypFish's root):
-
-```sh
-export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
-python -m unittest
 ```
 
 
