@@ -85,12 +85,12 @@ To run the available analysis on the provided data first execute (At DypFish's r
 
 ```sh
 export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
-
 ```
 
 Then to execute an analysis such as cytoplasmic spread, execute: 
-`python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py`
-
+```sh 
+python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py`
+```
 
 ## Running available analysis on your data
 
