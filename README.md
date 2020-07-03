@@ -59,7 +59,6 @@ Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any
 
 ## Running unit tests 
 
-* Download the [test dataset](http://dypfish.org/file/zip/example_hdf5.zip), move it to the `example_hdf5` under the `data` folder and unzip it there
 * Place yoursefl in the root directory, then execute: ```sh download_data_test.sh ```
 * When the download is complete execute `export PYTHONPATH=${PYTHONPATH}:$(pwd)/src`
 * To run the test, execute `python -m unittest`
@@ -82,12 +81,15 @@ To download the data from the paper:
 sh download_data_paper.sh
 ```
 
-To run the available analysis on the provided data (At DypFish's root):
+To run the available analysis on the provided data first execute (At DypFish's root):
 
 ```sh
 export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
-python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py
+
 ```
+
+Then to execute an analysis such as cytoplasmic spread, execute: 
+`python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py`
 
 
 ## Running available analysis on your data
