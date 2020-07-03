@@ -56,6 +56,7 @@ class TestImageWithMTOC(TestCase):
 
     def test_get_quadrant_mask(self):
         cell_mask = helpers.unit_circle(11, 5)
+        cell_mask = helpers.unit_circle(11, 5)
         nucleus_centroid = [5, 5]
         mtoc_position = [5, 2]
 
