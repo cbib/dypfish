@@ -83,16 +83,14 @@ To download the data from the paper:
 sh download_data_paper.sh
 ```
 
-To run the available analysis on the provided data :
-At Dypish's root : 
+To run the available analysis on the provided data (At DypFish's root):
 
 ```sh
 export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
 python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py
 ```
 
-To run Unit tests : 
-At dypfish's root : 
+To run Unit tests (At DypFish's root):
 
 ```sh
 export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
