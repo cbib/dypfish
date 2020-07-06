@@ -15,36 +15,6 @@ They should be appropriately placed under the `data` subdirectory, e.g. the `chx
 Each subdirectory  in `data` contains a README, configuration files (see explanation below) and will eventually stores all analysis results.
 
 
-THIS SHOULD NOT BE HERE : ---------------------------------------------------------------------------
-
-Donwload test data (mandatory to run unit tests) :
-```sh
-sh download_data_test.sh
-```
-
-Download paper data (if you want to reproduce the paper's figures) : 
-```sh
-sh download_data_paper.sh
-```
-
-RUN UNIT TESTS : 
-
-At dypfish's root : 
-
-```sh
-export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
-python -m unittest
-```
-
-USAGE :
-
-At Dypish's root : 
-
-```sh
-export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
-python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py
-```
-
 -----------------------------------------------------------------------------------------------------
 
 
@@ -89,9 +59,11 @@ Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any
 
 ## Running unit tests 
 
-* Download the [test dataset](http://dypfish.org/file/zip/example_hdf5.zip), move it to the `example_hdf5` under the `data` folder and unzip it there
-* Place yoursefl in the root directory, then execute `python -m unittest`
+* Place yoursefl in the root directory, then execute: ```sh download_data_test.sh ```
+* When the download is complete execute `export PYTHONPATH=${PYTHONPATH}:$(pwd)/src`
+* To run the test, execute `python -m unittest`
 * Expect ~80 unit tests to be run in ~130seconds.   
+
 
 # Using DypFISH 
 
@@ -103,6 +75,23 @@ DypFISH runs in a command line environment. The runtime is dependent on the hard
 If you wish to test the DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
 and try running the analysis scripts in the `src/analysis` folder. 
 
+
+To download the data from the paper: 
+```sh
+sh download_data_paper.sh
+```
+
+To run the available analysis on the provided data first execute (At DypFish's root):
+
+```sh
+export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
+```
+
+Then to execute an analysis such as cytoplasmic spread, execute: 
+```sh 
+python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py`
+```
+
 ## Running available analysis on your data
 
 To run the analysis on your own data, first the images have to be preprocessed and put in the HDF5 file format and second, you need to create the corresponding configuration files in dataset and analysis folders (see below) and make the analysis script refer to your analysis configuration file.
@@ -110,6 +99,7 @@ To run the analysis on your own data, first the images have to be preprocessed a
 ## Available analysis
 
 Analysis scripts and corresponding `analysis configuration` files that were used to generate the figures in the DypFISH paper are provided as examples of how the DypFISH library can be used. They are contained in the `src/analysis` directory and are supposed to be run on the data in the provided data archive.
+
 
 ## Your own analysis
 
