@@ -203,13 +203,11 @@ class ImageWithMTOC(Image):
         rotated_xx, rotated_yy = helpers.rotate_meshgrid(xx, yy, -radians)
 
         # Arbitrarily assign number to each slice
+        # This trunc of pi is used for compatibility between macOS and Linux on how they deal with infinite decimal (0.9999999999999...)
         pi = format(math.pi, '.10f')
         pi = float(pi)
-        sliceno = ((pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / ((8 / slices_num) * pi)))
-        # for i in range(0, len(sliceno)):
-        #     for j in range(0, len(sliceno[i])):
-        #         sliceno[i][j] = str(sliceno[i][j])[:9]
 
+        sliceno = ((pi + np.arctan2(rotated_xx, rotated_yy)) * (4 / ((8 / slices_num) * pi)))
         sliceno = sliceno.astype(int)
         quadrant_mask = sliceno + cell_mask
         quadrant_mask[quadrant_mask == slices_num + 1] = slices_num  # int conversion sometimes rounds the value
