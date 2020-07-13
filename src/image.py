@@ -463,6 +463,14 @@ class ImageWithSpots(Image):
         h_star = self.get_clustering_indices()
         return np.array(h_star[h_star > 1] - 1).sum()
 
+    def keep_cell_mask_spots(self, cell_mask):
+        spots = self.get_spots()
+        new_spots_list = []
+        for spot in spots:
+            if cell_mask[spot[1], spot[0]] == 1:
+                new_spots_list.append(spot)
+        return new_spots_list
+
 class ImageWithIntensities(Image):
     """ Represents an image with intensity data (e.g. from IF), has to have IF descriptor """
 
@@ -856,6 +864,36 @@ class imageMultiNucleusWithSpotsAndZlines(ImageMultiNucleusWithSpots):
         super(imageMultiNucleusWithSpotsAndZlines, self).__init__(repository, image_path)
         if not self._repository.is_include(image_path, image_path + ZLINES_PATH_SUFFIX):
             raise AttributeError("Incorrect format for image %s" % image_path)
+
+    def reduce_z_line_mask(self, z_lines, spots):
+        cpt_z = 1
+        z_lines_idx = []
+        for z_line_mask in z_lines:
+            spots_reduced = spots[spots[:, 2] == cpt_z]
+            if len(spots_reduced) > 25 and len(spots_reduced) < 2000:
+                z_lines_idx.append(cpt_z)
+            cpt_z += 1
+        return z_lines_idx
+
+    def build_density_by_stripe(self, spots, cell_mask, stripe_num=100):
+        z_lines = self.get_z_lines_masks()
+        z_lines_idx = self.reduce_z_line_mask(z_lines, spots)
+        spots = spots[z_lines_idx[0] <= spots[:, 2]]
+        spots = spots[spots[:, 2] <= z_lines_idx[len(z_lines_idx) - 1]]
+        spot_surfacic_density = len(spots) / float(np.sum(cell_mask == 1))
+        cell_width = cell_mask.shape[1] - 240
+        quadrat_edge = cell_width / stripe_num
+        grid_1d = np.zeros((int(stripe_num)))
+        for spot in spots:
+            if spot[0] > 120 and spot[0] < cell_mask.shape[1] - 120:
+                x = int(np.floor((spot[0] - 120) / quadrat_edge))
+                grid_1d[x] += 1
+        grid = [val for val in grid_1d]
+        grid_density = np.matrix(grid).reshape((1, len(grid)))
+        grid_density /= quadrat_edge
+        grid_density /= spot_surfacic_density
+
+        return grid_density
 
     def get_z_lines_masks(self):
         descriptor = self._path + ZLINES_PATH_SUFFIX
