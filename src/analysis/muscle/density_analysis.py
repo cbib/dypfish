@@ -69,6 +69,7 @@ for g in constants.analysis_config['MRNA_GENES_LABEL']:
         nucleus_centroids = im.get_multiple_nucleus_centroid()
         mask_count = 0
         for j in range(len(cell_masks[i])):
+            #check if distance between nuclei is in range [hist_mod - 250, hist_mod + 250]
             if hist_mod - 250 < nucs_dist[i][j] < hist_mod + 250:
                 mask_c = cell_masks[i][j].copy()
                 mask_reduced = mask_c[:, nucs_pos[i][j][0] - 50:nucs_pos[i][j][1] + 50]
