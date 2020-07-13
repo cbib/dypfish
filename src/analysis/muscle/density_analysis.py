@@ -14,17 +14,25 @@ import matplotlib
 import matplotlib.pyplot as plt
 #matplotlib.use('TkAgg')
 
+
+
+
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/muscle/config_muscle.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
 primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
 secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
 analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
 z_line_spacing = constants.analysis_config['Z_LINE_SPACING']
-band_n = constants.analysis_config['STRIPE_NUM']
 
 molecule_type = ['/mrna']
 genes = ['actn2-mature', 'gapdh-mature', 'actn2-immature']
 
+"""
+Figure 7.C 
+The mRNA local density was computed between two nuclei. 
+Each cell was quantized in vertical quadrants (constant STRIPE_NUM) and relative concentration of mRNA in each quadrant was computed 
+by normalizing the counts by the relevant surface.  
+"""
 for g in genes:
     [gene, timepoint] = g.split("-")
     image_set = ImageSet(analysis_repo, [f"{'mrna'}/{gene}/{timepoint}/"])
@@ -58,20 +66,20 @@ for g in genes:
                 mask_c = mask.copy()
                 mask_reduced = mask_c[:, nuc_pos[0] - 50:nuc_pos[1] + 50]
                 spots_reduced[:, 0] -= nuc_pos[0] - 50
-                grid_mat = helpers.build_density_by_stripe(spots_reduced, z_lines, mask_reduced, band_n=band_n)
+                grid_mat = helpers.build_density_by_stripe(spots_reduced, z_lines, mask_reduced, stripe_num=constants.analysis_config['STRIPE_NUM'])
 
-                # spline graph density by band_n
+                # spline graph density by vertical quadrants
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_GRAPH_STRIPE'].format(
-                    image=str(band_n) + im._path.replace("/", "_") + "_" + str(mask_count))
+                    image=str(constants.analysis_config['STRIPE_NUM']) + im._path.replace("/", "_") + "_" + str(mask_count))
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                       tgt_image_name)
-                spline_graph(grid_mat, tgt_fp, band_n)
+                spline_graph(grid_mat, tgt_fp, constants.analysis_config['STRIPE_NUM'])
 
-                # heatmap density by band_n
+                # heatmap density by vertical quadrants
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_HEATMAP'].format(
-                    image=str(band_n) + im._path.replace("/", "_") + "_" + str(mask_count))
+                    image=str(constants.analysis_config['STRIPE_NUM']) + im._path.replace("/", "_") + "_" + str(mask_count))
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                       tgt_image_name)
-                heatmap(grid_mat, tgt_fp, band_n)
+                heatmap(grid_mat, tgt_fp, constants.analysis_config['STRIPE_NUM'])
                 mask_count += 1
         image_counter += 1

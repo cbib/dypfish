@@ -25,6 +25,8 @@ def compute_zline_distance(repo, molecule_list, timepoints, z_line_spacing):
     return all_median_profiles
 
 
+
+
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/muscle/config_muscle.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
 primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
@@ -53,4 +55,14 @@ tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(roo
 all_median_profiles.append(df_mature.loc[0].values)
 all_median_profiles.append(df_mature.loc[1].values)
 all_median_profiles.append(df_immature.loc[0].values)
+
+""" 
+Figure 7B - mRNA distance profiles. 
+For each mRNA we computed its distance to the closest Z-lines, 
+which allowed us to count the number of mRNAs having a certain distance to Z-lines. 
+Normalized median counts are represented on the y axis.  
+A higher  number of actn2 immature mRNA falls inside or close to Z-lines compared to mature fibers, 
+suggesting greater clustering of mRNA between Z-lines for mature actn2. 
+The Z-line distance is a Euclidean distance.
+"""
 profile(all_median_profiles, genes, z_line_spacing, tgt_fp)
