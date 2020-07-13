@@ -550,6 +550,7 @@ def profile(profiles, genes, num_contours, figname):
     plt.xticks([w for w in range(0, num_contours + 2, 10)])
     for i in range(len(genes)):
         plt.plot(np.arange(num_contours), profiles[i], color=plot_colors[i], linewidth=3, label=genes)
+    logger.info("Generated image at {}", figname)
     plt.savefig(figname)
     plt.close()
 
