@@ -51,7 +51,6 @@ def plot_dynamic_barplot(analysis_repo):
             cpt += 1
         dict["DoC"] = dict["DoC"] / np.mean(dict["DoC"])
         df = pd.concat([df, pd.DataFrame(dict)])
-        print(df)
         tgt_image_name = constants.analysis_config['DYNAMIC_FIGURE_NAME_FORMAT'].format(gene=gene)
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
