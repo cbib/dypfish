@@ -16,3 +16,5 @@ This dataset contains images of micropatterned and standard cultured cells (indi
 | Pkp4              | mRNA              | 2 h (17); 3 h (32); 4 h (11); 5 h (26) |
 | Rab13             | mRNA              | 2 h (16); 3 h (13); 4 h (22); 5 h (8)  |
 
+| WARNING: **DypFISH HDF5 files has not been computed with parallel access; Consequently, you cannot run more than one analysis at a time**! Be very careful here!|
+| --- |
