@@ -34,7 +34,7 @@ def compute_degree_of_clustering(genes_list, repo, molecule_type):
 Figure 2E left panel: plots the log mRNA degree of clustering for original
 Figure 2E right panel: plots the log protein degree of clustering normalized for original
 
-Figure 2E left panel: plots the log mRNA degree of clustering normalized for prrc2c
+Figure 4B left panel: plots the log mRNA degree of clustering normalized for prrc2c
 Figure 4B right panel: plots the log protein degree of clustering normalized for prrc2c
 
 Figure 2G : plots the log protein degree of clustering normalized for CHX
