@@ -128,7 +128,7 @@ def bar_profile(data, genes, figname):
            error_kw=dict(elinewidth=1, ecolor='black'))
     ax.set_xlim(-width, len(ind) + width)
     ax.set_xticks(ind)
-    ax.set_xticklabels(["" for i in range(0, N)])
+    ax.set_xticklabels(["" for i in range(0, len(genes))])
     create_dir_if_needed_for_filepath(figname)
     plt.savefig(figname, format='png')
     plt.close()
