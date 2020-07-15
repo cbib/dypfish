@@ -3,15 +3,12 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-import sys
 from loguru import logger
 import constants
 import plot
 import numpy as np
 import math
 from helpers import open_repo
-
-from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
@@ -22,12 +19,10 @@ def compute_degree_of_clustering(genes_list, base, repo, molecule_type):
     gene2error_degree_of_clustering = {}
     for gene in genes_list:
         image_set = ImageSet(repo, ['{0}/{1}/'.format(molecule_type, gene)])
-        # degree_of_clustering = np.array(image_set.compute_mtoc_dependent_degree_of_clustering())
         degree_of_clustering = np.array(image_set.compute_degree_of_clustering())
 
         median_degree_of_clustering = np.median(degree_of_clustering)
         gene2median_degree_of_clustering[gene] = math.log(median_degree_of_clustering)
-
         #Standard error computation
         gene2error_degree_of_clustering[gene] = np.std(np.log(degree_of_clustering))/math.sqrt(len(degree_of_clustering))
 
@@ -35,12 +30,12 @@ def compute_degree_of_clustering(genes_list, base, repo, molecule_type):
 
 
 ''' 
-Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5) for original
-Figure 2E right panel: plots the log protein degree of clustering normalized by log(0.01) for original
-Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5) for prrc2c
-Figure 4B right panel: plots the log protein degree of clustering normalized by log(0.01) for prrc2c
-Figure 2G : plots the log protein degree of clustering normalized by log(0.01) for CHX
-Figure S2D right panel: plots the log protein degree of clustering normalized by log(0.01) for CHX
+Figure 2E left panel: plots the log mRNA degree of clustering for original
+Figure 2E right panel: plots the log protein degree of clustering for original
+Figure 4B left panel: plots the log mRNA degree of clustering for prrc2c
+Figure 4B right panel: plots the log protein degree of clustering for prrc2c
+Figure 2G bottom panel: plots the log protein degree of clustering for CHX
+Figure S2D right panel: plots the log mRNA degree of clustering  for CHX
 '''
 
 configurations = [
