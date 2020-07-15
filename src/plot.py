@@ -6,7 +6,7 @@ import mpi_calculator
 from helpers import create_dir_if_needed_for_filepath
 from path import global_root_dir
 from mpi_calculator import DensityStats
-
+import math
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -116,26 +116,17 @@ def bar_profile(data, genes, figname):
         ax.spines[axis].set_linewidth(3)
     plt.yticks(fontsize=20)
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    N = len(genes)
     dataMedians = []
-    dataStd = []
-    y_lim = 0
-    y_std = 0
+    dataStdErr = []
     for l in data:
-        max_v = np.median(l)
-        max_std = np.std(l)
-        if max_v > y_lim:
-            y_lim = max_v
-            y_std = max_std
         dataMedians.append(np.median(l))
-        dataStd.append(np.std(l))
-    ind = np.arange(N)
+        dataStdErr.append(np.std(l)/math.sqrt(len(l)))
+    ind = np.arange(len(genes))
     width = 0.35
     ax.bar(ind, dataMedians, width, color=plot_colors,
-           yerr=dataStd,
+           yerr=dataStdErr,
            error_kw=dict(elinewidth=1, ecolor='black'))
     ax.set_xlim(-width, len(ind) + width)
-    #ax.set_ylim(0, y_lim + 2 * y_std)
     ax.set_xticks(ind)
     ax.set_xticklabels(["" for i in range(0, N)])
     create_dir_if_needed_for_filepath(figname)
