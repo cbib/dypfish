@@ -3,6 +3,7 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
+import sys
 from loguru import logger
 import constants
 import plot
@@ -31,14 +32,12 @@ def compute_degree_of_clustering(genes_list, repo, molecule_type):
 
 
 ''' 
-Figure 2E left panel: plots the log mRNA degree of clustering for original
-Figure 2E right panel: plots the log protein degree of clustering normalized for original
-
-Figure 4B left panel: plots the log mRNA degree of clustering normalized for prrc2c
-Figure 4B right panel: plots the log protein degree of clustering normalized for prrc2c
-
-Figure 2G : plots the log protein degree of clustering normalized for CHX
-Figure S2D right panel: plots the log protein degree of clustering normalized for CHX
+Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5) for original
+Figure 2E right panel: plots the log protein degree of clustering normalized by log(0.01) for original
+Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5) for prrc2c
+Figure 4B right panel: plots the log protein degree of clustering normalized by log(0.01) for prrc2c
+Figure 2G : plots the log protein degree of clustering normalized by log(0.01) for CHX
+Figure S2D right panel: plots the log protein degree of clustering normalized by log(0.01) for CHX
 '''
 
 configurations = [
