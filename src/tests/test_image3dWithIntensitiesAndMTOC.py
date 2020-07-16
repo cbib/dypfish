@@ -30,7 +30,7 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
 
     def test_split_in_quadrants(self):
         # was test_array = np.array([(1.71464963, 0), (1.53409342, 0), (0.96447942, 1), (0.93590757, 0)])
-        test_array = np.array([(2928540.94, 0), (2614853.09, 0), (1675479.00, 1), (1619704.92, 0)])
+        test_array = np.array([(2928540.94, 0), (2614853.09, 0), (1675368.88, 1), (1619814.18, 0)])
         result = self.img.split_in_quadrants()
         self.assertEqual(np.shape(result), np.shape(test_array))
         self.assertAlmostEqual(np.sum(result[:,0]), np.sum(test_array[:,0]), places=2)
