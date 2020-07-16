@@ -65,4 +65,4 @@ class TestImageWithMTOC(TestCase):
         self.assertEqual(quadrant_mask.sum(), 179)
 
         quadrant_mask = self.img.compute_quadrant_mask(degree=45, slices_num=4)
-        self.assertEqual(quadrant_mask.sum(), 133621)
+        self.assertEqual(quadrant_mask.sum(), 133618)
