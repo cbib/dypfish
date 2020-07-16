@@ -47,7 +47,7 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
             "test_compute_max_density_MTOC_quadrant test not well tested",
             RuntimeWarning
         )
-        test_array = np.array([(0.17627395, 1.), (0.12215191, 0.), (0.16022562, 0.), (0.07741876, 0.)])
+        test_array = np.array([(0.12947032, 0.), (0.15919367, 0.), (0.06432269, 0.), (0.17692811, 1.)])
         # was : [[1.37964585, 1], [0.96665656, 0], [1.26909676, 0], [0.61669439, 0]]
         results = self.img.split_in_quadrants()
         self.assertEqual(np.shape(results), np.shape(test_array))
