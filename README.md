@@ -72,9 +72,7 @@ DypFISH runs in a command line environment. The runtime is dependent on the hard
 
 ## Running available analysis on the provided data
 
-If you wish to test the DypFISH analysis, you can download the data from [our website](http://dypfish.org/file/zip/data.zip) 
-and try running the analysis scripts in the `src/analysis` folder. 
-
+The analysis scripts are in the `src/analysis` folder. 
 
 To download the data from the paper: 
 ```sh
