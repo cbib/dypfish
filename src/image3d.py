@@ -36,7 +36,11 @@ class Image3d(Image):
 
     @staticmethod
     def is_a(repo: Repository, path: str):
-        return repo.is_present(path + HEIGHT_MAP_PATH_SUFFIX) and repo.is_present(path + ZERO_LEVEL_PATH_SUFFIX)
+        # TODO : check if we need zero level to define a 3D cell.
+        #  comment ZERO_LEVEL_PATH_SUFFIX is present() for Cultured data to run volume corrected analysis.
+        #  they do not have ZERO LEVEL descriptors and so was rejected as a 3D image
+        return repo.is_present(path + HEIGHT_MAP_PATH_SUFFIX) \
+               #and repo.is_present(path + ZERO_LEVEL_PATH_SUFFIX)
 
     def __init__(self, repository: Repository, image_path: str):
         super(Image3d, self).__init__(repository, image_path)

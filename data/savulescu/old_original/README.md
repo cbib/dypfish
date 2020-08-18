@@ -16,3 +16,15 @@ This dataset contains images of micropatterned and standard cultured cells (indi
 | Pkp4              | mRNA              | 2 h (17); 3 h (32); 4 h (11); 5 h (26) |
 | Rab13             | mRNA              | 2 h (16); 3 h (13); 4 h (22); 5 h (8)  |
 
+
+## prc2cc dataset
+
+This dataset contains images of micropatterned and standard cultured cells (indicated by *). 
+
+| Gene              | Molecular species | Time point (number of images)          |
+|-------------------|-------------------|----------------------------------------|
+|  Arhgdia (control) | mRNA              | no timepoints (38) |
+|  Arhgdia (control) | protein           | no timepoints (46) |
+|  Arhgdia (prrc2c_depleted)           | mRNA              | no timepoints (20)|
+|  Arhgdia (prrc2c_depleted)          | protein           | no timepoints (36) |
+
