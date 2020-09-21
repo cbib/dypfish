@@ -584,7 +584,7 @@ def plot_figure(total_mads_arhgdia, total_mads_arhgdia_cultured, figname):
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     plt.plot(np.mean(total_mads_arhgdia, axis=0), color='blue')
     plt.plot(np.mean(total_mads_arhgdia_cultured, axis=0), color='black')
-    ax.set_xlim(0, 40)
+    ax.set_xlim(0, len(total_mads_arhgdia[0]))
     plt.savefig(figname)
     plt.close()
 

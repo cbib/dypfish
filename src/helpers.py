@@ -383,3 +383,12 @@ def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_
         tis = (12 - stat) / 3.0
 
     return tis, p, ranking
+
+# Stability analysis part
+
+def mean_absolute_deviation(data, axis=None):
+    return np.mean(np.absolute(data - np.mean(data, axis)), axis)
+
+
+def median_absolute_deviation(data, axis=None):
+    return np.median(np.absolute(data - np.median(data, axis)), axis)

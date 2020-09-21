@@ -16,10 +16,10 @@
   "MAX_SPOT_NUM": 2000,
   "MIN_SNR": 1,
   "MIN_HEIGHT_MAP_AREA": 10000,
-  "MRNA_GENES_LABEL" : ["Arhgdia", "ß-Actin","Gapdh", "Pard3", "Pkp4", "Rab13"],
-  "MRNA_GENES" : ["arhgdia", "beta_actin", "gapdh", "pard3", "pkp4", "rab13"],
-  "PROTEINS" : ["arhgdia", "beta_actin", "gapdh", "pard3"],
-  "PLOT_COLORS" : ["#1E95BB", "#0A3950", "#A1BA6D", "#F16C1B", "#C02A18", "#E9CB45"],
+  "MRNA_GENES_LABEL" : ["Arhgdia", "Arhgdia cultured cells"],
+  "MRNA_GENES" : ["arhgdia", "arhgdia_cultured"],
+  "PROTEINS" : ["arhgdia", "arhgdia_cultured"],
+  "PLOT_COLORS" : ["#0A3950", "#1E95BB"],
   "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/original/config.json"
 }
 
