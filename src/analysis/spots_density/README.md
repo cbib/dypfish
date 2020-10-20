@@ -1,4 +1,4 @@
-Command line to launch MTOC from dypfish root: 
+Command line to launch spot density analysis from dypfish root: 
 
 ```python src/analysis/spot_density/compare_cell_characteristics.py```
 
