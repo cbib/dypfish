@@ -1,4 +1,4 @@
-Command line to launch MTOC from dypfish root: 
+Command line to launch Muscle analysis from dypfish root: 
 
 ```python src/analysis/muscle/compute_z_line_distance.py```
 
