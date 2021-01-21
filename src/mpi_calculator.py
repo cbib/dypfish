@@ -51,7 +51,7 @@ class DensityStats(object):
 
     def subset_stats(self, column_label, column_value):
         return DensityStats(
-            df=self.df[self.df[column_label]==column_value],
+            df=self.df[self.df[column_label] == column_value],
             group_key=self.group_key,
             mpi_sample_size=self.mpi_sample_size,
             quadrant_labels=self.quadrant_labels,
@@ -74,9 +74,6 @@ class DensityStats(object):
 
     def ratios(self):
         return self.df[self.mtoc_quadrant_label] / self.df[self.quadrant_labels].mean(axis=1)
-    #was avoiding zeros:
-    # density_stats['MTOC ratio'] = density_stats.apply(lambda row: row['MTOC'] / row.filter(regex=("Non MTOC.*")).mean() if row.filter(
-    #    regex=("Non MTOC.*")).mean() != 0 else 0.0, axis=1)
 
 
 def calculate_mpi(mtoc: list, quadrants: list) -> MTOCPolarityIndex:
@@ -84,18 +81,14 @@ def calculate_mpi(mtoc: list, quadrants: list) -> MTOCPolarityIndex:
     Given two lists of floats, calculate the MTOC Polarity Index
     It represents the number of times the mtoc list values are greater than those in the other quadrants
     """
-   #adjusted_mtoc = mtoc - quadrants
-
     adjusted_mtoc = mtoc - np.median(quadrants)  # TODO : why nanmedian and not just median?
     npos = sum(x > 0 for x in adjusted_mtoc)
     mpi = ((float(npos) / len(adjusted_mtoc)) * 2) - 1
-    #TODO it's just for displaying
-    if (mpi==0.0):
-        mpi=0.01
+    # TODO it's just for displaying
+    if (mpi == 0.0):
+        mpi = 0.01
     statistic, p = mannwhitneyu(mtoc, quadrants, alternative='two-sided')
     return MTOCPolarityIndex(index=mpi, pvalue=p)
-
-
 
 
 def calculate_random_mpi(mtoc, quadrants, mpi_sub_sample_size) -> MTOCPolarityIndex:
