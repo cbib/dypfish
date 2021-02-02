@@ -169,7 +169,7 @@ For any information or help running DypFISH, you can get in touch with:
         146, rue Leo Saignat, 33076 Bordeaux, France
 
         (2) CNRS, IBGC - University of Bordeaux,
-        351 cours de la Libération, 33400 Talence, France
+        146, rue Léo Saignat, Université de Bordeaux, 33077 Bordeaux, France
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
