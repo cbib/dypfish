@@ -79,7 +79,7 @@ To download the data from the paper:
 sh download_data_paper.sh
 ```
 
-To run the available analysis on the provided data first execute (At DypFish's root):
+To run the available analysis on the provided data first execute at DypFISH root folder (see above):
 
 ```sh
 export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
