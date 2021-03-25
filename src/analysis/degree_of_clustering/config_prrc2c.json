@@ -16,9 +16,8 @@
   "MIN_SPOT_NUM": 10,
   "MIN_HEIGHT_MAP_AREA": 20000,
   "MIN_SNR": 1,
-  "MRNA_GENES" : ["control", "prrc2c_depleted"],
-  "PROTEINS" : ["arhgdia"],
+  "MRNA_GENES" : ["arhgdia/control", "arhgdia/prrc2c_depleted"],
+  "PROTEINS" : ["arhgdia/control", "arhgdia/prrc2c_depleted"],
   "PLOT_COLORS" : ["#0A3950", "#1E95BB"],
   "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/prrc2c/config.json"
 }
-
