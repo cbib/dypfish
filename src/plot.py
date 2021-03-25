@@ -35,21 +35,24 @@ def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
     plt.close()
 
 
-def sns_barplot_simple(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
+def sns_barplot_simple(dd, palette, gene, x, y, hue='Quadrants'):
+    """
+    Plots a barplot for the dataframe dd with x and y providing the column names
+    """
+    print(dd)
     fig = plt.figure()
-    # dd[dd[y] < 15]
-    box = sns.barplot(x=x, y=y, data=dd[dd[y] < 15], hue=hue, palette=my_pal)
-    # box= sns.catplot(x=x, y=y, data=dd,  col=hue, kind="bar", height=4, aspect=.7);
+    box = sns.barplot(x=x, y=y, data=dd[dd[y] < 15], hue=hue, palette=palette) # TODO for coherency should have here estimator = np.median
     box.set_xlabel("", fontsize=15)
     box.set_ylabel("", fontsize=15)
     box.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
-    # box.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
-
-    # box.set(ylim=(-1, 1))
     box.legend_.remove()
     plt.yticks(fontsize=20)
     plt.xticks(fontsize=20)
-    fig.savefig(figname, format='png')
+
+    tgt_image_name = constants.analysis_config['DYNAMIC_FIGURE_NAME_FORMAT'].format(gene=gene)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+    fig.savefig(tgt_fp, format='png')
     plt.close()
     logger.info("Generated image at {}", tgt_fp)
 
