@@ -67,3 +67,9 @@ class Test(TestCase):
         mpi = mpi_calculator.calculate_mpi([1, 1, 1, 1, 1, 1, 1], [7, 7, 7, 7, 7, 7, 7])
         self.assertEqual(mpi.index, -1.0)
         self.assertEqual(mpi.pvalue, 0.00041247833638552163)
+
+    def test_median_confidence_interval(self):
+        a = np.array([24, 38, 61, 22, 16, 57, 31, 29, 35])
+        l, h = helpers.median_confidence_interval(a, cutoff = 0.8)
+        self.assertEqual(l, 29)
+        self.assertEqual(h, 57)

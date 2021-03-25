@@ -311,7 +311,11 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
     def compute_degree_of_clustering(self) -> int:
         h_star = self.get_clustering_indices()
-        return np.array(h_star[h_star > 1] - 1).sum()
+        d_of_c = np.array(h_star[h_star > 1] - 1).sum()
+        if int(d_of_c) == 0:
+            return 0.0001 # TODO this is a hack so that a downstream log does not fail
+
+        return d_of_c
 
     def compute_peripheral_density(self):
         # compute mRNA density in the peripheral area

@@ -134,10 +134,13 @@ def bar_profile(data, genes, figname):
     plt.close()
 
 
-def bar_profile_median(medians, genes, err, figname):
+def bar_profile_median(medians, genes, err, CI, figname):
+    """
+    Plot a barplot for each gene with height given by medians, error bars defined by err
+    and confidence intervals by CI; CI is a dictionary with keys = genes
+    """
     plot_colors = constants.analysis_config['PLOT_COLORS']
-    fig = plt.figure()
-    ax = plt.axes()
+    fig, ax = plt.subplots()
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
     ax.spines['left'].set_linewidth(3)
@@ -147,13 +150,16 @@ def bar_profile_median(medians, genes, err, figname):
     width = 0.35
     ax.bar(ind, medians, width, color=plot_colors,
            yerr=err,
-           error_kw=dict(elinewidth=1, ecolor='black'))
-    ax.set_xlim(-width, len(ind) + width)
-    # ax.set_ylim(min(medians) - min(err),
-    #            max(medians) + max(err) + 1)  # TODO : why here just "min" and "max" and not np.min as in V0?
-    # ax.set_ylim(, 1)
+           error_kw=dict(elinewidth=6, ecolor='black'))
 
+    # add confidence intervals
+    lower = [vals[0] for vals in CI.values()]
+    upper = [vals[1] for vals in CI.values()]
+    plt.errorbar(ind, medians, yerr=[lower, upper], capsize=3, ls='none', elinewidth=2, mfc='dimgray', color='dimgray')
+
+    ax.set_xlim(-width, len(ind) + width)
     ax.set_xticks([])
+
     fig.savefig(figname)
     plt.close()
 

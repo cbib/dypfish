@@ -114,6 +114,17 @@ def unit_circle(size, r) -> np.ndarray:
 
     return m.astype(int)
 
+def median_confidence_interval(a: np.array, cutoff=.95):
+    ''' cutoff is the significance level as a decimal between 0 and 1'''
+    a = np.sort(a)
+    factor = norm.ppf((1+cutoff)/2) # inv_cdf((1+cutoff)/2)
+    factor *= math.sqrt(len(a)) # avoid doing computation twice
+
+    lix = int(0.5*(len(a)-factor)) + 1
+    uix = int(0.5*(1+len(a)+factor)) + 1
+
+    return a[lix], a[uix]
+
 
 def compute_statistics_random_h_star(h_sim: np.ndarray, max_cell_radius=None, simulation_number=None) -> (
         List[int], List[int], List[int]):
@@ -384,6 +395,7 @@ def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_
 
     return tis, p, ranking
 
+
 # Stability analysis part
 
 def mean_absolute_deviation(data, axis=None):
@@ -392,3 +404,4 @@ def mean_absolute_deviation(data, axis=None):
 
 def median_absolute_deviation(data, axis=None):
     return np.median(np.absolute(data - np.median(data, axis)), axis)
+
