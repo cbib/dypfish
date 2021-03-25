@@ -63,10 +63,6 @@ if __name__ == '__main__':
         gene2median_degree_of_clustering, gene2error_degree_of_clustering, gene2CI = compute_degree_of_clustering(genes_list, repo,
                                                                                                                   molecule_type="mrna")
 
-        tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
-        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                              tgt_image_name)
-
         keyorder = conf[1]
         gene2median_degree_of_clustering = collections.OrderedDict(sorted(gene2median_degree_of_clustering.items(),
                                                                           key=lambda i: keyorder.index(i[0])))
@@ -76,8 +72,7 @@ if __name__ == '__main__':
                                                  key=lambda i: keyorder.index(i[0])))
         plot.bar_profile_median(gene2median_degree_of_clustering.values(),
                                 gene2median_degree_of_clustering.keys(),
-                                gene2error_degree_of_clustering.values(), gene2CI, figname=tgt_fp)
-        logger.info("Generated image at {}", tgt_fp)
+                                gene2error_degree_of_clustering.values(), gene2CI, molecule_type="mrna")
 
         ## Proteins
         protein_time_points = constants.dataset_config['TIMEPOINTS_PROTEIN']
@@ -85,10 +80,6 @@ if __name__ == '__main__':
 
         gene2median_degree_of_clustering, gene2error_degree_of_clustering, gene2CI = compute_degree_of_clustering(protein_list, repo,
                                                                                                                   molecule_type="protein")
-        tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="protein")
-        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                              tgt_image_name)
-
         keyorder = conf[2]
         gene2median_degree_of_clustering = collections.OrderedDict(sorted(gene2median_degree_of_clustering.items(),
                                                                           key=lambda i: keyorder.index(i[0])))
@@ -98,5 +89,4 @@ if __name__ == '__main__':
                                                  key=lambda i: keyorder.index(i[0])))
         plot.bar_profile_median(gene2median_degree_of_clustering.values(),
                                 gene2median_degree_of_clustering.keys(),
-                                gene2error_degree_of_clustering.values(), gene2CI, figname=tgt_fp)
-        logger.info("Generated image at {}", tgt_fp)
+                                gene2error_degree_of_clustering.values(), gene2CI, molecule_type="protein")

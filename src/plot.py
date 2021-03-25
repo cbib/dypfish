@@ -51,6 +51,7 @@ def sns_barplot_simple(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'
     plt.xticks(fontsize=20)
     fig.savefig(figname, format='png')
     plt.close()
+    logger.info("Generated image at {}", tgt_fp)
 
 
 def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type", err="err"):
@@ -134,7 +135,7 @@ def bar_profile(data, genes, figname):
     plt.close()
 
 
-def bar_profile_median(medians, genes, err, CI, figname):
+def bar_profile_median(medians, genes, err, CI, molecule_type):
     """
     Plot a barplot for each gene with height given by medians, error bars defined by err
     and confidence intervals by CI; CI is a dictionary with keys = genes
@@ -160,8 +161,12 @@ def bar_profile_median(medians, genes, err, CI, figname):
     ax.set_xlim(-width, len(ind) + width)
     ax.set_xticks([])
 
-    fig.savefig(figname)
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+    fig.savefig(tgt_fp)
     plt.close()
+    logger.info("Generated image at {}", tgt_fp)
 
 
 def bar_profile_simple(data, figname, plot_colors):
