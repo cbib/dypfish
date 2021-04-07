@@ -1,8 +1,13 @@
+# -*- coding: utf-8 -*-
+# Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
+
+# These functions are specific for plotting the results produced by the analysis scripts
+
 import matplotlib
 from loguru import logger
 
 import constants
-import mpi_calculator
+from scipy.interpolate import interp1d
 from helpers import create_dir_if_needed_for_filepath
 from path import global_root_dir
 from mpi_calculator import DensityStats
@@ -14,7 +19,6 @@ from scipy import interpolate
 from scipy.stats import pearsonr
 import pandas as pd
 import helpers
-import mpi_calculator
 import pathlib
 import numpy as np
 
@@ -35,19 +39,61 @@ def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
     plt.close()
 
 
-def sns_barplot_simple(dd, palette, gene, x, y, hue='Quadrants'):
+def bar_profile_median_timepoints(df : pd.DataFrame, palette, gene, fixed_yscale=0):
     """
-    Plots a barplot for the dataframe dd with x and y providing the column names
+    Plots a barplot for 'd_of_c' column for 2 molecules at each timepoint for gene
+    Dataframe df contains:
+       - 'd_of_c' column to be plotted
+       - 'Molecule' column containing either 'mrna' or 'protein'
+       - 'Timepoint' column providing the timepoints where they are measured
+       - 'error' column for sem error from the median
+       - 'CI' column for the confidence interval
+    palette is a dict with keys 'mrna' and 'protein'
+    fixed_yscale are for setting the y_scale upper limit
     """
-    print(dd)
-    fig = plt.figure()
-    box = sns.barplot(x=x, y=y, data=dd[dd[y] < 15], hue=hue, palette=palette) # TODO for coherency should have here estimator = np.median
-    box.set_xlabel("", fontsize=15)
-    box.set_ylabel("", fontsize=15)
-    box.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
-    box.legend_.remove()
+    bar_width = 0.35
+    fig, ax = plt.subplots()
+    labels = np.sort(df["Timepoint"].unique())
+    index = np.arange(len(labels))
+    df[['lower','higher']] = pd.DataFrame(df['CI'].to_list(), columns=['lower', 'higher'], index= df.index)
+    dfs = df.sort_values('Timepoint')
+    # Fixing readability - scaling up for errors and low values (due to shift)
+    dfs.loc[(dfs.error < 0.2), "error"] = dfs['error'] * 2
+    dfs = dfs.round({'lower': 1, 'higher': 1})
+
+    mrna = dfs[dfs["Molecule"] == "mrna"]
+    protein = dfs[dfs["Molecule"] == "protein"]
+    mask = mrna['d_of_c'] != 0
+    x_new = np.linspace(index[mask].min(), index[mask].max(), 20)
+    f_cubic = interp1d(index[mask], mrna['d_of_c'][mask], kind='cubic')
+    ax.plot(x_new, f_cubic(x_new), zorder=5, color=helpers.colorscale("A5073E", 0.9))
+    mask = protein['d_of_c'] != 0
+    x_new = np.linspace(np.min([index[mask]+bar_width]), np.max([index[mask]+bar_width]), 20)
+    f_cubic = interp1d(index[mask]+bar_width, protein['d_of_c'][mask], kind='cubic')
+    ax.plot(x_new, f_cubic(x_new), zorder=5, color=helpers.colorscale("A5073E", 1.2))
+
+    ax.bar(index, mrna["d_of_c"], bar_width, yerr=mrna["error"], color=palette["mrna"], error_kw=dict(elinewidth=6, ecolor='black'))
+    ax.bar(index + bar_width, protein["d_of_c"], bar_width, yerr=protein["error"], color=palette["protein"], error_kw=dict(elinewidth=6, ecolor='black'))
+
+    plt.ylim([0, fixed_yscale])
+    ax.set_xlabel("", fontsize=15)
+    ax.set_ylabel("", fontsize=15)
+    ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
     plt.yticks(fontsize=20)
     plt.xticks(fontsize=20)
+    all_timepoints = np.sort(list(set(mrna['Timepoint']) | set(protein['Timepoint'])))
+    plt.xticks(index + bar_width/2, all_timepoints, fontsize=20)
+
+    # create the table for the CI
+    CI = pd.DataFrame({"mRNA": mrna[["lower", "higher"]].values.tolist(),
+                        "protein": protein[["lower", "higher"]].values.tolist()}, index=all_timepoints)
+    CI = CI.T
+    plt.table(cellText=CI.values,
+              rowLabels=CI.index.values,
+              colLabels=list(str(' ') * len(all_timepoints)), # empty since we already have the xticks
+              loc='bottom',
+              bbox=[0.0, -0.3, 1, .28])
+    plt.subplots_adjust(bottom=0.28)
 
     tgt_image_name = constants.analysis_config['DYNAMIC_FIGURE_NAME_FORMAT'].format(gene=gene)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
@@ -138,13 +184,14 @@ def bar_profile(data, genes, figname):
     plt.close()
 
 
-def bar_profile_median(medians, genes, err, CI, molecule_type):
+def bar_profile_median(genes, medians, err, CI, molecule_type, fixed_yscale):
     """
     Plot a barplot for each gene with height given by medians, error bars defined by err
     and confidence intervals by CI; CI is a dictionary with keys = genes
     """
     plot_colors = constants.analysis_config['PLOT_COLORS']
     fig, ax = plt.subplots()
+
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
     ax.spines['left'].set_linewidth(3)
@@ -152,16 +199,13 @@ def bar_profile_median(medians, genes, err, CI, molecule_type):
     N = len(genes)
     ind = np.arange(N)
     width = 0.35
-    ax.bar(ind, medians, width, color=plot_colors,
-           yerr=err,
-           error_kw=dict(elinewidth=6, ecolor='black'))
+    ax.bar(ind, medians, width, color=plot_colors, yerr=err, error_kw=dict(elinewidth=6, ecolor='black'))
 
     # add confidence intervals
-    lower = [vals[0] for vals in CI.values()]
-    upper = [vals[1] for vals in CI.values()]
-    plt.errorbar(ind, medians, yerr=[lower, upper], capsize=3, ls='none', elinewidth=2, mfc='dimgray', color='dimgray')
+    # TODO here add the table for CI in the same way as in timepoints
 
     ax.set_xlim(-width, len(ind) + width)
+    ax.set_ylim(0, fixed_yscale) # same as for the timepoints
     ax.set_xticks([])
 
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
