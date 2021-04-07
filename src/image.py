@@ -505,8 +505,6 @@ class ImageWithIntensities(Image):
         cytoplasmic_intensities = np.multiply(intensities, cytoplasm_mask)
         return cytoplasmic_intensities
 
-
-
     def compute_total_intensity(self) -> float:
         intensities = self.get_intensities()
         return intensities.sum()
@@ -604,7 +602,11 @@ class ImageWithIntensities(Image):
 
     def compute_degree_of_clustering(self) -> int:
         h_star = self.get_clustering_indices()
-        return np.array(h_star[h_star > 1] - 1).sum()
+        d_of_c = np.array(h_star[h_star > 1] - 1).sum()
+        if int(d_of_c) == 0:
+            return 0.0001 # TODO this is a hack so that a downstream log does not fail
+
+        return d_of_c
 
     def compute_clustering_indices(self) -> np.ndarray:
         """

@@ -114,6 +114,26 @@ def unit_circle(size, r) -> np.ndarray:
 
     return m.astype(int)
 
+def median_confidence_interval(a: np.array, cutoff=.95):
+    ''' cutoff is the significance level as a decimal between 0 and 1'''
+    a = np.sort(a)
+    factor = norm.ppf((1+cutoff)/2)
+    factor *= math.sqrt(len(a)) # avoid doing computation twice
+
+    lix = int(0.5*(len(a)-factor)) + 1
+    uix = int(0.5*(1+len(a)+factor)) + 1
+
+    return a[lix], a[uix]
+
+def sem(a: np.array, factor=3) -> float:
+    """
+    sem in presence of extreme outliers (very skewed distribution), factor = 0 gives standard behaviour
+    """
+    if factor > 0:
+        limit = factor*np.std(a)
+        a = a[(a < np.mean(a)+limit) & (a > np.mean(a)-limit)]
+    return stats.sem(a, ddof=0)
+
 
 def compute_statistics_random_h_star(h_sim: np.ndarray, max_cell_radius=None, simulation_number=None) -> (
         List[int], List[int], List[int]):
@@ -384,6 +404,7 @@ def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_
 
     return tis, p, ranking
 
+
 # Stability analysis part
 
 def mean_absolute_deviation(data, axis=None):
@@ -392,3 +413,40 @@ def mean_absolute_deviation(data, axis=None):
 
 def median_absolute_deviation(data, axis=None):
     return np.median(np.absolute(data - np.median(data, axis)), axis)
+
+# color helper
+
+def clamp(val, minimum=0, maximum=255):
+    if val < minimum:
+        return minimum
+    if val > maximum:
+        return maximum
+    return int(val)
+
+def colorscale(hexstr, scalefactor):
+    """
+    Scales a hex string by ``scalefactor``. Returns scaled hex string.
+
+    To darken the color, use a float value between 0 and 1.
+    To brighten the color, use a float value greater than 1.
+
+    >>> colorscale("#DF3C3C", .5)
+    #6F1E1E
+    >>> colorscale("#52D24F", 1.6)
+    #83FF7E
+    >>> colorscale("#4F75D2", 1)
+    #4F75D2
+    """
+
+    hexstr = hexstr.strip('#')
+
+    if scalefactor < 0 or len(hexstr) != 6:
+        return hexstr
+
+    r, g, b = int(hexstr[:2], 16), int(hexstr[2:4], 16), int(hexstr[4:], 16)
+
+    r = clamp(r * scalefactor)
+    g = clamp(g * scalefactor)
+    b = clamp(b * scalefactor)
+
+    return "#%02x%02x%02x" % (r, g, b)
