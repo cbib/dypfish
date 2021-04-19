@@ -245,52 +245,6 @@ def plot_MPI(density_stats: DensityStats, molecule_type):
     bar_profile_median(mpis, labels, errs, tgt_fp)
 
 
-def plot_boxplot_DOC(mrna_data, protein_data, gene, tgt_fp,plot_colors):
-    """
-    The timepoint_list has to have the same order as in the mpi() function
-    """
-
-    print(mrna_data)
-    # plot_colors = constants.analysis_config['PLOT_COLORS']
-    # mrna_density_stats.update_group_key(['Timepoint'])
-    # protein_density_stats.update_group_key(['Timepoint'])
-    #
-    # for color_num, gene in enumerate(molecule_list):
-    #     # Collect mrna and protein density statistics for this gene only
-    #     dd = {'Molecule_type': [], 'Timepoint': [], 'MPI': [], 'err': []}
-    #     gene_stats = mrna_density_stats.subset_stats("Gene", gene)
-    #     prot_stats = protein_density_stats.subset_stats("Gene", gene)
-    #     mrna_mpis, mrna_errs = gene_stats.mpi()
-    #     prot_mpis, prot_errs = prot_stats.mpi()
-    #     dd["MPI"] = mrna_mpis + prot_mpis
-    #     dd["err"] = mrna_errs + prot_errs
-    #     dd["Molecule_type"] = ["mrna"] * len(mrna_timepoint_list) + ["protein"] * len(protein_timepoint_list)
-    #     dd["Timepoint"] = sorted(mrna_timepoint_list) + sorted(protein_timepoint_list)
-    #     for tp in np.setdiff1d(mrna_timepoint_list, protein_timepoint_list):
-    #         dd["Timepoint"].append(tp);
-    #         dd["Molecule_type"].append("protein")
-    #         dd["MPI"].append(0);
-    #         dd["err"].append(0)
-    #     for tp in np.setdiff1d(protein_timepoint_list, mrna_timepoint_list):
-    #         dd["Timepoint"].append(tp);
-    #         dd["Molecule_type"].append("mrna")
-    #         dd["MPI"].append(0);
-    #         dd["err"].append(0)
-    #
-    #     df = pd.DataFrame(dd)
-    #     df.sort_values("Timepoint", axis=0, ascending=True, inplace=True)
-    #
-    #     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_DYNAMIC_MPI'].format(gene=gene)
-    #     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-    #                           tgt_image_name)
-    #
-    #     my_pal = {"mrna": str(plot_colors[color_num]),
-    #               "protein": str(helpers.color_variant(plot_colors[color_num], +80))}
-    #     helpers.create_dir_if_needed_for_filepath(tgt_fp)
-    #     sns_barplot(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type", err="err")
-    #     # sns_barplot_simple(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type")
-    #     logger.info("Generated image at {}", tgt_fp)
-
 def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: DensityStats,
                      molecule_list, mrna_timepoint_list, protein_timepoint_list):
     """
