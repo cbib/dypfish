@@ -49,7 +49,7 @@ class ImageSet(object):
             is_3d_spots_multi_nucleus = Image3dMultiNucleusWithSpots.is_a(self._repository, p)
             is_with_spots_and_MTOC = ImageWithSpotsAndMTOC.is_a(self._repository, p)
             # TODO : Refactor, test and debug the logical branching
-            logger.debug("creating Image for {} ",p)
+            #logger.debug("creating Image for {} ",p)
             if force2D:
                 if has_spots:
                     img = ImageWithSpots(self._repository, p)
@@ -141,7 +141,7 @@ class ImageSet(object):
                 continue
 
             self.images.append(img)
-            logger.debug("Image type : {} ", img.__class__.__name__)
+            #logger.debug("Image type : {} ", img.__class__.__name__)
 
         logger.info("Initialized image set from {} with {} images", path_list, len(self.images))
 

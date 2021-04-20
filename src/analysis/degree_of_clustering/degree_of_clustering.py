@@ -67,5 +67,8 @@ if __name__ == '__main__':
             d_of_c = collections.OrderedDict(sorted(d_of_c.items(), key=lambda i: keyorder.index(i[0])))
             err = collections.OrderedDict(sorted(err.items(), key=lambda i: keyorder.index(i[0])))
             CI = collections.OrderedDict(sorted(CI.items(), key=lambda i: keyorder.index(i[0])))
-            plot.bar_profile_median(d_of_c.keys(), d_of_c.values(), err.values(), CI.values(), molecule_type=molecule_type, fixed_yscale=15)
+            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
+            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                                  tgt_image_name)
+            plot.bar_profile_median(d_of_c.keys(), d_of_c.values(), err.values(), CI.values(), molecule_type, 15, tgt_fp)
 

@@ -400,7 +400,7 @@ def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_
         tis = (100 - stat) / 64.0
     else:
         # TODO if matrix 2 * 2
-        tis = (12 - stat) / 3.0
+        tis = (10 - stat) / 9.0
 
     return tis, p, ranking
 

@@ -53,7 +53,10 @@ def plot_dynamic_barplot(analysis_repo):
         df = df.sort_values('Timepoint')
         df = df.groupby('Molecule').apply(mean_column)
         my_pal = {"mrna": str(plot_colors[i]), "protein": str(color_variant(plot_colors[i], +80))}
-        plot.bar_profile_median_timepoints(df, palette=my_pal, gene=gene, fixed_yscale=15)
+        tgt_image_name = constants.analysis_config['DYNAMIC_FIGURE_NAME_FORMAT'].format(gene=gene)
+        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                              tgt_image_name)
+        plot.bar_profile_median_timepoints(df, palette=my_pal, figname=tgt_fp, gene=gene, fixed_yscale=15)
 
 configurations = [
     ["src/analysis/degree_of_clustering/config_original.json", "", "", ""]

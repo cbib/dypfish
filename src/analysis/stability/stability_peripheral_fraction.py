@@ -53,7 +53,7 @@ analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_
 
 total_mads = []
 for gene in constants.analysis_config['MRNA_GENES']:
-    total_mads.append(compute_stability(gene, bootstrap=500, force2D=False))
+    total_mads.append(compute_stability(gene, bootstrap=500))
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)

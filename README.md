@@ -39,13 +39,34 @@ Go to the DypFISH root folder
 
 `cd dypfish/`
 
-Then install python dependencies :
+# Install dependencies via CONDA 
+If you have Conda install, you can create the dypfish conda environment using dypfish.yml
+First you need to set the prefix of your conda installation (path to envs directory) in dypfish.yml.
+Then to create the environment: 
+
+`conda env create --file dypfish.yml`
+
+Then activate the environment:
+
+`conda activate dypfish`
+
+# Install dependencies via PIP 
+
+When you don't have Conda installed in your system, you can install python dependencies via pip program:
 
 `pip install -r requirements.txt`
 
 Add the src directory to the Python path:
 
 `export PYTHONPATH=${PYTHONPATH}:$(pwd)/src`
+
+Matplotlib targets many different use cases and output formats.
+DypFISH uses non-interactive backend AGG (PNG output - high quality images using the Anti-Grain Geometry engine)
+
+Setting the MPLBACKEND environment variable
+
+`export MPLBACKEND="Agg"`
+
 
 Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any script with enviroments variables configured are provided in the `tools` subdirectory.
 

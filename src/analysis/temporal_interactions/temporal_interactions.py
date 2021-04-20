@@ -46,15 +46,16 @@ def compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadra
             image_set = ImageSet(analysis_repo, ["mrna/{0}/{1}/".format(gene, timepoint)])
             arr = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=quadrants_num,
                                                                             stripes=stripes)
-            print(len(arr[0]))
             mrna_tp_df = pd.DataFrame(arr)
             mrna_median.append(mrna_tp_df.mean(axis=0).values)
         mrna_tis_dict[gene] = mrna_median
 
     return mrna_tis_dict
 
+'''
+ Figure 5D Analysis TIS for original data
+'''
 
-# Figure 5D Analysis TIS for original data
 logger.info("Temporal interaction score for the mRNA original data")
 constants.init_config(
     analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_original.json"))
@@ -71,20 +72,23 @@ p_vals = []
 for gene in constants.analysis_config['PROTEINS']:
     mrna_list = mrna_tis_dict[gene]
     prot_list = prot_tis_dict[gene]
-    print("gene:", gene)
     (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list,
                                                              constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
                                                              constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
     tiss.append(tis)
     p_vals.append(p)
-    compute_heatmap(ranking, gene)
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+    compute_heatmap(ranking, gene, tgt_fp)
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
+plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp, compute_median_and_error=False)
 
-
-# Figure 6E Analysis TIS for nocodazole arhgdia data
+'''
+ Figure 6E Analysis TIS for nocodazole arhgdia data
+'''
 logger.info("Temporal interaction score for the mRNA nocodazole arhgdia data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
                                                            "src/analysis/temporal_interactions/config_nocodazole_arhgdia.json"))
@@ -106,14 +110,19 @@ for gene in constants.analysis_config['PROTEINS']:
                                                              constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
     tiss.append(tis)
     p_vals.append(p)
-    compute_heatmap(ranking, gene)
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+    compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=constants.dataset_config['TIMEPOINTS_MRNA'], ytickslabel=constants.dataset_config['TIMEPOINTS_PROTEIN'])
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
+plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp, compute_median_and_error=False)
 
 
-# Figure 6E Analysis TIS for nocodazole pard3 data
+'''
+Figure 6E Analysis TIS for nocodazole pard3 data
+'''
 logger.info("Temporal interaction score for the mRNA pard3 nocodazole data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
                                                            "src/analysis/temporal_interactions/config_nocodazole_pard3.json"))
@@ -135,8 +144,13 @@ for gene in constants.analysis_config['PROTEINS']:
                                                              constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
     tiss.append(tis)
     p_vals.append(p)
-    compute_heatmap(ranking, gene, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+
+    compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=constants.dataset_config['TIMEPOINTS_MRNA'], ytickslabel=constants.dataset_config['TIMEPOINTS_PROTEIN'])
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
+
+plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp, compute_median_and_error=False)
