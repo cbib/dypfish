@@ -433,18 +433,6 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         val = dist_IF.sum() / (IF.sum() * S)
         return val
 
-    @helpers.checkpoint_decorator(CLUSTERING_INDICES_PATH_SUFFIX, dtype=np.float)
-    def get_clustering_indices(self):
-        return self.compute_clustering_indices()
-
-    """
-    Compute degree of clustering and force 2D computation without raw IF stacked files 
-    """
-
-    def compute_degree_of_clustering(self) -> int:
-        h_star = self.get_clustering_indices()
-        return np.array(h_star[h_star > 1] - 1).sum()
-
     def compute_clustering_indices(self) -> np.ndarray:
         """
         Point process Ripkey-K computation for disks of radius r < MAX_CELL_RADIUS
@@ -853,9 +841,6 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
 
         for i in range(int(np.floor(peripheral_fraction_threshold / stripes)), peripheral_fraction_threshold + 1, int(np.floor(peripheral_fraction_threshold / stripes))):
             for j in range(1, quadrants_num + 1):
-                print(i, j)
-                #value = (i - (int(np.floor(peripheral_fraction_threshold / stripes)))) / 2 + j - 1
-                #print(value)
                 slice_area = np.floor(i / (int(np.floor(peripheral_fraction_threshold / stripes))))
                 value = (int(slice_area) * quadrants_num) + int(j - 1) - quadrants_num
                 print(value)
