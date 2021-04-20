@@ -56,7 +56,7 @@ def plot_dynamic_barplot(analysis_repo):
         tgt_image_name = constants.analysis_config['DYNAMIC_FIGURE_NAME_FORMAT'].format(gene=gene)
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        plot.bar_profile_median_timepoints(df, palette=my_pal, tgt_fp=tgt_fp, gene=gene, fixed_yscale=15)
+        plot.bar_profile_median_timepoints(df, palette=my_pal, figname=tgt_fp, gene=gene, fixed_yscale=15)
 
 configurations = [
     ["src/analysis/degree_of_clustering/config_original.json", "", "", ""]

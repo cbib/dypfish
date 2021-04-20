@@ -8,11 +8,11 @@ from typing import List
 
 import pandas as pd
 from loguru import logger
-
+import numpy as np
 import constants
 import mpi_calculator
 import plot
-from helpers import open_repo
+from helpers import open_repo, color_variant, create_dir_if_needed_for_filepath
 from image_set import ImageSet
 from path import global_root_dir
 from mpi_calculator import DensityStats
@@ -26,7 +26,7 @@ def build_labels(quadrants_num):
 
 
 def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: DensityStats,
-                     molecule_list, mrna_timepoint_list, protein_timepoint_list, tgt_fp):
+                     molecule_list, mrna_timepoint_list, protein_timepoint_list):
     """
     The timepoint_list has to have the same order as in the mpi() function
     """
@@ -60,11 +60,11 @@ def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: De
         df.sort_values("Timepoint", axis=0, ascending=True, inplace=True)
 
         my_pal = {"mrna": str(plot_colors[color_num]),
-                  "protein": str(helpers.color_variant(plot_colors[color_num], +80))}
+                  "protein": str(color_variant(plot_colors[color_num], +80))}
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_DYNAMIC_MPI'].format(gene=gene)
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        helpers.create_dir_if_needed_for_filepath(tgt_fp)
+        create_dir_if_needed_for_filepath(tgt_fp)
         plot.sns_barplot(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type", err="err")
         # sns_barplot_simple(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type")
         logger.info("Generated image at {}", tgt_fp)
@@ -119,7 +119,7 @@ if __name__ == '__main__':
         constants.init_config(analysis_config_js_path=conf_full_path)
         repo = open_repo()
         ## mRNA
-        genes_list = constants.dataset_config['MRNA_GENES']
+        genes_list = constants.analysis_config['MRNA_GENES']
         mrna_time_points = constants.dataset_config['TIMEPOINTS_MRNA']
         mpi_sample_size = constants.analysis_config['MPI_SUB_SAMPLE_SIZE']
         quadrant_labels = build_labels(quadrants_num=4)
@@ -159,11 +159,11 @@ if __name__ == '__main__':
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type='mrna')
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        plot.plot_MPI(mRNA_df, 'mrna', tgt_fp)
+        plot.plot_MPI(mRNA_df, tgt_fp)
 
         ## proteins
         protein_time_points = constants.dataset_config['TIMEPOINTS_PROTEIN']
-        protein_list = constants.dataset_config['PROTEINS']
+        protein_list = constants.analysis_config['PROTEINS']
         protein_quadrant_labels = build_labels(num_protein_quadrants.get(conf[0], 4))
         prot_df = compute_density_per_quadrant(
             repo=repo,
@@ -193,8 +193,8 @@ if __name__ == '__main__':
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type='protein')
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        plot.plot_MPI(prot_df, 'protein', tgt_fp)
+        plot.plot_MPI(prot_df, tgt_fp)
 
         ## combined
         if ("original" in conf[0]):
-            plot.plot_boxplot_MPI(mRNA_df, prot_df, protein_list, mrna_time_points, protein_time_points)
+            plot_boxplot_MPI(mRNA_df, prot_df, protein_list, mrna_time_points, protein_time_points)

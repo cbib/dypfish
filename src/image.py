@@ -344,6 +344,9 @@ class ImageWithSpots(Image):
         Return an array of distances to the periphery for cytoplasmic spots (np.ndarray of uint8)
         """
         spots = self.get_cytoplasmic_spots()
+        logger.info("Computing {} spots 2D peripheral distance spots for {}",
+                    len(spots), self._path)
+
         peripheral_distance_map = self.get_cell_mask_distance_map()
         spots_distances = [peripheral_distance_map[s[1], s[0]] for s in spots]
         spots_distances = [1 if d == 0 else d for d in spots_distances]  # TODO : why this hack ?

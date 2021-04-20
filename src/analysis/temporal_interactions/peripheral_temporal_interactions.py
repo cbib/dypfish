@@ -30,7 +30,6 @@ def compute_mrna_peripheral_relative_density_per_quadrants_and_slices(analysis_r
             image_set = ImageSet(analysis_repo, ["mrna/{0}/{1}/".format(gene, timepoint)])
             arr = image_set.compute_peripheral_normalized_quadrant_and_slice_densities(quadrants_num=quadrants_num,
                                                                                        stripes=stripes)
-            print(len(arr[0]))
             mrna_tp_df = pd.DataFrame(arr)
             mrna_median.append(mrna_tp_df.mean(axis=0).values)
         mrna_tis_dict[gene] = mrna_median
@@ -82,4 +81,4 @@ for gene in constants.analysis_config['PROTEINS']:
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp)
+plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp, compute_median_and_error=False)
