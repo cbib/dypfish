@@ -39,7 +39,7 @@ def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
     plt.close()
 
 
-def bar_profile_median_timepoints(df : pd.DataFrame, palette, gene, fixed_yscale=0):
+def bar_profile_median_timepoints(df : pd.DataFrame, palette, tgt_fp, gene, fixed_yscale=0):
     """
     Plots a barplot for 'd_of_c' column for 2 molecules at each timepoint for gene
     Dataframe df contains:
@@ -95,15 +95,13 @@ def bar_profile_median_timepoints(df : pd.DataFrame, palette, gene, fixed_yscale
               bbox=[0.0, -0.3, 1, .28])
     plt.subplots_adjust(bottom=0.28)
 
-    tgt_image_name = constants.analysis_config['DYNAMIC_FIGURE_NAME_FORMAT'].format(gene=gene)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
+
     fig.savefig(tgt_fp, format='png')
     plt.close()
     logger.info("Generated image at {}", tgt_fp)
 
 
-def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type", err="err"):
+def sns_barplot(dd, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type", err="err"):
     fig = plt.figure()
     ax = plt.axes()
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
@@ -132,11 +130,11 @@ def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type"
     plt.yticks(fontsize=20)
     plt.xticks(fontsize=20)
     ax.set_xticklabels(x_labels)
-    fig.savefig(figname)
+    fig.savefig(tgt_fp)
     plt.close()
 
 
-def sns_violinplot(dd, my_pal, figname, x="Gene", y='value', hue=None, no_legend=True, rotation=0):
+def sns_violinplot(dd, my_pal, tgt_fp, x="Gene", y='value', hue=None, no_legend=True, rotation=0):
     fig = plt.figure(figsize=(10, 10))
     # medianprops = dict(linestyle='--', color='firebrick')
     # sns.boxplot(x=x, y=y, data=dd, hue=hue, showfliers=False, showcaps=True, whis=(25.0, 75.0),showbox=False, meanline=True, showmeans=True, linewidth=0.8, medianprops=medianprops)
@@ -153,11 +151,11 @@ def sns_violinplot(dd, my_pal, figname, x="Gene", y='value', hue=None, no_legend
     plt.xticks(fontsize=20)
     if no_legend:
         ax.legend_.remove()
-    fig.savefig(figname, format='png')
+    fig.savefig(tgt_fp, format='png')
     plt.close()
 
 
-def bar_profile(data, genes, figname):
+def bar_profile(data, genes, tgt_fp):
     plot_colors = constants.analysis_config['PLOT_COLORS']
     plt.figure(figsize=(8, 8))
     ax = plt.axes()
@@ -180,11 +178,11 @@ def bar_profile(data, genes, figname):
     ax.set_xticks(ind)
     ax.set_xticklabels(["" for i in range(0, len(genes))])
     create_dir_if_needed_for_filepath(figname)
-    plt.savefig(figname, format='png')
+    plt.savefig(tgt_fp, format='png')
     plt.close()
 
 
-def bar_profile_median(genes, medians, err, CI, molecule_type, fixed_yscale):
+def bar_profile_median(genes, medians, err, CI, molecule_type, fixed_yscale, tgt_fp):
     """
     Plot a barplot for each gene with height given by medians, error bars defined by err
     and confidence intervals by CI; CI is a dictionary with keys = genes
@@ -208,15 +206,12 @@ def bar_profile_median(genes, medians, err, CI, molecule_type, fixed_yscale):
     ax.set_ylim(0, fixed_yscale) # same as for the timepoints
     ax.set_xticks([])
 
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
     fig.savefig(tgt_fp)
     plt.close()
     logger.info("Generated image at {}", tgt_fp)
 
 
-def bar_profile_simple(data, figname, plot_colors):
+def bar_profile_simple(data, tgt_fp, plot_colors):
     plt.figure()
     ax = plt.axes()
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
@@ -232,16 +227,13 @@ def bar_profile_simple(data, figname, plot_colors):
     ax.set_ylim(0, 0.7)
     ax.set_xticks(ind)
     ax.set_xticklabels(["" for i in range(0, N)])
-    plt.savefig(figname, format='png')
+    plt.savefig(tgt_fp, format='png')
     plt.close()
 
 
-def plot_MPI(density_stats: DensityStats, molecule_type):
+def plot_MPI(density_stats: DensityStats, molecule_type, tgt_fp):
     labels = density_stats.make_labels()
     mpis, errs = density_stats.mpi()
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type=molecule_type)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
     bar_profile_median(mpis, labels, errs, tgt_fp)
 
 
@@ -291,52 +283,7 @@ def plot_boxplot_DOC(mrna_data, protein_data, gene, tgt_fp,plot_colors):
     #     # sns_barplot_simple(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type")
     #     logger.info("Generated image at {}", tgt_fp)
 
-def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: DensityStats,
-                     molecule_list, mrna_timepoint_list, protein_timepoint_list):
-    """
-    The timepoint_list has to have the same order as in the mpi() function
-    """
-    plot_colors = constants.analysis_config['PLOT_COLORS']
-    mrna_density_stats.update_group_key(['Timepoint'])
-    protein_density_stats.update_group_key(['Timepoint'])
-
-    for color_num, gene in enumerate(molecule_list):
-        # Collect mrna and protein density statistics for this gene only
-        dd = {'Molecule_type': [], 'Timepoint': [], 'MPI': [], 'err': []}
-        gene_stats = mrna_density_stats.subset_stats("Gene", gene)
-        prot_stats = protein_density_stats.subset_stats("Gene", gene)
-        mrna_mpis, mrna_errs = gene_stats.mpi()
-        prot_mpis, prot_errs = prot_stats.mpi()
-        dd["MPI"] = mrna_mpis + prot_mpis
-        dd["err"] = mrna_errs + prot_errs
-        dd["Molecule_type"] = ["mrna"] * len(mrna_timepoint_list) + ["protein"] * len(protein_timepoint_list)
-        dd["Timepoint"] = sorted(mrna_timepoint_list) + sorted(protein_timepoint_list)
-        for tp in np.setdiff1d(mrna_timepoint_list, protein_timepoint_list):
-            dd["Timepoint"].append(tp);
-            dd["Molecule_type"].append("protein")
-            dd["MPI"].append(0);
-            dd["err"].append(0)
-        for tp in np.setdiff1d(protein_timepoint_list, mrna_timepoint_list):
-            dd["Timepoint"].append(tp);
-            dd["Molecule_type"].append("mrna")
-            dd["MPI"].append(0);
-            dd["err"].append(0)
-
-        df = pd.DataFrame(dd)
-        df.sort_values("Timepoint", axis=0, ascending=True, inplace=True)
-
-        tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_DYNAMIC_MPI'].format(gene=gene)
-        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                              tgt_image_name)
-
-        my_pal = {"mrna": str(plot_colors[color_num]),
-                  "protein": str(helpers.color_variant(plot_colors[color_num], +80))}
-        helpers.create_dir_if_needed_for_filepath(tgt_fp)
-        sns_barplot(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type", err="err")
-        # sns_barplot_simple(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type")
-        logger.info("Generated image at {}", tgt_fp)
-
-
+# plot_mtoc_enrichment never used ??
 def plot_mtoc_enrichment(density_stats: DensityStats, molecule_type, limit_threshold, log=False):
     # melt dataframe and relabel all non MTOC quadrants
     value_vars = density_stats.quadrant_labels + [density_stats.mtoc_quadrant_label]
@@ -361,7 +308,7 @@ def plot_mtoc_enrichment(density_stats: DensityStats, molecule_type, limit_thres
     sns_violinplot(dd, my_pal, tgt_fp, rotation=45)
     logger.info("Generated image at {}", tgt_fp)
 
-
+# plot_hist_ratio never used ??
 def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold, groupby=['Gene']):
     df = density_stats.df
     df['MTOC ratio'] = density_stats.ratios()
@@ -379,7 +326,7 @@ def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold,
     logger.info("Generated image at {}", tgt_fp)
 
 
-def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, limit_threshold=6, groupby=['Gene'], term=""):
+def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, tgt_fp, limit_threshold=6, groupby=['Gene'], term=""):
     df = density_stats.df
     if term != "":
         df[groupby[0]] = df.apply(lambda row: term if term[2:len(term)] in row[groupby[0]] else row[groupby[0]], axis=1)
@@ -389,9 +336,7 @@ def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, limit_
     dd = pd.melt(df, id_vars=groupby[0], value_vars=["MTOC_ratio"], var_name='Quadrants')
     dd = dd.replace(0.000000, np.nan)
     dd.dropna(inplace=True)
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=molecule_type)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
+
     my_pal = {}
     for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(groups)]):
         my_pal[groups[i]] = color
@@ -401,7 +346,7 @@ def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, limit_
     sns_violinplot(dd, my_pal, tgt_fp, x=groupby[0], no_legend=False, rotation=45)
 
 
-def compute_categorical_violin_plot_ratio(density_stats: DensityStats, molecule_type, limit_threshold=6,
+def compute_categorical_violin_plot_ratio(density_stats: DensityStats, molecule_type, tgt_fp, limit_threshold=6,
                                           groupby=['Gene'], term="", gene=""):
     df = density_stats.df
     if term != "":
@@ -419,9 +364,7 @@ def compute_categorical_violin_plot_ratio(density_stats: DensityStats, molecule_
         dd["Gene"] = [gene for i in range(len(df["Label"].values))]
     dd = dd.replace(0.000000, np.nan)
     dd.dropna(inplace=True)
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=molecule_type)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
+
     my_pal = {}
     for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(groups)]):
         my_pal[groups[i]] = color
@@ -430,7 +373,7 @@ def compute_categorical_violin_plot_ratio(density_stats: DensityStats, molecule_
     sns_violinplot(dd, my_pal, tgt_fp, x="Gene", hue="Quadrants")
 
 
-def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, limit_threshold=6, log=False,
+def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, tgt_fp, limit_threshold=6, log=False,
                                    groupby="Gene"):
     df = density_stats.df
     ## melt dataframe and group together all non MTOC quadrant
@@ -449,14 +392,12 @@ def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, l
         dd['value'] = dd['value'].apply(np.log2)
     ## Choose color palette
     my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#1a8cff"}
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=molecule_type)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
+
     ## remove outliers
     sns_violinplot(dd, my_pal, tgt_fp, x=groupby, hue=dd['Quadrants'], rotation=45)
 
 
-def compute_categorical_violin_plot_enrichment(density_stats: DensityStats, molecule_type, limit_threshold=8, log=False,
+def compute_categorical_violin_plot_enrichment(density_stats: DensityStats, molecule_type, tgt_fp, limit_threshold=8, log=False,
                                                groupby="Gene", term="", gene=""):
     df = density_stats.df
     value_vars = [density_stats.mtoc_quadrant_label] + density_stats.quadrant_labels
@@ -481,9 +422,7 @@ def compute_categorical_violin_plot_enrichment(density_stats: DensityStats, mole
         dd['value'] = dd['value'].apply(np.log2)
     ## Choose color palette
     my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#1a8cff"}
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=molecule_type)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
+
     ## remove outliers
     sns_violinplot(dd, my_pal, tgt_fp, x=groupby, hue=dd['Quadrants'])
 
@@ -535,7 +474,8 @@ def dynamic_profiles(mrna_data, protein_data, gene, xlabel, ylabel, figpath, plo
     plt.savefig(figpath, format='png')
 
 
-def plot_dynamic_MPI(mrna_df, prot_df, genes):
+#TODO never user => probably replaced by boxplot_MPI
+def plot_dynamic_MPI(mrna_df, prot_df, genes, tgt_fp):
     plot_colors = constants.analysis_config['PLOT_COLORS']
     for i, gene in enumerate(genes):
         data_mrna = np.zeros((3, len(constants.dataset_config['TIMEPOINTS_MRNA'])))
@@ -563,9 +503,6 @@ def plot_dynamic_MPI(mrna_df, prot_df, genes):
             data_prot[1, cpt] = upp_env
             data_prot[2, cpt] = low_env
             cpt += 1
-        tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_DYNAMIC_MPI'].format(gene=gene)
-        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                              tgt_image_name)
         dynamic_profiles(data_mrna, data_prot, gene, 'Time(hrs)', 'MTOC polarity index', tgt_fp, plot_colors[i])
 
 
@@ -662,7 +599,7 @@ def heatmap(grid_mat, figname, band_n=100):
     plt.close()
 
 
-def compute_heatmap(ranking, gene, size=4, xtickslabel=['2h', '3h', '5h', '7h'], ytickslabel = ['2h', '3h', '4h', '5h']):
+def compute_heatmap(ranking, gene, tgt_fp, size=4, xtickslabel=['2h', '3h', '5h', '7h'], ytickslabel = ['2h', '3h', '4h', '5h']):
     im = np.flipud(np.kron(ranking, np.ones((10, 10))))
     plt.imshow(im, extent=[0, size, 0, size], cmap='GnBu', interpolation='nearest')
     ax = plt.axes()
@@ -673,8 +610,5 @@ def compute_heatmap(ranking, gene, size=4, xtickslabel=['2h', '3h', '5h', '7h'],
     myyticklabels = ytickslabel
     ax.yaxis.set(ticks=np.arange(0.5, size + 0.5, 1), ticklabels=myyticklabels)
     ax.set_title(gene)
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
     plt.savefig(tgt_fp)
     plt.close()

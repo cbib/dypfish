@@ -77,7 +77,10 @@ for gene in constants.analysis_config['PROTEINS']:
                                                              constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
     tiss.append(tis)
     p_vals.append(p)
-    compute_heatmap(ranking, gene)
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+    compute_heatmap(ranking, gene, tgt_fp)
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
@@ -106,7 +109,10 @@ for gene in constants.analysis_config['PROTEINS']:
                                                              constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
     tiss.append(tis)
     p_vals.append(p)
-    compute_heatmap(ranking, gene)
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+    compute_heatmap(ranking, gene, tgt_fp)
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
@@ -135,7 +141,10 @@ for gene in constants.analysis_config['PROTEINS']:
                                                              constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
     tiss.append(tis)
     p_vals.append(p)
-    compute_heatmap(ranking, gene, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+    compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
