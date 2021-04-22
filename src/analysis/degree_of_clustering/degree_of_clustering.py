@@ -103,4 +103,4 @@ if __name__ == '__main__':
         constants.init_config(analysis_config_js_path=conf_full_path)
         repo = open_repo()
         # Use annot=True if you want to add stats annotation in plots
-        build_plots(repo, conf, annot=True)
+        build_plots(repo, conf, annot=False)
