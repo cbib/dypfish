@@ -286,7 +286,7 @@ def permutations_test(interactions, fwdints, size=4):
     vals = interactions.flatten()
     indx = using_indexed_assignment(vals)
     one_matrix = np.ones((size, size)).astype(int)
-    indx_matrix = np.matrix(indx.reshape((size, size)))
+    indx_matrix = np.array(indx.reshape((size, size)))
     indx_matrix = np.add(indx_matrix, one_matrix)
     ranking = indx_matrix.copy()
     rs0 = np.sum(indx_matrix[fwdints[:]])
@@ -334,8 +334,8 @@ def get_forward_interactions(mrna_timepoints, protein_timepoints):
 ##### muscle data helpers functions
 
 def get_quantized_grid(q, Qx, Qy):
-    tmp_x = np.matrix(np.arange(Qx))
-    tmp_y = np.matrix(np.arange(Qy))
+    tmp_x = np.array(np.arange(Qx))
+    tmp_y = np.array(np.arange(Qy))
     qxs = matlib.repmat(tmp_x.transpose(), 1, Qx)
     qys = matlib.repmat(tmp_y, Qy, 1)
     qxs = np.kron(qxs, np.ones((q, q)))
@@ -379,7 +379,7 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
             x = int(np.floor((spot[0] - 120) / quadrat_edge))
             grid_1d[x] += 1
     grid = [val for val in grid_1d]
-    grid_mat = np.matrix(grid).reshape((1, len(grid)))
+    grid_mat = np.array(grid).reshape((1, len(grid)))
     grid_mat /= quadrat_edge
     grid_mat /= spot_surfacic_density
 
