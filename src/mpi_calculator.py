@@ -39,7 +39,6 @@ class DensityStats(object):
     def make_labels(self):
         labels = []
         grouped_df = self.df.groupby(self.group_key, as_index=False)
-        print(grouped_df.groups.keys())
         for label in grouped_df.groups.keys():
             if len(self.group_key) > 1:
                 label = '-'.join(label)

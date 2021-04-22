@@ -46,7 +46,6 @@ def compute_mrna_relative_density_per_quadrants_and_slices(_analysis_repo, _quad
             image_set = ImageSet(_analysis_repo, ["mrna/{0}/{1}/".format(gene, timepoint)])
             arr = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=_quadrants_num,
                                                                             stripes=stripes)
-            print(len(arr[0]))
             mrna_tp_df = pd.DataFrame(arr)
             mrna_median.append(mrna_tp_df.mean(axis=0).values)
         _mrna_tis_dict[gene] = mrna_median

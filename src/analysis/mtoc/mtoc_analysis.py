@@ -65,7 +65,6 @@ def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: De
                               tgt_image_name)
         create_dir_if_needed_for_filepath(tgt_fp)
         plot.sns_barplot(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type", err="err")
-        # sns_barplot_simple(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type")
         logger.info("Generated image at {}", tgt_fp)
 
 def compute_density_per_quadrant(repo, molecule_type, groupby, quadrants_num, quadrant_labels,

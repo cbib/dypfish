@@ -843,9 +843,6 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
             for j in range(1, quadrants_num + 1):
                 slice_area = np.floor(i / (int(np.floor(peripheral_fraction_threshold / stripes))))
                 value = (int(slice_area) * quadrants_num) + int(j - 1) - quadrants_num
-                print(value)
-
-
                 if np.sum(cell_mask[
                               ((cell_mask_dist_map >= 1 + (i - int(np.floor(peripheral_fraction_threshold / stripes)))) & (cell_mask_dist_map < i)) & (
                                       quad_mask == j)]) == 0:

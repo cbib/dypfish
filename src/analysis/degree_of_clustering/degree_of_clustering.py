@@ -13,6 +13,7 @@ from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
 
+
 def compute_degree_of_clustering(genes_list, repo, molecule_type):
     gene2_degree_of_clustering = {}
     gene2median_degree_of_clustering = {}
@@ -36,6 +37,7 @@ def compute_degree_of_clustering(genes_list, repo, molecule_type):
 
     return gene2_degree_of_clustering, gene2median_degree_of_clustering, gene2error_degree_of_clustering, gene2confidence_interval
 
+
 ''' 
 Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5) for original
 Figure 2E right panel: plots the log protein degree of clustering normalized by log(0.01) for original
@@ -55,47 +57,50 @@ configurations = [
      ['arhgdia/control', "arhgdia/prrc2c_depleted"]]
 ]
 
+
+def build_plots(repo, conf, annot=False):
+    for molecule_type, molecules in zip(["mrna", "protein"], ['MRNA_GENES', 'PROTEINS']):
+        if conf[0] == "src/analysis/degree_of_clustering/config_original.json":
+            annot = False
+        genes_list = constants.dataset_config[molecules]
+        d_of_c, median_d_of_c, err, confidence_interval = compute_degree_of_clustering(genes_list, repo, molecule_type=molecule_type)
+        # sort everything in the same way for plotting
+        keyorder = conf[1]
+        median_d_of_c = collections.OrderedDict(sorted(median_d_of_c.items(), key=lambda i: keyorder.index(i[0])))
+        d_of_c = collections.OrderedDict(sorted(d_of_c.items(), key=lambda i: keyorder.index(i[0])))
+
+        err = collections.OrderedDict(sorted(err.items(), key=lambda i: keyorder.index(i[0])))
+        confidence_interval = collections.OrderedDict(sorted(confidence_interval.items(), key=lambda i: keyorder.index(i[0])))
+        xlabels = constants.analysis_config['MRNA_GENES_LABEL'] if molecule_type == 'mrna' else constants.analysis_config['MRNA_GENES_LABEL'][:4]
+
+        # generate bar plot image
+        tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
+        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                              tgt_image_name)
+        plot.bar_profile_median(median_d_of_c,
+                                err.values(),
+                                molecule_type,
+                                xlabels,
+                                tgt_fp,
+                                confidence_interval.values(),
+                                annot=annot,
+                                data_to_annot=d_of_c
+                                )
+
+        # generate violin plot image
+        tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type)
+        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
+        if molecule_type == 'mrna':
+            xlabels = constants.analysis_config['MRNA_GENES_LABEL']
+        else:
+            xlabels = constants.analysis_config['PROTEINS_LABEL']
+        plot.violin_profile(d_of_c, tgt_fp, xlabels, rotation=0, annot=annot)
+
+
 if __name__ == '__main__':
     for conf in configurations:
-        annot = True
         conf_full_path = pathlib.Path(global_root_dir, conf[0])
         constants.init_config(analysis_config_js_path=conf_full_path)
         repo = open_repo()
-
-        for molecule_type, molecules in zip(["mrna", "protein"], ['MRNA_GENES', 'PROTEINS']):
-            if conf[0] == "src/analysis/degree_of_clustering/config_original.json":
-                annot = False
-            genes_list = constants.dataset_config[molecules]
-            d_of_c, median_d_of_c, err, confidence_interval = compute_degree_of_clustering(genes_list, repo, molecule_type=molecule_type)
-            # sort everything in the same way for plotting
-            keyorder = conf[1]
-            median_d_of_c = collections.OrderedDict(sorted(median_d_of_c.items(), key=lambda i: keyorder.index(i[0])))
-            d_of_c = collections.OrderedDict(sorted(d_of_c.items(), key=lambda i: keyorder.index(i[0])))
-
-            err = collections.OrderedDict(sorted(err.items(), key=lambda i: keyorder.index(i[0])))
-            confidence_interval = collections.OrderedDict(sorted(confidence_interval.items(), key=lambda i: keyorder.index(i[0])))
-            xlabels = constants.analysis_config['MRNA_GENES_LABEL'] if molecule_type == 'mrna' else constants.analysis_config['MRNA_GENES_LABEL'][:4]
-
-            # generate bar plot image
-            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
-            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                                  tgt_image_name)
-            plot.bar_profile_median(median_d_of_c,
-                                    err.values(),
-                                    molecule_type,
-                                    xlabels,
-                                    tgt_fp,
-                                    confidence_interval.values(),
-                                    annot=annot,
-                                    data_to_annot=d_of_c
-                                    )
-
-            # generate violin plot image
-            tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type)
-            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-            if molecule_type == 'mrna':
-                xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-            else:
-                xlabels = constants.analysis_config['PROTEINS_LABEL']
-            plot.violin_profile(d_of_c, tgt_fp, xlabels, rotation=0, annot=annot)
-
+        # Use annot=True if you want to add stats annotation in plots
+        build_plots(repo, conf, annot=True)

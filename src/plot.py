@@ -314,8 +314,6 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname, c
     and confidence intervals by CI; CI is a dictionary with keys = genes
     test: t-test_ind, t-test_welch, t-test_paired, Mann-Whitney, Mann-Whitney-gt, Mann-Whitney-ls, Levene, Wilcoxon, Kruskal.
     """
-    print(data_median)
-    print(err)
     # Define plot variables
     genes = data_median.keys()
     medians = data_median.values()
@@ -535,7 +533,6 @@ def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, fignam
         xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     else:
         xlabels = constants.analysis_config['PROTEINS_LABEL']
-    print(groupby[0])
     sns_violinplot(dd, my_pal, figname, xlabels, x=groupby[0], no_legend=False, rotation=45)
 
 

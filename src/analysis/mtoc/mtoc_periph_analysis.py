@@ -159,7 +159,7 @@ if __name__ == '__main__':
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type='mrna')
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        plot.plot_MPI(mRNA_df, tgt_fp)
+        plot.plot_MPI(mRNA_df, 'mrna', tgt_fp)
 
         ## proteins
         protein_time_points = constants.dataset_config['TIMEPOINTS_PROTEIN']
@@ -193,7 +193,7 @@ if __name__ == '__main__':
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type='protein')
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        plot.plot_MPI(prot_df, tgt_fp)
+        plot.plot_MPI(prot_df, 'protein', tgt_fp)
 
         ## combined
         if ("original" in conf[0]):

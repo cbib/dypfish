@@ -70,7 +70,6 @@ class ImageSet(object):
                 elif has_spots_multi_nucleus:
                     img = ImageMultiNucleusWithSpots(self._repository, p)
                 elif has_multi_nucleus:
-                    print("has multi nucleus")
                     img = ImageMultiNucleus(self._repository, p)
                 else:
                     raise NotImplemented("Couldn't deduce type for image %s" % p)
@@ -110,7 +109,6 @@ class ImageSet(object):
                 elif has_spots_multi_nucleus:
                     img = ImageMultiNucleusWithSpots(self._repository, p)
                 elif has_multi_nucleus:
-                    print("has multi nucleus")
                     img = ImageMultiNucleus(self._repository, p)
 
                 else:

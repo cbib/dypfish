@@ -40,7 +40,6 @@ df_mature = pd.DataFrame(all_median_profiles_mature)
 molecule_list = ['actn2']
 timepoints = ['immature']
 all_median_profiles_immature = compute_zline_distance(analysis_repo, molecule_list, timepoints, z_line_spacing)
-print(all_median_profiles_immature)
 df_immature = pd.DataFrame(all_median_profiles_immature)
 
 
