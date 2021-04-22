@@ -86,6 +86,7 @@ if __name__ == '__main__':
                                                                      constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
             css.append(cs)
             p_vals.append(p)
+            print("gene: ", gene, " p-values (random permutation test): ", p)
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS'].format(gene=gene)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)

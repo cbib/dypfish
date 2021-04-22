@@ -147,6 +147,9 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname, c
 
 def bar_profile(data, figname, plot_colors):
     fig, ax = plt.subplots()
+
+
+
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
     for axis in ['left']:
         ax.spines[axis].set_linewidth(3)
@@ -155,7 +158,12 @@ def bar_profile(data, figname, plot_colors):
     bar_width = 0.35
     x_component = np.arange(len(data))
     ax.bar(x_component, data, bar_width, color=plot_colors)
-    ax.set_ylim(0, 0.7)
+
+    # Search for ymin and y max
+    y_max = np.float(np.max(data)) + (np.float(np.nanmin(data)) / 10)
+    y_min = np.float(np.nanmin(data)) - (np.float(np.nanmin(data)) / 5)
+    plt.ylim([y_min, y_max])
+
     ax.set_xticks(x_component)
     ax.set_xlim(-0.5, len(data) - 0.5)
     ax.set_xticklabels(["" for i in range(0, len(data))])
@@ -528,7 +536,7 @@ def plot_figure(total_mads_arhgdia, total_mads_arhgdia_cultured, figname):
 
 
 def spline_graph(grid_mat, figname, band_n=100):
-    ax = plt.subplot()
+    fig, ax = plt.subplots()
     x_mrna = np.arange(0, band_n, 0.5)
     fact = np.max(np.array(grid_mat)) / 10
     data = (np.array(grid_mat).flatten() / fact).astype(int) + 1
@@ -542,7 +550,7 @@ def spline_graph(grid_mat, figname, band_n=100):
 
 
 def heatmap(grid_mat, figname, band_n=100):
-    ax = plt.subplot()
+    fig, ax = plt.subplots()
     ax.set_yticks([])
     major_ticks = np.arange(0, int(band_n) + 1, 1)
     ax.tick_params(axis='both', which='major', labelsize=5)

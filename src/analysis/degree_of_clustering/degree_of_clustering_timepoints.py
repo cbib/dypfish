@@ -39,7 +39,7 @@ def plot_dynamic_barplot(analysis_repo):
         df = pd.DataFrame(columns=["Molecule", "Timepoint", "d_of_c", "error", "CI"])
         for molecule, timepoints in zip(["mrna", "protein"],[tp_mrna, tp_proteins]):
             for j, tp in enumerate(all_timepoints):
-                if not tp in timepoints:
+                if tp not in timepoints:
                     df = df.append({"Molecule": molecule, "Timepoint": tp, "error": 0, "CI": [0, 0],
                                     "d_of_c": 0}, ignore_index=True)
                     continue
@@ -57,6 +57,7 @@ def plot_dynamic_barplot(analysis_repo):
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
         plot.bar_profile_median_timepoints(df, palette=my_pal, figname=tgt_fp, gene=gene, fixed_yscale=15)
+
 
 configurations = [
     ["src/analysis/degree_of_clustering/config_original.json", "", "", ""]

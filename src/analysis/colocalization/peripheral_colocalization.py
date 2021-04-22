@@ -58,7 +58,6 @@ configurations = [
     ["src/analysis/colocalization/config_original_periph.json", []]
 ]
 
-
 # Figure 5C Analysis peripheral Colocalization Score (CS) for original data (5 figures)
 if __name__ == '__main__':
     logger.info("Colocalization Score")

@@ -69,22 +69,11 @@ def plot_mrna_histogram_peripheral_fraction(analysis_repo, annot=False, force2D=
                             data_to_annot=gene2mrna_periph_fraction
                             )
 
-
-
-    # plot.bar_profile(gene2mrna_periph_fraction,
-    #                  gene2error.values(),
-    #                  gene2confidence_interval.values(),
-    #                  figname=tgt_fp,
-    #                  molecule_type="mrna",
-    #                  annot=annot)
-    logger.info("Generated image at {}", tgt_fp)
-
     # generate violin plot image
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type="mrna", fraction=fraction)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
     xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     plot.violin_profile(gene2mrna_periph_fraction, tgt_fp, xlabels, annot=annot)
-    logger.info("Generated image at {}", tgt_fp)
 
 
 def plot_mrna_intensity_histogram_peripheral_fraction(analysis_repo, annot=False):
@@ -119,20 +108,11 @@ def plot_mrna_intensity_histogram_peripheral_fraction(analysis_repo, annot=False
                             data_to_annot=gene2protein_periph_fraction
                             )
 
-    #
-    # plot.bar_profile(gene2histogram_protein_periph_fraction,
-    #                  gene2error.values(),
-    #                  gene2CI.values(),
-    #                  figname=tgt_fp,
-    #                  molecule_type="mrna",
-    #                  annot=annot)
-
     # generate violin plot image
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type="mrna", fraction=fraction)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
     xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     plot.violin_profile(gene2protein_periph_fraction, tgt_fp, xlabels, annot=annot)
-    logger.info("Generated image at {}", tgt_fp)
 
 
 def plot_protein_histogram_peripheral_fraction(analysis_repo, annot=False):
@@ -165,8 +145,6 @@ def plot_protein_histogram_peripheral_fraction(analysis_repo, annot=False):
                             data_to_annot=gene2protein_periph_fraction
                             )
 
-    #plot.bar_profile(gene2protein_periph_fraction, gene2error.values(), gene2CI.values(), figname=tgt_fp, molecule_type="protein", annot=annot)
-
     # generate violin plot image
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type="protein",
                                                                                    fraction=fraction)
@@ -175,7 +153,6 @@ def plot_protein_histogram_peripheral_fraction(analysis_repo, annot=False):
 
     xlabels = constants.analysis_config['PROTEINS_LABEL']
     plot.violin_profile(gene2protein_periph_fraction, tgt_fp, xlabels, annot=annot)
-    logger.info("Generated image at {}", tgt_fp)
 
 
 # configurations contain the order in which the degree of clustering is plotted

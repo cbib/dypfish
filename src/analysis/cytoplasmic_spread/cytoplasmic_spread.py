@@ -58,7 +58,6 @@ def plot_cytoplasmic_spread(_molecule_type, genes, annot=False):
                             annot=annot,
                             data_to_annot=gene2cyto_spread
                             )
-    logger.info("Generated image at {}", tgt_fp)
 
     # generate violin plot image
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=_molecule_type)
@@ -69,7 +68,6 @@ def plot_cytoplasmic_spread(_molecule_type, genes, annot=False):
     else:
         xlabels = constants.analysis_config['PROTEINS_LABEL']
     plot.violin_profile(gene2cyto_spread, tgt_fp, xlabels, rotation=0, annot=annot)
-    logger.info("Generated image at {}", tgt_fp)
 
 
 # Figure 6B top left panel : mRNA cytoplasmic spread arhgdia and arhgdia nocodazole
