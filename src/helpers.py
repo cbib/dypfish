@@ -167,10 +167,10 @@ def compute_h_star(h: np.ndarray, synth5: List[int], synth50: List[int], synth95
     idx_equal_median = np.where(h == synth50)[0]
     h_star = np.zeros(max_cell_radius)
     h_star[idx_equal_median] = 0
-    idx_greater_median = np.where(h > synth50)[0]
-    h_star[idx_greater_median] = (h[idx_greater_median] - synth50[idx_greater_median]) / delta1[idx_greater_median]
-    idx_less_median = np.where(h < synth50)[0]
-    h_star[idx_less_median] = -(synth50[idx_less_median] - h[idx_less_median]) / delta2[idx_less_median]
+    median_upper_idx = np.where(h > synth50)[0]
+    h_star[median_upper_idx] = (h[median_upper_idx] - synth50[median_upper_idx]) / delta1[median_upper_idx]
+    median_lower_idx = np.where(h < synth50)[0]
+    h_star[median_lower_idx] = -(synth50[median_lower_idx] - h[median_lower_idx]) / delta2[median_lower_idx]
     h_star[h_star == - np.inf] = 0
     h_star[h_star == np.inf] = 0
     return h_star
@@ -205,15 +205,13 @@ def compute_h_star_2d(h: np.ndarray, synth5: List[int], synth50: List[int], synt
     Fill the h_star array accordingly
     """
     max_cell_radius = max_cell_radius or constants.analysis_config["MAX_CELL_RADIUS"]
-    #delta1 = synth95 - synth50
-    #delta2 = synth50 - synth5
     idx_equal_median = np.where(h == synth50)[0]
     h_star = np.zeros(max_cell_radius)
     h_star[idx_equal_median] = 0
-    idx_greater_median = np.where(h > synth50)[0]
-    h_star[idx_greater_median] = (h[idx_greater_median] - synth50[idx_greater_median])
-    idx_less_median = np.where(h < synth50)[0]
-    h_star[idx_less_median] = -(synth50[idx_less_median] - h[idx_less_median])
+    median_upper_idx = np.where(h > synth50)[0]
+    h_star[median_upper_idx] = (h[median_upper_idx] - synth50[median_upper_idx])
+    median_lower_idx = np.where(h < synth50)[0]
+    h_star[median_lower_idx] = -(synth50[median_lower_idx] - h[median_lower_idx])
     h_star[h_star == - np.inf] = 0
     h_star[h_star == np.inf] = 0
     return h_star

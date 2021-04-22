@@ -135,19 +135,16 @@ class TestImageSet(TestCase):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
         result = image_set.compute_intensities_cytoplasmic_spread()
         test = [2.5397563772060727, 2.5923623840262615, 2.586344214162044, 2.291650989581199, 2.6410827964730803]
-        self.assertAlmostEquals(np.sum(result), np.sum(test), places=5)
+        self.assertAlmostEqual(np.sum(result), np.sum(test), places=5)
 
     def test_compute_surface_corrected_nm(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = image_set.compute_surface_corrected_nm()
-        self.assertAlmostEquals(result, 0.101090352627947, places=5)
-
+        self.assertAlmostEqual(result, 0.101090352627947, places=5)
 
     def test_compute_normalized_quadrant_and_slice_densities(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=8, stripes = 3)
-        print(result)
-
 
         test=[[0.0, 0.0, 0.0, 0.0002607, 0.00053841, 0.0,
             0.0, 0.00215078, 0.00229417, 0.00113145, 0.00208612, 0.00149977,

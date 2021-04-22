@@ -384,7 +384,7 @@ def plot_MPI(density_stats: DensityStats, molecule_type, figname):
     for i in range(len(labels)):
         gene_2_mpis[labels[i]] = np.float(mpis[i])
 
-    bar_profile_median(gene_2_mpis, errs, molecule_type, labels, molecule_type, figname)
+    bar_profile_median(gene_2_mpis, errs, molecule_type, labels, figname)
 
 
 def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, figname, limit_threshold=6, groupby=['Gene'], term=""):

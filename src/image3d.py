@@ -367,7 +367,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
                         dist += (spots[i, j] - nucleus_centroid[1]) ** 2
                 points_dist_list.append(math.sqrt(dist))
                 counter += 1
-        points_dists = np.matrix(points_dist_list)
+        points_dists = np.array(points_dist_list)
         points_dists = points_dists.reshape((counter, 1))
         height_map = np.multiply(height_map, cell_mask)
         height_map_dist = np.multiply(height_map, dsAll)
