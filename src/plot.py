@@ -12,6 +12,7 @@ from helpers import create_dir_if_needed_for_filepath
 from path import global_root_dir
 from mpi_calculator import DensityStats
 import math
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -21,12 +22,13 @@ import pandas as pd
 import helpers
 import pathlib
 import numpy as np
+from statannot import add_stat_annotation
 
 pd.set_option('display.max_rows', 1000)
 
 
 def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
-    fig = plt.figure()
+    fig, ax = plt.subplots()
     box = sns.boxplot(x=x, y=y, data=dd, palette=my_pal)
     box.set_xlabel("", fontsize=15)
     box.set_ylabel("", fontsize=15)
@@ -39,7 +41,7 @@ def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
     plt.close()
 
 
-def bar_profile_median_timepoints(df : pd.DataFrame, palette, figname, gene, fixed_yscale=0):
+def bar_profile_median_timepoints(df: pd.DataFrame, palette, figname, gene, fixed_yscale=0):
     """
     Plots a barplot for 'd_of_c' column for 2 molecules at each timepoint for gene
     Dataframe df contains:
@@ -55,7 +57,7 @@ def bar_profile_median_timepoints(df : pd.DataFrame, palette, figname, gene, fix
     fig, ax = plt.subplots()
     labels = np.sort(df["Timepoint"].unique())
     index = np.arange(len(labels))
-    df[['lower','higher']] = pd.DataFrame(df['CI'].to_list(), columns=['lower', 'higher'], index= df.index)
+    df[['lower', 'higher']] = pd.DataFrame(df['CI'].to_list(), columns=['lower', 'higher'], index=df.index)
     dfs = df.sort_values('Timepoint')
     # Fixing readability - scaling up for errors and low values (due to shift)
     dfs.loc[(dfs.error < 0.2), "error"] = dfs['error'] * 2
@@ -68,8 +70,8 @@ def bar_profile_median_timepoints(df : pd.DataFrame, palette, figname, gene, fix
     f_cubic = interp1d(index[mask], mrna['d_of_c'][mask], kind='cubic')
     ax.plot(x_new, f_cubic(x_new), zorder=5, color=helpers.colorscale("A5073E", 0.9))
     mask = protein['d_of_c'] != 0
-    x_new = np.linspace(np.min([index[mask]+bar_width]), np.max([index[mask]+bar_width]), 20)
-    f_cubic = interp1d(index[mask]+bar_width, protein['d_of_c'][mask], kind='cubic')
+    x_new = np.linspace(np.min([index[mask] + bar_width]), np.max([index[mask] + bar_width]), 20)
+    f_cubic = interp1d(index[mask] + bar_width, protein['d_of_c'][mask], kind='cubic')
     ax.plot(x_new, f_cubic(x_new), zorder=5, color=helpers.colorscale("A5073E", 1.2))
 
     ax.bar(index, mrna["d_of_c"], bar_width, yerr=mrna["error"], color=palette["mrna"], error_kw=dict(elinewidth=6, ecolor='black'))
@@ -82,28 +84,25 @@ def bar_profile_median_timepoints(df : pd.DataFrame, palette, figname, gene, fix
     plt.yticks(fontsize=20)
     plt.xticks(fontsize=20)
     all_timepoints = np.sort(list(set(mrna['Timepoint']) | set(protein['Timepoint'])))
-    plt.xticks(index + bar_width/2, all_timepoints, fontsize=20)
+    plt.xticks(index + bar_width / 2, all_timepoints, fontsize=20)
 
     # create the table for the CI
     CI = pd.DataFrame({"mRNA": mrna[["lower", "higher"]].values.tolist(),
-                        "protein": protein[["lower", "higher"]].values.tolist()}, index=all_timepoints)
+                       "protein": protein[["lower", "higher"]].values.tolist()}, index=all_timepoints)
     CI = CI.T
     plt.table(cellText=CI.values,
               rowLabels=CI.index.values,
-              colLabels=list(str(' ') * len(all_timepoints)), # empty since we already have the xticks
+              colLabels=list(str(' ') * len(all_timepoints)),  # empty since we already have the xticks
               loc='bottom',
               bbox=[0.0, -0.3, 1, .28])
     plt.subplots_adjust(bottom=0.28)
-
-
     fig.savefig(figname, format='png')
     plt.close()
     logger.info("Generated image at {}", figname)
 
 
 def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type", err="err"):
-    fig = plt.figure()
-    ax = plt.axes()
+    fig, ax = plt.subplots()
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
     ax.spines['left'].set_linewidth(3)
@@ -120,6 +119,23 @@ def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type"
     mrna_err = [x if (float(x) < 0.0000000000001) else 0.05 for x in mrna_err]
     assert (len(mrna_values) == len(protein_values))
     assert (len(mrna_values) == len(mrna_err))
+
+
+    mrna = dd[dd["Molecule_type"] == "mrna"]
+    labels = np.sort(dd["Timepoint"].unique())
+    index = np.arange(len(labels))
+
+    mask = mrna['MPI'] != 0
+    x_new = np.linspace(index[mask].min(), index[mask].max(), 20)
+    f_cubic = interp1d(index[mask], mrna['MPI'][mask], kind='cubic')
+    ax.plot(x_new, f_cubic(x_new), zorder=5, color=helpers.colorscale("A5073E", 0.9))
+    protein = dd[dd["Molecule_type"] == "protein"]
+    mask = protein['MPI'] != 0
+    x_new = np.linspace(np.min([index[mask] + width]), np.max([index[mask] + width]), 20)
+    f_cubic = interp1d(index[mask]+width, protein['MPI'][mask], kind='cubic')
+    ax.plot(x_new, f_cubic(x_new), zorder=5, color=helpers.colorscale("A5073E", 1.2))
+
+
     ax.bar(idx1, mrna_values, width, color=my_pal["mrna"],
            yerr=mrna_err, error_kw=dict(elinewidth=1, ecolor='black'))
     ax.bar(idx2, protein_values, width, color=my_pal["protein"],
@@ -134,103 +150,279 @@ def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type"
     plt.close()
 
 
-def sns_violinplot(dd, my_pal, figname, xlabels, x="Gene", y='value', hue=None, no_legend=True, rotation=0):
+# def sns_violinplot(dd, my_pal, figname, xlabels, x="Gene", y='value', hue=None, no_legend=True, rotation=0):
+#     fig, ax = plt.subplots()
+#     ax = sns.violinplot(x=x, y=y, data=dd, hue=hue, palette=my_pal)
+#     ax.set_xlabel("")
+#     ax.set_ylabel("")
+#     ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
+#     ax.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
+#     ax.set_xticklabels(xlabels, rotation=rotation)
+#     plt.yticks(fontsize=30)
+#     plt.xticks(fontsize=20)
+#     if no_legend:
+#         ax.legend_.remove()
+#     fig.savefig(figname, format='png')
+#     plt.close()
+
+def violin_profile(_dict, tgt_fp, xlabels, rotation=0, annot=False):
+    dd = pd.DataFrame(
+        dict([(k, pd.Series(v).astype(float)) for k, v in _dict.items()])).melt().dropna().rename(
+        columns={"variable": "gene"})
+    my_pal = {}
+    for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(constants.analysis_config['MRNA_GENES'])]):
+        my_pal[constants.analysis_config['MRNA_GENES'][i]] = color
+
+    sns_violinplot(dd, my_pal, tgt_fp, xlabels, x='gene', no_legend=False, rotation=rotation, annot=annot)
+
+
+
+def sns_violinplot(dd, my_pal, figname, plot_xlabels, x="Gene", y='value', hue=None, no_legend=True, rotation=0, annot=False):
     fig = plt.figure(figsize=(10, 10))
-    ax = sns.violinplot(x=x, y=y, data=dd, hue=hue, palette=my_pal)
+    ax = sns.violinplot(x=x, y=y, data=dd, hue=hue, palette=my_pal, cut=0)
+    gene_list = constants.analysis_config['MRNA_GENES']
+    if annot:
+        box_pairs = []
+        for i in range(1, len(gene_list) + 1):
+            if i % 2 == 0:
+                box_pairs.append(((gene_list[i - 2], gene_list[i - 1])))
+        add_stat_annotation(ax, data=dd, x=x, y=y, hue=hue,
+                            #box_pairs=[((gene_list[0], gene_list[1])), ((gene_list[2], gene_list[3]))],
+                            box_pairs=box_pairs,
+                            test='t-test_ind', text_format='star', loc='inside', verbose=2)
+
     ax.set_xlabel("")
     ax.set_ylabel("")
     ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
-    ax.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
-    ax.set_xticklabels(xlabels, rotation=rotation)
+    ax.tick_params(right=False, top=False, direction='out', length=8, width=3, colors='black')
+    ax.spines['left'].set_linewidth(3)
+    ax.set_xticklabels(plot_xlabels, rotation=rotation)
     plt.yticks(fontsize=30)
     plt.xticks(fontsize=20)
+    plt.gcf().subplots_adjust(bottom=0.2, left=0.2)
     if no_legend:
         ax.legend_.remove()
     fig.savefig(figname, format='png')
     plt.close()
+    logger.info("Generated image at {}", figname)
 
 
-def bar_profile(data, genes, figname, compute_median_and_error=True):
-    plot_colors = constants.analysis_config['PLOT_COLORS']
-    plt.figure(figsize=(8, 8))
-    ax = plt.axes()
-    width = 0.35
+
+def bar_profile(data, err, CI, figname, molecule_type, annot=False, hue=None):
+    data_values = data.values()
+    genes = data.keys()
     ind = np.arange(len(genes))
-    ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
-    ax.spines['left'].set_linewidth(3)
+    bar_width = 0.35
+    plot_colors = constants.analysis_config['PLOT_COLORS']
+    plot_xlabels = constants.analysis_config['MRNA_GENES_LABEL']
+    gene_list = constants.analysis_config['MRNA_GENES']
+    fig, ax = plt.subplots()
+    plt.legend(loc='upper left', bbox_to_anchor=(1.03, 1))
+    plt.subplots_adjust(bottom=0.3, left=0.15)
     plt.yticks(fontsize=20)
-    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    if compute_median_and_error:
-        dataMedians = []
-        dataStdErr = []
-        for l in data:
-            dataMedians.append(np.median(l))
-            dataStdErr.append(np.std(l)/math.sqrt(len(l)))
-            ax.bar(ind, dataMedians, width, color=plot_colors,yerr=dataStdErr,error_kw=dict(elinewidth=1, ecolor='black'))
-    else:
-        ax.bar(ind, data, width, color=plot_colors)
 
-    ax.set_xlim(-width, len(ind) + width)
-    ax.set_xticks(ind)
-    ax.set_xticklabels(["" for i in range(0, len(genes))])
-    create_dir_if_needed_for_filepath(figname)
-    plt.savefig(figname, format='png')
+    ax.set_ylabel("", fontsize=15)
+    ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
+    ax.set_xlabel("", fontsize=15)
+    ax.set_xticklabels(plot_xlabels)
+    plt.xticks(ind, list(genes), fontsize=10)
+    # ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
+    ax.tick_params(right=False, top=False, bottom=True, direction='out', length=8, width=3, colors='black')
+    ax.spines['left'].set_linewidth(3)
+    if annot:
+        # build df for t-test in statannot
+        dd = pd.DataFrame(
+            dict([(k, pd.Series(v)) for k, v in data.items()])).melt().dropna().rename(
+            columns={"variable": "gene"})
+
+        box_pairs = []
+        for i in range(1, len(gene_list) + 1):
+            if i % 2 == 0:
+                box_pairs.append(tuple((gene_list[i - 2], gene_list[i - 1])))
+
+        add_stat_annotation(ax, data=dd, x='gene', y='value', hue=hue,
+                            #box_pairs=[((gene_list[0], gene_list[1])), ((gene_list[2], gene_list[3]))],
+                            box_pairs=box_pairs,
+                            test='t-test_ind', text_format='star', loc='inside', verbose=2)
+    data_median = []
+    for l in data_values:
+        data_median.append(np.median(l))
+    ax.bar(ind, data_median, bar_width, color=plot_colors, yerr=err, error_kw=dict(elinewidth=6, ecolor='black'))
+
+    # create the table for the CI
+    CI = pd.DataFrame(CI, columns=['lower', 'higher'], index=genes)
+    median_values=[np.median(pd.Series(v)) for k, v in data.items()]
+    y_max = np.float(np.max(median_values)) + (np.float(np.nanmin(median_values))/15)
+    y_min = np.float(np.nanmin(median_values)) - (np.float(np.nanmin(median_values))/5)
+
+    # plt.ylim([fixed_yscale - yrange, fixed_yscale])
+    plt.ylim([y_min, y_max])
+
+
+    CI = CI.round({'lower': 1, 'higher': 1})
+    CI = pd.DataFrame({molecule_type: CI[["lower", "higher"]].values.tolist()}, index=genes)
+    CI = CI.T
+    CI_table=plt.table(cellText=CI.values,
+              rowLabels=CI.index.values,
+              #colLabels=list(str(' ') * len(genes)),  # empty since we already have the xticks
+              colLabels=[lab for lab in plot_xlabels], # need to used ax.set_xticks([]) since we already have the colLabels
+              loc='bottom',
+              cellLoc='center',
+              bbox=[0.0, -0.3, 1, .28])
+    CI_table.auto_set_font_size(False)
+    CI_table.set_fontsize(12)
+
+    ax.set_xlim(-0.5, len(ind)-0.5)
+    ax.set_xticks([])
+    #ax.set_xticklabels(["" for i in range(0, len(genes))])
+
+
+    fig.savefig(figname, format='png')
     plt.close()
 
 
-def bar_profile_median(medians, genes, err, figname, CI=None, fixed_yscale=1):
+# def bar_profile(data, genes, figname, compute_median_and_error=True):
+#     plot_colors = constants.analysis_config['PLOT_COLORS']
+#     fig, ax = plt.subplots()
+#     width = 0.35
+#     ind = np.arange(len(genes))
+#     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
+#     ax.spines['left'].set_linewidth(3)
+#     plt.yticks(fontsize=20)
+#     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
+#     if compute_median_and_error:
+#         dataMedians = []
+#         dataStdErr = []
+#         for l in data:
+#             dataMedians.append(np.median(l))
+#             dataStdErr.append(np.std(l) / math.sqrt(len(l)))
+#             ax.bar(ind, dataMedians, width, color=plot_colors, yerr=dataStdErr, error_kw=dict(elinewidth=1, ecolor='black'))
+#     else:
+#         ax.bar(ind, data, width, color=plot_colors)
+#
+#     ax.set_xlim(-width, len(ind) + width)
+#     ax.set_xticks(ind)
+#     ax.set_xticklabels(["" for i in range(0, len(genes))])
+#     create_dir_if_needed_for_filepath(figname)
+#     plt.savefig(figname, format='png')
+#     plt.close()
+
+
+def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname, confidence_interval=None, annot=False, test='t-test_ind', data_to_annot={}):
     """
     Plot a barplot for each gene with height given by medians, error bars defined by err
     and confidence intervals by CI; CI is a dictionary with keys = genes
+    test: t-test_ind, t-test_welch, t-test_paired, Mann-Whitney, Mann-Whitney-gt, Mann-Whitney-ls, Levene, Wilcoxon, Kruskal.
     """
+    print(data_median)
+    print(err)
+    # Define plot variables
+    genes = data_median.keys()
+    medians = data_median.values()
     plot_colors = constants.analysis_config['PLOT_COLORS']
+    bar_width = 0.35
+    all_genes = list(genes)
+    ind = np.arange(len(genes))
     fig, ax = plt.subplots()
 
-    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
-    ax.spines['left'].set_linewidth(3)
+    # Search for ymin and y max
+    y_max = np.float(np.max(list(medians))) + (np.float(np.nanmin(list(medians))) / 10)
+    y_min = np.float(np.nanmin(list(medians))) - (np.float(np.nanmin(list(medians))) / 5)
+    plt.ylim([y_min, y_max])
+
+    if annot:
+        add_annot(data_to_annot, all_genes, ax, test)
+
+    ax.set_xlabel("", fontsize=15)
+    ax.set_ylabel("", fontsize=10)
+    ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
     plt.yticks(fontsize=20)
-    N = len(genes)
-    ind = np.arange(N)
-    width = 0.35
-    ax.bar(ind, medians, width, color=plot_colors, yerr=err, error_kw=dict(elinewidth=6, ecolor='black'))
+    plt.xticks(fontsize=10)
+    plt.xticks(ind, all_genes, fontsize=10)
+    ax.tick_params(right=False, top=False, bottom=True, direction='out', length=8, width=3, colors='black')
+    ax.spines['left'].set_linewidth(3)
+    ax.bar(ind, medians, bar_width, color=plot_colors, yerr=err, error_kw=dict(elinewidth=6, ecolor='black'))
+    ax.set_xticklabels(plot_xlabels)
 
+    # create the table for the CI
     # add confidence intervals
-    # TODO here add the table for CI in the same way as in timepoints
+    if confidence_interval is not None:
+        confidence_interval_df = pd.DataFrame(confidence_interval, columns=['lower', 'higher'], index=genes)
+        confidence_interval_df = confidence_interval_df.round({'lower': 1, 'higher': 1})
+        confidence_interval_df = pd.DataFrame({molecule_type: confidence_interval_df[["lower", "higher"]].values.tolist()}, index=genes)
+        confidence_interval_df = confidence_interval_df.T
+        confidence_interval_table = plt.table(cellText=confidence_interval_df.values,
+                                              rowLabels=confidence_interval_df.index.values,
+                                              colLabels=[lab for lab in plot_xlabels],  # empty since we already have the xticks
+                                              loc='bottom',
+                                              cellLoc='center',
+                                              bbox=[0.0, -0.3, 1, .28])
+        plt.subplots_adjust(bottom=0.28, left=0.15)
+        confidence_interval_table.auto_set_font_size(False)
+        confidence_interval_table.set_fontsize(12)
+        ax.set_xticks([])
 
-    ax.set_xlim(-width, len(ind) + width)
-    ax.set_ylim(0, fixed_yscale) # same as for the timepoints
-    ax.set_xticks([])
-
+    ax.set_xlim(-0.5, len(ind) - 0.5)
     fig.savefig(figname)
     plt.close()
     logger.info("Generated image at {}", figname)
 
 
-def bar_profile_simple(data, figname, plot_colors):
-    plt.figure()
-    ax = plt.axes()
+
+# def bar_profile_median(medians, genes, err, figname, CI=None, fixed_yscale=1):
+#     """
+#     Plot a barplot for each gene with height given by medians, error bars defined by err
+#     and confidence intervals by CI; CI is a dictionary with keys = genes
+#     """
+#     fig, ax = plt.subplots()
+#     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
+#     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
+#     ax.spines['left'].set_linewidth(3)
+#     plt.yticks(fontsize=20)
+#     N = len(genes)
+#     ind = np.arange(N)
+#     width = 0.35
+#     ax.bar(ind, medians, width, color=plot_colors, yerr=err, error_kw=dict(elinewidth=6, ecolor='black'))
+#
+#     # add confidence intervals
+#     # TODO here add the table for CI in the same way as in timepoints
+#
+#     ax.set_xlim(-width, len(ind) + width)
+#     ax.set_ylim(0, fixed_yscale)  # same as for the timepoints
+#     ax.set_xticks([])
+#
+#     fig.savefig(figname)
+#     plt.close()
+#     logger.info("Generated image at {}", figname)
+
+
+def bar_profile_simple(data, figname):
+    plot_colors = constants.analysis_config['PLOT_COLORS']
+    fig, ax = plt.subplots()
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
     for axis in ['left']:
         ax.spines[axis].set_linewidth(3)
     plt.yticks(fontsize=20)
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    N = len(data)
-    ind = np.arange(N)
-    width = 0.35
-    ax.bar(ind, data, width, color=plot_colors)
-    ax.set_xlim(-width, len(ind) + width)
+    bar_width = 0.35
+    x_component = np.arange(len(data))
+    ax.bar(x_component, data, bar_width, color=plot_colors)
+    ax.set_xlim(-bar_width, len(x_component) + bar_width)
     ax.set_ylim(0, 0.7)
-    ax.set_xticks(ind)
-    ax.set_xticklabels(["" for i in range(0, N)])
+    ax.set_xticks(x_component)
+    ax.set_xticklabels(["" for i in range(0, len(data))])
     plt.savefig(figname, format='png')
     plt.close()
 
 
-def plot_MPI(density_stats: DensityStats, figname):
+def plot_MPI(density_stats: DensityStats, molecule_type, figname):
     labels = density_stats.make_labels()
     mpis, errs = density_stats.mpi()
-    bar_profile_median(mpis, labels, errs, figname)
+    gene_2_mpis = {}
+    for i in range(len(labels)):
+        gene_2_mpis[labels[i]] = np.float(mpis[i])
+
+    bar_profile_median(gene_2_mpis, errs, molecule_type, labels, molecule_type, figname)
 
 
 def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: DensityStats,
@@ -278,6 +470,7 @@ def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: De
         # sns_barplot_simple(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type")
         logger.info("Generated image at {}", tgt_fp)
 
+
 # plot_mtoc_enrichment never used ??
 def plot_mtoc_enrichment(density_stats: DensityStats, molecule_type, limit_threshold, log=False):
     # melt dataframe and relabel all non MTOC quadrants
@@ -294,7 +487,7 @@ def plot_mtoc_enrichment(density_stats: DensityStats, molecule_type, limit_thres
 
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=molecule_type)
     figname = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
+                           tgt_image_name)
     ## remove outliers
     outliers = helpers.detect_outliers(np.array(dd["value"]), limit_threshold)
     dd = dd[~np.isin(dd["value"], outliers)]
@@ -302,6 +495,7 @@ def plot_mtoc_enrichment(density_stats: DensityStats, molecule_type, limit_thres
     helpers.create_dir_if_needed_for_filepath(figname)
     sns_violinplot(dd, my_pal, figname, rotation=45)
     logger.info("Generated image at {}", figname)
+
 
 # plot_hist_ratio never used ??
 def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold, groupby=['Gene']):
@@ -311,7 +505,7 @@ def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold,
     dd = dd.replace(0.000000, np.nan)
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=molecule_type)
     figname = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
+                           tgt_image_name)
     my_pal = {"MTOC ratio": "#66b2ff"}
     outliers = helpers.detect_outliers(np.array(dd["value"]), limit_threshold)
     dd = dd[~np.isin(dd["value"], outliers)]  # dd[dd["value"] < limit_threshold]
@@ -340,7 +534,8 @@ def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, fignam
     if molecule_type == 'mrna':
         xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     else:
-        xlabels = constants.analysis_config['MRNA_GENES_LABEL'][:4]
+        xlabels = constants.analysis_config['PROTEINS_LABEL']
+    print(groupby[0])
     sns_violinplot(dd, my_pal, figname, xlabels, x=groupby[0], no_legend=False, rotation=45)
 
 
@@ -484,7 +679,7 @@ def dynamic_profiles(mrna_data, protein_data, gene, xlabel, ylabel, figpath, plo
     plt.savefig(figpath, format='png')
 
 
-#TODO never user => probably replaced by boxplot_MPI
+# TODO never user => probably replaced by boxplot_MPI
 def plot_dynamic_MPI(mrna_df, prot_df, genes, figname):
     plot_colors = constants.analysis_config['PLOT_COLORS']
     for i, gene in enumerate(genes):
@@ -516,17 +711,13 @@ def plot_dynamic_MPI(mrna_df, prot_df, genes, figname):
         dynamic_profiles(data_mrna, data_prot, gene, 'Time(hrs)', 'MTOC polarity index', figname, plot_colors[i])
 
 
-def sns_linear_regression(data_1, data_2, color, graph_file_path_name):
+def sns_linear_regression(data_1, data_2, color, graph_file_path_name, order=1):
     sns.set(style="white", color_codes=True)
     annot_kws = {'prop': {'family': 'monospace', 'weight': 'bold', 'size': 8}}
     res1 = pearsonr(data_1, data_2)
-    # print(", ".join(["x" + unichr(u) for u in (0x2070, 0x00B9, 0x00B2, 0x00B3, 0x2074, 0x2075, 0x2076, 0x2077, 0x2078, 0x2079)]))
     sns.set(font_scale=1)
-    data3 = np.array(data_2) / np.array(data_1)
-    data3 = data3[data3 <= 0.6]
-    data3 = data3 - np.median(data3)
-    sns_plot_regression = sns.jointplot(x=data_1, y=data_2, kind='reg', color=color)
-    # sns_plot_regression.ax_marg_x.set_xlim(350,850)
+    sns_plot_regression = sns.jointplot(x=np.log(data_1), y=np.log(data_2), order=order, kind='reg', x_estimator=np.mean, color=color)
+    sns_plot_regression.ax_marg_x.set_xlim(6, 8)
     phantom, = sns_plot_regression.ax_joint.plot([], [], linestyle="", alpha=0)
     sns_plot_regression.ax_joint.legend([phantom], [
         'pearsonr={:f}, R' + chr(0x00B2) + '={:f}, p={:.2E}'.format(res1[0], res1[0] ** 2, res1[1])], **annot_kws)
@@ -552,7 +743,7 @@ def profile(profiles, genes, num_contours, figname):
 
 def histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured, figname):
     plot_colors = constants.analysis_config['PLOT_COLORS']
-    ax = plt.axes()
+    fig, ax = plt.subplots()
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     for axis in ['bottom', 'left']:
         ax.spines[axis].set_linewidth(3)
@@ -570,8 +761,7 @@ def histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured, figname):
 
 
 def plot_figure(total_mads_arhgdia, total_mads_arhgdia_cultured, figname):
-    plt.figure()
-    ax = plt.axes()
+    fig, ax = plt.subplots()
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
     for axis in ['left']:
         ax.spines[axis].set_linewidth(3)
@@ -584,35 +774,37 @@ def plot_figure(total_mads_arhgdia, total_mads_arhgdia_cultured, figname):
     plt.savefig(figname)
     plt.close()
 
+
 def spline_graph(grid_mat, figname, band_n=100):
-    ax1 = plt.subplot()
+    ax = plt.subplot()
     x_mrna = np.arange(0, band_n, 0.5)
     fact = np.max(np.array(grid_mat)) / 10
     data = (np.array(grid_mat).flatten() / fact).astype(int) + 1
     spl = interpolate.UnivariateSpline(np.arange(0, band_n, 1), data)
     m_y_new = spl(x_mrna)
     plt.plot(x_mrna, m_y_new)
-    ax1.set_ylim((0, 12))
-    ax1.set_xlim((0, band_n - 1))
+    ax.set_ylim((0, 12))
+    ax.set_xlim((0, band_n - 1))
     plt.savefig(figname)
     plt.close()
 
+
 def heatmap(grid_mat, figname, band_n=100):
-    ax0 = plt.subplot()
-    ax0.set_yticks([])
+    ax = plt.subplot()
+    ax.set_yticks([])
     major_ticks = np.arange(0, int(band_n) + 1, 1)
-    ax0.tick_params(axis='both', which='major', labelsize=5)
-    ax0.set_xticks(major_ticks)
+    ax.tick_params(axis='both', which='major', labelsize=5)
+    ax.set_xticks(major_ticks)
     plt.imshow(grid_mat, cmap='coolwarm', aspect=band_n / 3)
     plt.ylim((0, 0.4))
     plt.savefig(figname)
     plt.close()
 
 
-def compute_heatmap(ranking, gene, figname, size=4, xtickslabel=['2h', '3h', '5h', '7h'], ytickslabel = ['2h', '3h', '4h', '5h']):
+def compute_heatmap(ranking, gene, figname, size=4, xtickslabel=['2h', '3h', '5h', '7h'], ytickslabel=['2h', '3h', '4h', '5h']):
+    fig, ax = plt.subplots()
     im = np.flipud(np.kron(ranking, np.ones((10, 10))))
     plt.imshow(im, extent=[0, size, 0, size], cmap='GnBu', interpolation='nearest')
-    ax = plt.axes()
     ax.set_ylabel("mRNA  - Time (hrs)")
     ax.set_xlabel("Protein  - Time (hrs)")
     myxticklabels = xtickslabel
@@ -622,3 +814,19 @@ def compute_heatmap(ranking, gene, figname, size=4, xtickslabel=['2h', '3h', '5h
     ax.set_title(gene)
     plt.savefig(figname)
     plt.close()
+
+
+def add_annot(data, gene_list, ax, test):
+    dd = pd.DataFrame(
+        dict([(k, pd.Series(v)) for k, v in data.items()])).melt().dropna().rename(
+        columns={"variable": "gene"})
+    box_pairs = []
+    for i in range(1, len(gene_list) + 1):
+        if i % 2 == 0:
+            box_pairs.append(tuple((gene_list[i - 2], gene_list[i - 1])))
+    # test value should be one of the following:
+    add_stat_annotation(ax, data=dd, x='gene', y='value', hue=None,
+                        # box_pairs=[((gene_list[0], gene_list[1])), ((gene_list[2], gene_list[3]))],
+                        box_pairs=box_pairs,
+                        test=test, text_format='star', loc='inside', verbose=2)
+

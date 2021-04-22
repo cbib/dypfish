@@ -136,34 +136,26 @@ if __name__ == '__main__':
         )
         #plot.plot_hist_ratio(mRNA_df, 'mrna', limit_threshold=OUTLIERS_THRESHOLD)
         if conf[2]=="":
-            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(
-                molecule_type='mrna')
-            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                                  tgt_image_name)
+            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type='mrna')
+            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
             plot.compute_violin_plot_ratio(mRNA_df, 'mrna', tgt_fp)
             # # # # New Figure 3.C left mRNA MTOC enrichment for original data
-            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(
-                molecule_type='mrna')
-            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                                  tgt_image_name)
+            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type='mrna')
+            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
             plot.compute_violin_plot_enrichment(mRNA_df, 'mrna', tgt_fp, limit_threshold=OUTLIERS_THRESHOLD)
         else:
-            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(
-                molecule_type='mrna')
-            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                                  tgt_image_name)
+            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type='mrna')
+            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
             plot.compute_categorical_violin_plot_ratio(mRNA_df, 'mrna', tgt_fp, limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], gene=conf[1], groupby=[conf[3]])
 
-            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(
-                molecule_type='mrna')
-            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                                  tgt_image_name)
+            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type='mrna')
+            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
             plot.compute_categorical_violin_plot_enrichment(mRNA_df, 'mrna', tgt_fp, limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], groupby=conf[3])
         #plot.plot_mtoc_enrichment(mRNA_df, 'mrna', limit_threshold=OUTLIERS_THRESHOLD)
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type='mrna')
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        plot.plot_MPI(mRNA_df, tgt_fp)
+        plot.plot_MPI(mRNA_df, 'mrna', tgt_fp)
 
         ## proteins
         protein_time_points = constants.dataset_config['TIMEPOINTS_PROTEIN']
@@ -201,7 +193,7 @@ if __name__ == '__main__':
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type='protein')
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        plot.plot_MPI(prot_df, tgt_fp)
+        plot.plot_MPI(prot_df, 'protein', tgt_fp)
 
         ## combined
         if ("original" in conf[0]):

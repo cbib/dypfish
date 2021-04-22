@@ -72,5 +72,5 @@ for i,gene in enumerate(genes):
     dict_transcript_by_cell_area=compute_transcript_by_cell_area(gene, timepoints[i], analysis_repo)
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT'].format(cell_type=genes[i])
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),tgt_image_name)
-    sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"],plot_colors[i],tgt_fp)
+    sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"],plot_colors[i],tgt_fp, order=2)
 

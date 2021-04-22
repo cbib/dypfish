@@ -21,41 +21,40 @@ import itertools
 import matplotlib.pyplot as plt
 
 
-def compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=4):
-    prot_tis_dict = {}
+def compute_protein_relative_density_per_quadrants_and_slices(_analysis_repo, _quadrants_num=4):
+    _prot_tis_dict = {}
     stripes = constants.analysis_config['STRIPE_NUM']
     for gene in constants.analysis_config['PROTEINS']:
         prot_median = []
         for timepoint in constants.dataset_config['TIMEPOINTS_PROTEIN']:
-            image_set = ImageSet(analysis_repo, ["protein/{0}/{1}/".format(gene, timepoint)])
-            arr = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=quadrants_num,
+            image_set = ImageSet(_analysis_repo, ["protein/{0}/{1}/".format(gene, timepoint)])
+            arr = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=_quadrants_num,
                                                                             stripes=stripes)
             mrna_tp_df = pd.DataFrame(arr)
             prot_median.append(mrna_tp_df.mean(axis=0).values)
-        prot_tis_dict[gene] = prot_median
+        _prot_tis_dict[gene] = prot_median
 
-    return prot_tis_dict
+    return _prot_tis_dict
 
 
-def compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=4):
-    mrna_tis_dict = {}
+def compute_mrna_relative_density_per_quadrants_and_slices(_analysis_repo, _quadrants_num=4):
+    _mrna_tis_dict = {}
     stripes = constants.analysis_config['STRIPE_NUM']
     for gene in constants.analysis_config['MRNA_GENES']:
         mrna_median = []
         for timepoint in constants.dataset_config['TIMEPOINTS_MRNA']:
-            image_set = ImageSet(analysis_repo, ["mrna/{0}/{1}/".format(gene, timepoint)])
-            arr = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=quadrants_num,
+            image_set = ImageSet(_analysis_repo, ["mrna/{0}/{1}/".format(gene, timepoint)])
+            arr = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=_quadrants_num,
                                                                             stripes=stripes)
+            print(len(arr[0]))
             mrna_tp_df = pd.DataFrame(arr)
             mrna_median.append(mrna_tp_df.mean(axis=0).values)
-        mrna_tis_dict[gene] = mrna_median
+        _mrna_tis_dict[gene] = mrna_median
 
-    return mrna_tis_dict
+    return _mrna_tis_dict
 
-'''
- Figure 5D Analysis TIS for original data
-'''
 
+# Figure 5D Analysis TIS for original data
 logger.info("Temporal interaction score for the mRNA original data")
 constants.init_config(
     analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_original.json"))
@@ -84,11 +83,10 @@ for gene in constants.analysis_config['PROTEINS']:
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp, compute_median_and_error=False)
+plot.bar_profile_simple(tiss, tgt_fp)
 
-'''
- Figure 6E Analysis TIS for nocodazole arhgdia data
-'''
+
+# Figure 6E Analysis TIS for nocodazole arhgdia data
 logger.info("Temporal interaction score for the mRNA nocodazole arhgdia data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
                                                            "src/analysis/temporal_interactions/config_nocodazole_arhgdia.json"))
@@ -113,16 +111,14 @@ for gene in constants.analysis_config['PROTEINS']:
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
-    compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=constants.dataset_config['TIMEPOINTS_MRNA'], ytickslabel=constants.dataset_config['TIMEPOINTS_PROTEIN'])
+    compute_heatmap(ranking, gene, tgt_fp)
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp, compute_median_and_error=False)
+plot.bar_profile_simple(tiss, tgt_fp)
 
 
-'''
-Figure 6E Analysis TIS for nocodazole pard3 data
-'''
+# Figure 6E Analysis TIS for nocodazole pard3 data
 logger.info("Temporal interaction score for the mRNA pard3 nocodazole data")
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
                                                            "src/analysis/temporal_interactions/config_nocodazole_pard3.json"))
@@ -147,10 +143,8 @@ for gene in constants.analysis_config['PROTEINS']:
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
-
-    compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=constants.dataset_config['TIMEPOINTS_MRNA'], ytickslabel=constants.dataset_config['TIMEPOINTS_PROTEIN'])
+    compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-
-plot.bar_profile(tiss, constants.analysis_config['PROTEINS'], tgt_fp, compute_median_and_error=False)
+plot.bar_profile_simple(tiss, tgt_fp)
