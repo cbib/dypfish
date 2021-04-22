@@ -14,7 +14,7 @@ from image_set import ImageSet
 from path import global_root_dir
 
 
-def compute_degree_of_clustering(genes_list, repo, molecule_type):
+def compute_degree_of_clustering(genes_list, analysis_repo, molecule_type):
     gene2_degree_of_clustering = {}
     gene2median_degree_of_clustering = {}
     gene2error_degree_of_clustering = {}
@@ -22,7 +22,7 @@ def compute_degree_of_clustering(genes_list, repo, molecule_type):
     degrees_of_clustering = []
 
     for gene in genes_list:
-        image_set = ImageSet(repo, ['{0}/{1}/'.format(molecule_type, gene)])
+        image_set = ImageSet(analysis_repo, ['{0}/{1}/'.format(molecule_type, gene)])
         d_of_c = np.array(image_set.compute_degree_of_clustering())
         degrees_of_clustering.append(d_of_c)
 
@@ -58,12 +58,12 @@ configurations = [
 ]
 
 
-def build_plots(repo, conf, annot=False):
+def build_plots(analysis_repo, conf, annot=False):
     for molecule_type, molecules in zip(["mrna", "protein"], ['MRNA_GENES', 'PROTEINS']):
         if conf[0] == "src/analysis/degree_of_clustering/config_original.json":
             annot = False
         genes_list = constants.dataset_config[molecules]
-        d_of_c, median_d_of_c, err, confidence_interval = compute_degree_of_clustering(genes_list, repo, molecule_type=molecule_type)
+        d_of_c, median_d_of_c, err, confidence_interval = compute_degree_of_clustering(genes_list, analysis_repo, molecule_type=molecule_type)
         # sort everything in the same way for plotting
         keyorder = conf[1]
         median_d_of_c = collections.OrderedDict(sorted(median_d_of_c.items(), key=lambda i: keyorder.index(i[0])))

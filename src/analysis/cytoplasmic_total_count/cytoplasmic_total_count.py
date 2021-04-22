@@ -117,7 +117,7 @@ if __name__ == '__main__':
     for conf in configurations:
         conf_full_path = pathlib.Path(global_root_dir, conf[0])
         constants.init_config(analysis_config_js_path=conf_full_path)
-        analysis_repo = open_repo()
-        keyorder = conf[1]
-        mrna_cytoplasmic_total_count(analysis_repo, keyorder)
-        intensities_cytoplasmic_total_count(analysis_repo, keyorder)
+        repo = open_repo()
+        key_order = conf[1]
+        mrna_cytoplasmic_total_count(repo, key_order)
+        intensities_cytoplasmic_total_count(repo, key_order)

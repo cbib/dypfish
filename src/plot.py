@@ -84,7 +84,7 @@ def bar_profile_median_timepoints(df: pd.DataFrame, palette, figname, gene, fixe
     plt.subplots_adjust(bottom=0.28)
     fig.savefig(figname, format='png')
     plt.close()
-    logger.info("Generated image at {}", figname)
+    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
 def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname, confidence_interval=None, annot=False, test='t-test_ind', data_to_annot={}):
@@ -142,7 +142,7 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname, c
     ax.set_xlim(-0.5, len(ind) - 0.5)
     fig.savefig(figname)
     plt.close()
-    logger.info("Generated image at {}", figname)
+    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
 def bar_profile(data, figname, plot_colors):
@@ -268,7 +268,7 @@ def sns_violinplot(dd, my_pal, figname, plot_xlabels, x="Gene", y='value', hue=N
         ax.legend_.remove()
     fig.savefig(figname, format='png')
     plt.close()
-    logger.info("Generated image at {}", figname)
+    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
 def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
@@ -327,7 +327,7 @@ def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: De
                   "protein": str(helpers.color_variant(plot_colors[color_num], +80))}
         helpers.create_dir_if_needed_for_filepath(tgt_fp)
         sns_barplot(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type", err="err")
-        logger.info("Generated image at {}", tgt_fp)
+        logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
 
 def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type", err="err"):
@@ -695,7 +695,7 @@ def plot_mtoc_enrichment(density_stats: DensityStats, molecule_type, limit_thres
 
     helpers.create_dir_if_needed_for_filepath(figname)
     sns_violinplot(dd, my_pal, figname, rotation=45)
-    logger.info("Generated image at {}", figname)
+    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
 # plot_hist_ratio never used ??
@@ -713,7 +713,7 @@ def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold,
 
     helpers.create_dir_if_needed_for_filepath(figname)
     sns_violinplot(dd, my_pal, figname, x=groupby[0])
-    logger.info("Generated image at {}", figname)
+    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
 def histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured, figname, plot_colors):

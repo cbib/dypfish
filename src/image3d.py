@@ -193,7 +193,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         peripheral_distance_map = self.get_cell_mask_distance_map()
         spots_peripheral_distance = []
         spots = self.get_cytoplasmic_spots()  # was get_spots(), changed to be coherent with the 2D version
-        logger.info("Computing {} spots 3D peripheral distance spots for {}",
+        logger.info("Computing 3D peripheral distance for {} spots in image {}",
                     len(spots), self._path)
         peripheral_areas = self.compute_peripheral_areas()
         problematic_spot_num = 0

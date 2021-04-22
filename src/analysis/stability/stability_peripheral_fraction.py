@@ -58,4 +58,4 @@ for gene in constants.analysis_config['MRNA_GENES']:
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
 plot_figure(total_mads[0], total_mads[1], tgt_fp)
-logger.info("Generated image at {}", tgt_fp)
+logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])

@@ -37,7 +37,7 @@ def plot_mrna_peripheral_fraction_profiles(analysis_repo):
                           tgt_image_name)
     plot.profile(gene2profile_mrna_periph_fraction, constants.dataset_config['MRNA_GENES'],
                  constants.analysis_config['NUM_CONTOURS'], figname=tgt_fp)
-    logger.info("Generated image at {}", tgt_fp)
+    logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
 
 # TODO : code redundancy below

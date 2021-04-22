@@ -24,6 +24,7 @@ OUTLIERS_THRESHOLD = 3
 def build_labels(quadrants_num):
     return [f"Non MTOC{i}" for i in range(1, quadrants_num)]
 
+
 def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: DensityStats,
                      molecule_list, mrna_timepoint_list, protein_timepoint_list):
     """
@@ -65,14 +66,15 @@ def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: De
                               tgt_image_name)
         create_dir_if_needed_for_filepath(tgt_fp)
         plot.sns_barplot(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type", err="err")
-        logger.info("Generated image at {}", tgt_fp)
+        logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
-def compute_density_per_quadrant(repo, molecule_type, groupby, quadrants_num, quadrant_labels,
+
+def compute_density_per_quadrant(analysis_repo, molecule_type, groupby, quadrants_num, quadrant_labels,
                                  molecule_list, time_points, mpi_sample_size):
     density_per_quadrant = []
     for molecule in molecule_list:
         for timepoint in time_points:
-            image_set = ImageSet(repo, [f"{molecule_type}/{molecule}/{timepoint}/"])
+            image_set = ImageSet(analysis_repo, [f"{molecule_type}/{molecule}/{timepoint}/"])
             if image_set.__sizeof__() < 5:
                 logger.warning("Image set is small for {}", molecule)
             dict_gene = image_set.compute_normalised_quadrant_densities(
@@ -80,7 +82,7 @@ def compute_density_per_quadrant(repo, molecule_type, groupby, quadrants_num, qu
                 mtoc_quadrant_label='MTOC',
                 quadrant_labels=quadrant_labels
             )
-            #dict_gene["MTOC leading edge"] = image_set.mtoc_is_in_leading_edge()
+            # dict_gene["MTOC leading edge"] = image_set.mtoc_is_in_leading_edge()
             dict_gene["Gene"] = molecule
             dict_gene["Timepoint"] = timepoint
             density_per_quadrant.append(pd.DataFrame(dict_gene))
@@ -88,8 +90,8 @@ def compute_density_per_quadrant(repo, molecule_type, groupby, quadrants_num, qu
     return DensityStats(
         df=pd.concat(density_per_quadrant),
         group_key=groupby,
-        mpi_sample_size = mpi_sample_size,
-        quadrant_labels = quadrant_labels,
+        mpi_sample_size=mpi_sample_size,
+        quadrant_labels=quadrant_labels,
         mtoc_quadrant_label='MTOC'
     )
 
@@ -124,45 +126,46 @@ if __name__ == '__main__':
         repo = open_repo()
         tp_mrna = constants.dataset_config['TIMEPOINTS_MRNA']
         tp_proteins = constants.dataset_config['TIMEPOINTS_PROTEIN']
-        mpi_sample_size = constants.analysis_config['MPI_SUB_SAMPLE_SIZE']
+        _mpi_sample_size = constants.analysis_config['MPI_SUB_SAMPLE_SIZE']
 
-        groupby = group_keys.get(conf[0], ['Gene'])
+        _groupby = group_keys.get(conf[0], ['Gene'])
         dfs = []
-        for genes, timepoints, molecule_type, quads, in zip([constants.analysis_config['MRNA_GENES'], constants.analysis_config['PROTEINS']], [tp_mrna, tp_proteins], ["mrna", "protein"], [4, num_protein_quadrants.get(conf[0], 4)]):
-            quadrant_labels = build_labels(quadrants_num=quads)
+        for genes, timepoints, _molecule_type, quads, in zip([constants.analysis_config['MRNA_GENES'], constants.analysis_config['PROTEINS']], [tp_mrna, tp_proteins],
+                                                            ["mrna", "protein"], [4, num_protein_quadrants.get(conf[0], 4)]):
+            _quadrant_labels = build_labels(quadrants_num=quads)
             df = compute_density_per_quadrant(
-                repo=repo,
-                molecule_type=molecule_type,
+                analysis_repo=repo,
+                molecule_type=_molecule_type,
                 quadrants_num=quads,
-                quadrant_labels=quadrant_labels,
+                quadrant_labels=_quadrant_labels,
                 molecule_list=genes,
                 time_points=timepoints,
-                groupby=groupby,
-                mpi_sample_size=mpi_sample_size
+                groupby=_groupby,
+                mpi_sample_size=_mpi_sample_size
             )
             dfs.append(df)
 
             if conf[2] == "":
-                tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=molecule_type)
+                tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=_molecule_type)
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
                 plot.compute_violin_plot_ratio(df, molecule_type, tgt_fp)
 
-                tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=molecule_type)
+                tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=_molecule_type)
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
                 plot.compute_violin_plot_enrichment(df, molecule_type, tgt_fp, limit_threshold=OUTLIERS_THRESHOLD)
             else:
-                tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=molecule_type)
+                tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=_molecule_type)
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
                 plot.compute_categorical_violin_plot_ratio(df, molecule_type, tgt_fp, limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], gene=conf[1], groupby=[conf[3]])
 
-                tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=molecule_type)
+                tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=_molecule_type)
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
                 plot.compute_categorical_violin_plot_enrichment(df, molecule_type, tgt_fp, limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], groupby=conf[3])
 
-            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type=molecule_type)
+            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type=_molecule_type)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
-            plot.plot_MPI(df, molecule_type, tgt_fp)
+            plot.plot_MPI(df, _molecule_type, tgt_fp)
 
         if "original" in conf[0]:
-             plot_boxplot_MPI(dfs[0], dfs[1], constants.analysis_config['PROTEINS'], tp_mrna, tp_proteins)
+            plot_boxplot_MPI(dfs[0], dfs[1], constants.analysis_config['PROTEINS'], tp_mrna, tp_proteins)
