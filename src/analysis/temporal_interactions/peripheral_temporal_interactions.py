@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-        plot.bar_profile_simple(tiss, tgt_fp)
+        plot.bar_profile(tiss, tgt_fp)
 
 
 

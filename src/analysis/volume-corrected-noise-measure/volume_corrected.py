@@ -5,7 +5,7 @@
 import pathlib
 import tqdm
 import constants
-from plot import histogram_noise_measured, bar_profile_simple
+from plot import histogram_noise_measured, bar_profile
 from image_set import ImageSet
 from path import global_root_dir
 from repository import H5RepositoryWithCheckpoint
@@ -37,4 +37,4 @@ for i, gene in enumerate(tqdm.tqdm(constants.dataset_config['MRNA_GENES'], desc=
         imageset = ImageSet(analysis_repo, ["mrna/{0}/{1}/".format(gene, timepoint)])
         nm = imageset.compute_surface_corrected_nm()
         nms.append(nm)
-    bar_profile_simple(nms, tgt_fp, plot_colors[i])
+    bar_profile(nms, tgt_fp, plot_colors[i])

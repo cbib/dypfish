@@ -60,10 +60,10 @@ configurations = [
     ["src/analysis/temporal_interactions/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
 ]
 
-
 # Figure 5D Analysis TIS for original data (5 figures)
 # Figure 6E Analysis TIS for nocodazole arhgdia data (3 figures)
 # Figure 6E Analysis TIS for nocodazole pard3 data (3 figures)
+
 if __name__ == '__main__':
 
     for conf in configurations:
@@ -95,5 +95,5 @@ if __name__ == '__main__':
                 compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-        plot.bar_profile_simple(tiss, tgt_fp)
+        plot.bar_profile(tiss, tgt_fp)
 
