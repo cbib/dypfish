@@ -375,7 +375,7 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
     quadrat_edge = cell_width / band_n
     grid_1d = np.zeros((int(band_n)))
     for spot in spots_reduced:
-        if spot[0] > 120 and spot[0] < cell_mask.shape[1] - 120:
+        if 120 < spot[0] < cell_mask.shape[1] - 120:
             x = int(np.floor((spot[0] - 120) / quadrat_edge))
             grid_1d[x] += 1
     grid = [val for val in grid_1d]
