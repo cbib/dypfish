@@ -145,8 +145,7 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname, c
     logger.info("Generated image at {}", figname)
 
 
-def bar_profile(data, figname):
-    plot_colors = constants.analysis_config['PLOT_COLORS']
+def bar_profile(data, figname, plot_colors):
     fig, ax = plt.subplots()
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
     for axis in ['left']:
@@ -513,25 +512,6 @@ def profile(profiles, genes, num_contours, figname):
     plt.close()
 
 
-def histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured, figname):
-    plot_colors = constants.analysis_config['PLOT_COLORS']
-    fig, ax = plt.subplots()
-    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    for axis in ['bottom', 'left']:
-        ax.spines[axis].set_linewidth(3)
-    plt.yticks(fontsize=30)
-    ind = np.arange(1, 3)
-    width = 0.25
-    # ax.set_xlim(-width * 2, len(ind) + width)
-    ax.set_ylim(0, 0.8)
-    ax.set_title('')
-    xTickMarks = ["", ""]
-    ax.set_xticks(ind)
-    ax.bar(ind, [nm_arhgdia, nm_arhgdia_cultured], width, color=plot_colors)
-    plt.savefig(figname)
-    plt.close()
-
-
 def plot_figure(total_mads_arhgdia, total_mads_arhgdia_cultured, figname):
     fig, ax = plt.subplots()
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
@@ -603,11 +583,10 @@ def add_annot(data, gene_list, ax, test):
                         test=test, text_format='star', loc='inside', verbose=2)
 
 
-
-
-
-
+##########################################
 # Functions unused or obsoletes
+##########################################
+
 def plot_dynamic_MPI(mrna_df, prot_df, genes, figname):
     plot_colors = constants.analysis_config['PLOT_COLORS']
     for i, gene in enumerate(genes):
@@ -727,3 +706,21 @@ def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold,
     helpers.create_dir_if_needed_for_filepath(figname)
     sns_violinplot(dd, my_pal, figname, x=groupby[0])
     logger.info("Generated image at {}", figname)
+
+
+def histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured, figname, plot_colors):
+    fig, ax = plt.subplots()
+    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
+    for axis in ['bottom', 'left']:
+        ax.spines[axis].set_linewidth(3)
+    plt.yticks(fontsize=30)
+    ind = np.arange(1, 3)
+    width = 0.25
+    # ax.set_xlim(-width * 2, len(ind) + width)
+    ax.set_ylim(0, 0.8)
+    ax.set_title('')
+    xTickMarks = ["", ""]
+    ax.set_xticks(ind)
+    ax.bar(ind, [nm_arhgdia, nm_arhgdia_cultured], width, color=plot_colors)
+    plt.savefig(figname)
+    plt.close()

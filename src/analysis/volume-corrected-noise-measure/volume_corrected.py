@@ -5,7 +5,7 @@
 import pathlib
 import tqdm
 import constants
-from plot import histogram_noise_measured, bar_profile
+from plot import bar_profile
 from image_set import ImageSet
 from path import global_root_dir
 from repository import H5RepositoryWithCheckpoint
@@ -16,6 +16,9 @@ dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].
 primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
 secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
 analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
+plot_colors = constants.analysis_config['PLOT_COLORS']
+
+
 
 # Figure S1.D bottom left volume-corrected noise measure Standard vs Micropatterned
 imageset = ImageSet(analysis_repo, ["mrna/arhgdia/3h/"])
@@ -24,10 +27,9 @@ imageset = ImageSet(analysis_repo, ["mrna/arhgdia_cultured/3h/"])
 nm_arhgdia_cultured = imageset.compute_volume_corrected_nm()
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_VOLUME']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured, tgt_fp)
+bar_profile([nm_arhgdia, nm_arhgdia_cultured], tgt_fp, plot_colors)
 
 # Figure S1.B The volume-corrected noise measure (Padovan-Merhar et al., 2015) across time for 6 mRNAs was compared.
-plot_colors = constants.analysis_config['PLOT_COLORS']
 for i, gene in enumerate(tqdm.tqdm(constants.dataset_config['MRNA_GENES'], desc="Genes")):
     nms = []
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_BARPLOT'].format(gene=gene)

@@ -1,8 +1,8 @@
 {
   "PNG_IMAGES_MIME_TYPE": "image/png",
-  "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/temporal_interactions/output_periph",
-  "FIGURE_NAME_FORMAT_TIS": "{gene}_original_TIS.png",
-  "FIGURE_NAME_FORMAT_TIS_HISTOGRAM": "original_TIS.png",
+  "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/colocalization/output_periph",
+  "FIGURE_NAME_FORMAT_CS": "{gene}_original_colocalization_score.png",
+  "FIGURE_NAME_FORMAT_CS_HISTOGRAM": "original_colocalization_score.png",
   "MPI_SUB_SAMPLE_SIZE": 400,
   "PERIPHERAL_FRACTION_THRESHOLD": 30,
   "NUM_CONTOURS": 100,

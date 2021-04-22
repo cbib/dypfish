@@ -250,7 +250,7 @@ def open_repo():
     return repo
 
 
-####TIS PART
+####Colocalization score PART
 
 def reindex_quadrant_mask(quad_mask, mtoc_quad, quad_num=4):
     df = pd.DataFrame(quad_mask)
@@ -388,7 +388,7 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
     return grid_mat
 
 
-def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
+def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
     S1 = get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
     interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
     for i in range(len(timepoint_num_mrna)):
