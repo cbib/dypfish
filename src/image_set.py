@@ -23,6 +23,7 @@ class ImageSet(object):
         """
         Sets instance variable path to the image location (image_path) in an HDF5 file object.
         """
+        logger.info("Initializing image set from {}", path_list)
         self._repository = repository
         for p in path_list:
             if not self._repository.is_present(p):
