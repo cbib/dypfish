@@ -4,24 +4,8 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - ca-certificates=2020.12.5=h033912b_0
-  - certifi=2020.12.5=py37hf985489_1
-  - libcxx=10.0.0=1
-  - libffi=3.3=hb1e8313_2
-  - mpi=1.0=mpich
-  - mpich=3.4.1=external_4
-  - ncurses=6.2=h0a44026_1
-  - openssl=1.1.1k=h0d85af4_0
-  - pip=19.3.1=py37_0
-  - python=3.7.9=h26836e1_0
-  - python_abi=3.7=1_cp37m
-  - readline=8.1=h9ed2024_0
-  - setuptools=52.0.0=py37hecd8cb5_0
-  - sqlite=3.35.2=hce871da_0
-  - tk=8.6.10=hb0a8c7a_0
-  - wheel=0.36.2=pyhd3eb1b0_0
-  - xz=5.2.5=h1de35cc_0
-  - zlib=1.2.11=h1de35cc_3
+  - python=3.7
+  - pip=19.3.1
   - pip:
     - backports-functools-lru-cache==1.6.1
     - biopython==1.76
