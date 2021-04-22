@@ -405,9 +405,9 @@ def bar_profile_simple(data, figname):
     bar_width = 0.35
     x_component = np.arange(len(data))
     ax.bar(x_component, data, bar_width, color=plot_colors)
-    ax.set_xlim(-bar_width, len(x_component) + bar_width)
     ax.set_ylim(0, 0.7)
     ax.set_xticks(x_component)
+    ax.set_xlim(-0.5, len(data) - 0.5)
     ax.set_xticklabels(["" for i in range(0, len(data))])
     plt.savefig(figname, format='png')
     plt.close()
