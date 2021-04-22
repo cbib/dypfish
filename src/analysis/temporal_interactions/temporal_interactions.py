@@ -13,6 +13,7 @@ from plot import compute_heatmap
 import helpers
 from helpers import calculate_temporal_interaction_score
 import numpy as np
+from helpers import open_repo
 from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
 # this should be called as soon as possible
@@ -53,97 +54,46 @@ def compute_mrna_relative_density_per_quadrants_and_slices(_analysis_repo, _quad
     return _mrna_tis_dict
 
 
-# Figure 5D Analysis TIS for original data
-logger.info("Temporal interaction score for the mRNA original data")
-constants.init_config(
-    analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/temporal_interactions/config_original.json"))
-dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
-primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
-secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
-analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
-
-mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-
-tiss = []
-p_vals = []
-for gene in constants.analysis_config['PROTEINS']:
-    mrna_list = mrna_tis_dict[gene]
-    prot_list = prot_tis_dict[gene]
-    (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list,
-                                                             constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                             constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
-    tiss.append(tis)
-    p_vals.append(p)
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
-    compute_heatmap(ranking, gene, tgt_fp)
-
-tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
-tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot.bar_profile_simple(tiss, tgt_fp)
+# configurations contain the order in which the degree of clustering is plotted
+configurations = [
+    ["src/analysis/temporal_interactions/config_original.json", []],
+    ["src/analysis/temporal_interactions/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"]],
+    ["src/analysis/temporal_interactions/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
+]
 
 
-# Figure 6E Analysis TIS for nocodazole arhgdia data
-logger.info("Temporal interaction score for the mRNA nocodazole arhgdia data")
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
-                                                           "src/analysis/temporal_interactions/config_nocodazole_arhgdia.json"))
-dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
-primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
-secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
-analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
+# Figure 5D Analysis TIS for original data (5 figures)
+# Figure 6E Analysis TIS for nocodazole arhgdia data (3 figures)
+# Figure 6E Analysis TIS for nocodazole pard3 data (3 figures)
+if __name__ == '__main__':
 
-mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
+    for conf in configurations:
+        logger.info("Temporal interaction score")
+        conf_full_path = pathlib.Path(global_root_dir, conf[0])
+        constants.init_config(analysis_config_js_path=conf_full_path)
+        repo = open_repo()
+        # Use annot=True if you want to add stats annotation in plots
+        mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(repo, _quadrants_num=8)
+        prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(repo, _quadrants_num=8)
 
-tiss = []
-p_vals = []
-for gene in constants.analysis_config['PROTEINS']:
-    mrna_list = mrna_tis_dict[gene]
-    prot_list = prot_tis_dict[gene]
-    (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list,
-                                                             constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                             constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
-    tiss.append(tis)
-    p_vals.append(p)
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
-    compute_heatmap(ranking, gene, tgt_fp)
+        tiss = []
+        p_vals = []
+        for gene in constants.analysis_config['PROTEINS']:
+            mrna_list = mrna_tis_dict[gene]
+            prot_list = prot_tis_dict[gene]
+            (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list,
+                                                                     constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
+                                                                     constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
+            tiss.append(tis)
+            p_vals.append(p)
+            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
+            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                                  tgt_image_name)
+            if len(conf[1])==0:
+                compute_heatmap(ranking, gene, tgt_fp)
+            else:
+                compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
+        tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
+        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
+        plot.bar_profile_simple(tiss, tgt_fp)
 
-tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
-tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot.bar_profile_simple(tiss, tgt_fp)
-
-
-# Figure 6E Analysis TIS for nocodazole pard3 data
-logger.info("Temporal interaction score for the mRNA pard3 nocodazole data")
-constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir,
-                                                           "src/analysis/temporal_interactions/config_nocodazole_pard3.json"))
-dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
-primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
-secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
-analysis_repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
-
-mrna_tis_dict = compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-prot_tis_dict = compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=8)
-
-tiss = []
-p_vals = []
-for gene in constants.analysis_config['PROTEINS']:
-    mrna_list = mrna_tis_dict[gene]
-    prot_list = prot_tis_dict[gene]
-    (tis, p, ranking) = calculate_temporal_interaction_score(mrna_list, prot_list,
-                                                             constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                             constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
-    tiss.append(tis)
-    p_vals.append(p)
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS'].format(gene=gene)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
-    compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
-
-tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_TIS_HISTOGRAM']
-tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot.bar_profile_simple(tiss, tgt_fp)
