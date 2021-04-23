@@ -148,19 +148,19 @@ if __name__ == '__main__':
             if conf[2] == "":
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=_molecule_type)
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-                plot.compute_violin_plot_ratio(df, molecule_type, tgt_fp)
+                plot.compute_violin_plot_ratio(df, _molecule_type, tgt_fp)
 
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=_molecule_type)
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-                plot.compute_violin_plot_enrichment(df, molecule_type, tgt_fp, limit_threshold=OUTLIERS_THRESHOLD)
+                plot.compute_violin_plot_enrichment(df, _molecule_type, tgt_fp, limit_threshold=OUTLIERS_THRESHOLD)
             else:
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=_molecule_type)
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-                plot.compute_categorical_violin_plot_ratio(df, molecule_type, tgt_fp, limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], gene=conf[1], groupby=[conf[3]])
+                plot.compute_categorical_violin_plot_ratio(df, _molecule_type, tgt_fp, limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], gene=conf[1], groupby=[conf[3]])
 
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=_molecule_type)
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-                plot.compute_categorical_violin_plot_enrichment(df, molecule_type, tgt_fp, limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], groupby=conf[3])
+                plot.compute_categorical_violin_plot_enrichment(df, _molecule_type, tgt_fp, limit_threshold=OUTLIERS_THRESHOLD, term=conf[2], groupby=conf[3])
 
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type=_molecule_type)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
