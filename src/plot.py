@@ -166,6 +166,7 @@ def bar_profile(data, figname, plot_colors):
     ax.set_xticklabels(["" for i in range(0, len(data))])
     plt.savefig(figname, format='png')
     plt.close()
+    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 def violin_profile(_dict, tgt_fp, xlabels, rotation=0, annot=False):
     dd = pd.DataFrame(

@@ -6,7 +6,7 @@ import pathlib
 import pprint as pp
 import pandas as pd
 from loguru import logger
-
+import time
 import constants
 import plot
 from plot import compute_heatmap
@@ -55,9 +55,9 @@ def compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadra
 
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
-    ["src/analysis/colocalization/config_original.json", []],
-    ["src/analysis/colocalization/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"]],
-    ["src/analysis/colocalization/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
+    ["src/analysis/colocalization/config_original.json", [],10000]
+    #["src/analysis/colocalization/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"], 24],
+    #["src/analysis/colocalization/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"], 24]
 ]
 
 # Figure 5D Analysis Colocalization Score (CS) for original data (5 figures)
@@ -65,7 +65,7 @@ configurations = [
 # Figure 6E Analysis Colocalization Score (CS) for nocodazole pard3 data (3 figures)
 
 if __name__ == '__main__':
-
+    np.random.seed(int(round(time.time())))
     for conf in configurations:
         logger.info("Colocalization Score")
         conf_full_path = pathlib.Path(global_root_dir, conf[0])
@@ -81,9 +81,13 @@ if __name__ == '__main__':
         for gene in constants.analysis_config['PROTEINS']:
             mrna_list = mrna_cs_dict[gene]
             prot_list = prot_cs_dict[gene]
-            (cs, p, ranking) = calculate_colocalization_score(mrna_list, prot_list,
-                                                                     constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                                     constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
+
+            (cs, p, ranking) = calculate_colocalization_score(mrna_list,
+                                                              prot_list,
+                                                              constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
+                                                              constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
+                                                              permutation_num=conf[2]
+                                                              )
             css.append(cs)
             p_vals.append(p)
             print("gene: ", gene, " p-values (random permutation test): ", p)

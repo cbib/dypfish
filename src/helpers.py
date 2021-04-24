@@ -277,32 +277,28 @@ def using_indexed_assignment(x):
     "https://stackoverflow.com/a/5284703/190597 (Sven Marnach)"
     result = np.empty(len(x), dtype=int)
     temp = x.argsort()
-    result[temp] = np.arange(len(x))
-    return result
+    return temp +1
 
 
-def permutations_test(interactions, fwdints, size=4):
+def permutations_test(interactions, fwdints, matrix_size=4, permutation_num=1000):
     fwdints = fwdints.astype(bool)
     vals = interactions.flatten()
+
     indx = using_indexed_assignment(vals)
-    one_matrix = np.ones((size, size)).astype(int)
-    indx_matrix = np.array(indx.reshape((size, size)))
-    indx_matrix = np.add(indx_matrix, one_matrix)
+    indx_matrix = np.array(indx.reshape((matrix_size, matrix_size)))
     ranking = indx_matrix.copy()
-    rs0 = np.sum(indx_matrix[fwdints[:]])
+
+    flat = interactions.copy().flatten()
+    rs0 = np.sum(interactions[fwdints[:]])
     rs1 = np.sum(indx_matrix[fwdints[:] == 0])
-    perms = [x for x in itertools.permutations(np.arange(size), size)]
-    nps = len(perms)
     rs = []
-    for p1 in range(nps):
-        for p2 in range(nps):
-            test = indx_matrix.copy()
-            for i in range(size):
-                for j in range(size):
-                    np.random.shuffle(test[:, i])
-            rs.append(np.sum(test[fwdints[:]]))
+    for perm in range(permutation_num):
+        np.random.shuffle(flat)
+        _matrix = flat.reshape((matrix_size, matrix_size))
+        rs.append(np.sum(_matrix[fwdints[:]]))
+
     count = 0
-    for score in rs:
+    for score in rs :
         if score > rs0:
             count += 1
     p = float(count / float(len(rs)))
@@ -386,19 +382,21 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
     return grid_mat
 
 
-def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
+def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein, permutation_num=1000):
     S1 = get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
     interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
     for i in range(len(timepoint_num_mrna)):
         for j in range(len(timepoint_num_protein)):
             interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
-    (p, stat, ranking) = permutations_test(interactions, S1, size=len(timepoint_num_mrna))
+    (p, stat, ranking) = permutations_test(interactions, S1, matrix_size=len(timepoint_num_mrna), permutation_num=permutation_num)
     if len(timepoint_num_mrna)==4:
         #TODO if matrix 4 * 4
-        tis = (100 - stat) / 64.0
+        #tis = (stat -15 ) / 106.0
+        tis = (stat -36 ) / 64.0
+        #tis = (100 - stat) / 64.0
     else:
         # TODO if matrix 2 * 2
-        tis = (10 - stat) / 9.0
+        tis = (stat - 1 ) / 8.0
 
     return tis, p, ranking
 
