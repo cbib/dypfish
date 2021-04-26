@@ -8,6 +8,7 @@ from repository import Repository
 from image import Image, ImageWithSpots, ImageWithIntensities, ImageWithMTOC, ImageMultiNucleus, \
     ImageMultiNucleusWithSpots
 import numexpr
+import itertools
 from scipy import signal
 from loguru import logger
 import constants
@@ -732,37 +733,29 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
     def compute_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
         size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
         cytoplasmic_density = self.compute_cytoplasmic_density()
-        nucleus_mask = self.get_nucleus_mask()
-        cell_mask = self.get_cell_mask()
-        IF = self.get_intensities()
-        IF[self.get_cytoplasm_mask() == 0] = 0
-
+        cell_mask = self.get_cytoplasm_mask()
+        IF = self.get_cytoplasmic_intensities()
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
-        cell_mask_dist_map[(nucleus_mask == 1)] = 0
+
         arr = np.zeros((stripes * quadrants_num))
-        for i in range(stripes):
-            for j in range(1, quadrants_num + 1):
-                IF_sum = np.sum(IF[(((cell_mask_dist_map >= i * np.floor((100.0 / stripes)) + 1) & (
-                        cell_mask_dist_map <= (i + 1) * np.floor((100.0 / stripes)))) & (quad_mask == j))])
-                slice_volume = np.sum(cell_mask[(((cell_mask_dist_map >= i * np.floor((100.0 / stripes)) + 1) & (
-                        cell_mask_dist_map <= (i + 1) * np.floor((100.0 / stripes)))) & (
-                                                         quad_mask == j))]) * math.pow((1 / size_coeff), 2)
-                idx = (i * quadrants_num) + (j - 1)
-                arr[idx] += IF_sum / slice_volume
+        slices_per_stripe = int(np.floor(100 / stripes))
+        for i, j in itertools.product(range(stripes), range(1, quadrants_num + 1)):
+            mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
+            mask[((cell_mask_dist_map >= i*slices_per_stripe +1) &
+                  (cell_mask_dist_map < (i + 1) * slices_per_stripe)) & (quad_mask == j)] = 1
+            IF_sum = np.sum(IF[mask == 1])
+            local_area = np.sum(mask) * math.pow((1 / size_coeff), 2)
+            idx = (i * quadrants_num) + (j - 1)
+            arr[idx] += IF_sum / local_area
 
         return arr / cytoplasmic_density
 
     def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
         size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
         cytoplasmic_density = self.compute_cytoplasmic_density()
-        cell_area = self.compute_cell_area()
-        cell_mask = self.get_cell_mask() # should it be get_cytoplasm_mask()
+        cell_mask = self.get_cytoplasm_mask()
         IF = self.get_cytoplasmic_intensities()
-        height_map = self.adjust_height_map()
-        # TODO this line below was added compared to dypfish V0
-        # TODO in the VO, we do not remove the nucleus area for protein analysis, only the cell area
-        height_map[self.get_cytoplasm_mask() == 0] = 0
         peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1 # adds a little at the periphery
