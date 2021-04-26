@@ -9,7 +9,7 @@ import path
 import helpers
 import constants
 from repository import H5RepositoryWithCheckpoint
-from image3d import Image3d
+from image3d import Image3d, Image3dWithMTOC
 
 constants.init_config(analysis_config_js_path=path.test_config_path)  # TODO this is annoying
 

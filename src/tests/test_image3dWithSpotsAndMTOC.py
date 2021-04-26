@@ -48,7 +48,6 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
             RuntimeWarning
         )
         test_array = np.array([(0.12947032, 0.), (0.15919367, 0.), (0.06432269, 0.), (0.17692811, 1.)])
-        # was : [[1.37964585, 1], [0.96665656, 0], [1.26909676, 0], [0.61669439, 0]]
         results = self.img.split_in_quadrants()
         self.assertEqual(np.shape(results), np.shape(test_array))
         self.assertAlmostEqual(np.sum(results[:,0].sum()), np.sum(test_array[:,0].sum()), places=7)
