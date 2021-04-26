@@ -142,7 +142,7 @@ class TestImageSet(TestCase):
         result = image_set.compute_surface_corrected_nm()
         self.assertAlmostEqual(result, 0.101090352627947, places=5)
 
-    def test_compute_normalized_quadrant_and_slice_densities(self):
+    def test_compute_normalized_quadrant_and_slice_densities_mrna(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=8, stripes = 3)
 
@@ -169,6 +169,12 @@ class TestImageSet(TestCase):
 
         self.assertEqual(len(result), len(test))
         self.assertAlmostEqual(np.sum(result), np.sum(test), places=3)
+
+    def test_compute_normalized_quadrant_and_slice_densities_protein(self):
+        image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
+        result = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=8, stripes=3)
+        self.assertAlmostEqual(result[2, 3], 0.11328982823)
+        self.assertAlmostEqual(result.sum(), 16.109926486)
 
     def test_compute_zline_distance(self):
         image_set = ImageSet(self.repo, path_list=['mrna/actn2/immature/'])
