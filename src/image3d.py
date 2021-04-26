@@ -193,7 +193,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         peripheral_distance_map = self.get_cell_mask_distance_map()
         spots_peripheral_distance = []
         spots = self.get_cytoplasmic_spots()  # was get_spots(), changed to be coherent with the 2D version
-        logger.info("Computing {} spots 3D peripheral distance spots for {}",
+        logger.info("Computing 3D peripheral distance for {} spots in image {}",
                     len(spots), self._path)
         peripheral_areas = self.compute_peripheral_areas()
         problematic_spot_num = 0
@@ -367,7 +367,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
                         dist += (spots[i, j] - nucleus_centroid[1]) ** 2
                 points_dist_list.append(math.sqrt(dist))
                 counter += 1
-        points_dists = np.matrix(points_dist_list)
+        points_dists = np.array(points_dist_list)
         points_dists = points_dists.reshape((counter, 1))
         height_map = np.multiply(height_map, cell_mask)
         height_map_dist = np.multiply(height_map, dsAll)
@@ -843,9 +843,6 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
             for j in range(1, quadrants_num + 1):
                 slice_area = np.floor(i / (int(np.floor(peripheral_fraction_threshold / stripes))))
                 value = (int(slice_area) * quadrants_num) + int(j - 1) - quadrants_num
-                print(value)
-
-
                 if np.sum(cell_mask[
                               ((cell_mask_dist_map >= 1 + (i - int(np.floor(peripheral_fraction_threshold / stripes)))) & (cell_mask_dist_map < i)) & (
                                       quad_mask == j)]) == 0:

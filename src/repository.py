@@ -129,9 +129,6 @@ class H5Repository(Repository):
         return self.repo_path == r2.repo_path
 
     def is_present(self, path):
-        # print("is present", path)
-        # print("path", path)
-        # print(list(self.repo.keys()))
         if path not in self.repo.keys():
             return False
         return True
@@ -165,7 +162,6 @@ class H5Repository(Repository):
     def get_multiple(self, image_path, path):
         r = re.compile(path.split('/')[::-1][0] + ".*")
         match_list = list(filter(r.match, self.repo[image_path]))
-        #print(len([self.repo[image_path+ '/' + x] for x in match_list]))
         return [self.repo[image_path+ '/' + x] for x in match_list]
 
     def get_attribute(self, path: str, attribute_name: str):

@@ -167,10 +167,10 @@ def compute_h_star(h: np.ndarray, synth5: List[int], synth50: List[int], synth95
     idx_equal_median = np.where(h == synth50)[0]
     h_star = np.zeros(max_cell_radius)
     h_star[idx_equal_median] = 0
-    idx_greater_median = np.where(h > synth50)[0]
-    h_star[idx_greater_median] = (h[idx_greater_median] - synth50[idx_greater_median]) / delta1[idx_greater_median]
-    idx_less_median = np.where(h < synth50)[0]
-    h_star[idx_less_median] = -(synth50[idx_less_median] - h[idx_less_median]) / delta2[idx_less_median]
+    median_upper_idx = np.where(h > synth50)[0]
+    h_star[median_upper_idx] = (h[median_upper_idx] - synth50[median_upper_idx]) / delta1[median_upper_idx]
+    median_lower_idx = np.where(h < synth50)[0]
+    h_star[median_lower_idx] = -(synth50[median_lower_idx] - h[median_lower_idx]) / delta2[median_lower_idx]
     h_star[h_star == - np.inf] = 0
     h_star[h_star == np.inf] = 0
     return h_star
@@ -205,15 +205,13 @@ def compute_h_star_2d(h: np.ndarray, synth5: List[int], synth50: List[int], synt
     Fill the h_star array accordingly
     """
     max_cell_radius = max_cell_radius or constants.analysis_config["MAX_CELL_RADIUS"]
-    #delta1 = synth95 - synth50
-    #delta2 = synth50 - synth5
     idx_equal_median = np.where(h == synth50)[0]
     h_star = np.zeros(max_cell_radius)
     h_star[idx_equal_median] = 0
-    idx_greater_median = np.where(h > synth50)[0]
-    h_star[idx_greater_median] = (h[idx_greater_median] - synth50[idx_greater_median])
-    idx_less_median = np.where(h < synth50)[0]
-    h_star[idx_less_median] = -(synth50[idx_less_median] - h[idx_less_median])
+    median_upper_idx = np.where(h > synth50)[0]
+    h_star[median_upper_idx] = (h[median_upper_idx] - synth50[median_upper_idx])
+    median_lower_idx = np.where(h < synth50)[0]
+    h_star[median_lower_idx] = -(synth50[median_lower_idx] - h[median_lower_idx])
     h_star[h_star == - np.inf] = 0
     h_star[h_star == np.inf] = 0
     return h_star
@@ -250,7 +248,7 @@ def open_repo():
     return repo
 
 
-####TIS PART
+####Colocalization score PART
 
 def reindex_quadrant_mask(quad_mask, mtoc_quad, quad_num=4):
     df = pd.DataFrame(quad_mask)
@@ -279,32 +277,28 @@ def using_indexed_assignment(x):
     "https://stackoverflow.com/a/5284703/190597 (Sven Marnach)"
     result = np.empty(len(x), dtype=int)
     temp = x.argsort()
-    result[temp] = np.arange(len(x))
-    return result
+    return temp +1
 
 
-def permutations_test(interactions, fwdints, size=4):
+def permutations_test(interactions, fwdints, matrix_size=4, permutation_num=1000):
     fwdints = fwdints.astype(bool)
     vals = interactions.flatten()
+
     indx = using_indexed_assignment(vals)
-    one_matrix = np.ones((size, size)).astype(int)
-    indx_matrix = np.matrix(indx.reshape((size, size)))
-    indx_matrix = np.add(indx_matrix, one_matrix)
+    indx_matrix = np.array(indx.reshape((matrix_size, matrix_size)))
     ranking = indx_matrix.copy()
-    rs0 = np.sum(indx_matrix[fwdints[:]])
+
+    flat = interactions.copy().flatten()
+    rs0 = np.sum(interactions[fwdints[:]])
     rs1 = np.sum(indx_matrix[fwdints[:] == 0])
-    perms = [x for x in itertools.permutations(np.arange(size), size)]
-    nps = len(perms)
     rs = []
-    for p1 in range(nps):
-        for p2 in range(nps):
-            test = indx_matrix.copy()
-            for i in range(size):
-                for j in range(size):
-                    np.random.shuffle(test[:, i])
-            rs.append(np.sum(test[fwdints[:]]))
+    for perm in range(permutation_num):
+        np.random.shuffle(flat)
+        _matrix = flat.reshape((matrix_size, matrix_size))
+        rs.append(np.sum(_matrix[fwdints[:]]))
+
     count = 0
-    for score in rs:
+    for score in rs :
         if score > rs0:
             count += 1
     p = float(count / float(len(rs)))
@@ -336,8 +330,8 @@ def get_forward_interactions(mrna_timepoints, protein_timepoints):
 ##### muscle data helpers functions
 
 def get_quantized_grid(q, Qx, Qy):
-    tmp_x = np.matrix(np.arange(Qx))
-    tmp_y = np.matrix(np.arange(Qy))
+    tmp_x = np.array(np.arange(Qx))
+    tmp_y = np.array(np.arange(Qy))
     qxs = matlib.repmat(tmp_x.transpose(), 1, Qx)
     qys = matlib.repmat(tmp_y, Qy, 1)
     qxs = np.kron(qxs, np.ones((q, q)))
@@ -377,30 +371,32 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
     quadrat_edge = cell_width / band_n
     grid_1d = np.zeros((int(band_n)))
     for spot in spots_reduced:
-        if spot[0] > 120 and spot[0] < cell_mask.shape[1] - 120:
+        if 120 < spot[0] < cell_mask.shape[1] - 120:
             x = int(np.floor((spot[0] - 120) / quadrat_edge))
             grid_1d[x] += 1
     grid = [val for val in grid_1d]
-    grid_mat = np.matrix(grid).reshape((1, len(grid)))
+    grid_mat = np.array(grid).reshape((1, len(grid)))
     grid_mat /= quadrat_edge
     grid_mat /= spot_surfacic_density
 
     return grid_mat
 
 
-def calculate_temporal_interaction_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
+def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein, permutation_num=1000):
     S1 = get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
     interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
     for i in range(len(timepoint_num_mrna)):
         for j in range(len(timepoint_num_protein)):
             interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
-    (p, stat, ranking) = permutations_test(interactions, S1, size=len(timepoint_num_mrna))
+    (p, stat, ranking) = permutations_test(interactions, S1, matrix_size=len(timepoint_num_mrna), permutation_num=permutation_num)
     if len(timepoint_num_mrna)==4:
         #TODO if matrix 4 * 4
-        tis = (100 - stat) / 64.0
+        #tis = (stat -15 ) / 106.0
+        tis = (stat -36 ) / 64.0
+        #tis = (100 - stat) / 64.0
     else:
         # TODO if matrix 2 * 2
-        tis = (10 - stat) / 9.0
+        tis = (stat - 1 ) / 8.0
 
     return tis, p, ranking
 

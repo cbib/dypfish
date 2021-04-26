@@ -77,4 +77,4 @@ class Test(TestCase):
     def test_sem(self):
         a = np.array([0, 0.1, 0,3, 0.001, 10])
         sem = helpers.sem(a)
-        self.assertAlmostEqual(sem, 1.49447)
+        self.assertAlmostEqual(sem, 1.49447, places=5)

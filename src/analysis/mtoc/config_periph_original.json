@@ -20,6 +20,7 @@
   "MIN_SPOT_NUM": 30,
   "MIN_SNR": 1,
   "MIN_HEIGHT_MAP_AREA": 10000,
+  "PROTEINS_LABEL" : ["Arhgdia", "ß-Actin","Gapdh", "Pard3"],
   "MRNA_GENES_LABEL" : ["Arhgdia", "ß-Actin","Gapdh", "Pard3", "Pkp4", "Rab13"],
   "MRNA_GENES" : ["arhgdia", "beta_actin", "gapdh", "pard3", "pkp4", "rab13"],
   "PROTEINS" : ["arhgdia", "beta_actin", "gapdh", "pard3"],
