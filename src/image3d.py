@@ -527,46 +527,13 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
 
     @helpers.checkpoint_decorator(QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX, dtype=np.float)
     def get_quadrants_and_slices_densities(self, quadrants_num=4, stripes=3):
-        return self.split_in_quadrants_and_slices(quadrants_num=quadrants_num, stripes=stripes)
-
-    def split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3) -> np.ndarray:
-        """
-        was : compute_max_density_MTOC_quadrant
-        For all possible subdivisions of the cell in n (n = quadrants_num) quadrants (360/quadrants_num degree possible)
-        computes the normalized density (vs whole cytoplasm) per quadrant
-        and keeps the subdivision such that the MTOC containing quadrant is the densiest.
-        The anchor for the computation is the MTOC containing quadrant.
-        Divide cell into n quadrants (n = quadrants_num) and m (m = stripes - 1) isolines, creating x compartments (x = stripes * quadrants_num)
-        Compartments are indexed from periphery to nucleus (0 to x-1), O-indexed compartment is the closest from periphery and located on MTOC quadrant)
-
-        Returns an array with the density values per quadrant and associated MTOC flags
-        """
-        if not quadrants_num in [2, 3, 4, 5, 6, 8, 9]:  # just in case
-            raise (RuntimeError, "Unexpected number of slices (quadrants) %i" % quadrants_num)
-
-        max_density = 0.0
-        mtoc_position = self.get_mtoc_position()
-        height_map = self.adjust_height_map(cytoplasm=True)
-        max_quadrant_mask = np.zeros((np.shape(height_map)[0], np.shape(height_map)[1]))
-
-        degree_span = 360 // quadrants_num
-        for degree in range(degree_span):
-            quadrant_mask = self.compute_quadrant_mask(degree, quadrants_num)
-            mtoc_quad_num = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-            # assign each spot to the corresponding quadrant excluding those in the nucleus
-            density_per_quadrant = self.compute_density_per_quadrant(mtoc_quad_num, quadrant_mask,
-                                                                     height_map, quadrants_num)
-            if density_per_quadrant[mtoc_quad_num - 1, 0] > max_density:
-                max_density = density_per_quadrant[mtoc_quad_num - 1, 0]
-                max_quadrant_mask = quadrant_mask
-        max_quadrant_mask = helpers.reindex_quadrant_mask(max_quadrant_mask, mtoc_quad_num, quad_num=quadrants_num)
-        return self.compute_density_per_quadrant_and_slices(max_quadrant_mask, stripes, quadrants_num=quadrants_num)
+        return self.split_in_quadrants_and_slices(quadrants_num=quadrants_num, stripes=stripes, peripheral_flag=False)
 
     @helpers.checkpoint_decorator(PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX, dtype=np.float)
     def get_peripheral_quadrants_and_slices_densities(self, quadrants_num=4, stripes=3):
-        return self.peripheral_split_in_quadrants_and_slices(quadrants_num=quadrants_num, stripes=stripes)
+        return self.split_in_quadrants_and_slices(quadrants_num=quadrants_num, stripes=stripes, peripheral_flag=True)
 
-    def peripheral_split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3) -> np.ndarray:
+    def split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3, peripheral_flag=False) -> np.ndarray:
         """
         was : compute_max_density_MTOC_quadrant
         For all possible subdivisions of the cell in n (n = quadrants_num) quadrants (360/quadrants_num degree possible)
@@ -597,7 +564,11 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
                 max_density = density_per_quadrant[mtoc_quad_num - 1, 0]
                 max_quadrant_mask = quadrant_mask
         max_quadrant_mask = helpers.reindex_quadrant_mask(max_quadrant_mask, mtoc_quad_num, quad_num=quadrants_num)
-        return self.compute_peripheral_density_per_quadrant_and_slices(max_quadrant_mask, stripes, quadrants_num=quadrants_num)
+        if (not peripheral_flag):
+            return self.compute_density_per_quadrant_and_slices(max_quadrant_mask, stripes, quadrants_num=quadrants_num)
+        else:
+            return self.compute_peripheral_density_per_quadrant_and_slices(max_quadrant_mask, stripes,
+                                                                           quadrants_num=quadrants_num)
 
 
 class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
