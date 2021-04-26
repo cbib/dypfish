@@ -49,3 +49,9 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         self.assertEqual(result.shape, (4, 2))
         self.assertAlmostEqual(result[1, 0], 2114080.4358608127)
         self.assertEqual(result[:, 1].sum(), 1.0)
+
+    def test_compute_peripheral_density_per_quadrant_and_slices(self):
+        quadrant_mask = self.img.compute_quadrant_mask(45, 4)
+        result = self.img.compute_peripheral_density_per_quadrant_and_slices(quadrant_mask, stripes=3, quadrants_num=4)
+        self.assertAlmostEqual(result.sum(), 14.56655481)
+        self.assertAlmostEqual(result[7], 1.9488238603)

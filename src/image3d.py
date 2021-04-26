@@ -748,46 +748,40 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
                 slice_volume = np.sum(cell_mask[(((cell_mask_dist_map >= i * np.floor((100.0 / stripes)) + 1) & (
                         cell_mask_dist_map <= (i + 1) * np.floor((100.0 / stripes)))) & (
                                                          quad_mask == j))]) * math.pow((1 / size_coeff), 2)
-                value = (i * quadrants_num) + (j - 1)
-                arr[int(value)] += IF_sum / slice_volume
+                idx = (i * quadrants_num) + (j - 1)
+                arr[idx] += IF_sum / slice_volume
 
         return arr / cytoplasmic_density
 
     def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
         size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
         cytoplasmic_density = self.compute_cytoplasmic_density()
-        nucleus_mask = self.get_nucleus_mask()
-        cell_mask = self.get_cell_mask()
-        IF = self.get_intensities()
-        IF[self.get_cytoplasm_mask() == 0] = 0
+        cell_area = self.compute_cell_area()
+        cell_mask = self.get_cell_mask() # should it be get_cytoplasm_mask()
+        IF = self.get_cytoplasmic_intensities()
         height_map = self.adjust_height_map()
         # TODO this line below was added compared to dypfish V0
         # TODO in the VO, we do not remove the nucleus area for protein analysis, only the cell area
         height_map[self.get_cytoplasm_mask() == 0] = 0
         peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
         cell_mask_dist_map = self.get_cell_mask_distance_map()
-        cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
-        cell_mask_dist_map[(nucleus_mask == 1)] = 0
+        cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1 # adds a little at the periphery
         arr = np.zeros((stripes * quadrants_num))
 
-        for i in range(int(np.floor(peripheral_fraction_threshold / stripes)), peripheral_fraction_threshold + 1, int(np.floor(peripheral_fraction_threshold / stripes))):
+        slices_per_stripe = int(np.floor(peripheral_fraction_threshold / stripes))
+        for i in range(slices_per_stripe, peripheral_fraction_threshold + 1, slices_per_stripe):
             for j in range(1, quadrants_num + 1):
-                slice_area = np.floor(i / (int(np.floor(peripheral_fraction_threshold / stripes))))
-                value = (int(slice_area) * quadrants_num) + int(j - 1) - quadrants_num
-                if np.sum(cell_mask[
-                              ((cell_mask_dist_map >= 1 + (i - int(np.floor(peripheral_fraction_threshold / stripes)))) & (cell_mask_dist_map < i)) & (
-                                      quad_mask == j)]) == 0:
-
-                    arr[int(value)] += 0.0
+                stripe_num = np.floor(i / slices_per_stripe)
+                idx = (int(stripe_num) * quadrants_num) + int(j - 1) - quadrants_num
+                mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
+                mask[((cell_mask_dist_map >= 1 + (i - slices_per_stripe)) & (cell_mask_dist_map < i)) & (quad_mask == j)] = 1
+                local_area = np.sum(mask)
+                if local_area == 0:
+                    arr[int(idx)] += 0.0
                 else:
-                    IF_relative = float(np.sum(IF[((cell_mask_dist_map >= 1 + (i - int(np.floor(peripheral_fraction_threshold / stripes)))) & (
-                                cell_mask_dist_map < i)) & (quad_mask == j)])) / np.sum(IF[cell_mask == 1]) / np.sum(
-                        IF[cell_mask == 1])
-                    surface_relative = np.sum(cell_mask[((cell_mask_dist_map >= 1 + (i - int(np.floor(peripheral_fraction_threshold / stripes)))) & (
-                                cell_mask_dist_map < i)) & (quad_mask == j)]) * math.pow((1 / size_coeff), 2) / np.sum(
-                        cell_mask[cell_mask == 1]) * math.pow((1 / size_coeff), 2)
-
-                    arr[int(value)] += IF_relative / surface_relative
+                    IF_local = float(np.sum(IF[mask == 1]))
+                    local_surface = local_area * math.pow((1 / size_coeff), 2)
+                    arr[int(idx)] += IF_local / local_surface
 
         return arr / cytoplasmic_density
 
