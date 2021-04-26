@@ -55,19 +55,19 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
     def test_compute_density_per_quadrant_and_slices(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
         result = self.img.compute_density_per_quadrant_and_slices(quadrant_mask, stripes=3, quadrants_num=4)
-        self.assertAlmostEqual(result.sum(), 0.0059270861)
-        self.assertAlmostEqual(result[2], 0.00033107765)
+        self.assertAlmostEqual(result.sum(), 54.2215439855)
+        self.assertAlmostEqual(result[2], 3.07907363333)
 
     def test_compute_peripheral_density_per_quadrant_and_slices(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
         result = self.img.compute_peripheral_density_per_quadrant_and_slices(quadrant_mask, stripes=3, quadrants_num=4)
-        self.assertAlmostEqual(result.sum(), 0.000612973)
-        self.assertAlmostEqual(result[7], 0.000114981003)
+        self.assertAlmostEqual(result.sum(), 6.08385417)
+        self.assertAlmostEqual(result[7], 1.1286306931)
 
     def test_split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3):
         result = self.img.split_in_quadrants_and_slices()
-        self.assertAlmostEqual(result.sum(), 0.006683590504)
-        self.assertAlmostEqual(result[2], 0.000317475981)
+        self.assertAlmostEqual(result.sum(), 61.0562912512)
+        self.assertAlmostEqual(result[2], 2.952970008)
 
     def test_compute_peripheral_density_per_quadrant(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
@@ -77,6 +77,6 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
         result = self.img.compute_peripheral_density_per_quadrant(mtoc_quad, quadrant_mask, height_map)
 
         self.assertEqual(result.shape, (4, 2))
-        self.assertAlmostEqual(result[1, 0], 0.039297451478886344, places=3)
-        self.assertAlmostEqual(result[:, 0].sum(), 0.30302693927917035, places=3)
+        self.assertAlmostEqual(result[1, 0], 0.039297451478, places=3)
+        self.assertAlmostEqual(result[:, 0].sum(), 0.3030269392, places=3)
         self.assertEqual(result[:, 1].sum(), 1.0)

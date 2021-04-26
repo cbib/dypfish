@@ -646,8 +646,8 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
             dist = cell_mask_dist_map[spot[1], spot[0]]
             if dist == 100: dist = 99
             slice_num = np.floor(dist / slices_per_stripe)
-            mask = np.zeros(cell_mask.shape[0], cell_mask.shape[1])
-            mask[((cell_mask_dist_map >= slice_num*slices_per_stripe +1) &
+            mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
+            mask[((cell_mask_dist_map >= slice_num*slices_per_stripe + 1) &
                   (cell_mask_dist_map < (slice_num  + 1) * slices_per_stripe)) & (quad_mask == quad)] = 1
             slice_area = np.sum(mask) * math.pow((1 / size_coeff), 2)
             idx = int((slice_num-1) * quadrants_num) + int(quad - 1)
@@ -664,15 +664,18 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
         cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
 
         arr = np.zeros((stripes * quadrants_num))
+        slices_per_stripe = np.floor(peripheral_fraction_threshold / stripes)
         for spot in spots:
             quad = quad_mask[spot[1], spot[0]]
             dist = cell_mask_dist_map[spot[1], spot[0]]
             if dist == peripheral_fraction_threshold: dist = peripheral_fraction_threshold - 1
             slice_num = np.floor(dist / (peripheral_fraction_threshold / stripes))
+            mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
+            mask[((cell_mask_dist_map >= slice_num * slices_per_stripe + 1) &
+                  (cell_mask_dist_map < (slice_num + 1) * slices_per_stripe)) & (quad_mask == quad)] = 1
+            slice_area = np.sum(mask) * math.pow((1 / size_coeff), 2)
             idx = (int(slice_num-1) * quadrants_num) + int(quad - 1)
-            arr[idx] += 1.0 / np.sum(cell_mask[(((cell_mask_dist_map >= slice_num * np.floor(
-                (peripheral_fraction_threshold / stripes)) + 1) & (cell_mask_dist_map <= (slice_num + 1) * np.floor((peripheral_fraction_threshold / stripes)))) & (
-                                                               quad_mask == quad))]) * math.pow((1 / size_coeff), 2)
+            arr[idx] += 1.0 / slice_area
         return arr / cytoplasmic_density
 
 
