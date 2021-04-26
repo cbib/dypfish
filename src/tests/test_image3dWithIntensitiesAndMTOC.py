@@ -29,11 +29,15 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         self.assertAlmostEqual(result, 1759171.4466687627)
 
     def test_split_in_quadrants(self):
-        # was test_array = np.array([(1.71464963, 0), (1.53409342, 0), (0.96447942, 1), (0.93590757, 0)])
         test_array = np.array([(2928540.93937, 0), (2614853.08760, 0), (1675368.87807, 1), (1619814.17746, 0)])
         result = self.img.split_in_quadrants()
         self.assertEqual(np.shape(result), np.shape(test_array))
         self.assertAlmostEqual(np.sum(result[:,0]), np.sum(test_array[:,0]), places=2)
+
+    def test_split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3):
+        result = self.img.split_in_quadrants_and_slices()
+        self.assertAlmostEqual(result.sum(), 25.3735566411)
+        self.assertAlmostEqual(result[2], 1.90160983)
 
     def test_compute_density_per_quadrant(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)

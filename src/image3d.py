@@ -542,7 +542,7 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
         Returns an array with the density values per quadrant and associated MTOC flags
         """
         if not quadrants_num in [2, 3, 4, 5, 6, 8, 9]:  # just in case
-            raise (RuntimeError, "Unexpected number of slices (quadrants) %i" % c)
+            raise (RuntimeError, "Unexpected number of slices (quadrants) %i" % quadrants_num)
 
         max_density = 0.0
         mtoc_position = self.get_mtoc_position()
@@ -579,7 +579,7 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
         Returns an array with the density values per quadrant and associated MTOC flags
         """
         if not quadrants_num in [2, 3, 4, 5, 6, 8, 9]:  # just in case
-            raise (RuntimeError, "Unexpected number of slices (quadrants) %i" % c)
+            raise (RuntimeError, "Unexpected number of slices (quadrants) %i" % quadrants_num)
 
         max_density = 0.0
         mtoc_position = self.get_mtoc_position()
@@ -660,27 +660,24 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
         return density_per_quadrant
 
     def compute_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
-
         size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
         cytoplasmic_density = self.compute_cytoplasmic_density()
         nucleus_mask = self.get_nucleus_mask()
         cell_mask = self.get_cell_mask()
-        spots = self.get_spots()
+        spots = self.get_cytoplasmic_spots()
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
         cell_mask_dist_map[(nucleus_mask == 1)] = 0
         arr = np.zeros((stripes * quadrants_num))
-
+        dist = np.floor(100.0 / stripes)
         for spot in spots:
-            if nucleus_mask[spot[1], spot[0]] == 1:
-                continue
             quad = quad_mask[spot[1], spot[0]]
-            value = cell_mask_dist_map[spot[1], spot[0]]
-            if value == 100:
-                value = 99
-            slice_area = np.floor(value / (100.0 / stripes))
-            value = (int(slice_area) * quadrants_num) + int(quad - 1)
-            arr[int(value)] += 1.0 / np.sum(cell_mask[(((cell_mask_dist_map >= slice_area * np.floor(
+            dist = cell_mask_dist_map[spot[1], spot[0]]
+            if dist == 100: dist = 99
+            slice_area = np.floor(dist / (100.0 / stripes))
+            dist = (int(slice_area) * quadrants_num) + int(quad - 1)
+
+            arr[int(dist)] += 1.0 / np.sum(cell_mask[(((cell_mask_dist_map >= slice_area * np.floor(
                 (100.0 / stripes)) + 1) & (cell_mask_dist_map <= (slice_area + 1) * np.floor((100.0 / stripes)))) & (
                                                                quad_mask == quad))]) * math.pow((1 / size_coeff),
                                                                                                 2)

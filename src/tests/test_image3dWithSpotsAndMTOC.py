@@ -52,6 +52,16 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
         self.assertEqual(np.shape(results), np.shape(test_array))
         self.assertAlmostEqual(np.sum(results[:,0].sum()), np.sum(test_array[:,0].sum()), places=7)
 
+    def test_compute_density_per_quadrant_and_slices(self):
+        quadrant_mask = self.img.compute_quadrant_mask(45, 4)
+        result = self.img.compute_density_per_quadrant_and_slices(quadrant_mask, stripes=3, quadrants_num=4)
+        self.assertAlmostEqual(result.sum(), 0.003475214)
+
+    def test_split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3):
+        result = self.img.split_in_quadrants_and_slices()
+        self.assertAlmostEqual(result.sum(), 0.0033616628)
+        self.assertAlmostEqual(result[2], 0.00005)
+
     def test_compute_peripheral_density_per_quadrant(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
