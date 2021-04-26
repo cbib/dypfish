@@ -59,8 +59,8 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
 
     def test_split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3):
         result = self.img.split_in_quadrants_and_slices()
-        self.assertAlmostEqual(result.sum(), 0.0033616628)
-        self.assertAlmostEqual(result[2], 0.00005)
+        self.assertAlmostEqual(result.sum(), 0.006683590504)
+        self.assertAlmostEqual(result[2], 0.000317475981)
 
     def test_compute_peripheral_density_per_quadrant(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)

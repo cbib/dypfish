@@ -668,19 +668,17 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
         cell_mask_dist_map[(nucleus_mask == 1)] = 0
-        arr = np.zeros((stripes * quadrants_num))
-        dist = np.floor(100.0 / stripes)
+        arr = np.zeros((quadrants_num * stripes))
+        slices_per_stripe = np.floor(100.0 / stripes)
         for spot in spots:
             quad = quad_mask[spot[1], spot[0]]
             dist = cell_mask_dist_map[spot[1], spot[0]]
             if dist == 100: dist = 99
-            slice_area = np.floor(dist / (100.0 / stripes))
-            dist = (int(slice_area) * quadrants_num) + int(quad - 1)
-
-            arr[int(dist)] += 1.0 / np.sum(cell_mask[(((cell_mask_dist_map >= slice_area * np.floor(
-                (100.0 / stripes)) + 1) & (cell_mask_dist_map <= (slice_area + 1) * np.floor((100.0 / stripes)))) & (
-                                                               quad_mask == quad))]) * math.pow((1 / size_coeff),
-                                                                                                2)
+            slice_area = np.floor(dist / slices_per_stripe)
+            idx = int((slice_area-1) * quadrants_num) + int(quad - 1)
+            arr[idx] += 1.0 / np.sum(cell_mask[(((cell_mask_dist_map >= slice_area * slices_per_stripe + 1) &
+                                                 (cell_mask_dist_map <= (slice_area + 1) * slices_per_stripe)) &
+                                                (quad_mask == quad))]) * math.pow((1 / size_coeff), 2)
         return arr / cytoplasmic_density
 
     def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
