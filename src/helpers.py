@@ -300,18 +300,6 @@ def get_forward_interactions(mrna_timepoints, protein_timepoints):
     return fwd_interactions
 
 
-##### muscle data helpers functions
-
-def get_quantized_grid(q, Qx, Qy):
-    tmp_x = np.array(np.arange(Qx))
-    tmp_y = np.array(np.arange(Qy))
-    qxs = matlib.repmat(tmp_x.transpose(), 1, Qx)
-    qys = matlib.repmat(tmp_y, Qy, 1)
-    qxs = np.kron(qxs, np.ones((q, q)))
-    qys = np.kron(qys, np.ones((q, q)))
-    return qxs, qys
-
-
 def reduce_z_line_mask(z_lines, spots):
     cpt_z = 1
     z_lines_idx = []
