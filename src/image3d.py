@@ -588,6 +588,7 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
         density_per_quadrant = np.zeros((quadrants_num, 2))
         for spot in spots:
             spot_quad = quadrant_mask[spot[1], spot[0]]
+            if spot_quad == 0: continue
             density_per_quadrant[spot_quad - 1, 0] += 1
 
         # mark the mtoc quadrant
@@ -600,7 +601,7 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
 
         return density_per_quadrant
 
-    def compute_peripheral_density_per_quadrant(self, mtoc_quad, quadrant_mask, height_map, quadrants=4):
+    def compute_peripheral_density_per_quadrant(self, mtoc_quad, quadrant_mask, quadrants_num=4):
         """
         compute volumic density per quadrant;
         return values of density paired with the MTOC presence flag (0/1)
@@ -609,28 +610,32 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         peripheral_binary_mask = (cell_mask_dist_map > 0) & \
                                  (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
-        spots = self.get_spots()
-        height_map_periph = np.multiply(height_map, peripheral_binary_mask)
-        validated_spots = 0
+        quadrant_mask = quadrant_mask * peripheral_binary_mask
+        return self.compute_density_per_quadrant(mtoc_quad, quadrant_mask, quadrants_num)
 
-        spots_in_periphery = [spot for spot in spots if peripheral_binary_mask[spot[1], spot[0]]]
-        density_per_quadrant = np.zeros((quadrants, 2))
-        for spot in spots_in_periphery:
-            spot_quad = quadrant_mask[spot[1], spot[0]]
-            density_per_quadrant[spot_quad - 1, 0] += 1
 
-        if len(spots_in_periphery) < constants.analysis_config['MIN_SPOTS_NUM_IN_CYTOPLASM']:
-            raise RuntimeError(
-                "Image contains too few spots {0} located in peripheral area {1}".format(validated_spots, self._path))
-
-        # mark the mtoc quadrant
-        density_per_quadrant[mtoc_quad - 1, 1] = 1
-        for quad_num in range(quadrants):
-            density_per_quadrant[quad_num, 0] /= np.sum(height_map_periph[(quadrant_mask == quad_num + 1)]) * volume_coeff()
-        if density_per_quadrant[:, 1].sum() != 1.0:
-            raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
-
-        return density_per_quadrant
+        # spots = self.get_cytoplasmic_spots()
+        # height_map_periph = np.multiply(height_map, peripheral_binary_mask)
+        # validated_spots = 0
+        #
+        # spots_in_periphery = [spot for spot in spots if peripheral_binary_mask[spot[1], spot[0]]]
+        # density_per_quadrant = np.zeros((quadrants, 2))
+        # for spot in spots_in_periphery:
+        #     spot_quad = quadrant_mask[spot[1], spot[0]]
+        #     density_per_quadrant[spot_quad - 1, 0] += 1
+        #
+        # if len(spots_in_periphery) < constants.analysis_config['MIN_SPOTS_NUM_IN_CYTOPLASM']:
+        #     raise RuntimeError(
+        #         "Image contains too few spots {0} located in peripheral area {1}".format(validated_spots, self._path))
+        #
+        # # mark the mtoc quadrant
+        # density_per_quadrant[mtoc_quad - 1, 1] = 1
+        # for quad_num in range(quadrants):
+        #     density_per_quadrant[quad_num, 0] /= np.sum(height_map_periph[(quadrant_mask == quad_num + 1)]) * volume_coeff()
+        # if density_per_quadrant[:, 1].sum() != 1.0:
+        #     raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
+        #
+        # return density_per_quadrant
 
     def compute_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
         size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
