@@ -34,23 +34,27 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-        height_map = self.img.adjust_height_map()
-        result = self.img.compute_density_per_quadrant(mtoc_quad, quadrant_mask, height_map)
+        result = self.img.compute_density_per_quadrant(mtoc_quad, quadrant_mask)
 
         self.assertEqual(result.shape, (4, 2))
-        self.assertAlmostEqual(result[1, 0], 0.09460885056155734, places=3)
-        self.assertAlmostEqual(result[:, 0].sum(), 0.4123945214579857, places=3)
+        self.assertAlmostEqual(result[1, 0], 0.13705567289739, places=3)
+        self.assertAlmostEqual(result[:, 0].sum(), 0.5481894332973, places=3)
         self.assertEqual(result[:, 1].sum(), 1.0)
 
-    def test_split_in_quadrants(self):
-        warnings.warn(
-            "test_compute_max_density_MTOC_quadrant test not well tested",
-            RuntimeWarning
-        )
-        test_array = np.array([(0.12947032, 0.), (0.15919367, 0.), (0.06432269, 0.), (0.17692811, 1.)])
-        results = self.img.split_in_quadrants()
-        self.assertEqual(np.shape(results), np.shape(test_array))
-        self.assertAlmostEqual(np.sum(results[:,0].sum()), np.sum(test_array[:,0].sum()), places=7)
+    def test_compute_quadrant_densities(self):
+        result = self.img.compute_quadrant_densities()
+        self.assertAlmostEqual(result[:, 0].sum(), 0.529914777)
+        self.assertEqual(result[3, 1], 1)
+
+    # def test_split_in_quadrants(self):
+    #     warnings.warn(
+    #         "test_compute_max_density_MTOC_quadrant test not well tested",
+    #         RuntimeWarning
+    #     )
+    #     test_array = np.array([(0.12947032, 0.), (0.15919367, 0.), (0.06432269, 0.), (0.17692811, 1.)])
+    #     results = self.img.split_in_quadrants()
+    #     self.assertEqual(np.shape(results), np.shape(test_array))
+    #     self.assertAlmostEqual(np.sum(results[:,0].sum()), np.sum(test_array[:,0].sum()), places=7)
 
     def test_compute_density_per_quadrant_and_slices(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)

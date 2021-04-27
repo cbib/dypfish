@@ -233,15 +233,13 @@ class ImageWithMTOC(Image):
         max_density = 0.0
         quadrants_max_MTOC_density = np.zeros((quadrants_num, 2), dtype=float)
         mtoc_position = self.get_mtoc_position()
-        cell_mask = self.get_cell_mask()
 
         degree_span = 360 // quadrants_num
         for degree in range(degree_span):
             quadrant_mask = self.compute_quadrant_mask(degree, quadrants_num)
             mtoc_quad_num = quadrant_mask[mtoc_position[1], mtoc_position[0]]
             # assign each spot to the corresponding quadrant excluding those in the nucleus
-            density_per_quadrant = self.compute_density_per_quadrant(mtoc_quad_num, quadrant_mask, cell_mask
-                                                                     , quadrants_num)
+            density_per_quadrant = self.compute_density_per_quadrant(mtoc_quad_num, quadrant_mask, quadrants_num)
             if density_per_quadrant[mtoc_quad_num - 1, 0] > max_density:
                 max_density = density_per_quadrant[mtoc_quad_num - 1, 0]
                 quadrants_max_MTOC_density = density_per_quadrant
@@ -250,11 +248,10 @@ class ImageWithMTOC(Image):
 
     @helpers.checkpoint_decorator(QUADRANT_DENSITIES_PATH_SUFFIX, dtype=np.float)
     def get_quadrants_densities(self, quadrants_num=4):
-        return self.split_in_quadrants(quadrants_num=quadrants_num)
+        return self.compute_quadrant_densities(quadrants_num=quadrants_num)
 
-    def split_in_quadrants(self, quadrants_num=4) -> np.ndarray:
+    def compute_quadrant_densities(self, quadrants_num=4) -> np.ndarray:
         """
-        was : compute_max_density_MTOC_quadrant
         For all possible subdivisions of the cell in quadrants (90 possible)
         computes the normalized density (vs whole cytoplasm) per quadrant
         and keeps the subdivision such that the MTOC containing quadrant is the densiest.
@@ -267,15 +264,13 @@ class ImageWithMTOC(Image):
         max_density = 0.0
         quadrants_max_MTOC_density = np.zeros((quadrants_num, 2), dtype=float)
         mtoc_position = self.get_mtoc_position()
-        cell_mask = self.get_cell_mask()
 
         degree_span = 360 // quadrants_num
         for degree in range(degree_span):
             quadrant_mask = self.compute_quadrant_mask(degree, quadrants_num)
             mtoc_quad_num = quadrant_mask[mtoc_position[1], mtoc_position[0]]
             # assign each spot to the corresponding quadrant excluding those in the nucleus
-            density_per_quadrant = self.compute_density_per_quadrant(mtoc_quad_num, quadrant_mask, cell_mask
-                                                                     , quadrants_num)
+            density_per_quadrant = self.compute_density_per_quadrant(mtoc_quad_num, quadrant_mask, quadrants_num)
             if density_per_quadrant[mtoc_quad_num - 1, 0] > max_density:
                 max_density = density_per_quadrant[mtoc_quad_num - 1, 0]
                 quadrants_max_MTOC_density = density_per_quadrant
@@ -666,7 +661,7 @@ class ImageWithIntensitiesAndMTOC(ImageWithMTOC, ImageWithIntensities):
 
     def compute_density_per_quadrant(self, mtoc_quad, quadrant_mask, cell_mask, quadrants_num=4) -> np.ndarray:
         """
-        compute volumic density per quadrant;
+        Given a quadrant mask and number of MTOC containing quadrant, compute 2D density per quadrant;
         return an array of values of density paired with the MTOC presence flag (0/1)
         """
         IF = self.get_cytoplasmic_intensities()
@@ -691,7 +686,7 @@ class ImageWithSpotsAndMTOC(ImageWithMTOC, ImageWithSpots):
 
     def compute_density_per_quadrant(self, mtoc_quad, quadrant_mask, cell_mask, quadrants_num=4) -> np.ndarray:
         """
-        compute surfacic density per quadrant;
+        Given an quadrant mask and the number of the MTOC containing quadrant, compute surfacic density per quadrant;
         return an array of values of density paired with the MTOC presence flag (0/1)
         """
         surface_coeff = ((1 / constants.dataset_config['SIZE_COEFFICIENT']) ** 2)

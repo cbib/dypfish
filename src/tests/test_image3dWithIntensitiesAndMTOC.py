@@ -50,6 +50,11 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         self.assertAlmostEqual(result[1, 0], 2114080.4358608127)
         self.assertEqual(result[:, 1].sum(), 1.0)
 
+    def test_compute_quadrant_densities(self):
+        result = self.img.compute_quadrant_densities()
+        self.assertAlmostEqual(result[:, 0].sum(), 37279907.07963162)
+        self.assertEqual(result[2, 1], 1)
+
     def test_compute_density_per_quadrant_and_slices(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
         result = self.img.compute_density_per_quadrant_and_slices(quadrant_mask, stripes=3, quadrants_num=4)

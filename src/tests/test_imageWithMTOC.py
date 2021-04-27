@@ -4,7 +4,6 @@
 
 import pathlib
 from unittest import TestCase
-import matplotlib.pyplot as plt
 import numpy as np
 import constants
 import helpers
@@ -66,3 +65,4 @@ class TestImageWithMTOC(TestCase):
 
         quadrant_mask = self.img.compute_quadrant_mask(degree=45, slices_num=4)
         self.assertEqual(quadrant_mask.sum(), 133618)
+
