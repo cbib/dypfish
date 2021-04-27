@@ -57,34 +57,19 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
         self.assertAlmostEqual(result[:, 0].sum(), 0.529914777)
         self.assertEqual(result[3, 1], 1)
 
-    # def test_split_in_quadrants(self):
-    #     warnings.warn(
-    #         "test_compute_max_density_MTOC_quadrant test not well tested",
-    #         RuntimeWarning
-    #     )
-    #     test_array = np.array([(0.12947032, 0.), (0.15919367, 0.), (0.06432269, 0.), (0.17692811, 1.)])
-    #     results = self.img.split_in_quadrants()
-    #     self.assertEqual(np.shape(results), np.shape(test_array))
-    #     self.assertAlmostEqual(np.sum(results[:,0].sum()), np.sum(test_array[:,0].sum()), places=7)
-
     def test_compute_density_per_quadrant_and_slices(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-        result = self.img.compute_density_per_quadrant_and_slices(quadrant_mask, mtoc_quad, stripes=3, quadrants_num=4)
-        self.assertAlmostEqual(result.sum(), 10.7932895271)
-        self.assertAlmostEqual(result[3], 0.4972141871094)
+        result = self.img.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
+        self.assertAlmostEqual(result[:,0].sum(), 10.7932895271)
+        self.assertAlmostEqual(result[:,1].sum(), 3)
+        self.assertAlmostEqual(result[3,0], 0.4972141871094)
 
     def test_compute_peripheral_density_per_quadrant_and_slices(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-        result = self.img.compute_peripheral_density_per_quadrant_and_slices(quadrant_mask, mtoc_quad, stripes=3, quadrants_num=4)
-        self.assertAlmostEqual(result.sum(), 7.074859430)
-        self.assertAlmostEqual(result[7], 0.305829734546)
-
-    # def test_split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3):
-    #     result = self.img.split_in_quadrants_and_slices()
-    #     self.assertAlmostEqual(result.sum(), 61.0562912512)
-    #     self.assertAlmostEqual(result[2], 2.952970008)
-    #
+        result = self.img.compute_peripheral_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
+        self.assertAlmostEqual(result[:,0].sum(), 7.074859430)
+        self.assertAlmostEqual(result[7,0], 0.305829734546)
