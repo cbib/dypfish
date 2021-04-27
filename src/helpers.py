@@ -289,16 +289,6 @@ def permutations_test(interactions, fwdints, matrix_size=4, permutation_num=1000
     stat = rs1
     return p, stat, ranking
 
-
-def pearsoncorr(vec1, vec2):
-    mu1 = np.mean(vec1)
-    mu2 = np.mean(vec2)
-    vec1b = vec1 - mu1
-    vec2b = vec2 - mu2
-    val = np.mean(vec1b * vec2b) / (np.std(vec1) * np.std(vec2))
-    return val
-
-
 def get_forward_interactions(mrna_timepoints, protein_timepoints):
     X = len(mrna_timepoints)
     Y = len(protein_timepoints)
@@ -308,7 +298,6 @@ def get_forward_interactions(mrna_timepoints, protein_timepoints):
             if protein_timepoints[y] > mrna_timepoints[x]:
                 fwd_interactions[x, y] = 1
     return fwd_interactions
-
 
 
 ##### muscle data helpers functions
