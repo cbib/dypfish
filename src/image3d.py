@@ -537,7 +537,7 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
         compute volumic density per quadrant;
         return an array of values of density paired with the MTOC presence flag (0/1)
         """
-        volume_coeff = ((1 / constants.dataset_config['SIZE_COEFFICIENT']) ** 2) * 0.3
+        volume_coeff = helpers.volume_coeff()
         height_map = self.adjust_height_map(cytoplasm=True)
         spots = self.get_cytoplasmic_spots()
         density_per_quadrant = np.zeros((quadrants_num, 2))
@@ -568,13 +568,15 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
         quadrant_mask = quadrant_mask * peripheral_binary_mask
         return self.compute_density_per_quadrant(mtoc_quad, quadrant_mask, quadrants_num)
 
-    def compute_density_per_quadrant_and_slices(self, mtoc_quad, quadrant_mask, stripes, quadrants_num=4):
+    def compute_density_per_quadrant_and_slices(self, mtoc_quad, quadrant_mask, stripes, quadrants_num=4, peripheral_flag=False):
         cell_mask_dist_map = self.get_cell_mask_distance_map()
-        slices_per_stripe = np.floor(100.0 / stripes)
+        slices_per_stripe = np.floor(100.0 / stripes) # number of isolines per stripe
+        if peripheral_flag:
+            slices_per_stripe = np.floor(constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"] / stripes)
         arr = np.empty((0,2), float)
         for stripe_num in range(1, stripes+1):
-            stripe_mask = (cell_mask_dist_map > 0) & \
-                          (cell_mask_dist_map <= stripe_num*slices_per_stripe).astype(int)
+            stripe_mask = (cell_mask_dist_map > (stripe_num-1) * slices_per_stripe) & \
+                          (cell_mask_dist_map <= stripe_num * slices_per_stripe + 1).astype(int)
             stripe_quadrant_mask = quadrant_mask * stripe_mask
             res = self.compute_density_per_quadrant(mtoc_quad, stripe_quadrant_mask, quadrants_num)
             arr = np.append(arr, res[res[:, 1].argsort()[::-1]], axis=0)  # MTOC quadrant slice always first
@@ -588,7 +590,7 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
         peripheral_binary_mask = (cell_mask_dist_map > 0) & \
                                  (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
         quadrant_mask = quadrant_mask * peripheral_binary_mask
-        return self.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes, quadrants_num)
+        return self.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes, quadrants_num, peripheral_flag=True)
 
 
 class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):

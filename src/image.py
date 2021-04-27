@@ -267,7 +267,7 @@ class ImageWithMTOC(Image):
         return self.compute_quarant_densities(quadrants_num=quadrants_num, peripheral_flag=True,
                                               stripes=stripes, stripes_flag=True)
 
-    def compute_quadrant_densities(self, quadrants_num=4, peripheral_flag=False, stripes=3, stripe_flag=False) -> np.ndarray:
+    def compute_quadrant_densities(self, quadrants_num=4, peripheral_flag=False, stripes=3, stripes_flag=False) -> np.ndarray:
         """
         For all possible subdivisions of the cell in quadrants (90 possible) and slice (if relevant)
         computes the normalized density (vs whole cytoplasm) per quadrant
@@ -287,20 +287,21 @@ class ImageWithMTOC(Image):
             quadrant_mask = self.compute_quadrant_mask(degree, quadrants_num)
             mtoc_quad_num = quadrant_mask[mtoc_position[1], mtoc_position[0]]
             # assign each spot to the corresponding quadrant excluding those in the nucleus
-            if (not peripheral_flag) and (not stripe_flag):
+            if (not peripheral_flag) and (not stripes_flag):
                 density_per_quadrant = self.compute_density_per_quadrant(mtoc_quad_num, quadrant_mask, quadrants_num)
-            if peripheral_flag and (not stripe_flag):
+            if peripheral_flag and (not stripes_flag):
                 density_per_quadrant = self.compute_peripheral_density_per_quadrant(mtoc_quad_num, quadrant_mask,
                                                                                     quadrants_num)
-            if (not peripheral_flag) and stripe_flag:
+            if (not peripheral_flag) and stripes_flag:
                 density_per_quadrant = self.compute_density_per_quadrant_and_slices(mtoc_quad_num, quadrant_mask,
                                                                                     stripes, quadrants_num)
-            if peripheral_flag and stripe_flag:
+            if peripheral_flag and stripes_flag:
                 density_per_quadrant = self.compute_peripheral_density_per_quadrant_and_slices(mtoc_quad_num, quadrant_mask,
                                                                                                stripes, quadrants_num)
 
-            if density_per_quadrant[mtoc_quad_num - 1, 0] > max_density:
-                max_density = density_per_quadrant[mtoc_quad_num - 1, 0]
+            mtoc_density = density_per_quadrant[density_per_quadrant[:,1] == 1][:,0].sum()
+            if mtoc_density > max_density:
+                max_density = mtoc_density
                 quadrants_max_MTOC_density = density_per_quadrant
 
         return quadrants_max_MTOC_density
