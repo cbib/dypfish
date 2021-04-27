@@ -257,22 +257,6 @@ def reindex_quadrant_mask(quad_mask, mtoc_quad, quad_num=4):
     return quad_mask
 
 
-def permutations(orig_list):
-    if not isinstance(orig_list, list):
-        orig_list = list(orig_list)
-    yield orig_list
-    if len(orig_list) == 1:
-        return
-    for n in sorted(orig_list):
-        new_list = orig_list[:]
-        pos = new_list.index(n)
-        del (new_list[pos])
-        new_list.insert(0, n)
-        for resto in permutations(new_list[1:]):
-            if new_list[:1] + resto != orig_list:
-                yield new_list[:1] + resto
-
-
 def using_indexed_assignment(x):
     "https://stackoverflow.com/a/5284703/190597 (Sven Marnach)"
     result = np.empty(len(x), dtype=int)
