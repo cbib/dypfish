@@ -628,52 +628,37 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
         cytoplasmic_density = self.compute_cytoplasmic_density()
         return arr / cytoplasmic_density
 
+    def compute_peripheral_density_per_quadrant_and_slices(self, quadrant_mask, mtoc_quad, stripes, quadrants_num=4):
+        peripheral_fraction_threshold = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"]
+        cell_mask_dist_map = self.get_cell_mask_distance_map()
+        peripheral_binary_mask = (cell_mask_dist_map > 0) & \
+                                 (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
+        quadrant_mask = quadrant_mask * peripheral_binary_mask
+        return self.compute_density_per_quadrant_and_slices(quadrant_mask, mtoc_quad, stripes, quadrants_num)
+
         #
         # size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
         # cytoplasmic_density = self.compute_cytoplasmic_density()
+        # peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
         # cell_mask = self.get_cytoplasm_mask()
-        # spots = self.get_cytoplasmic_spots()
+        # spots = self.get_peripheral_spots()
         # cell_mask_dist_map = self.get_cell_mask_distance_map()
         # cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
         #
-        # arr = np.zeros((quadrants_num * stripes))
-        # slices_per_stripe = np.floor(100.0 / stripes)
+        # arr = np.zeros((stripes * quadrants_num))
+        # slices_per_stripe = np.floor(peripheral_fraction_threshold / stripes)
         # for spot in spots:
         #     quad = quad_mask[spot[1], spot[0]]
         #     dist = cell_mask_dist_map[spot[1], spot[0]]
-        #     if dist == 100: dist = 99
-        #     slice_num = np.floor(dist / slices_per_stripe)
+        #     if dist == peripheral_fraction_threshold: dist = peripheral_fraction_threshold - 1
+        #     slice_num = np.floor(dist / (peripheral_fraction_threshold / stripes))
         #     mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
-        #     mask[((cell_mask_dist_map >= slice_num*slices_per_stripe + 1) &
-        #           (cell_mask_dist_map < (slice_num  + 1) * slices_per_stripe)) & (quad_mask == quad)] = 1
+        #     mask[((cell_mask_dist_map >= slice_num * slices_per_stripe + 1) &
+        #           (cell_mask_dist_map < (slice_num + 1) * slices_per_stripe)) & (quad_mask == quad)] = 1
         #     slice_area = np.sum(mask) * math.pow((1 / size_coeff), 2)
-        #     idx = int((slice_num-1) * quadrants_num) + int(quad - 1)
+        #     idx = (int(slice_num-1) * quadrants_num) + int(quad - 1)
         #     arr[idx] += 1.0 / slice_area
         # return arr / cytoplasmic_density
-
-    def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
-        size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
-        cytoplasmic_density = self.compute_cytoplasmic_density()
-        peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-        cell_mask = self.get_cytoplasm_mask()
-        spots = self.get_peripheral_spots()
-        cell_mask_dist_map = self.get_cell_mask_distance_map()
-        cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
-
-        arr = np.zeros((stripes * quadrants_num))
-        slices_per_stripe = np.floor(peripheral_fraction_threshold / stripes)
-        for spot in spots:
-            quad = quad_mask[spot[1], spot[0]]
-            dist = cell_mask_dist_map[spot[1], spot[0]]
-            if dist == peripheral_fraction_threshold: dist = peripheral_fraction_threshold - 1
-            slice_num = np.floor(dist / (peripheral_fraction_threshold / stripes))
-            mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
-            mask[((cell_mask_dist_map >= slice_num * slices_per_stripe + 1) &
-                  (cell_mask_dist_map < (slice_num + 1) * slices_per_stripe)) & (quad_mask == quad)] = 1
-            slice_area = np.sum(mask) * math.pow((1 / size_coeff), 2)
-            idx = (int(slice_num-1) * quadrants_num) + int(quad - 1)
-            arr[idx] += 1.0 / slice_area
-        return arr / cytoplasmic_density
 
 
 class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
