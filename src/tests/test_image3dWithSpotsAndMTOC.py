@@ -60,10 +60,10 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
         self.assertAlmostEqual(result2[:, 0].sum(), 0.367422972834)
         self.assertEqual(result2[2, 1], 1) # notice the MTOC quadrant is not the same as before!
         result3 = self.img.compute_quadrant_densities(peripheral_flag=False, stripes=3, stripes_flag=True)
-        self.assertAlmostEqual(result3[:, 0].sum(), 11.65932941)
+        self.assertAlmostEqual(result3[:, 0].sum(), 1.49816018641)
         self.assertEqual(result3[4, 1], 1)
         result4 = self.img.compute_quadrant_densities(peripheral_flag=True, stripes=3, stripes_flag=True)
-        self.assertAlmostEqual(result4[:, 0].sum(), 5.027960098)
+        self.assertAlmostEqual(result4[:, 0].sum(), 0.6460654268)
         self.assertEqual(result4[4, 1], 1)
 
     def test_compute_density_per_quadrant_and_slices(self):
@@ -71,14 +71,14 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
         result = self.img.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
-        self.assertAlmostEqual(result[:,0].sum(), 12.0433691258)
+        self.assertAlmostEqual(result[:,0].sum(), 1.54750719241)
         self.assertAlmostEqual(result[:,1].sum(), 3)
-        self.assertAlmostEqual(result[3,0], 0.462913898261)
+        self.assertAlmostEqual(result[3,0], 0.059481909)
 
     def test_compute_peripheral_density_per_quadrant_and_slices(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
         result = self.img.compute_peripheral_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
-        self.assertAlmostEqual(result[:,0].sum(), 7.074859430)
-        self.assertAlmostEqual(result[7,0], 0.305829734546)
+        self.assertAlmostEqual(result[:,0].sum(), 0.637391943)
+        self.assertAlmostEqual(result[7,0], 0.104579207920)

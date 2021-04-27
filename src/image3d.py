@@ -484,47 +484,42 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
     def is_a(repo: Repository, path: str):
         return ImageWithMTOC.is_a(repo, path) and Image3d.is_a(repo, path)
 
+    def compute_peripheral_density_per_quadrant(self, mtoc_quad, quadrant_mask, quadrants_num=4):
+        """
+        compute volumic density per quadrant;
+        return values of density paired with the MTOC presence flag (0/1)
+        Note that this is not relative density
+        """
+        peripheral_fraction_threshold = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"]
+        cell_mask_dist_map = self.get_cell_mask_distance_map()
+        peripheral_binary_mask = (cell_mask_dist_map > 0) & \
+                                 (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
+        quadrant_mask = quadrant_mask * peripheral_binary_mask
+        return self.compute_density_per_quadrant(mtoc_quad, quadrant_mask, quadrants_num)
 
-    # @helpers.checkpoint_decorator(PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX, dtype=np.float)
-    # def get_peripheral_quadrants_and_slices_densities(self, quadrants_num=4, stripes=3):
-    #     return self.split_in_quadrants_and_slices(quadrants_num=quadrants_num, stripes=stripes, peripheral_flag=True)
-    #
-    # def split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3, peripheral_flag=False) -> np.ndarray:
-    #     """
-    #     was : compute_max_density_MTOC_quadrant
-    #     For all possible subdivisions of the cell in n (n = quadrants_num) quadrants (360/quadrants_num degree possible)
-    #     computes the normalized density (vs whole cytoplasm) per quadrant
-    #     and keeps the subdivision such that the MTOC containing quadrant is the densiest.
-    #     The anchor for the computation is the MTOC containing quadrant.
-    #     Divide cell into n quadrants (n = quadrants_num) and m (m = stripes - 1) isolines, creating x compartments (x = stripes * quadrants_num)
-    #     Compartments are indexed from periphery to nucleus (0 to x-1), O-indexed compartment is the closest from periphery and located on MTOC quadrant)
-    #
-    #     Returns an array with the density values per quadrant and associated MTOC flags
-    #     """
-    #     if not quadrants_num in [2, 3, 4, 5, 6, 8, 9]:  # just in case
-    #         raise (RuntimeError, "Unexpected number of slices (quadrants) %i" % quadrants_num)
-    #
-    #     max_density = 0.0
-    #     mtoc_position = self.get_mtoc_position()
-    #     height_map = self.adjust_height_map(cytoplasm=True)
-    #     max_quadrant_mask = np.zeros((np.shape(height_map)[0], np.shape(height_map)[1]))
-    #
-    #     degree_span = 360 // quadrants_num
-    #     for degree in range(degree_span):
-    #         quadrant_mask = self.compute_quadrant_mask(degree, quadrants_num)
-    #         mtoc_quad_num = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-    #         # assign each spot to the corresponding quadrant excluding those in the nucleus
-    #         density_per_quadrant = self.compute_density_per_quadrant(mtoc_quad_num, quadrant_mask,
-    #                                                                  height_map, quadrants_num)
-    #         if density_per_quadrant[mtoc_quad_num - 1, 0] > max_density:
-    #             max_density = density_per_quadrant[mtoc_quad_num - 1, 0]
-    #             max_quadrant_mask = quadrant_mask
-    #     max_quadrant_mask = helpers.reindex_quadrant_mask(max_quadrant_mask, mtoc_quad_num, quad_num=quadrants_num)
-    #     if (not peripheral_flag):
-    #         return self.compute_density_per_quadrant_and_slices(max_quadrant_mask, stripes, quadrants_num=quadrants_num)
-    #     else:
-    #         return self.compute_peripheral_density_per_quadrant_and_slices(max_quadrant_mask, stripes,
-    #                                                                        quadrants_num=quadrants_num)
+    def compute_density_per_quadrant_and_slices(self, mtoc_quad, quadrant_mask, stripes, quadrants_num=4,
+                                                peripheral_flag=False):
+        cell_mask_dist_map = self.get_cell_mask_distance_map()
+        slices_per_stripe = np.floor(100.0 / stripes)  # number of isolines per stripe
+        if peripheral_flag:
+            slices_per_stripe = np.floor(constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"] / stripes)
+        arr = np.empty((0, 2), float)
+        for stripe_num in range(1, stripes + 1):
+            stripe_mask = (cell_mask_dist_map > (stripe_num - 1) * slices_per_stripe) & \
+                          (cell_mask_dist_map <= stripe_num * slices_per_stripe + 1).astype(int)
+            stripe_quadrant_mask = quadrant_mask * stripe_mask
+            res = self.compute_density_per_quadrant(mtoc_quad, stripe_quadrant_mask, quadrants_num)
+            arr = np.append(arr, res[res[:, 1].argsort()[::-1]], axis=0)  # MTOC quadrant slice always first
+        return arr
+
+    def compute_peripheral_density_per_quadrant_and_slices(self, mtoc_quad, quadrant_mask, stripes, quadrants_num=4):
+        peripheral_fraction_threshold = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"]
+        cell_mask_dist_map = self.get_cell_mask_distance_map()
+        peripheral_binary_mask = (cell_mask_dist_map > 0) & \
+                                 (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
+        quadrant_mask = quadrant_mask * peripheral_binary_mask
+        return self.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes, quadrants_num,
+                                                            peripheral_flag=True)
 
 
 class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
@@ -556,42 +551,6 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
 
         return density_per_quadrant
 
-    def compute_peripheral_density_per_quadrant(self, mtoc_quad, quadrant_mask, quadrants_num=4):
-        """
-        compute volumic density per quadrant;
-        return values of density paired with the MTOC presence flag (0/1)
-        """
-        peripheral_fraction_threshold = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"]
-        cell_mask_dist_map = self.get_cell_mask_distance_map()
-        peripheral_binary_mask = (cell_mask_dist_map > 0) & \
-                                 (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
-        quadrant_mask = quadrant_mask * peripheral_binary_mask
-        return self.compute_density_per_quadrant(mtoc_quad, quadrant_mask, quadrants_num)
-
-    def compute_density_per_quadrant_and_slices(self, mtoc_quad, quadrant_mask, stripes, quadrants_num=4, peripheral_flag=False):
-        cell_mask_dist_map = self.get_cell_mask_distance_map()
-        slices_per_stripe = np.floor(100.0 / stripes) # number of isolines per stripe
-        if peripheral_flag:
-            slices_per_stripe = np.floor(constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"] / stripes)
-        arr = np.empty((0,2), float)
-        for stripe_num in range(1, stripes+1):
-            stripe_mask = (cell_mask_dist_map > (stripe_num-1) * slices_per_stripe) & \
-                          (cell_mask_dist_map <= stripe_num * slices_per_stripe + 1).astype(int)
-            stripe_quadrant_mask = quadrant_mask * stripe_mask
-            res = self.compute_density_per_quadrant(mtoc_quad, stripe_quadrant_mask, quadrants_num)
-            arr = np.append(arr, res[res[:, 1].argsort()[::-1]], axis=0)  # MTOC quadrant slice always first
-        cytoplasmic_density = self.compute_cytoplasmic_density()
-        arr[:,0] = arr[:,0] / cytoplasmic_density
-        return arr
-
-    def compute_peripheral_density_per_quadrant_and_slices(self, mtoc_quad, quadrant_mask, stripes, quadrants_num=4):
-        peripheral_fraction_threshold = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"]
-        cell_mask_dist_map = self.get_cell_mask_distance_map()
-        peripheral_binary_mask = (cell_mask_dist_map > 0) & \
-                                 (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
-        quadrant_mask = quadrant_mask * peripheral_binary_mask
-        return self.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes, quadrants_num, peripheral_flag=True)
-
 
 class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
 
@@ -599,99 +558,77 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
     def is_a(repo: Repository, path: str):
         return Image3dWithMTOC.is_a(repo, path) and Image3dWithIntensities.is_a(repo, path)
 
-    def compute_density_per_quadrant(self, mtoc_quad, quadrant_mask, height_map, quadrants_num=4) -> np.ndarray:
+    def compute_density_per_quadrant(self, mtoc_quad, quadrant_mask, quadrants_num=4) -> np.ndarray:
         """
         compute volumic density per quadrant;
         return an array of values of density paired with the MTOC presence flag (0/1)
         """
         IF = self.get_cytoplasmic_intensities()
+        height_map = self.adjust_height_map(cytoplasm=True)
         density_per_quadrant = np.zeros((quadrants_num, 2))
         # mark the MTOC quadrant
         density_per_quadrant[mtoc_quad - 1, 1] = 1
         for quad_num in range(quadrants_num):
-            density_per_quadrant[quad_num, 0] = np.sum(IF[quadrant_mask == (quad_num + 1)]) / \
-                                                (np.sum(
-                                                    height_map[quadrant_mask == quad_num + 1]) * helpers.volume_coeff())
+            height = np.sum(height_map[quadrant_mask == quad_num + 1])
+            #if height == 0: # this can happen at the periphery -> adjust
+            #    height = len(quadrant_mask[quadrant_mask == 1]) * 0.5
+            quadrant_volume = height * helpers.volume_coeff()
+            density_per_quadrant[quad_num, 0] = np.sum(IF[quadrant_mask == (quad_num + 1)]) / quadrant_volume
 
         if density_per_quadrant[:, 1].sum() != 1.0:
             raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
 
         return density_per_quadrant
 
-    def compute_peripheral_density_per_quadrant(self, mtoc_quad, quadrant_mask, height_map, quadrants_num=4,
-                                                peripheral_fraction_threshold=30):
-        """
-        compute volumic density per quadrant;
-        return values of density paired with the MTOC presence flag (0/1)
-        """
-        IF = self.get_cytoplasmic_intensities()
-        cell_mask_dist_map = self.get_cell_mask_distance_map()
-        peripheral_binary_mask = (cell_mask_dist_map > 0) & \
-                                 (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
-        IF_periph = np.multiply(IF, peripheral_binary_mask)
-        height_map_periph = np.multiply(height_map, peripheral_binary_mask)
-        density_per_quadrant = np.zeros((quadrants_num, 2))
 
-        # mark the MTOC quadrant
-        density_per_quadrant[mtoc_quad - 1, 1] = 1
-        for quad_num in range(quadrants_num):
-            density_per_quadrant[quad_num, 0] = np.sum(IF_periph[(quadrant_mask == quad_num + 1)])
-            density_per_quadrant[quad_num, 0] /= np.sum(height_map_periph[(quadrant_mask == quad_num + 1)]) * \
-                                                 helpers.volume_coeff()
-        if density_per_quadrant[:, 1].sum() != 1.0:
-            raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
-
-        return density_per_quadrant
-
-
-    def compute_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
-        size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
-        cytoplasmic_density = self.compute_cytoplasmic_density()
-        cell_mask = self.get_cytoplasm_mask()
-        IF = self.get_cytoplasmic_intensities()
-        cell_mask_dist_map = self.get_cell_mask_distance_map()
-        cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
-
-        arr = np.zeros((stripes * quadrants_num))
-        slices_per_stripe = int(np.floor(100 / stripes))
-        for i, j in itertools.product(range(stripes), range(1, quadrants_num + 1)):
-            mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
-            mask[((cell_mask_dist_map >= i*slices_per_stripe +1) &
-                  (cell_mask_dist_map < (i + 1) * slices_per_stripe)) & (quad_mask == j)] = 1
-            IF_sum = np.sum(IF[mask == 1])
-            local_area = np.sum(mask) * math.pow((1 / size_coeff), 2)
-            idx = (i * quadrants_num) + (j - 1)
-            arr[idx] += IF_sum / local_area
-
-        return arr / cytoplasmic_density
-
-    def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
-        size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
-        cytoplasmic_density = self.compute_cytoplasmic_density()
-        cell_mask = self.get_cytoplasm_mask()
-        IF = self.get_cytoplasmic_intensities()
-        peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-        cell_mask_dist_map = self.get_cell_mask_distance_map()
-        cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1 # adds a little at the periphery
-        arr = np.zeros((stripes * quadrants_num))
-
-        slices_per_stripe = int(np.floor(peripheral_fraction_threshold / stripes))
-        for i in range(slices_per_stripe, peripheral_fraction_threshold + 1, slices_per_stripe):
-            for j in range(1, quadrants_num + 1):
-                stripe_num = np.floor(i / slices_per_stripe)
-                idx = (int(stripe_num) * quadrants_num) + int(j - 1) - quadrants_num
-                mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
-                mask[((cell_mask_dist_map >= 1 + (i - slices_per_stripe)) &
-                      (cell_mask_dist_map < i)) & (quad_mask == j)] = 1
-                local_area = np.sum(mask)
-                if local_area == 0:
-                    arr[int(idx)] += 0.0
-                else:
-                    IF_local = float(np.sum(IF[mask == 1]))
-                    local_surface = local_area * math.pow((1 / size_coeff), 2)
-                    arr[int(idx)] += IF_local / local_surface
-
-        return arr / cytoplasmic_density
+    # def compute_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
+    #     size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
+    #     cytoplasmic_density = self.compute_cytoplasmic_density()
+    #     cell_mask = self.get_cytoplasm_mask()
+    #     IF = self.get_cytoplasmic_intensities()
+    #     cell_mask_dist_map = self.get_cell_mask_distance_map()
+    #     cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
+    #
+    #     arr = np.zeros((stripes * quadrants_num))
+    #     slices_per_stripe = int(np.floor(100 / stripes))
+    #     for i, j in itertools.product(range(stripes), range(1, quadrants_num + 1)):
+    #         mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
+    #         mask[((cell_mask_dist_map >= i*slices_per_stripe +1) &
+    #               (cell_mask_dist_map < (i + 1) * slices_per_stripe)) & (quad_mask == j)] = 1
+    #         IF_sum = np.sum(IF[mask == 1])
+    #         local_area = np.sum(mask) * math.pow((1 / size_coeff), 2)
+    #         idx = (i * quadrants_num) + (j - 1)
+    #         arr[idx] += IF_sum / local_area
+    #
+    #     return arr / cytoplasmic_density
+    #
+    # def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
+    #     size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
+    #     cytoplasmic_density = self.compute_cytoplasmic_density()
+    #     cell_mask = self.get_cytoplasm_mask()
+    #     IF = self.get_cytoplasmic_intensities()
+    #     peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
+    #     cell_mask_dist_map = self.get_cell_mask_distance_map()
+    #     cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1 # adds a little at the periphery
+    #     arr = np.zeros((stripes * quadrants_num))
+    #
+    #     slices_per_stripe = int(np.floor(peripheral_fraction_threshold / stripes))
+    #     for i in range(slices_per_stripe, peripheral_fraction_threshold + 1, slices_per_stripe):
+    #         for j in range(1, quadrants_num + 1):
+    #             stripe_num = np.floor(i / slices_per_stripe)
+    #             idx = (int(stripe_num) * quadrants_num) + int(j - 1) - quadrants_num
+    #             mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
+    #             mask[((cell_mask_dist_map >= 1 + (i - slices_per_stripe)) &
+    #                   (cell_mask_dist_map < i)) & (quad_mask == j)] = 1
+    #             local_area = np.sum(mask)
+    #             if local_area == 0:
+    #                 arr[int(idx)] += 0.0
+    #             else:
+    #                 IF_local = float(np.sum(IF[mask == 1]))
+    #                 local_surface = local_area * math.pow((1 / size_coeff), 2)
+    #                 arr[int(idx)] += IF_local / local_surface
+    #
+    #     return arr / cytoplasmic_density
 
 
 

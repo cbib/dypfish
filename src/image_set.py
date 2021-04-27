@@ -234,98 +234,117 @@ class ImageSet(object):
         image: Image3dWithSpotsAndMTOC
         return [image.compute_degree_of_clustering() for image in self.images if image.mtoc_is_in_leading_edge()]
 
-    def compute_normalised_quadrant_densities(self, quadrant_labels: list,
-                                              mtoc_quadrant_label='MTOC', quadrants_num=4) -> dict:
-        """
-        builds a dictionary of densities per slice (quadrant by default) for all images
-        The dictionary's keys are the quadrant_labels + mtoc_quadrant_label
-        """
-        if quadrants_num != len(quadrant_labels) + 1:
-            raise RuntimeError("Quandrants number quadrants_num and total labels number have to be the same")
+    # def compute_normalised_quadrant_densities(self, quadrant_labels: list,
+    #                                           mtoc_quadrant_label='MTOC', quadrants_num=4) -> dict:
+    #     """
+    #     builds a dictionary of densities per slice (quadrant by default) for all images
+    #     The dictionary's keys are the quadrant_labels + mtoc_quadrant_label
+    #     """
+    #     if quadrants_num != len(quadrant_labels) + 1:
+    #         raise RuntimeError("Quandrants number quadrants_num and total labels number have to be the same")
+    #
+    #     gene_dict = {key: list([]) for key in quadrant_labels + [mtoc_quadrant_label]}
+    #     mtoc_count = 0
+    #     for image in tqdm.tqdm(self.images, desc="Images"):
+    #         cytoplasmic_density = image.compute_cytoplasmic_density()
+    #         mdmq = image.get_quadrants_densities(quadrants_num)
+    #         mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
+    #         # add MTOC density (flag 1 in mdmq)
+    #         if (mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0] > np.median(mdmq[:, 0][np.where(mdmq[:, 1] == 0)])):
+    #             mtoc_count = mtoc_count + 1
+    #         gene_dict[mtoc_quadrant_label].append(mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0])
+    #         # add non MTOC densities
+    #         for label, val in zip(quadrant_labels, mdmq[:, 0][np.where(mdmq[:, 1] == 0)]):
+    #             gene_dict[label].append(val)
+    #
+    #     logger.debug("\nMTOC enrichment {} out of {} ; relative {} \n", mtoc_count, len(self.images),
+    #                  mtoc_count / len(self.images))
+    #     return gene_dict
 
-        gene_dict = {key: list([]) for key in quadrant_labels + [mtoc_quadrant_label]}
-        mtoc_count = 0
+    def compute_normalised_quadrant_densities(self, quadrants_num=4, peripheral_flag=False,
+                                              stripes=3, stripes_flag = False) -> np.array:
+        """
+        computes normalized densities per slice (quadrant by default) for all images
+        """
+        all_densities = np.empty((0, 2), float)
         for image in tqdm.tqdm(self.images, desc="Images"):
             cytoplasmic_density = image.compute_cytoplasmic_density()
-            mdmq = image.get_quadrants_densities(quadrants_num)
+            mdmq = image.compute_quadrant_densities(quadrants_num, peripheral_flag, stripes, stripes_flag)
             mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
-            # add MTOC density (flag 1 in mdmq)
-            if (mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0] > np.median(mdmq[:, 0][np.where(mdmq[:, 1] == 0)])):
-                mtoc_count = mtoc_count + 1
-            gene_dict[mtoc_quadrant_label].append(mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0])
-            # add non MTOC densities
-            for label, val in zip(quadrant_labels, mdmq[:, 0][np.where(mdmq[:, 1] == 0)]):
-                gene_dict[label].append(val)
+            all_densities = np.append(all_densities, mdmq[mdmq[:, 1].argsort()[::-1]], axis=0)
 
-        logger.debug("\nMTOC enrichment {} out of {} ; relative {} \n", mtoc_count, len(self.images),
-                     mtoc_count / len(self.images))
-        return gene_dict
+        mtoc_num = all_densities[all_densities[:,1]==1][:,1].sum()
+        non_mtoc_num = len(all_densities[all_densities[:,1]==0][:,1])
+        logger.debug("\nMTOC density {} and non MTOC density {} per element (quadrant or slice)",
+                     all_densities[all_densities[:,1]==1][:,0].sum() / mtoc_num,
+                     all_densities[all_densities[:,1]==0][:,0].sum() / non_mtoc_num)
+        return all_densities
 
-    def compute_peripheral_normalised_quadrant_densities(self, quadrant_labels: list,
-                                                         mtoc_quadrant_label='MTOC', quadrants_num=4) -> dict:
-        """
-        builds a dictionary of densities per slice (quadrant by default) for all images
-        The dictionary's keys are the quadrant_labels + mtoc_quadrant_label
-        """
-        if quadrants_num != len(quadrant_labels) + 1:
-            raise RuntimeError("Quandrants number quadrants_num and total labels number have to be the same")
-
-        gene_dict = {key: list([]) for key in quadrant_labels + [mtoc_quadrant_label]}
-        mtoc_count = 0
-        for image in tqdm.tqdm(self.images, desc="Images"):
-            try:
-                peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-                if "/mrna/pard3/" in image._path:
-                    peripheral_fraction_threshold = 50;
-                cytoplasmic_density = image.compute_cytoplasmic_density()
-                mdmq = image.get_peripheral_quadrants_densities(quadrants_num,
-                                                                peripheral_fraction_threshold=peripheral_fraction_threshold)
-                mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
-                # add MTOC density (flag 1 in mdmq)
-                if (mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0] > np.median(mdmq[:, 0][np.where(mdmq[:, 1] == 0)])):
-                    mtoc_count = mtoc_count + 1
-                gene_dict[mtoc_quadrant_label].append(mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0])
-                # add non MTOC densities
-                for label, val in zip(quadrant_labels, mdmq[:, 0][np.where(mdmq[:, 1] == 0)]):
-                    gene_dict[label].append(val)
-            except RuntimeError as rte:
-                print(rte)
-
-        logger.debug("\nMTOC enrichment {} out of {} ; relative {} \n", mtoc_count, len(self.images),
-                     mtoc_count / len(self.images))
-        return gene_dict
-
-    def compute_normalized_quadrant_and_slice_densities(self, quadrants_num=4, stripes=3):
-        """
-        build an array of densities per slices (quadrant by default) for all images
-        the array size is an n * m array where n is the number of images and m the number of slices.
-        For each image, the first slice is the one that contains the MTOC.
-        """
-        arr = np.zeros((len(self.images), stripes * quadrants_num))
-        for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
-            try:
-                cytoplasmic_density = image.compute_cytoplasmic_density()
-                arr[i, :] = image.get_quadrants_and_slices_densities(quadrants_num, stripes)
-                arr[i, :] = arr[i, :] / cytoplasmic_density
-            except RuntimeError as rte:
-                print(rte)
-        return arr
-
-    def compute_peripheral_normalized_quadrant_and_slice_densities(self, quadrants_num=4, stripes=3):
-        """
-        build an array of densities per slices (quadrant by default) for all images
-        the array size is an n * m array where n is the number of images and m the number of slices.
-        For each image, the first slice is the one that contains the MTOC.
-        """
-        arr = np.zeros((len(self.images), stripes * quadrants_num))
-        for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
-            try:
-                peripheral_density=image.compute_peripheral_density()
-                arr[i, :] = image.get_peripheral_quadrants_and_slices_densities(quadrants_num, stripes)
-                arr[i, :] = arr[i, :] / peripheral_density
-            except RuntimeError as rte:
-                print(rte)
-        return arr
+    # def compute_peripheral_normalised_quadrant_densities(self, quadrant_labels: list,
+    #                                                      mtoc_quadrant_label='MTOC', quadrants_num=4) -> dict:
+    #     """
+    #     builds a dictionary of densities per slice (quadrant by default) for all images
+    #     The dictionary's keys are the quadrant_labels + mtoc_quadrant_label
+    #     """
+    #     if quadrants_num != len(quadrant_labels) + 1:
+    #         raise RuntimeError("Quandrants number quadrants_num and total labels number have to be the same")
+    #
+    #     gene_dict = {key: list([]) for key in quadrant_labels + [mtoc_quadrant_label]}
+    #     mtoc_count = 0
+    #     for image in tqdm.tqdm(self.images, desc="Images"):
+    #         try:
+    #             peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
+    #             if "/mrna/pard3/" in image._path: # TODO this is a hack
+    #                 peripheral_fraction_threshold = 50;
+    #             cytoplasmic_density = image.compute_cytoplasmic_density()
+    #             mdmq = image.get_peripheral_quadrants_densities(quadrants_num,
+    #                                                             peripheral_fraction_threshold=peripheral_fraction_threshold)
+    #             mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
+    #             # add MTOC density (flag 1 in mdmq)
+    #             if (mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0] > np.median(mdmq[:, 0][np.where(mdmq[:, 1] == 0)])):
+    #                 mtoc_count = mtoc_count + 1
+    #             gene_dict[mtoc_quadrant_label].append(mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0])
+    #             # add non MTOC densities
+    #             for label, val in zip(quadrant_labels, mdmq[:, 0][np.where(mdmq[:, 1] == 0)]):
+    #                 gene_dict[label].append(val)
+    #         except RuntimeError as rte:
+    #             print(rte)
+    #
+    #     logger.debug("\nMTOC enrichment {} out of {} ; relative {} \n", mtoc_count, len(self.images),
+    #                  mtoc_count / len(self.images))
+    #     return gene_dict
+    #
+    # def compute_normalized_quadrant_and_slice_densities(self, quadrants_num=4, stripes=3):
+    #     """
+    #     build an array of densities per slices (quadrant by default) for all images
+    #     the array size is an n * m array where n is the number of images and m the number of slices.
+    #     For each image, the first slice is the one that contains the MTOC.
+    #     """
+    #     arr = np.zeros((len(self.images), stripes * quadrants_num))
+    #     for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
+    #         try:
+    #             cytoplasmic_density = image.compute_cytoplasmic_density()
+    #             arr[i, :] = image.get_quadrants_and_slices_densities(quadrants_num, stripes)
+    #             arr[i, :] = arr[i, :] / cytoplasmic_density
+    #         except RuntimeError as rte:
+    #             print(rte)
+    #     return arr
+    #
+    # def compute_peripheral_normalized_quadrant_and_slice_densities(self, quadrants_num=4, stripes=3):
+    #     """
+    #     build an array of densities per slices (quadrant by default) for all images
+    #     the array size is an n * m array where n is the number of images and m the number of slices.
+    #     For each image, the first slice is the one that contains the MTOC.
+    #     """
+    #     arr = np.zeros((len(self.images), stripes * quadrants_num))
+    #     for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
+    #         try:
+    #             peripheral_density=image.compute_peripheral_density()
+    #             arr[i, :] = image.get_peripheral_quadrants_and_slices_densities(quadrants_num, stripes)
+    #             arr[i, :] = arr[i, :] / peripheral_density
+    #         except RuntimeError as rte:
+    #             print(rte)
+    #     return arr
 
     def mtoc_is_in_leading_edge(self):
         image: ImageWithMTOC
