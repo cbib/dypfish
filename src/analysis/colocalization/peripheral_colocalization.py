@@ -6,6 +6,7 @@ import pathlib
 import pprint as pp
 import pandas as pd
 from loguru import logger
+
 import constants
 import plot
 from plot import compute_heatmap
@@ -16,6 +17,8 @@ from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
+import itertools
+import matplotlib.pyplot as plt
 
 def compute_peripheral_relative_density_per_quadrants_and_slices(analysis_repo, molecule_type, quadrants_num=4):
     cs_dict = {}
@@ -28,10 +31,11 @@ def compute_peripheral_relative_density_per_quadrants_and_slices(analysis_repo, 
         mean_densities = []
         for timepoint in timepoints:
             image_set = ImageSet(analysis_repo, [molecule_type + "/{0}/{1}/".format(gene, timepoint)])
-            arr = image_set.compute_peripheral_normalized_quadrant_and_slice_densities(quadrants_num=quadrants_num,
-                                                                                       stripes=stripes)
-            mrna_tp_df = pd.DataFrame(arr)
-            mean_densities.append(mrna_tp_df.mean(axis=0).values)
+            arr = image_set.compute_normalised_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=True,
+                                                                  stripes=stripes, stripes_flag=True)
+            aligned_densities = arr[:, 0].reshape(image_set.__sizeof__(), quadrants_num * stripes)
+            mean_densities_per_slice = np.mean(aligned_densities, axis=0)
+            mean_densities.append([mean_densities_per_slice])
         cs_dict[gene] = mean_densities
     return cs_dict
 
