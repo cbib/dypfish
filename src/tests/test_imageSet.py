@@ -86,39 +86,43 @@ class TestImageSet(TestCase):
 
     def test_compute_normalised_quadrant_densities_mrna(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
-        dict = image_set.compute_normalised_quadrant_densities(mtoc_quadrant_label='MTOC',
-                                                               quadrant_labels=['Non MTOC1', 'Non MTOC2', 'Non MTOC3'])
+        res = image_set.compute_normalised_quadrant_densities()
+        expected = np.array([[1.37693091, 1.],
+                    [0.50058693, 0.],
+                    [1.23891387, 0.],
+                    [1.00759389, 0.],
+                    [1.12683717, 1.],
+                    [2.72051787, 0.],
+                    [1.23250137, 0.],
+                    [0.49768729, 0.],
+                    [1.15910767, 1.],
+                    [0.43691438, 0.],
+                    [2.15659572, 0.],
+                    [1.64046996, 0.],
+                    [1.72992133, 1.],
+                    [0.63856315, 0.],
+                    [0.63143629, 0.],
+                    [1.48932139, 0.],
+                    [1.07688498, 1.],
+                    [3.12587233, 0.],
+                    [2.36768991, 0.],
+                    [0.45863156, 0.]])
 
-        dict_to_test = {'Non MTOC1': [0.49768729218137575, 1.489321390402567, 1.0075938930481634, 1.6404699643896201, 0.45863155775318776],
-                        'Non MTOC2': [1.2325013740513415, 0.6314362884578822, 1.2389138731555531, 2.1565957192717073, 2.367689909949143],
-                        'Non MTOC3': [2.7205178674369273, 0.6385631502060634, 0.5005869269604428, 0.43691438495349, 3.1258723291183923],
-                        'MTOC': [1.1268371735918787, 1.7299213344562772, 1.3769309057937469, 1.159107670776693, 1.0768849783625516]}
-
-        self.assertEqual(len(dict), len(dict_to_test))
-        self.assertAlmostEqual(np.sum(dict['MTOC']), np.sum(dict_to_test['MTOC']), places=2)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC1']), np.sum(dict_to_test['Non MTOC1']), places=3)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC2']), np.sum(dict_to_test['Non MTOC2']), places=3)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC3']), np.sum(dict_to_test['Non MTOC3']), places=3)
+        self.assertEqual(res.shape[0], expected.shape[0])
+        mtoc_density = res[res[:,1]==1].sum() / len(res[res[:,1]==1])
+        expected_mtoc_density = expected[expected[:,1]==1].sum() / len(expected[expected[:,1]==1])
+        self.assertAlmostEqual(mtoc_density, expected_mtoc_density)
+        non_mtoc_density = res[res[:, 1] == 0].sum() / len(res[res[:, 1] == 0])
+        expected_non_mtoc_density = expected[expected[:, 1] == 0].sum() / len(expected[expected[:, 1] == 0])
+        self.assertAlmostEqual(non_mtoc_density, expected_non_mtoc_density)
 
     def test_compute_normalised_quadrant_densities_protein(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
-        dict = image_set.compute_normalised_quadrant_densities(mtoc_quadrant_label='MTOC',
-                                                               quadrant_labels=['Non MTOC1', 'Non MTOC2', 'Non MTOC3'])
-        dict_to_test = {
-            'Non MTOC1': [1.3771057445405632, 1.5614476627026483, 1.664727417509405, 1.0827726652063892,
-                          1.229341850783425],
-            'Non MTOC2': [1.085037753765736, 1.297011182965118, 1.4864117380673487, 1.0279187806700973,
-                          1.312671364648296],
-            'Non MTOC3': [1.011541659193154, 0.9375504850744625, 0.9207203335157421, 1.2291889509826397,
-                          0.9526461385119073],
-            'MTOC': [1.1147102515553686, 1.0748140925013452, 0.9524250785256029, 1.1768732783823252,
-                     1.2157700467455073]}
-
-        self.assertEqual(len(dict), len(dict_to_test))
-        self.assertAlmostEqual(np.sum(dict['MTOC']), np.sum(dict_to_test['MTOC']), places=3)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC1']), np.sum(dict_to_test['Non MTOC1']), places=3)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC2']), np.sum(dict_to_test['Non MTOC2']), places=3)
-        self.assertAlmostEqual(np.sum(dict['Non MTOC3']), np.sum(dict_to_test['Non MTOC3']), places=3)
+        res = image_set.compute_normalised_quadrant_densities()
+        mtoc_density = res[res[:, 1] == 1].sum() / len(res[res[:, 1] == 1])
+        non_mtoc_density = res[res[:, 1] == 0].sum() / len(res[res[:, 1] == 0])
+        self.assertAlmostEqual(mtoc_density, 2.10689868198936, places=3)
+        self.assertAlmostEqual(non_mtoc_density, 1.2117248932548452, places=3)
 
     def test_mtoc_is_in_leading_edge(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
