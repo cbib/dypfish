@@ -249,23 +249,36 @@ class ImageWithMTOC(Image):
 
     @helpers.checkpoint_decorator(QUADRANT_DENSITIES_PATH_SUFFIX, dtype=np.float)
     def get_quadrants_densities(self, quadrants_num=4):
-        return self.compute_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=False)
+        return self.compute_quadrant_densities(quadrants_num=quadrants_num)
 
     @helpers.checkpoint_decorator(PERIPHERAL_QUADRANT_DENSITIES_PATH_SUFFIX, dtype=np.float)
-    def get_quadrants_densities(self, quadrants_num=4):
-        return self.compute_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=True)
+    def get_peripheral_quadrants_densities(self, quadrants_num=4, peripheral_flag=True):
+        return self.compute_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=peripheral_flag)
 
     @helpers.checkpoint_decorator(QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX, dtype=np.float)
-    def get_quadrants_and_slices_densities(self, quadrants_num=4, stripes=3):
-        return self.compute_quarant_densities(quadrants_num=quadrants_num, peripheral_flag=False,
-                                              stripes=stripes, stripes_flag=True)
+    def get_quadrants_and_slices_densities(self, quadrants_num=4, stripes=3, stripes_flag=True):
+        return self.compute_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=False,
+                                               stripes=stripes, stripes_flag=stripes_flag)
 
     @helpers.checkpoint_decorator(PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX, dtype=np.float)
-    def get_quadrants_and_slices_densities(self, quadrants_num=4, stripes=3):
-        return self.compute_quarant_densities(quadrants_num=quadrants_num, peripheral_flag=True,
-                                              stripes=stripes, stripes_flag=True)
+    def get_peripheral_quadrants_and_slices_densities(self, quadrants_num=4, peripheral_flag=True,
+                                                      stripes=3, stripes_flag=True):
+        return self.compute_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=peripheral_flag,
+                                               stripes=stripes, stripes_flag=stripes_flag)
 
-    def compute_quadrant_densities(self, quadrants_num=4, peripheral_flag=False, stripes=3, stripes_flag=False) -> np.ndarray:
+    def get_or_compute_quadrant_densities(self, quadrants_num=4, peripheral_flag=False, stripes=3, stripes_flag=False):
+        if (not peripheral_flag) and (not stripes_flag):
+            density_per_quadrant = self.get_quadrants_densities(quadrants_num)
+        if peripheral_flag and (not stripes_flag):
+            density_per_quadrant = self.get_peripheral_quadrants_densities(quadrants_num, peripheral_flag)
+        if (not peripheral_flag) and stripes_flag:
+            density_per_quadrant = self.get_quadrants_and_slices_densities(quadrants_num, stripes,stripes_flag)
+        if peripheral_flag and stripes_flag:
+            density_per_quadrant = self.get_peripheral_quadrants_and_slices_densities(quadrants_num, peripheral_flag,
+                                                                                      stripes, stripes_flag)
+        return density_per_quadrant
+
+    def compute_quadrant_densities(self, quadrants_num=4, peripheral_flag=False, stripes=1, stripes_flag=False) -> np.ndarray:
         """
         For all possible subdivisions of the cell in quadrants (90 possible) and slice (if relevant)
         computes the normalized density (vs whole cytoplasm) per quadrant
@@ -277,7 +290,7 @@ class ImageWithMTOC(Image):
             raise (RuntimeError, "Unexpected number of quadrants %i" % quadrants_num)
 
         max_density = 0.0
-        quadrants_max_MTOC_density = np.zeros((quadrants_num, 2), dtype=float)
+        quadrants_max_MTOC_density = np.zeros((quadrants_num*stripes, 2))
         mtoc_position = self.get_mtoc_position()
 
         degree_span = 360 // quadrants_num
@@ -296,13 +309,25 @@ class ImageWithMTOC(Image):
             if peripheral_flag and stripes_flag:
                 density_per_quadrant = self.compute_peripheral_density_per_quadrant_and_slices(mtoc_quad_num, quadrant_mask,
                                                                                                stripes, quadrants_num)
-
             mtoc_density = density_per_quadrant[density_per_quadrant[:,1] == 1][:,0].sum()
             if mtoc_density > max_density:
                 max_density = mtoc_density
                 quadrants_max_MTOC_density = density_per_quadrant
 
+        assert quadrants_max_MTOC_density.shape[0] == quadrants_num * stripes, "Density array of wrong shape"
         return quadrants_max_MTOC_density
+
+    def compute_density_per_quadrant(self, mtoc_quad_num, quadrant_mask, quadrants_num):
+        raise NotImplementedError
+
+    def compute_density_per_quadrant_and_slices(self, mtoc_quad_num, quadrant_mask, stripes, quadrants_num):
+        raise NotImplementedError
+
+    def compute_peripheral_density_per_quadrant_and_slices(self, mtoc_quad_num, quadrant_mask, stripes, quadrants_num):
+        raise NotImplementedError
+
+    def compute_peripheral_density_per_quadrant(self, mtoc_quad_num, quadrant_mask, quadrants_num):
+        raise NotImplementedError
 
 
 class ImageWithSpots(Image):

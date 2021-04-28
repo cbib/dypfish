@@ -28,23 +28,11 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         result = self.img.compute_cytoplasmic_density()
         self.assertAlmostEqual(result, 1759171.4466687627)
 
-    def test_split_in_quadrants(self):
-        test_array = np.array([(2928540.93937, 0), (2614853.08760, 0), (1675368.87807, 1), (1619814.17746, 0)])
-        result = self.img.split_in_quadrants()
-        self.assertEqual(np.shape(result), np.shape(test_array))
-        self.assertAlmostEqual(np.sum(result[:,0]), np.sum(test_array[:,0]), places=2)
-
-    def test_split_in_quadrants_and_slices(self, quadrants_num=4, stripes=3):
-        result = self.img.split_in_quadrants_and_slices()
-        self.assertAlmostEqual(result.sum(), 25.3735566411)
-        self.assertAlmostEqual(result[2], 1.90160983)
-
     def test_compute_density_per_quadrant(self):
         quadrant_mask = self.img.compute_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-        height_map = self.img.adjust_height_map(cytoplasm=True)
-        result = self.img.compute_density_per_quadrant(mtoc_quad, quadrant_mask, height_map)
+        result = self.img.compute_density_per_quadrant(mtoc_quad, quadrant_mask)
 
         self.assertEqual(result.shape, (4, 2))
         self.assertAlmostEqual(result[1, 0], 2114080.4358608127)
@@ -63,7 +51,7 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
 
     def test_compute_quadrant_densities(self):
         result = self.img.compute_quadrant_densities()
-        self.assertAlmostEqual(result[:, 0].sum(), 9271910.8062387, places=3)
+        self.assertAlmostEqual(result[:, 0].sum(), 8838577.082500089, places=3)
         self.assertEqual(result[2, 1], 1)
 
     def test_compute_density_per_quadrant_and_slices(self):

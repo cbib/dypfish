@@ -14,6 +14,7 @@ from loguru import logger
 import constants
 import math
 import tqdm
+import warnings
 
 from constants import HEIGHT_MAP_PATH_SUFFIX
 from constants import CELL_MASK_SLICES_PATH_SUFFIX
@@ -510,15 +511,16 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
             stripe_quadrant_mask = quadrant_mask * stripe_mask
             res = self.compute_density_per_quadrant(mtoc_quad, stripe_quadrant_mask, quadrants_num)
             arr = np.append(arr, res[res[:, 1].argsort()[::-1]], axis=0)  # MTOC quadrant slice always first
+        assert arr.shape[0] == quadrants_num * stripes, "Incorrect shape"
         return arr
 
-    def compute_peripheral_density_per_quadrant_and_slices(self, mtoc_quad, quadrant_mask, stripes, quadrants_num=4):
+    def compute_peripheral_density_per_quadrant_and_slices(self, mtoc_quad_num, quadrant_mask, stripes, quadrants_num=4):
         peripheral_fraction_threshold = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"]
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         peripheral_binary_mask = (cell_mask_dist_map > 0) & \
                                  (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
         quadrant_mask = quadrant_mask * peripheral_binary_mask
-        return self.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes, quadrants_num,
+        return self.compute_density_per_quadrant_and_slices(mtoc_quad_num, quadrant_mask, stripes, quadrants_num,
                                                             peripheral_flag=True)
 
 
@@ -541,11 +543,16 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
             if spot_quad == 0: continue
             density_per_quadrant[spot_quad - 1, 0] += 1
 
+        if (density_per_quadrant[:,0].sum() == 0):
+            warnings.warn("No spots in image within quadrants %s" % self._path, RuntimeWarning)
+            return density_per_quadrant
+
         # mark the mtoc quadrant
         density_per_quadrant[mtoc_quad - 1, 1] = 1
         for quad_num in range(quadrants_num):
-            density_per_quadrant[quad_num, 0] = density_per_quadrant[quad_num, 0] / (
-                    np.sum(height_map[quadrant_mask == quad_num + 1]) * volume_coeff)
+            quadrant_volume = np.sum(height_map[quadrant_mask == quad_num + 1]) * volume_coeff
+            density_per_quadrant[quad_num, 0] = density_per_quadrant[quad_num, 0] / quadrant_volume
+
         if density_per_quadrant[:, 1].sum() != 1.0:
             raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
 
@@ -570,8 +577,6 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
         density_per_quadrant[mtoc_quad - 1, 1] = 1
         for quad_num in range(quadrants_num):
             height = np.sum(height_map[quadrant_mask == quad_num + 1])
-            #if height == 0: # this can happen at the periphery -> adjust
-            #    height = len(quadrant_mask[quadrant_mask == 1]) * 0.5
             quadrant_volume = height * helpers.volume_coeff()
             density_per_quadrant[quad_num, 0] = np.sum(IF[quadrant_mask == (quad_num + 1)]) / quadrant_volume
 
@@ -579,57 +584,6 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
             raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
 
         return density_per_quadrant
-
-
-    # def compute_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
-    #     size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
-    #     cytoplasmic_density = self.compute_cytoplasmic_density()
-    #     cell_mask = self.get_cytoplasm_mask()
-    #     IF = self.get_cytoplasmic_intensities()
-    #     cell_mask_dist_map = self.get_cell_mask_distance_map()
-    #     cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1
-    #
-    #     arr = np.zeros((stripes * quadrants_num))
-    #     slices_per_stripe = int(np.floor(100 / stripes))
-    #     for i, j in itertools.product(range(stripes), range(1, quadrants_num + 1)):
-    #         mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
-    #         mask[((cell_mask_dist_map >= i*slices_per_stripe +1) &
-    #               (cell_mask_dist_map < (i + 1) * slices_per_stripe)) & (quad_mask == j)] = 1
-    #         IF_sum = np.sum(IF[mask == 1])
-    #         local_area = np.sum(mask) * math.pow((1 / size_coeff), 2)
-    #         idx = (i * quadrants_num) + (j - 1)
-    #         arr[idx] += IF_sum / local_area
-    #
-    #     return arr / cytoplasmic_density
-    #
-    # def compute_peripheral_density_per_quadrant_and_slices(self, quad_mask, stripes, quadrants_num=4):
-    #     size_coeff = constants.dataset_config['SIZE_COEFFICIENT']
-    #     cytoplasmic_density = self.compute_cytoplasmic_density()
-    #     cell_mask = self.get_cytoplasm_mask()
-    #     IF = self.get_cytoplasmic_intensities()
-    #     peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-    #     cell_mask_dist_map = self.get_cell_mask_distance_map()
-    #     cell_mask_dist_map[(cell_mask == 1) & (cell_mask_dist_map == 0)] = 1 # adds a little at the periphery
-    #     arr = np.zeros((stripes * quadrants_num))
-    #
-    #     slices_per_stripe = int(np.floor(peripheral_fraction_threshold / stripes))
-    #     for i in range(slices_per_stripe, peripheral_fraction_threshold + 1, slices_per_stripe):
-    #         for j in range(1, quadrants_num + 1):
-    #             stripe_num = np.floor(i / slices_per_stripe)
-    #             idx = (int(stripe_num) * quadrants_num) + int(j - 1) - quadrants_num
-    #             mask = np.zeros((cell_mask.shape[0], cell_mask.shape[1]))
-    #             mask[((cell_mask_dist_map >= 1 + (i - slices_per_stripe)) &
-    #                   (cell_mask_dist_map < i)) & (quad_mask == j)] = 1
-    #             local_area = np.sum(mask)
-    #             if local_area == 0:
-    #                 arr[int(idx)] += 0.0
-    #             else:
-    #                 IF_local = float(np.sum(IF[mask == 1]))
-    #                 local_surface = local_area * math.pow((1 / size_coeff), 2)
-    #                 arr[int(idx)] += IF_local / local_surface
-    #
-    #     return arr / cytoplasmic_density
-
 
 
 class Image3dWithSpotsAndIntensitiesAndMTOC(Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC):
