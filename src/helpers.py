@@ -5,19 +5,15 @@
 import math
 import pathlib
 from typing import List
-
 from colormap import rgb2hex
 from numpy import matlib
 import numpy as np
-from scipy.stats import *
 import pandas as pd
 import itertools
 import constants
 from scipy import stats
 from path import global_root_dir
 from repository import H5RepositoryWithCheckpoint
-from mpi_calculator import DensityStats
-
 
 def checkpoint_decorator(path, dtype):
     def real_checkpoint_decorator(decorated_method):
@@ -117,7 +113,7 @@ def unit_circle(size, r) -> np.ndarray:
 def median_confidence_interval(a: np.array, cutoff=.95):
     ''' cutoff is the significance level as a decimal between 0 and 1'''
     a = np.sort(a)
-    factor = norm.ppf((1+cutoff)/2)
+    factor = stats.norm.ppf((1+cutoff)/2)
     factor *= math.sqrt(len(a)) # avoid doing computation twice
 
     lix = int(0.5*(len(a)-factor)) + 1

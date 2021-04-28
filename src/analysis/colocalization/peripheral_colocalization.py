@@ -34,7 +34,7 @@ def compute_peripheral_relative_density_per_quadrants_and_slices(analysis_repo, 
             arr = image_set.compute_normalised_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=True,
                                                                   stripes=stripes, stripes_flag=True)
             aligned_densities = arr[:, 0].reshape(image_set.__sizeof__(), quadrants_num * stripes)
-            mean_densities_per_slice = np.nanmean(aligned_densities, axis=0) # TODo : for protein here are some nan values, check this
+            mean_densities_per_slice = np.nanmean(aligned_densities, axis=0) # TODO : for protein here are some nan values, check this
             mean_densities.append(mean_densities_per_slice)
         cs_dict[gene] = mean_densities
     return cs_dict
@@ -48,13 +48,13 @@ if __name__ == '__main__':
     mrna_cs_dict = compute_peripheral_relative_density_per_quadrants_and_slices(repo, 'mrna', quadrants_num=8)
     prot_cs_dict = compute_peripheral_relative_density_per_quadrants_and_slices(repo, 'protein', quadrants_num=8)
 
-    css, p_vals = [], []
+    css, p_vals = [], {}
     for gene in constants.analysis_config['PROTEINS']:
         cs, p, ranking = calculate_colocalization_score(mrna_cs_dict[gene], prot_cs_dict[gene],
                                                             constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
                                                             constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
         css.append(cs)
-        p_vals.append(p)
+        p_vals[gene] = p
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS'].format(gene=gene)
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
         compute_heatmap(ranking, gene, tgt_fp)
@@ -62,6 +62,7 @@ if __name__ == '__main__':
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS_HISTOGRAM']
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
     plot.bar_profile(css, tgt_fp, constants.analysis_config['PLOT_COLORS'])
+    logger.info("Colocalization score p-values are: {}", p_vals)
 
 
 

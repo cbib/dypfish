@@ -22,7 +22,6 @@ from constants import CELL_MASK_PATH_SUFFIX
 from constants import PERIPHERAL_MASK_PATH_SUFFIX
 from constants import NUCLEUS_MASK_PATH_SUFFIX
 from constants import CYTOPLASM_MASK_PATH_SUFFIX
-from constants import NUCLEUS_CENTROID_PATH_SUFFIX
 from constants import MTOC_POSITION_PATH_SUFFIX
 from constants import MTOC_LEADING_EDGE_SUFFIX
 
@@ -99,8 +98,7 @@ class Image(object):
     def compute_nucleus_area(self):
         """compute nucleus surface in pixel using nucleus mask"""
         nucleus_mask = self.get_nucleus_mask()
-        area = nucleus_mask.sum() * math.pow((1 / constants.dataset_config['SIZE_COEFFICIENT']),
-                                             2)  # * by pixel dimensions
+        area = nucleus_mask.sum() * helpers.surface_coeff()  # * by pixel dimensions
         return area
 
     @helpers.checkpoint_decorator(NUCLEUS_AREA_PATH_SUFFIX, float)
@@ -110,8 +108,7 @@ class Image(object):
     def compute_cell_area(self):
         """compute cell surface in pixel using cell mask"""
         cell_mask = self.get_cell_mask()
-        area = cell_mask.sum() * math.pow((1 / constants.dataset_config['SIZE_COEFFICIENT']),
-                                          2)  # * by pixel dimensions
+        area = cell_mask.sum() * helpers.surface_coeff()  # * by pixel dimensions
         return area
 
     @helpers.checkpoint_decorator(CELL_AREA_PATH_SUFFIX, float)
@@ -161,8 +158,7 @@ class Image(object):
             tmp_mask = np.array(peripheral_distance_map, copy=True)
             tmp_mask[tmp_mask <= i] = 0
             tmp_mask[(tmp_mask > i) & (tmp_mask <= 100)] = 1
-            peripheral_areas.append(
-                tmp_mask.sum() * math.pow((1 / constants.dataset_config['SIZE_COEFFICIENT']), 2) + nucleus_area)
+            peripheral_areas.append(tmp_mask.sum() * helpers.surface_coeff() + nucleus_area)
         return peripheral_areas
 
 
@@ -494,7 +490,7 @@ class ImageWithSpots(Image):
         spots = self.get_spots()
         n_spots = len(spots)
         cell_mask = self.get_cell_mask()
-        nuw = (np.sum(cell_mask[:, :] == 1)) * ((1 / constants.dataset_config["SIZE_COEFFICIENT"])**2)  # whole surface of the cell
+        nuw = (np.sum(cell_mask[:, :] == 1)) * helpers.surface_coeff()  # whole surface of the cell
         my_lambda = float(n_spots) / float(nuw)  # spot's volumic density
 
         k = self.ripley_k_point_process(nuw=nuw, my_lambda=my_lambda)  # TODO : first call for _all_ spots while the subsequent only for those in the height_map
@@ -539,11 +535,9 @@ class ImageWithIntensities(Image):
             raise LookupError("No intensities for image %s" % self._path)
         raw_value = self._repository.get(descriptor)
         intensities = np.array(raw_value)
-        # intensities = np.multiply(intensities, self.get_cell_mask()) # TODO this is not in the V0 code
         return intensities
 
-    def compute_cell_total_intensity(
-            self) -> float:  # TODO should be redundant with compute_total_intensity, but it is not in V0
+    def compute_cell_total_intensity(self) -> float:  # TODO should be redundant with compute_total_intensity, but it is not in V0
         intensities = self.get_intensities()
         cell_mask = self.get_cell_mask()
         cell_intensities = np.multiply(intensities, cell_mask)
@@ -741,7 +735,7 @@ class ImageWithSpotsAndMTOC(ImageWithMTOC, ImageWithSpots):
         Given an quadrant mask and the number of the MTOC containing quadrant, compute surfacic density per quadrant;
         return an array of values of density paired with the MTOC presence flag (0/1)
         """
-        surface_coeff = ((1 / constants.dataset_config['SIZE_COEFFICIENT']) ** 2)
+        surface_coeff = helpers.surface_coeff()
         spots = self.get_cytoplasmic_spots()
         density_per_quadrant = np.zeros((quadrants_num, 2))
         for spot in spots:
@@ -870,8 +864,7 @@ class ImageMultiNucleus(Image):
     def compute_nucleus_area(self):
         """compute nucleus surface in pixel using nucleus mask"""
         nucleus_mask = self.get_nucleus_mask()
-        area = nucleus_mask.sum() * math.pow((1 / constants.dataset_config['SIZE_COEFFICIENT']),
-                                             2)  # * by pixel dimensions
+        area = nucleus_mask.sum() * helpers.surface_coeff()  # * by pixel dimensions
         if (len(self.get_multiple_nucleus_centroid())) > 1:
             return area / len(self.get_multiple_nucleus_centroid())
         else:
@@ -884,8 +877,7 @@ class ImageMultiNucleus(Image):
     def compute_cell_area(self):
         """compute cell surface in pixel using cell mask"""
         cell_mask = self.get_cell_mask()
-        area = cell_mask.sum() * math.pow((1 / constants.dataset_config['SIZE_COEFFICIENT']),
-                                          2)  # * by pixel dimensions
+        area = cell_mask.sum() * helpers.surface_coeff()  # * by pixel dimensions
         if (len(self.get_multiple_nucleus_centroid())) > 1:
             return area / len(self.get_multiple_nucleus_centroid())
         else:

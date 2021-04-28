@@ -386,14 +386,15 @@ def plot_MPI(density_stats: DensityStats, molecule_type, figname):
     bar_profile_median(gene_2_mpis, errs, molecule_type, labels, figname)
 
 
-def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, figname, limit_threshold=6, groupby=['Gene'], term=""):
+def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, figname,
+                              limit_threshold=6, groupby_key=['Gene'], term=""):
     df = density_stats.df
     if term != "":
-        df[groupby[0]] = df.apply(lambda row: term if term[2:len(term)] in row[groupby[0]] else row[groupby[0]], axis=1)
-    groups = [tp for tp, line in df.groupby(groupby, sort=False)]
+        df[groupby_key[0]] = df.apply(lambda row: term if term[2:len(term)] in row[groupby_key[0]] else row[groupby_key[0]], axis=1)
+    groups = [tp for tp, line in df.groupby(groupby_key, sort=False)]
     df["MTOC_ratio"] = df.apply(lambda row: row['MTOC'] / row.filter(regex=("Non MTOC.*")).mean() if row.filter(
         regex=("Non MTOC.*")).mean() != 0 else 0.0, axis=1)
-    dd = pd.melt(df, id_vars=groupby[0], value_vars=["MTOC_ratio"], var_name='Quadrants')
+    dd = pd.melt(df, id_vars=groupby_key[0], value_vars=["MTOC_ratio"], var_name='Quadrants')
     dd = dd.replace(0.000000, np.nan)
     dd.dropna(inplace=True)
 
@@ -406,21 +407,21 @@ def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, fignam
         xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     else:
         xlabels = constants.analysis_config['PROTEINS_LABEL']
-    sns_violinplot(dd, my_pal, figname, xlabels, x=groupby[0], no_legend=False, rotation=45)
+    sns_violinplot(dd, my_pal, figname, xlabels, x=groupby_key[0], no_legend=False, rotation=45)
 
 
-def compute_categorical_violin_plot_ratio(density_stats: DensityStats, molecule_type, figname, limit_threshold=6,
-                                          groupby=['Gene'], term="", gene=""):
+def compute_categorical_violin_plot_ratio(density_stats: DensityStats, molecule_type, figname,
+                                          limit_threshold=6, groupby_key=['Gene'], term="", gene=""):
     df = density_stats.df
     if term != "":
         df["Label"] = df.apply(
-            lambda row: term if term[2:len(term) - 1] in row[groupby[len(groupby) - 1]] else 'Control',
+            lambda row: term if term[2:len(term) - 1] in row[groupby_key[len(groupby_key) - 1]] else 'Control',
             axis=1)
 
     groups = [tp for tp, line in df.groupby(["Label"], sort=False)]
     df["MTOC_ratio"] = df.apply(lambda row: row['MTOC'] / row.filter(regex=("Non MTOC.*")).mean() if row.filter(
         regex=("Non MTOC.*")).mean() != 0 else 0.0, axis=1)
-    dd = pd.melt(df, id_vars=groupby[len(groupby) - 1], value_vars=["MTOC_ratio"], var_name='Quadrants')
+    dd = pd.melt(df, id_vars=groupby_key[len(groupby_key) - 1], value_vars=["MTOC_ratio"], var_name='Quadrants')
     if term != "":
         dd["Quadrants"] = df["Label"].values
     if gene != "":
@@ -440,14 +441,13 @@ def compute_categorical_violin_plot_ratio(density_stats: DensityStats, molecule_
     sns_violinplot(dd, my_pal, figname, xlabels, x="Gene", hue="Quadrants")
 
 
-def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, figname, limit_threshold=6, log=False,
-                                   groupby="Gene"):
+def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, figname,
+                                   limit_threshold=6, log=False, groupby_key="Gene"):
     df = density_stats.df
     ## melt dataframe and group together all non MTOC quadrant
 
     value_vars = [density_stats.mtoc_quadrant_label] + density_stats.quadrant_labels
-    dd = pd.melt(df, id_vars=[groupby], value_vars=value_vars,
-                 var_name='Quadrants')
+    dd = pd.melt(df, id_vars=[groupby_key], value_vars=value_vars, var_name='Quadrants')
     for label in density_stats.quadrant_labels:
         dd = dd.replace(label, 'Non MTOC')
     dd = dd.replace(0.000000, np.nan)
@@ -465,20 +465,20 @@ def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, f
         xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     else:
         xlabels = constants.analysis_config['MRNA_GENES_LABEL'][:4]
-    sns_violinplot(dd, my_pal, figname, xlabels, x=groupby, hue=dd['Quadrants'], rotation=45)
+    sns_violinplot(dd, my_pal, figname, xlabels, x=groupby_key, hue=dd['Quadrants'], rotation=45)
 
 
 def compute_categorical_violin_plot_enrichment(density_stats: DensityStats, molecule_type, figname, limit_threshold=8, log=False,
-                                               groupby="Gene", term="", gene=""):
+                                               groupby_key="Gene", term="", gene=""):
     df = density_stats.df
     value_vars = [density_stats.mtoc_quadrant_label] + density_stats.quadrant_labels
 
     ## melt dataframe and group together all non MTOC quadrant
-    groups = [tp for tp, line in df.groupby(groupby, sort=False)]
+    groups = [tp for tp, line in df.groupby(groupby_key, sort=False)]
     if term != "":
-        df[groupby] = df.apply(lambda row: term if term[2:len(term)] in row[groupby] else row["Gene"], axis=1)
+        df[groupby_key] = df.apply(lambda row: term if term[2:len(term)] in row[groupby_key] else row["Gene"], axis=1)
 
-    dd = pd.melt(df, id_vars=[groupby], value_vars=value_vars,
+    dd = pd.melt(df, id_vars=[groupby_key], value_vars=value_vars,
                  var_name='Quadrants')
     for label in density_stats.quadrant_labels:
         dd = dd.replace(label, 'Non MTOC')
@@ -499,7 +499,7 @@ def compute_categorical_violin_plot_enrichment(density_stats: DensityStats, mole
         xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     else:
         xlabels = constants.analysis_config['MRNA_GENES_LABEL'][:4]
-    sns_violinplot(dd, my_pal, figname, xlabels, x=groupby, hue=dd['Quadrants'])
+    sns_violinplot(dd, my_pal, figname, xlabels, x=groupby_key, hue=dd['Quadrants'])
 
 
 def profile(profiles, genes, num_contours, figname):
@@ -698,10 +698,10 @@ def plot_mtoc_enrichment(density_stats: DensityStats, molecule_type, limit_thres
 
 
 # plot_hist_ratio never used ??
-def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold, groupby=['Gene']):
+def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold, groupby_key=['Gene']):
     df = density_stats.df
     df['MTOC ratio'] = density_stats.ratios()
-    dd = pd.melt(df, id_vars=groupby, value_vars=['MTOC ratio'], var_name='Quadrants')
+    dd = pd.melt(df, id_vars=groupby_key, value_vars=['MTOC ratio'], var_name='Quadrants')
     dd = dd.replace(0.000000, np.nan)
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=molecule_type)
     figname = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
@@ -711,7 +711,7 @@ def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold,
     dd = dd[~np.isin(dd["value"], outliers)]  # dd[dd["value"] < limit_threshold]
 
     helpers.create_dir_if_needed_for_filepath(figname)
-    sns_violinplot(dd, my_pal, figname, x=groupby[0])
+    sns_violinplot(dd, my_pal, figname, x=groupby_key[0])
     logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
@@ -731,3 +731,4 @@ def histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured, figname, plot_colo
     ax.bar(ind, [nm_arhgdia, nm_arhgdia_cultured], width, color=plot_colors)
     plt.savefig(figname)
     plt.close()
+

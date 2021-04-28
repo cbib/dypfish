@@ -32,17 +32,11 @@ class Test(TestCase):
         self.assertEqual(result[0], 0)
         self.assertEqual(result[1], 1)
 
-        # nucleus_centroid = [252.98498233215548, 219.89697438162545]
-        # mtoc_position = [264.97736786466726, 199.7548042583913]
-        # degree = 10
-        # result = helpers.rotate_point(self, nucleus_centroid, mtoc_position, degree)
-        # self.assertEqual(result[0], 268)
-        # self.assertEqual(result[1], 202)
-
     def test_slope_from_points(self):
         point1 = np.array([0, 0])
         point2 = np.array([1, 1])
         result = helpers.slope_from_points(self, point1, point2)
+        self.assertEqual(result, 1.0)
         self.assertEqual(np.degrees(np.arctan(1)), 45.0)
 
         rotate_point = np.array([268.0, 202.0])

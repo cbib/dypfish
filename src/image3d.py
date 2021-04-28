@@ -14,7 +14,6 @@ from loguru import logger
 import constants
 import math
 import tqdm
-import warnings
 
 from constants import HEIGHT_MAP_PATH_SUFFIX
 from constants import CELL_MASK_SLICES_PATH_SUFFIX
@@ -23,12 +22,7 @@ from constants import NUCLEUS_VOLUME_PATH_SUFFIX
 from constants import CELL_VOLUME_PATH_SUFFIX
 from constants import SPOTS_PERIPHERAL_DISTANCE_3D_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
-from constants import QUADRANT_DENSITIES_PATH_SUFFIX
-from constants import PERIPHERAL_QUADRANT_DENSITIES_PATH_SUFFIX
-from constants import QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX
 from constants import NUCLEUS_CENTROID_PATH_SUFFIX
-from constants import PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX
-from helpers import volume_coeff
 
 class Image3d(Image):
     """ Represents an 3D image, has to have a height map descriptor """
@@ -38,8 +32,7 @@ class Image3d(Image):
         # TODO : check if we need zero level to define a 3D cell.
         #  comment ZERO_LEVEL_PATH_SUFFIX is present() for Cultured data to run volume corrected analysis.
         #  they do not have ZERO LEVEL descriptors and so was rejected as a 3D image
-        return repo.is_present(path + HEIGHT_MAP_PATH_SUFFIX) \
-               #and repo.is_present(path + ZERO_LEVEL_PATH_SUFFIX)
+        return repo.is_present(path + HEIGHT_MAP_PATH_SUFFIX)
 
     def __init__(self, repository: Repository, image_path: str):
         super(Image3d, self).__init__(repository, image_path)
@@ -200,8 +193,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
             height_map_copy = np.array(height_map, copy=True)
             height_map_copy[height_map >= zero_level + 1 - slice_num] = 1
             # TODO : maybe better stay in pixels ?
-            slice_area = height_map_copy[height_map_copy == 1].sum() * \
-                         math.pow((1 / constants.dataset_config['SIZE_COEFFICIENT']), 2)
+            slice_area = height_map_copy[height_map_copy == 1].sum() * helpers.surface_coeff()
             slice_index = helpers.find_nearest(peripheral_areas, slice_area)
             spots_in_slice = spots[np.around(spots[:, 2]) == slice_num]
             for j in range(len(spots_in_slice)):
@@ -262,12 +254,6 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
                     K[m] = K[m] + ds[ds <= m].sum()
         K = K * (1 / (my_lambda ** 2 * nuw))
         return K
-
-    def compute_spots_in_slices(self):  # useless?
-        spots = self.get_spots()
-        slices = self.get_cell_mask_slices()
-        mask = [np.any(slices[s[1], s[0], :] == 1) for s in spots]
-        return np.asarray(spots[mask], dtype=int)
 
     def compute_random_spots_in_slices(self):
         n_spots = len(self.get_spots())
@@ -544,7 +530,7 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
             density_per_quadrant[spot_quad - 1, 0] += 1
 
         if (density_per_quadrant[:,0].sum() == 0):
-            warnings.warn("No spots in image within quadrants %s" % self._path, RuntimeWarning)
+            logger.warning("No spots in image within quadrants {}", self._path)
             return density_per_quadrant
 
         # mark the mtoc quadrant

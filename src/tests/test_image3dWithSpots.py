@@ -51,11 +51,6 @@ class TestImage3dWithSpots(TestCase):
         np.random.seed(0)
         self.assertAlmostEqual(self.img.compute_degree_of_clustering(), 71.93654959822206)
 
-    def test_spots_in_slices(self):
-        spots = self.img.get_spots()
-        spots_in_slices = self.img.compute_spots_in_slices()
-        self.assertLess(len(spots_in_slices), len(spots))
-
     def test_compute_mrna_density(self):
         mrna_density = self.img.compute_cytoplasmic_density()
         self.assertAlmostEqual(mrna_density, 0.128494541373)
