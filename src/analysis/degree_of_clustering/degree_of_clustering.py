@@ -77,15 +77,8 @@ def build_plots(analysis_repo, conf, annot=False):
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        plot.bar_profile_median(median_d_of_c,
-                                err.values(),
-                                molecule_type,
-                                xlabels,
-                                tgt_fp,
-                                confidence_interval.values(),
-                                annot=annot,
-                                data_to_annot=d_of_c
-                                )
+        plot.bar_profile_median(median_d_of_c, err.values(), molecule_type, xlabels,
+                                tgt_fp,  confidence_interval.values(), annot=annot, data_to_annot=d_of_c)
 
         # generate violin plot image
         tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type)

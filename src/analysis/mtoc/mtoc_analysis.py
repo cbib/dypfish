@@ -20,11 +20,6 @@ from mpi_calculator import DensityStats
 # global config
 OUTLIERS_THRESHOLD = 3
 
-
-def build_labels(quadrants_num):
-    return [f"Non MTOC{i}" for i in range(1, quadrants_num)]
-
-
 def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: DensityStats,
                      molecule_list, mrna_timepoint_list, protein_timepoint_list):
     """
@@ -46,14 +41,14 @@ def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: De
         dd["Molecule_type"] = ["mrna"] * len(mrna_timepoint_list) + ["protein"] * len(protein_timepoint_list)
         dd["Timepoint"] = sorted(mrna_timepoint_list) + sorted(protein_timepoint_list)
         for tp in np.setdiff1d(mrna_timepoint_list, protein_timepoint_list):
-            dd["Timepoint"].append(tp);
+            dd["Timepoint"].append(tp)
             dd["Molecule_type"].append("protein")
-            dd["MPI"].append(0);
+            dd["MPI"].append(0)
             dd["err"].append(0)
         for tp in np.setdiff1d(protein_timepoint_list, mrna_timepoint_list):
-            dd["Timepoint"].append(tp);
+            dd["Timepoint"].append(tp)
             dd["Molecule_type"].append("mrna")
-            dd["MPI"].append(0);
+            dd["MPI"].append(0)
             dd["err"].append(0)
 
         df = pd.DataFrame(dd)
@@ -69,32 +64,32 @@ def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: De
         logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
 
-def compute_density_per_quadrant(analysis_repo, molecule_type, groupby, quadrants_num, quadrant_labels,
+def compute_density_per_quadrant(analysis_repo, molecule_type, groupby_key, quadrants_num, quadrant_labels,
                                  molecule_list, time_points, mpi_sample_size):
     density_per_quadrant = []
+    dict_gene = {}
     for molecule in molecule_list:
         for timepoint in time_points:
             image_set = ImageSet(analysis_repo, [f"{molecule_type}/{molecule}/{timepoint}/"])
             if image_set.__sizeof__() < 5:
                 logger.warning("Image set is small for {}", molecule)
-            dict_gene = image_set.compute_normalised_quadrant_densities(
-                quadrants_num=quadrants_num,
-                mtoc_quadrant_label='MTOC',
-                quadrant_labels=quadrant_labels
-            )
-            # dict_gene["MTOC leading edge"] = image_set.mtoc_is_in_leading_edge()
-            dict_gene["Gene"] = molecule
-            dict_gene["Timepoint"] = timepoint
+            res = image_set.compute_normalised_quadrant_densities(quadrants_num=quadrants_num)
+            mtoc_quadrants = res[res[:,1]==1][:, 0]
+            non_mtoc_quadrants = res[res[:,1]==0][:, 0].reshape(image_set.__sizeof__(), quadrants_num-1)
+            dict_gene["Gene"] = [molecule for i in range(image_set.__sizeof__())]
+            dict_gene["Timepoint"] = [timepoint for i in range(image_set.__sizeof__())]
+            dict_gene["MTOC"] = mtoc_quadrants
+            for i in range(quadrants_num-1):
+                dict_gene["Non MTOC" + str(i)] = non_mtoc_quadrants[:,i]
             density_per_quadrant.append(pd.DataFrame(dict_gene))
 
     return DensityStats(
         df=pd.concat(density_per_quadrant),
-        group_key=groupby,
+        group_key=groupby_key,
         mpi_sample_size=mpi_sample_size,
         quadrant_labels=quadrant_labels,
         mtoc_quadrant_label='MTOC'
     )
-
 
 configurations = [
     ["src/analysis/mtoc/config_original.json", "", "", ""],
@@ -126,23 +121,17 @@ if __name__ == '__main__':
         repo = open_repo()
         tp_mrna = constants.dataset_config['TIMEPOINTS_MRNA']
         tp_proteins = constants.dataset_config['TIMEPOINTS_PROTEIN']
-        _mpi_sample_size = constants.analysis_config['MPI_SUB_SAMPLE_SIZE']
+        mpi_sample_size = constants.analysis_config['MPI_SUB_SAMPLE_SIZE']
 
-        _groupby = group_keys.get(conf[0], ['Gene'])
+        group_key = group_keys.get(conf[0], ['Gene'])
         dfs = []
         for genes, timepoints, _molecule_type, quads, in zip([constants.analysis_config['MRNA_GENES'], constants.analysis_config['PROTEINS']], [tp_mrna, tp_proteins],
                                                             ["mrna", "protein"], [4, num_protein_quadrants.get(conf[0], 4)]):
-            _quadrant_labels = build_labels(quadrants_num=quads)
-            df = compute_density_per_quadrant(
-                analysis_repo=repo,
-                molecule_type=_molecule_type,
-                quadrants_num=quads,
-                quadrant_labels=_quadrant_labels,
-                molecule_list=genes,
-                time_points=timepoints,
-                groupby=_groupby,
-                mpi_sample_size=_mpi_sample_size
-            )
+            quadrant_labels = ["non MTOC"]
+            df = compute_density_per_quadrant(analysis_repo=repo, molecule_type=_molecule_type,
+                                              quadrants_num=quads, quadrant_labels=quadrant_labels,
+                                              molecule_list=genes, time_points=timepoints,
+                                              groupby_key=group_key, mpi_sample_size=mpi_sample_size)
             dfs.append(df)
 
             if conf[2] == "":
