@@ -34,8 +34,8 @@ def compute_peripheral_relative_density_per_quadrants_and_slices(analysis_repo, 
             arr = image_set.compute_normalised_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=True,
                                                                   stripes=stripes, stripes_flag=True)
             aligned_densities = arr[:, 0].reshape(image_set.__sizeof__(), quadrants_num * stripes)
-            mean_densities_per_slice = np.mean(aligned_densities, axis=0)
-            mean_densities.append([mean_densities_per_slice])
+            mean_densities_per_slice = np.nanmean(aligned_densities, axis=0) # TODo : for protein here are some nan values, check this
+            mean_densities.append(mean_densities_per_slice)
         cs_dict[gene] = mean_densities
     return cs_dict
 

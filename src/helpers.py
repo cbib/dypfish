@@ -266,26 +266,19 @@ def using_indexed_assignment(x):
 
 def permutations_test(interactions, fwdints, matrix_size=4, permutation_num=1000):
     fwdints = fwdints.astype(bool)
-    vals = interactions.flatten()
-
-    indx = using_indexed_assignment(vals)
-    indx_matrix = np.array(indx.reshape((matrix_size, matrix_size)))
-    ranking = indx_matrix.copy()
+    ranking = stats.rankdata(interactions).reshape(interactions.shape)
 
     flat = interactions.copy().flatten()
-    rs0 = np.sum(interactions[fwdints[:]])
-    rs1 = np.sum(indx_matrix[fwdints[:] == 0])
+    rs0 = np.sum(interactions[fwdints])
+    rs1 = np.sum(ranking[fwdints == 0])
     rs = []
     for perm in range(permutation_num):
         np.random.shuffle(flat)
-        _matrix = flat.reshape((matrix_size, matrix_size))
-        rs.append(np.sum(_matrix[fwdints[:]]))
+        shuffled_interactions = flat.reshape((matrix_size, matrix_size))
+        rs.append(np.sum(shuffled_interactions[fwdints]))
 
-    count = 0
-    for score in rs :
-        if score > rs0:
-            count += 1
-    p = float(count / float(len(rs)))
+    count = np.sum(rs < rs0) # we want rs0 - the sum of fwd looking timepoints to be bigger than random
+    p = 1 - count / len(rs)
     stat = rs1
     return p, stat, ranking
 
@@ -345,21 +338,26 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
 
 def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein, permutation_num=1000):
     S1 = get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
-    interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
-    for i in range(len(timepoint_num_mrna)):
-        for j in range(len(timepoint_num_protein)):
-            interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
-    (p, stat, ranking) = permutations_test(interactions, S1, matrix_size=len(timepoint_num_mrna), permutation_num=permutation_num)
+    num_mrna_tp, num_protein_tp = len(timepoint_num_mrna), len(timepoint_num_protein)
+    interactions = np.zeros((num_mrna_tp, num_protein_tp))
+    for i, j in itertools.product(range(num_mrna_tp), range(num_protein_tp)):
+        interactions[i, j] = stats.pearsonr(mrna_data[i], protein_data[j])[0]
+    p, stat, ranks = permutations_test(interactions, S1, matrix_size=num_mrna_tp, permutation_num=permutation_num)
+    max_rank = int(ranks.max())
+    num_fwd_looking_timepoints = int(S1[S1==1].sum())
+    ideal_max = np.sum(range(num_fwd_looking_timepoints+1, max_rank+1))
+    ideal_min = np.sum(range(1, num_fwd_looking_timepoints+1))
     if len(timepoint_num_mrna)==4:
         #TODO if matrix 4 * 4
         #tis = (stat -15 ) / 106.0
-        tis = (stat -36 ) / 64.0
+        # was : tis = (stat -36 ) / 64.0
+        cs = (stat - ideal_min) / (ideal_max-ideal_min)
         #tis = (100 - stat) / 64.0
     else:
         # TODO if matrix 2 * 2
-        tis = (stat - 1 ) / 8.0
+        cs = (stat - 1 ) / 8.0
 
-    return tis, p, ranking
+    return cs, p, ranking
 
 
 # Stability analysis part
