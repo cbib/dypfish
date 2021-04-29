@@ -3,17 +3,19 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-from loguru import logger
+# this should be called as soon as possible
+from path import global_root_dir
+
 import time
 import constants
 import plot
 from plot import compute_heatmap
-from helpers import calculate_colocalization_score, open_repo
+import helpers
 import numpy as np
 from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
-# this should be called as soon as possible
-from path import global_root_dir
+from loguru import logger
+
 
 def compute_relative_density_per_quadrants_and_slices(analysis_repo, molecule_type, quadrants_num=4):
     protein_cs_dict = {}
@@ -55,7 +57,7 @@ if __name__ == '__main__':
         logger.info("Colocalization Score")
         conf_full_path = pathlib.Path(global_root_dir, conf[0])
         constants.init_config(analysis_config_js_path=conf_full_path)
-        repo = open_repo()
+        repo = helpers.open_repo()
 
         # Use annot=True if you want to add stats annotation in plots
         mrna_cs_dict = compute_relative_density_per_quadrants_and_slices(repo, 'mrna', quadrants_num=8)
@@ -63,7 +65,7 @@ if __name__ == '__main__':
 
         css, p_vals = [], {}
         for gene in constants.analysis_config['PROTEINS']:
-            cs, p, ranking = calculate_colocalization_score(mrna_cs_dict[gene], prot_cs_dict[gene],
+            cs, p, ranking = helpers.calculate_colocalization_score(mrna_cs_dict[gene], prot_cs_dict[gene],
                                                               constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
                                                               constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
                                                               permutation_num=conf[2])

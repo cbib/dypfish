@@ -8,7 +8,6 @@ from repository import Repository
 from image import Image, ImageWithSpots, ImageWithIntensities, ImageWithMTOC, ImageMultiNucleus, \
     ImageMultiNucleusWithSpots
 import numexpr
-import itertools
 from scipy import signal
 from loguru import logger
 import constants

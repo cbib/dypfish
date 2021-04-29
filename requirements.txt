@@ -2,7 +2,7 @@ backports.functools-lru-cache==1.6.1
 cloudpickle==1.2.2
 cycler==0.10.0
 decorator==4.4.1
-h5py==2.10.0
+h5py==3.2.1
 kiwisolver==1.1.0
 matplotlib==2.2.4
 networkx==2.2

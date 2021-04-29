@@ -337,7 +337,7 @@ def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, 
     num_mrna_tp, num_protein_tp = len(timepoint_num_mrna), len(timepoint_num_protein)
     interactions = np.zeros((num_mrna_tp, num_protein_tp))
     for i, j in itertools.product(range(num_mrna_tp), range(num_protein_tp)):
-        interactions[i, j] = stats.pearsonr(mrna_data[i], protein_data[j])[0]
+        interactions[i, j] = np.abs(stats.pearsonr(mrna_data[i], protein_data[j])[0]) # negative slope corr same value as positive
     p, stat, ranks = permutations_test(interactions, S1, matrix_size=num_mrna_tp, permutation_num=permutation_num)
     max_rank = int(ranks.max())
     num_fwd_looking_timepoints = int(S1[S1==1].sum())
@@ -353,7 +353,7 @@ def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, 
         # TODO if matrix 2 * 2
         cs = (stat - 1 ) / 8.0
 
-    return cs, p, ranking
+    return cs, p, ranks
 
 
 # Stability analysis part

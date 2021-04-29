@@ -3,22 +3,17 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-import pprint as pp
-import pandas as pd
-from loguru import logger
+# this should be called as soon as possible
+from path import global_root_dir
 
+from loguru import logger
 import constants
 import plot
 from plot import compute_heatmap
 import helpers
-from helpers import calculate_colocalization_score, open_repo
 import numpy as np
 from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
-# this should be called as soon as possible
-from path import global_root_dir
-import itertools
-import matplotlib.pyplot as plt
 
 def compute_peripheral_relative_density_per_quadrants_and_slices(analysis_repo, molecule_type, quadrants_num=4):
     cs_dict = {}
@@ -44,15 +39,16 @@ if __name__ == '__main__':
     logger.info("Colocalization Score")
     conf_full_path = pathlib.Path(global_root_dir, "src/analysis/colocalization/config_original_periph.json")
     constants.init_config(analysis_config_js_path=conf_full_path)
-    repo = open_repo()
+    repo = helpers.open_repo()
     mrna_cs_dict = compute_peripheral_relative_density_per_quadrants_and_slices(repo, 'mrna', quadrants_num=8)
     prot_cs_dict = compute_peripheral_relative_density_per_quadrants_and_slices(repo, 'protein', quadrants_num=8)
 
     css, p_vals = [], {}
     for gene in constants.analysis_config['PROTEINS']:
-        cs, p, ranking = calculate_colocalization_score(mrna_cs_dict[gene], prot_cs_dict[gene],
-                                                            constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                            constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
+        cs, p, ranking = helpers.calculate_colocalization_score(mrna_cs_dict[gene], prot_cs_dict[gene],
+                                                                constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
+                                                                constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
+                                                                permutation_num=10000)
         css.append(cs)
         p_vals[gene] = p
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS'].format(gene=gene)
