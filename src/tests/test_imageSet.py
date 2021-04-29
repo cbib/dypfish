@@ -40,7 +40,7 @@ class TestImageSet(TestCase):
 
     # TODO : major bottleneck identified in draw polygon
     def test_compute_histogram_spots_peripheral_counts_perf(self):
-        # self.skipTest("Skipping for inefficiency reasons")
+        self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         peripheral_fractions = image_set.compute_histogram_spots_peripheral_counts()
         test = [0.2679738562091503, 0.2191780821917808, 0.12121212121212122, 0.3380281690140845, 0.16176470588235295]
@@ -48,7 +48,7 @@ class TestImageSet(TestCase):
 
     # this can be long : ~5min
     def test_compute_histogram_spots_peripheral_counts(self):
-        # self.skipTest("Skipping for inefficiency reasons")
+        self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['mrna/'])
         self.assertEqual(len(image_set.images), 40, "Expected 40 images")
         peripheral_fractions = image_set.compute_histogram_spots_peripheral_counts()
@@ -56,7 +56,7 @@ class TestImageSet(TestCase):
         # TODO : test the sum?
 
     def test_compute_histogram_intensities_peripheral_fractions(self):
-        # self.skipTest("Skipping for inefficiency reasons")
+        self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['protein/'])
         self.assertEqual(len(image_set.images), 40, "Expected 40 images")
         peripheral_fractions = image_set.compute_histogram_intensities_peripheral_fractions()
@@ -165,7 +165,7 @@ class TestImageSet(TestCase):
 
 
     def test_compute_zline_distance(self):
-        # self.skipTest("Skipping for inefficiency reasons")
+        self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['mrna/actn2/immature/'])
         result = image_set.compute_zline_distance(20)
         test= [[0.24374599, 0.03463759, 0.0365619 , 0.0436177 , 0.03207184,

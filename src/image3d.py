@@ -11,6 +11,7 @@ import numexpr
 from scipy import signal
 from loguru import logger
 import constants
+import image_processing
 import math
 import tqdm
 
@@ -323,36 +324,19 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
     # Compare cytoplasmic spread cell with 3D cytoplasmic mrna spread
     # to evaluate degree of spread
     def compute_spots_cytoplasmic_spread(self):
-        cytoplasm_mask = self.get_cytoplasm_mask()
         height_map = self.adjust_height_map(cytoplasm=True)
         nucleus_centroid = self.get_nucleus_centroid()
         spots = self.get_cytoplasmic_spots()
 
         # Compute all possible distance in a matrix [512x512]
-        ds1 = np.matlib.repmat(range(0, constants.dataset_config['IMAGE_WIDTH']),
-                               constants.dataset_config['IMAGE_WIDTH'], 1) - nucleus_centroid[0]
-        ds2 = np.matlib.repmat(np.asmatrix(
-            np.arange(0, constants.dataset_config['IMAGE_HEIGHT']).reshape(constants.dataset_config['IMAGE_HEIGHT'],
-                                                                           1)), 1,
-            constants.dataset_config['IMAGE_HEIGHT']) - nucleus_centroid[1]
-        dsAll = np.power(ds1, 2) + np.power(ds2, 2)
-        dsAll = np.sqrt(dsAll)
+        dsAll = image_processing.compute_all_distances_to_nucleus_centroid(nucleus_centroid,
+                                                  image_width = constants.dataset_config['IMAGE_WIDTH'],
+                                                  image_height = constants.dataset_config['IMAGE_HEIGHT'])
 
         # Computing spots distance from nucleus centroid
-        points_dist_list = []
-        counter = 0
-        for i in range(len(spots)):
-            if cytoplasm_mask[spots[i, 1], spots[i, 0]] == 1:
-                dist = 0.0
-                for j in range(2):
-                    if j == 0:
-                        dist += (spots[i, j] - nucleus_centroid[0]) ** 2
-                    elif j == 1:
-                        dist += (spots[i, j] - nucleus_centroid[1]) ** 2
-                points_dist_list.append(math.sqrt(dist))
-                counter += 1
-        points_dists = np.array(points_dist_list)
-        points_dists = points_dists.reshape((counter, 1))
+        points_dists = [math.sqrt( (spot[0] - nucleus_centroid[0])**2 +
+                                   (spot[1] - nucleus_centroid[1])**2)  for spot in spots]
+
         height_map_dist = np.multiply(height_map, dsAll)
         # S : Average distance of a cytoplasmic voxel from the nucleus centroid
         S = height_map_dist.sum() / height_map.sum()
@@ -398,15 +382,12 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         height_map = self.adjust_height_map(cytoplasm=True)  #get_height_map()
         nucleus_centroid = self.get_nucleus_centroid()
         IF = self.get_cytoplasmic_intensities()
-        ds1 = np.matlib.repmat(range(0, constants.dataset_config['IMAGE_WIDTH']),
-                               constants.dataset_config['IMAGE_WIDTH'], 1) - nucleus_centroid[0]
-        ds2 = np.matlib.repmat(np.asmatrix(
-            np.arange(0, constants.dataset_config['IMAGE_HEIGHT']).reshape(constants.dataset_config['IMAGE_HEIGHT'],
-                                                                           1)), 1,
-            constants.dataset_config['IMAGE_HEIGHT']) - nucleus_centroid[1]
 
-        dsAll = np.power(ds1, 2) + np.power(ds2, 2)
-        dsAll = np.sqrt(dsAll)
+        # Compute all possible distance in a matrix [512x512]
+        dsAll = image_processing.compute_all_distances_to_nucleus_centroid(nucleus_centroid,
+                                                                           image_width=constants.dataset_config['IMAGE_WIDTH'],
+                                                                           image_height=constants.dataset_config['IMAGE_HEIGHT'])
+
         height_map_dist = np.multiply(height_map, dsAll)
         S = height_map_dist.sum() / height_map.sum()
         dist_IF = np.multiply(IF, dsAll)
