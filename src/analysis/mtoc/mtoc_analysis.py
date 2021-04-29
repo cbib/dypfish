@@ -5,7 +5,6 @@
 import pathlib
 import pandas as pd
 from loguru import logger
-import numpy as np
 import constants
 import plot
 import helpers
@@ -16,6 +15,9 @@ from mpi_calculator import DensityStats
 # global config
 OUTLIERS_THRESHOLD = 3
 
+
+def build_labels(quadrants_num):
+    return [f"Non MTOC{i}" for i in range(0, quadrants_num-1)]
 
 def compute_density_per_quadrant(analysis_repo, molecule_type, groupby_key, quadrants_num, quadrant_labels,
                                  molecule_list, time_points, mpi_sample_size):
@@ -33,7 +35,7 @@ def compute_density_per_quadrant(analysis_repo, molecule_type, groupby_key, quad
             dict_gene["Gene"] = [molecule for i in range(image_set.__sizeof__())]
             dict_gene["Timepoint"] = [timepoint for i in range(image_set.__sizeof__())]
             dict_gene["MTOC"] = mtoc_quadrants
-            for i in range(quadrants_num-1):
+            for i in range(0, quadrants_num-1):
                 dict_gene["Non MTOC" + str(i)] = non_mtoc_quadrants[:,i]
             density_per_quadrant.append(pd.DataFrame(dict_gene))
 
@@ -77,7 +79,7 @@ if __name__ == '__main__':
         dfs = []
         for genes, timepoints, molecule_type, quads, in zip([mrna_genes, proteins], [tp_mrna, tp_proteins],
                                                             ["mrna", "protein"], [4, num_protein_quadrants.get(conf[0], 4)]):
-            quadrant_labels = ["Non MTOC" + str(i) for i in range(quads-1)]
+            quadrant_labels = build_labels(quadrants_num=quads)
             df = compute_density_per_quadrant(analysis_repo=repo, molecule_type=molecule_type,
                                               quadrants_num=quads, quadrant_labels=quadrant_labels,
                                               molecule_list=genes, time_points=timepoints,
