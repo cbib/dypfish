@@ -4,9 +4,7 @@
 
 import pathlib
 from unittest import TestCase
-
 import numpy as np
-
 import constants
 import path
 from image3d import Image3dWithSpots
@@ -57,4 +55,4 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_spots_cytoplasmic_spread(self):
         result = self.img.compute_spots_cytoplasmic_spread()
-        self.assertEqual(result, 0.9253082533496478)
+        self.assertAlmostEqual(result, 0.9785530813826693, places=3)

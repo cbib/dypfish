@@ -87,26 +87,11 @@ class TestImageSet(TestCase):
     def test_compute_normalised_quadrant_densities_mrna(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         res = image_set.compute_normalised_quadrant_densities()
-        expected = np.array([[1.37693091, 1.],
-                    [0.50058693, 0.],
-                    [1.23891387, 0.],
-                    [1.00759389, 0.],
-                    [1.12683717, 1.],
-                    [2.72051787, 0.],
-                    [1.23250137, 0.],
-                    [0.49768729, 0.],
-                    [1.15910767, 1.],
-                    [0.43691438, 0.],
-                    [2.15659572, 0.],
-                    [1.64046996, 0.],
-                    [1.72992133, 1.],
-                    [0.63856315, 0.],
-                    [0.63143629, 0.],
-                    [1.48932139, 0.],
-                    [1.07688498, 1.],
-                    [3.12587233, 0.],
-                    [2.36768991, 0.],
-                    [0.45863156, 0.]])
+        expected = np.array([[1.74626861 , 1.], [0.64688921, 0.], [0.65049158, 0.], [1.54168467, 0.],
+                             [1.14561588, 1.], [2.77314831, 0.], [1.26125903, 0.], [0.50137217, 0.],
+                             [1.38473332, 1.], [0.51311625, 0.], [1.26063698, 0.], [1.02385656, 0.],
+                             [1.17236082, 1.], [0.4422494, 0.], [2.20267986, 0.], [1.69777197, 0.],
+                             [1.08763936, 1.], [3.26577748, 0.], [2.42107527, 0.], [0.46270397, 0.]])
 
         self.assertEqual(res.shape[0], expected.shape[0])
         mtoc_density = res[res[:,1]==1].sum() / len(res[res[:,1]==1])
@@ -121,8 +106,8 @@ class TestImageSet(TestCase):
         res = image_set.compute_normalised_quadrant_densities()
         mtoc_density = res[res[:, 1] == 1].sum() / len(res[res[:, 1] == 1])
         non_mtoc_density = res[res[:, 1] == 0].sum() / len(res[res[:, 1] == 0])
-        self.assertAlmostEqual(mtoc_density, 2.10689868198936, places=3)
-        self.assertAlmostEqual(non_mtoc_density, 1.2117248932548452, places=3)
+        self.assertAlmostEqual(mtoc_density, 2.1244031950903275, places=3)
+        self.assertAlmostEqual(non_mtoc_density, 1.244101903437526, places=3)
 
     def test_mtoc_is_in_leading_edge(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
@@ -132,54 +117,55 @@ class TestImageSet(TestCase):
     def test_compute_spots_cytoplasmic_spread(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = image_set.compute_spots_cytoplasmic_spread()
-        test = [0.9674088178799569, 0.8851708145804912, 0.9470329525805975, 0.9253082533496478, 1.079142761044456]
-        self.assertAlmostEqual(np.sum(result), np.sum(test), places=5)
+        self.assertAlmostEqual(np.sum(result), 4.846803485543, places=5)
+        self.assertAlmostEqual(result[1], 0.9309945832, places=5)
 
     def test_compute_intensities_cytoplasmic_spread(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
         result = image_set.compute_intensities_cytoplasmic_spread()
-        test = [2.5397563772060727, 2.5923623840262615, 2.586344214162044, 2.291650989581199, 2.6410827964730803]
-        self.assertAlmostEqual(np.sum(result), np.sum(test), places=5)
+        self.assertAlmostEqual(np.sum(result), 5.4393450603, places=5)
+        self.assertAlmostEqual(result[1], 1.06079403557, places=5) # done ?
 
     def test_compute_surface_corrected_nm(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = image_set.compute_surface_corrected_nm()
-        self.assertAlmostEqual(result, 0.101090352627947, places=5)
+        self.assertAlmostEqual(result, 0.10109035262, places=5)
 
     def test_compute_normalized_quadrant_densities_mrna(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result1 = image_set.compute_normalised_quadrant_densities(quadrants_num=8)
         num_images = int(result1.shape[0] / 8)
         self.assertEqual(num_images, image_set.__sizeof__())
-        self.assertAlmostEqual(result1[result1[:,1]==1][:,0].sum() / num_images, 1.190650759626, places=3) # MTOC quadrant density
-        self.assertAlmostEqual(result1[result1[:,1]==0][:,0].sum() / (num_images*7), 1.345688920915, places=3) # non MTOC quadtant density
+        self.assertAlmostEqual(result1[result1[:,1]==1][:,0].sum() / num_images, 1.1983781428, places=5) # MTOC quadrant density
+        self.assertAlmostEqual(result1[result1[:,1]==0][:,0].sum() / (num_images*7), 1.38104578, places=5) # non MTOC quadtant density
 
         result2 = image_set.compute_normalised_quadrant_densities(quadrants_num=8, stripes=3, stripes_flag=True)
-        self.assertAlmostEqual(result2[result2[:, 1] == 1][:, 0].sum() / (3*num_images), 1.218815736, places=3)  # MTOC quadrant density
-        self.assertAlmostEqual(result2[result2[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3), 1.371284986, places=3)
+        self.assertAlmostEqual(result2[result2[:, 1] == 1][:, 0].sum() / (3*num_images), 1.218815736, places=5)  # MTOC quadrant density
+        self.assertAlmostEqual(result2[result2[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3), 1.371284986, places=5)
 
         result3 = image_set.compute_normalised_quadrant_densities(quadrants_num=8, peripheral_flag=True, stripes=3, stripes_flag=True)
-        self.assertAlmostEqual(result3[result3[:, 1] == 1][:, 0].sum() / (3 * num_images), 1.0011051805, places=3)  # MTOC quadrant density
-        self.assertAlmostEqual(result3[result3[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3), 0.8443642562, places=3)
+        self.assertAlmostEqual(result3[result3[:, 1] == 1][:, 0].sum() / (3 * num_images), 1.0011051805, places=5)  # MTOC quadrant density
+        self.assertAlmostEqual(result3[result3[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3), 0.8443642562, places=5)
 
     def test_compute_normalized_quadrant_densities_protein(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
         result1 = image_set.compute_normalised_quadrant_densities(quadrants_num=8)
         num_images = int(result1.shape[0] / 8)
         self.assertEqual(num_images, image_set.__sizeof__())
-        self.assertAlmostEqual(result1[result1[:,1]==1][:,0].sum() / num_images, 1.02719092608, places=3) # MTOC quadrant density
-        self.assertAlmostEqual(result1[result1[:,1]==0][:,0].sum() / (num_images*7), 1.233073655, places=3) # non MTOC quadtant density
+        self.assertAlmostEqual(result1[result1[:,1]==1][:,0].sum() / num_images, 1.0387081758, places=5) # MTOC quadrant density
+        self.assertAlmostEqual(result1[result1[:,1]==0][:,0].sum() / (num_images*7), 1.2690913, places=5) # non MTOC quadtant density
 
         result2 = image_set.compute_normalised_quadrant_densities(quadrants_num=8, stripes=3, stripes_flag=True)
-        self.assertAlmostEqual(result2[result2[:, 1] == 1][:, 0].sum() / (3*num_images), 1.171570955, places=3)  # MTOC quadrant density
-        self.assertAlmostEqual(result2[result2[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3), 1.7474789442, places=3)
+        self.assertAlmostEqual(result2[result2[:, 1] == 1][:, 0].sum() / (3*num_images), 1.1715709, places=5)  # MTOC quadrant density
+        self.assertAlmostEqual(result2[result2[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3), 1.7474789, places=5)
 
         result3 = image_set.compute_normalised_quadrant_densities(quadrants_num=8, peripheral_flag=True, stripes=3, stripes_flag=True)
-        self.assertAlmostEqual(result3[result3[:, 1] == 1][:, 0].sum() / (3 * num_images), 3.5660713211, places=3)  # MTOC quadrant density
-        self.assertAlmostEqual(result3[result3[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3), 4.3572130927, places=3)
+        self.assertAlmostEqual(result3[result3[:, 1] == 1][:, 0].sum() / (3 * num_images), 3.56607132, places=5)  # MTOC quadrant density
+        self.assertAlmostEqual(result3[result3[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3), 4.35721309, places=5)
 
 
     def test_compute_zline_distance(self):
+        self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['mrna/actn2/immature/'])
         result = image_set.compute_zline_distance(20)
         test= [[0.24374599, 0.03463759, 0.0365619 , 0.0436177 , 0.03207184,

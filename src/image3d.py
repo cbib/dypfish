@@ -56,10 +56,11 @@ class Image3d(Image):
         '''
         if cytoplasm == True:
             height_map = self.get_cytoplasm_height_map().astype(float)
+            cell_mask = self.get_cytoplasm_mask()
         else:
             height_map = self.get_height_map().astype(float)
+            cell_mask = self.get_cell_mask()
 
-        cell_mask = self.get_cell_mask()
         height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
         return height_map
 
@@ -322,11 +323,10 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
     # Compare cytoplasmic spread cell with 3D cytoplasmic mrna spread
     # to evaluate degree of spread
     def compute_spots_cytoplasmic_spread(self):
-        cell_mask = self.get_cell_mask()
-        height_map = self.get_height_map()
+        cytoplasm_mask = self.get_cytoplasm_mask()
+        height_map = self.adjust_height_map(cytoplasm=True)
         nucleus_centroid = self.get_nucleus_centroid()
-        height_map += 1
-        spots = self.get_spots()
+        spots = self.get_cytoplasmic_spots()
 
         # Compute all possible distance in a matrix [512x512]
         ds1 = np.matlib.repmat(range(0, constants.dataset_config['IMAGE_WIDTH']),
@@ -342,7 +342,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         points_dist_list = []
         counter = 0
         for i in range(len(spots)):
-            if cell_mask[spots[i, 1], spots[i, 0]] == 1:
+            if cytoplasm_mask[spots[i, 1], spots[i, 0]] == 1:
                 dist = 0.0
                 for j in range(2):
                     if j == 0:
@@ -353,7 +353,6 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
                 counter += 1
         points_dists = np.array(points_dist_list)
         points_dists = points_dists.reshape((counter, 1))
-        height_map = np.multiply(height_map, cell_mask)
         height_map_dist = np.multiply(height_map, dsAll)
         # S : Average distance of a cytoplasmic voxel from the nucleus centroid
         S = height_map_dist.sum() / height_map.sum()
@@ -396,11 +395,9 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         return intensity_count / volume
 
     def compute_intensities_cytoplasmic_spread(self):
-        cell_mask = self.get_cell_mask()
-        height_map = self.get_height_map()
+        height_map = self.adjust_height_map(cytoplasm=True)  #get_height_map()
         nucleus_centroid = self.get_nucleus_centroid()
-        IF = self.get_intensities()
-        height_map += 1
+        IF = self.get_cytoplasmic_intensities()
         ds1 = np.matlib.repmat(range(0, constants.dataset_config['IMAGE_WIDTH']),
                                constants.dataset_config['IMAGE_WIDTH'], 1) - nucleus_centroid[0]
         ds2 = np.matlib.repmat(np.asmatrix(
@@ -410,7 +407,6 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
 
         dsAll = np.power(ds1, 2) + np.power(ds2, 2)
         dsAll = np.sqrt(dsAll)
-        height_map = np.multiply(height_map, cell_mask)
         height_map_dist = np.multiply(height_map, dsAll)
         S = height_map_dist.sum() / height_map.sum()
         dist_IF = np.multiply(IF, dsAll)

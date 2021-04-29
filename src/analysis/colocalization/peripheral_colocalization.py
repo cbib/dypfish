@@ -12,7 +12,6 @@ import plot
 from plot import compute_heatmap
 import helpers
 import numpy as np
-from repository import H5RepositoryWithCheckpoint
 from image_set import ImageSet
 
 def compute_peripheral_relative_density_per_quadrants_and_slices(analysis_repo, molecule_type, quadrants_num=4):

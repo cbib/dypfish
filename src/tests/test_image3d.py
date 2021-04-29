@@ -68,3 +68,5 @@ class TestImage3d(TestCase):
         height_map_original = self.img.get_height_map()
         height_map = self.img.adjust_height_map()
         self.assertGreater(height_map.sum(), height_map_original.sum())
+        adj_height_map = self.img.adjust_height_map(cytoplasm=True)
+        self.assertGreater(height_map.sum(), adj_height_map.sum())
