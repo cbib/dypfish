@@ -116,15 +116,15 @@ class TestImageSet(TestCase):
 
     def test_compute_spots_cytoplasmic_spread(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
-        result = image_set.compute_spots_cytoplasmic_spread()
+        result = np.sort(image_set.compute_spots_cytoplasmic_spread())
         self.assertAlmostEqual(np.sum(result), 4.846803485543, places=5)
         self.assertAlmostEqual(result[1], 0.9309945832, places=5)
 
     def test_compute_intensities_cytoplasmic_spread(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
-        result = image_set.compute_intensities_cytoplasmic_spread()
+        result = np.sort(image_set.compute_intensities_cytoplasmic_spread())
         self.assertAlmostEqual(np.sum(result), 5.4393450603, places=5)
-        self.assertAlmostEqual(result[1], 1.06079403557, places=5) # done ?
+        self.assertAlmostEqual(result[1], 1.07338770681, places=5) # done ?
 
     def test_compute_surface_corrected_nm(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
