@@ -243,52 +243,6 @@ def open_repo():
     repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
     return repo
 
-
-####Colocalization score PART
-
-def reindex_quadrant_mask(quad_mask, mtoc_quad, quad_num=4):
-    df = pd.DataFrame(quad_mask)
-    df = df.applymap(lambda x: x - mtoc_quad + 1 if x >= mtoc_quad else (x + quad_num - mtoc_quad + 1 if x > 0 else 0))
-    quad_mask = np.array(df)
-    return quad_mask
-
-
-def using_indexed_assignment(x):
-    "https://stackoverflow.com/a/5284703/190597 (Sven Marnach)"
-    result = np.empty(len(x), dtype=int)
-    temp = x.argsort()
-    return temp +1
-
-
-def permutations_test(interactions, fwdints, matrix_size=4, permutation_num=1000):
-    fwdints = fwdints.astype(bool)
-    ranking = stats.rankdata(interactions).reshape(interactions.shape)
-
-    flat = interactions.copy().flatten()
-    rs0 = np.sum(interactions[fwdints])
-    rs1 = np.sum(ranking[fwdints == 0])
-    rs = []
-    for perm in range(permutation_num):
-        np.random.shuffle(flat)
-        shuffled_interactions = flat.reshape((matrix_size, matrix_size))
-        rs.append(np.sum(shuffled_interactions[fwdints]))
-
-    count = np.sum(rs < rs0) # we want rs0 - the sum of fwd looking timepoints to be bigger than random
-    p = 1 - count / len(rs)
-    stat = rs1
-    return p, stat, ranking
-
-def get_forward_interactions(mrna_timepoints, protein_timepoints):
-    X = len(mrna_timepoints)
-    Y = len(protein_timepoints)
-    fwd_interactions = np.zeros((X, Y))
-    for x in range(X):
-        for y in range(Y):
-            if protein_timepoints[y] > mrna_timepoints[x]:
-                fwd_interactions[x, y] = 1
-    return fwd_interactions
-
-
 def reduce_z_line_mask(z_lines, spots):
     cpt_z = 1
     z_lines_idx = []
@@ -332,28 +286,36 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
     return grid_mat
 
 
-def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein, permutation_num=1000):
-    S1 = get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
-    num_mrna_tp, num_protein_tp = len(timepoint_num_mrna), len(timepoint_num_protein)
-    interactions = np.zeros((num_mrna_tp, num_protein_tp))
-    for i, j in itertools.product(range(num_mrna_tp), range(num_protein_tp)):
-        interactions[i, j] = np.abs(stats.pearsonr(mrna_data[i], protein_data[j])[0]) # negative slope corr same value as positive
-    p, stat, ranks = permutations_test(interactions, S1, matrix_size=num_mrna_tp, permutation_num=permutation_num)
-    max_rank = int(ranks.max())
-    num_fwd_looking_timepoints = int(S1[S1==1].sum())
-    ideal_max = np.sum(range(num_fwd_looking_timepoints+1, max_rank+1))
-    ideal_min = np.sum(range(1, num_fwd_looking_timepoints+1))
-    if len(timepoint_num_mrna)==4:
-        #TODO if matrix 4 * 4
-        #tis = (stat -15 ) / 106.0
-        # was : tis = (stat -36 ) / 64.0
-        cs = (stat - ideal_min) / (ideal_max-ideal_min)
-        #tis = (100 - stat) / 64.0
-    else:
-        # TODO if matrix 2 * 2
-        cs = (stat - 1 ) / 8.0
+def get_forward_timepoints(mrna_timepoints: list, protein_timepoints: list) -> np.array:
+    '''
+    Given two lists of timepoints (numerical values), computes pairs
+    where protein measurement happened at a later timepoint than mrna measurement
+    returns a 2D numpy array where 1 is for protein_timepoint > mrna_timepoint
+    '''
+    X = len(mrna_timepoints)
+    Y = len(protein_timepoints)
+    fwd_interactions = np.zeros((X, Y))
+    for x in range(X):
+        for y in range(Y):
+            if protein_timepoints[y] > mrna_timepoints[x]:
+                fwd_interactions[x, y] = 1
+    return fwd_interactions
 
-    return cs, p, ranks
+def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein, permutation_num=1000):
+    num_mrna_tp, num_protein_tp = len(timepoint_num_mrna), len(timepoint_num_protein)
+    correlations = np.zeros((num_mrna_tp, num_protein_tp))
+    for i, j in itertools.product(range(num_mrna_tp), range(num_protein_tp)):
+        correlations[i, j] = np.abs(stats.pearsonr(mrna_data[i], protein_data[j])[0]) # negative slope corr same value as positive
+
+    fwd_indices = get_forward_timepoints(timepoint_num_mrna, timepoint_num_protein)
+    fwd_correlations = correlations[fwd_indices == 1].flatten()
+    other_correlations = correlations[fwd_indices == 0].flatten()
+    ranks = stats.rankdata(correlations).reshape(correlations.shape[0], correlations.shape[1])
+    stat, pval = stats.mannwhitneyu(fwd_correlations,
+                                    other_correlations, use_continuity=False)
+    cs = a12(list(other_correlations), list(fwd_correlations)) # effect size
+
+    return cs, pval, ranks
 
 
 # Stability analysis part
@@ -401,3 +363,16 @@ def colorscale(hexstr, scalefactor):
     b = clamp(b * scalefactor)
 
     return "#%02x%02x%02x" % (r, g, b)
+
+def a12(lst1, lst2, rev=True):
+  '''
+    Non-parametric hypothesis testing using Vargha and Delaney's A12 statistic
+    how often is x in lst1 more than y in lst2?
+  '''
+  more = same = 0.0
+  for x in lst1:
+    for y in lst2:
+      if   x==y : same += 1
+      elif rev     and x > y : more += 1
+      elif not rev and x < y : more += 1
+  return (more + 0.5*same)  / (len(lst1)*len(lst2))
