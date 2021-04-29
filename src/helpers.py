@@ -8,7 +8,6 @@ from typing import List
 from colormap import rgb2hex
 from numpy import matlib
 import numpy as np
-import pandas as pd
 import itertools
 import constants
 from scipy import stats
@@ -31,6 +30,15 @@ def checkpoint_decorator(path, dtype):
         return wrapper
 
     return real_checkpoint_decorator
+
+
+def open_repo():
+    dataset_root_fp = pathlib.Path(
+        constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
+    primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
+    secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
+    repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
+    return repo
 
 
 def volume_coeff():
@@ -233,15 +241,6 @@ def detect_outliers(data, threshold=3):
         if np.abs(z_score) > threshold:
             outliers.append(x)
     return outliers
-
-
-def open_repo():
-    dataset_root_fp = pathlib.Path(
-        constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
-    primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
-    secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
-    repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
-    return repo
 
 def reduce_z_line_mask(z_lines, spots):
     cpt_z = 1

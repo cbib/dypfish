@@ -8,10 +8,10 @@ import constants
 from loguru import logger
 from random import *
 import numpy as np
+import helpers
 from plot import plot_figure
 from image_set import ImageSet
 from path import global_root_dir
-from helpers import mean_absolute_deviation, median_absolute_deviation
 from repository import H5RepositoryWithCheckpoint
 
 
@@ -33,17 +33,16 @@ def compute_stability(gene, bootstrap=500, force2D=True):
             rand_idx = randint(0, peripheral_profiles.shape[0] - 1)
             mean_arr = np.mean(arr, axis=0)
             arr_diff = mean_arr - peripheral_profiles[rand_idx, :]
-            mse = mean_absolute_deviation(arr_diff)
+            mse = helpers.mean_absolute_deviation(arr_diff)
             mads.append(mse)
         total_mads.append(mads)
     return total_mads
 
 
-"""
-Figure 1.E 
-Mean Absolute Deviation of Arhgdia mRNA distribution for peripheral fraction descriptors of a randomly selected cell 
-from a pooled average of up to ~40 cells for cultured and micropatterned cells.
-"""
+# Figure 1.E
+# Mean Absolute Deviation of Arhgdia mRNA distribution for peripheral fraction descriptors of a randomly selected cell
+# from a pooled average of up to ~40 cells for cultured and micropatterned cells.
+
 constants.init_config(
     analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/stability/config_original.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent

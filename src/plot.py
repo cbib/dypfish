@@ -5,19 +5,16 @@
 
 import matplotlib
 from loguru import logger
-
 import constants
 from scipy.interpolate import interp1d
-from helpers import create_dir_if_needed_for_filepath
 from path import global_root_dir
 from mpi_calculator import DensityStats
-import math
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import interpolate
-from scipy.stats import pearsonr
+import scipy.stats as stats
 import pandas as pd
 import helpers
 import pathlib
@@ -168,6 +165,7 @@ def bar_profile(data, figname, plot_colors):
     plt.close()
     logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
+
 def violin_profile(_dict, tgt_fp, xlabels, rotation=0, annot=False):
     dd = pd.DataFrame(
         dict([(k, pd.Series(v).astype(float)) for k, v in _dict.items()])).melt().dropna().rename(
@@ -230,7 +228,7 @@ def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type"
 def sns_linear_regression(data_1, data_2, color, graph_file_path_name, order=1):
     sns.set(style="white", color_codes=True)
     annot_kws = {'prop': {'family': 'monospace', 'weight': 'bold', 'size': 8}}
-    res1 = pearsonr(data_1, data_2)
+    res1 = stats.pearsonr(data_1, data_2)
     sns.set(font_scale=1)
     sns_plot_regression = sns.jointplot(x=np.log(data_1), y=np.log(data_2), order=order, kind='reg', x_estimator=np.mean, color=color)
     sns_plot_regression.ax_marg_x.set_xlim(6, 8)
@@ -588,147 +586,3 @@ def add_annot(data, gene_list, ax, test):
                         # box_pairs=[((gene_list[0], gene_list[1])), ((gene_list[2], gene_list[3]))],
                         box_pairs=box_pairs,
                         test=test, text_format='star', loc='inside', verbose=2)
-
-
-##########################################
-# Functions unused or obsoletes
-##########################################
-
-def plot_dynamic_MPI(mrna_df, prot_df, genes, figname):
-    plot_colors = constants.analysis_config['PLOT_COLORS']
-    for i, gene in enumerate(genes):
-        data_mrna = np.zeros((3, len(constants.dataset_config['TIMEPOINTS_MRNA'])))
-        df_mrna = mrna_df[mrna_df["Gene"] == gene]
-        cpt = 0
-        for tp, line in df_mrna.groupby(['Timepoint']):
-            mpi, err = helpers.compute_mpis(df_mrna[df_mrna["Timepoint"] == tp],
-                                            constants.analysis_config['BOOTSTRAP_MPI'])
-            # err_median = np.median(np.abs(np.tile(np.median(err), (1, len(err))) - err))
-            upp_env = mpi + np.std(err)
-            low_env = mpi - np.std(err)
-            data_mrna[0, cpt] = mpi
-            data_mrna[1, cpt] = upp_env
-            data_mrna[2, cpt] = low_env
-            cpt += 1
-        data_prot = np.zeros((3, len(constants.dataset_config['TIMEPOINTS_PROTEIN'])))
-        df_protein = prot_df[prot_df["Gene"] == gene]
-        cpt = 0
-        for tp, line in df_protein.groupby(['Timepoint']):
-            mpi, err = helpers.compute_mpis_2(df_protein[df_protein["Timepoint"] == tp],
-                                              constants.analysis_config['BOOTSTRAP_MPI'])
-            upp_env = mpi + np.std(err)
-            low_env = mpi - np.std(err)
-            data_prot[0, cpt] = mpi
-            data_prot[1, cpt] = upp_env
-            data_prot[2, cpt] = low_env
-            cpt += 1
-        dynamic_profiles(data_mrna, data_prot, gene, 'Time(hrs)', 'MTOC polarity index', figname, plot_colors[i])
-
-
-# compare descriptor profile for mrna/protein over time
-def dynamic_profiles(mrna_data, protein_data, gene, xlabel, ylabel, figpath, plot_colors):
-    timepoints_num_mrna = constants.dataset_config['TIMEPOINTS_NUM_MRNA']
-    timepoints_num_protein = constants.dataset_config['TIMEPOINTS_NUM_PROTEIN']
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    for tick in ax.xaxis.get_major_ticks():
-        tick.label.set_fontsize(30)
-    for tick in ax.yaxis.get_major_ticks():
-        tick.label.set_fontsize(30)
-    ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
-    for axis in ['left']:
-        ax.spines[axis].set_linewidth(3)
-    plt.yticks(fontsize=30)
-    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    ax.set_xlim(1, 8)
-    # ax.set_ylim(-2, 8)
-    x_mrna = np.arange(np.min(timepoints_num_mrna), np.max(timepoints_num_mrna), 0.01)
-    spl = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[0, :], k=len(timepoints_num_mrna) - 1)
-    spl_upp = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[1, :], k=len(timepoints_num_mrna) - 1)
-    spl_low = interpolate.UnivariateSpline(timepoints_num_mrna, mrna_data[2, :], k=len(timepoints_num_mrna) - 1)
-    m_y_new = spl(x_mrna)
-    m_y_new_upp = spl_upp(x_mrna)
-    m_y_new_down = spl_low(x_mrna)
-    plt.plot(x_mrna, m_y_new, linestyle="-", color=plot_colors)
-    plt.plot(x_mrna, m_y_new_upp, linestyle="-", color=plot_colors)
-    plt.plot(x_mrna, m_y_new_down, linestyle="-", color=plot_colors)
-    ax.fill_between(x_mrna, m_y_new_upp, m_y_new_down, facecolor=plot_colors, alpha=0.5, interpolate=False)
-
-    x_protein = np.arange(np.min(timepoints_num_protein), np.max(timepoints_num_protein), 0.01)
-    spl = interpolate.UnivariateSpline(timepoints_num_protein, protein_data[0, :], k=len(timepoints_num_mrna) - 1)
-    spl_upp = interpolate.UnivariateSpline(timepoints_num_protein, protein_data[1, :], k=len(timepoints_num_mrna) - 1)
-    spl_low = interpolate.UnivariateSpline(timepoints_num_protein, protein_data[2, :], k=len(timepoints_num_mrna) - 1)
-    p_y_new = spl(x_protein)
-    p_y_new_upp = spl_upp(x_protein)
-    p_y_new_down = spl_low(x_protein)
-    plt.plot(x_protein, p_y_new, linestyle="--", label="Protein", color=plot_colors)
-    plt.plot(x_protein, p_y_new_upp, linestyle="--", label="Protein", color=plot_colors)
-    plt.plot(x_protein, p_y_new_down, linestyle="--", label="Protein", color=plot_colors)
-    ax.fill_between(x_protein, p_y_new_upp, p_y_new_down, facecolor=plot_colors, alpha=0.25, interpolate=False)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_title(gene)
-    plt.savefig(figpath, format='png')
-
-
-# plot_mtoc_enrichment never used ??
-def plot_mtoc_enrichment(density_stats: DensityStats, molecule_type, limit_threshold, log=False):
-    # melt dataframe and relabel all non MTOC quadrants
-    value_vars = density_stats.quadrant_labels + [density_stats.mtoc_quadrant_label]
-    dd = pd.melt(density_stats.df, id_vars=['Gene'], value_vars=value_vars, var_name='Quadrants')
-    for label in density_stats.quadrant_labels:
-        dd = dd.replace(label, 'Non MTOC')
-    dd = dd.replace(0.000000, np.nan)  # TODO why this is here? there should be no np.nan
-    # apply log scale
-    if (log):
-        dd['value'] = dd['value'].apply(np.log2)
-    # Choose color palette
-    my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#1a8cff"}
-
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=molecule_type)
-    figname = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                           tgt_image_name)
-    ## remove outliers
-    outliers = helpers.detect_outliers(np.array(dd["value"]), limit_threshold)
-    dd = dd[~np.isin(dd["value"], outliers)]
-
-    helpers.create_dir_if_needed_for_filepath(figname)
-    sns_violinplot(dd, my_pal, figname, rotation=45)
-    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
-
-
-# plot_hist_ratio never used ??
-def plot_hist_ratio(density_stats: DensityStats, molecule_type, limit_threshold, groupby_key=['Gene']):
-    df = density_stats.df
-    df['MTOC ratio'] = density_stats.ratios()
-    dd = pd.melt(df, id_vars=groupby_key, value_vars=['MTOC ratio'], var_name='Quadrants')
-    dd = dd.replace(0.000000, np.nan)
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=molecule_type)
-    figname = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                           tgt_image_name)
-    my_pal = {"MTOC ratio": "#66b2ff"}
-    outliers = helpers.detect_outliers(np.array(dd["value"]), limit_threshold)
-    dd = dd[~np.isin(dd["value"], outliers)]  # dd[dd["value"] < limit_threshold]
-
-    helpers.create_dir_if_needed_for_filepath(figname)
-    sns_violinplot(dd, my_pal, figname, x=groupby_key[0])
-    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
-
-
-def histogram_noise_measured(nm_arhgdia, nm_arhgdia_cultured, figname, plot_colors):
-    fig, ax = plt.subplots()
-    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-    for axis in ['bottom', 'left']:
-        ax.spines[axis].set_linewidth(3)
-    plt.yticks(fontsize=30)
-    ind = np.arange(1, 3)
-    width = 0.25
-    # ax.set_xlim(-width * 2, len(ind) + width)
-    ax.set_ylim(0, 0.8)
-    ax.set_title('')
-    xTickMarks = ["", ""]
-    ax.set_xticks(ind)
-    ax.bar(ind, [nm_arhgdia, nm_arhgdia_cultured], width, color=plot_colors)
-    plt.savefig(figname)
-    plt.close()
-
