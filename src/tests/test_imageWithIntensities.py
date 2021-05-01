@@ -6,6 +6,7 @@ import pathlib
 import unittest
 from unittest import TestCase
 import path
+import image_processing as ip
 import constants
 from repository import H5RepositoryWithCheckpoint
 from image import ImageWithIntensities
@@ -13,7 +14,7 @@ from image import ImageWithIntensities
 constants.init_config(analysis_config_js_path=path.test_config_path)  # TODO this is annoying
 
 
-class TestImageWithIntensity(TestCase):
+class TestImageWithIntensities(TestCase):
     def setUp(self) -> None:
         self.h5_sample_path = pathlib.Path(path.global_example_data, "basic.h5")
         self.repo = H5RepositoryWithCheckpoint(repo_path=self.h5_sample_path)
@@ -42,9 +43,19 @@ class TestImageWithIntensity(TestCase):
         cell_intensity = self.img.get_cell_total_intensity()
         self.assertEqual(cell_intensity, 1746049018.0)
 
+    def test_compute_average_cytoplasmic_distance_proportional_intensity(self):
+        nucleus_centroid = self.img.get_nucleus_centroid()
+        dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)
+        result = self.img.compute_average_cytoplasmic_distance_proportional_intensity(dsAll)
+        self.assertAlmostEqual(result, 97.396695260, places=3)
+
+    def test_compute_intensities_normalized_spread_to_centroid(self):
+        normalized_value = self.img.compute_intensities_normalized_spread_to_centroid()
+        self.assertAlmostEqual(normalized_value, 0.9035539481333, places=5)
+
     def test_compute_intensities_cytoplasmic_spread(self):
-        normalized_value = self.img.compute_intensities_cytoplasmic_spread()
-        self.assertAlmostEqual(normalized_value, 1.7651179687488734)
+        spread = self.img.compute_intensities_cytoplasmic_spread()
+        self.assertAlmostEqual(spread, 0.78921627304, places=5)
 
 
 if __name__ == '__main__':

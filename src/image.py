@@ -13,6 +13,7 @@ import constants
 import helpers
 import image_processing as ip
 from repository import Repository
+from sklearn.metrics.pairwise import pairwise_distances
 
 from constants import SPOTS_PATH_SUFFIX
 from constants import ZLINES_PATH_SUFFIX
@@ -415,18 +416,18 @@ class ImageWithSpots(Image):
     def get_peripheral_total_spots(self):
         return self.compute_peripheral_total_spots()
 
-    def compute_average_distance_from_nucleus(self, dsAll, cell_mask: np.ndarray) -> float:
-        map_dist = np.multiply(cell_mask, dsAll)  # TODO : this should be useless
-        return map_dist.sum() / cell_mask.sum()
+    def compute_average_cytoplasmic_distance_from_nucleus(self, dsAll) -> float:
+        cytoplasm_mask = self.get_cytoplasm_mask()
+        map_dist = np.multiply(cytoplasm_mask, dsAll)  # TODO : this should be useless
+        return map_dist.sum() / cytoplasm_mask.sum()
 
-    def compute_spots_cytoplasmic_spread(self) -> float:
-        cell_mask = self.get_cell_mask()
+    def compute_spots_normalized_distance_to_centroid(self) -> float:
         nucleus_centroid = self.get_nucleus_centroid()
         cytoplasmic_spots = self.get_cytoplasmic_spots()[:, 0:2]  # 2d coordinates of 3d spots
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
 
         dsCytoplasmic = dsAll[cytoplasmic_spots[:, 1], cytoplasmic_spots[:, 0]]
-        S = self.compute_average_distance_from_nucleus(dsAll, cell_mask)
+        S = self.compute_average_cytoplasmic_distance_from_nucleus(dsAll)
 
         # val is average 2D distance from the nucleus centroid of cytoplasmic mRNAs
         # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
@@ -434,6 +435,21 @@ class ImageWithSpots(Image):
         # TODO : this assumption is probably wrong. Should check it
         normalized_average_2d_distance = np.mean(dsCytoplasmic) / S
         return normalized_average_2d_distance
+
+    def compute_spots_normalized_cytoplasmic_spread(self) -> float:
+        '''
+        Computes the Standard Distance measure of spread as the average distance for all spots
+        from the Mean Center. This measures the compactness of a distribution of spots.
+        In a Normal Distribution you would expect around 68% of all points to fall within
+        the Standard Distance.
+        '''
+        cytoplasmic_spots = self.get_cytoplasmic_spots()[:, 0:2]
+        mu_x = cytoplasmic_spots[:, 0].sum() / len(cytoplasmic_spots)
+        mu_y = cytoplasmic_spots[:, 1].sum() / len(cytoplasmic_spots)
+        sd = math.sqrt( np.sum((cytoplasmic_spots[:, 0] - mu_x) ** 2) / len(cytoplasmic_spots)+
+                           np.sum((cytoplasmic_spots[:, 1] - mu_y) ** 2) / len(cytoplasmic_spots) )
+        d = pairwise_distances(cytoplasmic_spots, metric='euclidean')
+        return sd / np.mean(d[d != 0])
 
     def compute_cytoplasmic_density(self):
         # compute mRNA density in the cytoplasm
@@ -464,20 +480,13 @@ class ImageWithSpots(Image):
         K = K * (1 / (my_lambda ** 2 * nuw))
         return K
 
-    def compute_random_spots(self):
+    def compute_random_spots(self): # TODO : not tested
         # simulate n list of random spots
         cell_mask = self.get_cell_mask()
-        spots = self.get_spots()
-        n_spots = len(spots)
-        indsAll = np.where(cell_mask[:, :] == 1)
-        for t in range(simulation_number):
-            inds_permuted = np.random.permutation(range(len(indsAll[0])))
-            indsT = inds_permuted[0:n_spots]
-            spots_random = np.zeros(spots.shape)
-            for i in range(len(spots)):
-                spots_random[i, 0] = indsAll[0][indsT[i]]
-                spots_random[i, 1] = indsAll[1][indsT[i]]
-        return spots_random
+        n_spots = len(self.get_spots())
+        x, y = np.where(cell_mask == 1)
+        idx = np.random.randint(0, len(x), n_spots)  # we chose random indices
+        return np.vstack((x[idx], y[idx])).T
 
     def compute_clustering_indices(self) -> np.ndarray:
         """
@@ -611,23 +620,39 @@ class ImageWithIntensities(Image):
             intensities_sums[i] = intensities[(cell_mask_distance_map <= i + 1) & (cell_mask_distance_map > 0)].sum()
         return intensities_sums
 
-    # TODO : why would we consider that distance can be proportional to intensity, does not make sens to me
-    def compute_average_distance_proportional_intensity(self, dsAll, cell_mask):
-        dsCellular = np.multiply(cell_mask, dsAll)
-        return dsCellular.sum() / cell_mask.sum()  # TODO : what for ?
+    # TODO : why would we consider that distance can be proportional to intensity, does not make sense
+    def compute_average_cytoplasmic_distance_proportional_intensity(self, dsAll):
+        cytoplasm_mask = self.get_cytoplasm_mask()
+        dsCellular = np.multiply(cytoplasm_mask, dsAll)
+        return dsCellular.sum() / cytoplasm_mask.sum()
 
-    def compute_intensities_cytoplasmic_spread(self) -> float:
-        cell_mask = self.get_cell_mask()
+    def compute_intensities_normalized_spread_to_centroid(self) -> float:
         nucleus_centroid = self.get_nucleus_centroid()
-        intensities = self.get_intensities()
-
+        intensities = self.get_cytoplasmic_intensities()
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
-        S = self.compute_average_distance_proportional_intensity(dsAll, cell_mask)
+        dsAll = dsAll * self.get_cytoplasm_mask()
+        S = self.compute_average_cytoplasmic_distance_proportional_intensity(dsAll)
 
         proportional_intensities = np.multiply(intensities, dsAll)
         normalized_value = proportional_intensities.sum() / (S * intensities.sum())
 
         return normalized_value
+
+    def compute_intensities_cytoplasmic_spread(self):
+        IF = self.get_cytoplasmic_intensities()
+        cytoplasmic_mask = self.get_cytoplasm_mask()
+
+        # Calculate the spread of signal peaks
+        mean_signal = np.mean(IF[cytoplasmic_mask == 1])
+        peaks = np.argwhere(IF > mean_signal * 1.5)  # arbitrary choice to reduce the number of peaks
+        d = pairwise_distances(peaks, metric='euclidean')
+
+        mu_x = peaks[:, 0].sum() / len(peaks)
+        mu_y = peaks[:, 1].sum() / len(peaks)
+        sd = math.sqrt(np.sum((peaks[:, 0] - mu_x) ** 2) / len(peaks) +
+                       np.sum((peaks[:, 1] - mu_y) ** 2) / len(peaks))
+
+        return sd / np.mean(d[d != 0])
 
     def signal_to_noise(self) -> float:
         intensities = self.get_intensities()  # the whole image

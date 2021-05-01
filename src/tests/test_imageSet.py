@@ -77,13 +77,6 @@ class TestImageSet(TestCase):
                            [0, 0, 0, 0, 0])  # TODO : how to better test this: np.random.seed(0) does not seem to work
         self.assertEqual(len(clustering_indices), 5)
 
-    def test_compute_mtoc_dependent_degree_of_clustering(self):
-        # TODO : raises RuntimeWarning: divide by zero encountered in true_divide
-        np.random.seed(0)
-        image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
-        clustering_indices = image_set.compute_mtoc_dependent_degree_of_clustering()
-        self.assertEqual(len(clustering_indices), 3)
-
     def test_compute_normalised_quadrant_densities_mrna(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         res = image_set.compute_normalised_quadrant_densities()

@@ -71,8 +71,8 @@ class TestImageSecondary(TestCase):
         areas = self.img.compute_peripheral_areas()
         self.assertEqual(len(areas), 101)
         # test arbitrary values
-        self.assertEqual(areas[2], 585.8251150558842) # without nucleus : 490.5614727153188
-        self.assertEqual(areas[4], 571.4766600920447) # without nucleus : 476.21301775147924
+        self.assertEqual(areas[2], 585.8251150558842)  # without nucleus : 490.5614727153188
+        self.assertEqual(areas[4], 571.4766600920447)  # without nucleus : 476.21301775147924
 
     def test_is_in_cytoplasm(self):
         # test a random coord
@@ -82,3 +82,4 @@ class TestImageSecondary(TestCase):
         self.assertEqual(self.img.is_in_cytoplasm([147, 398]), True)
         # test some coords in the nucleus
         self.assertEqual(self.img.is_in_cytoplasm([266, 265]), False)
+

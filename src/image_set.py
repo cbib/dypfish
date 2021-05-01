@@ -3,7 +3,7 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import sys
-from typing import List
+from typing import List, Union
 import tqdm
 from loguru import logger
 import numpy as np
@@ -173,12 +173,11 @@ class ImageSet(object):
                 spots_peripheral_distance))
         return arr
 
-    # TODO this only compute in 2D  ??????
+    # TODO this is only computed in 2D  ??????
     def compute_histogram_intensities_peripheral_fractions(self):
         arr = []
         image: Image3dWithIntensitiesAndMTOC
         for image in tqdm.tqdm(self.images, desc="Images"):
-            cell_mask = image.get_cell_mask()
             intensities = image.get_intensities()
             # TODO this line below not present in V1, we have to add it to reproduce nocodazole protein peripheral fraction results
             # intensities = np.multiply(intensities, cell_mask)
@@ -216,23 +215,19 @@ class ImageSet(object):
         cytoplasmic_spread_list = []
         image: Image3dWithSpots
         for image in self.images:
-            cytoplasmic_spread_list.append(image.compute_spots_cytoplasmic_spread())
+            cytoplasmic_spread_list.append(image.compute_spots_normalized_distance_to_centroid())
         return cytoplasmic_spread_list
 
     def compute_intensities_cytoplasmic_spread(self) -> List[float]:
         cytoplasmic_spread_list = []
         image: Image3dWithIntensities
         for image in self.images:
-            cytoplasmic_spread_list.append(image.compute_intensities_cytoplasmic_spread())
+            cytoplasmic_spread_list.append(image.compute_intensities_normalized_spread_to_centroid())
         return cytoplasmic_spread_list
 
     def compute_degree_of_clustering(self):
-        image: Image3dWithSpots
+        image: Union[ImageWithSpots, Image3dWithSpots]
         return [image.compute_degree_of_clustering() for image in self.images]
-
-    def compute_mtoc_dependent_degree_of_clustering(self):
-        image: Image3dWithSpotsAndMTOC
-        return [image.compute_degree_of_clustering() for image in self.images if image.mtoc_is_in_leading_edge()]
 
     def compute_normalised_quadrant_densities(self, quadrants_num=4, peripheral_flag=False,
                                               stripes=3, stripes_flag = False) -> np.array:
@@ -262,10 +257,6 @@ class ImageSet(object):
 
     def compute_spots_peripheral_distance(self):
         return np.array([image.get_spots_peripheral_distance() for image in self.images])
-
-    # def compute_spots_peripheral_distance_2D(self):
-    #     image: ImageWithSpotsAndMTOC
-    #     return np.array([image.get_spots_peripheral_distance() for image in self.images])
 
     def compute_zline_distance(self, z_line_spacing):
         image: imageMultiNucleusWithSpotsAndZlines

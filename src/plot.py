@@ -84,19 +84,19 @@ def bar_profile_median_timepoints(df: pd.DataFrame, palette, figname, gene, fixe
     logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
-def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname, confidence_interval=None, annot=False, test='t-test_ind', data_to_annot={}):
+def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
+                       confidence_interval=None, annot=False, test='t-test_ind', data_to_annot={}):
     """
     Plot a barplot for each gene with height given by medians, error bars defined by err
     and confidence intervals by CI; CI is a dictionary with keys = genes
     test: t-test_ind, t-test_welch, t-test_paired, Mann-Whitney, Mann-Whitney-gt, Mann-Whitney-ls, Levene, Wilcoxon, Kruskal.
     """
     # Define plot variables
-    genes = data_median.keys()
+    all_genes = list(data_median.keys())
     medians = data_median.values()
     plot_colors = constants.analysis_config['PLOT_COLORS']
     bar_width = 0.35
-    all_genes = list(genes)
-    ind = np.arange(len(genes))
+    ind = np.arange(len(all_genes))
     fig, ax = plt.subplots()
 
     # Search for ymin and y max
@@ -115,25 +115,22 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname, c
     plt.xticks(ind, all_genes, fontsize=10)
     ax.tick_params(right=False, top=False, bottom=True, direction='out', length=8, width=3, colors='black')
     ax.spines['left'].set_linewidth(3)
-    ax.bar(ind, medians, bar_width, color=plot_colors, yerr=err, error_kw=dict(elinewidth=6, ecolor='black'))
+    ax.bar(ind, medians, bar_width, color=plot_colors, yerr=err)
     ax.set_xticklabels(plot_xlabels)
 
-    # create the table for the CI
-    # add confidence intervals
+    # create the table for the confidence intervals
     if confidence_interval is not None:
-        confidence_interval_df = pd.DataFrame(confidence_interval, columns=['lower', 'higher'], index=genes)
-        confidence_interval_df = confidence_interval_df.round({'lower': 1, 'higher': 1})
-        confidence_interval_df = pd.DataFrame({molecule_type: confidence_interval_df[["lower", "higher"]].values.tolist()}, index=genes)
-        confidence_interval_df = confidence_interval_df.T
-        confidence_interval_table = plt.table(cellText=confidence_interval_df.values,
-                                              rowLabels=confidence_interval_df.index.values,
-                                              colLabels=[lab for lab in plot_xlabels],  # empty since we already have the xticks
-                                              loc='bottom',
-                                              cellLoc='center',
-                                              bbox=[0.0, -0.3, 1, .28])
+        assert all_genes == list(confidence_interval.keys())
+        CI_df = pd.DataFrame(confidence_interval.values(), columns=['lower', 'higher'], index=all_genes)
+        CI_df = CI_df.round({'lower': 1, 'higher': 1})
+        CI_df = pd.DataFrame({molecule_type: CI_df[["lower", "higher"]].values.tolist()}, index=all_genes)
+        CI_df = CI_df.T
+        CI_table = plt.table(cellText=CI_df.values, rowLabels=CI_df.index.values,
+                             colLabels=[lab for lab in plot_xlabels],  # empty since we already have the xticks
+                             loc='bottom', cellLoc='center', bbox=[0.0, -0.3, 1, .28])
         plt.subplots_adjust(bottom=0.28, left=0.15)
-        confidence_interval_table.auto_set_font_size(False)
-        confidence_interval_table.set_fontsize(12)
+        CI_table.auto_set_font_size(False)
+        CI_table.set_fontsize(12)
         ax.set_xticks([])
 
     ax.set_xlim(-0.5, len(ind) - 0.5)

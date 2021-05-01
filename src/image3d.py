@@ -11,9 +11,11 @@ import numexpr
 from scipy import signal
 from loguru import logger
 import constants
-import image_processing
+import random
+import image_processing as ip
 import math
 import tqdm
+from sklearn.metrics.pairwise import pairwise_distances
 
 from constants import HEIGHT_MAP_PATH_SUFFIX
 from constants import CELL_MASK_SLICES_PATH_SUFFIX
@@ -199,8 +201,8 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
             spots_in_slice = spots[np.around(spots[:, 2]) == slice_num]
             for j in range(len(spots_in_slice)):
                 old_periph_distance = peripheral_distance_map[spots_in_slice[j][1], spots_in_slice[j][0]]
-                new_periph_distance = (old_periph_distance - slice_index) * (
-                        101 / (101 - slice_index))  # 101 to avoid divide by 0 error
+                new_periph_distance = (old_periph_distance - slice_index) * \
+                                      (101 / (101 - slice_index))  # 101 to avoid divide by 0 error
 
                 if new_periph_distance < 0:
                     # this means that the spot falls out of the slice, it is a discrepancy
@@ -216,14 +218,11 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
         return np.asarray(spots_peripheral_distance, dtype=np.uint8)
 
-    def compute_average_distance_from_nucleus(self, dsAll, cell_mask) -> float:
-        height_map = self.get_height_map()
-        height_map += 1  # TODO : why is this ???
-        height_map = np.multiply(height_map, cell_mask)
-        height_map_dist = np.multiply(height_map, dsAll)
+    def compute_average_cytoplasmic_distance_from_nucleus(self, dsAll) -> float:
+        height_map_dist = np.multiply(self.get_cytoplasm_height_map(), dsAll)
 
-        # S : Average distance of a cytoplasmic voxel from the nucleus centroid
-        # TODO : this is false since height_map_dist is computed over all the cell and not the cytoplasm
+        # Average distance of a cytoplasmic voxel from the nucleus centroid
+        height_map = self.adjust_height_map(cytoplasm=True)
         return height_map_dist.sum() / height_map.sum()
 
     @helpers.checkpoint_decorator(SPOTS_PERIPHERAL_DISTANCE_3D_PATH_SUFFIX, dtype=np.float)
@@ -321,31 +320,44 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         cytoplasmic_volume = self.compute_cytoplasmic_volume()
         return cytoplasmic_mrna_count / cytoplasmic_volume
 
-    # Compare cytoplasmic spread cell with 3D cytoplasmic mrna spread
-    # to evaluate degree of spread
-    def compute_spots_cytoplasmic_spread(self):
-        height_map = self.adjust_height_map(cytoplasm=True)
+
+    def compute_spots_normalized_distance_to_centroid(self) -> (float, float):
         nucleus_centroid = self.get_nucleus_centroid()
-        spots = self.get_cytoplasmic_spots()
+        cytoplasmic_spots = self.get_cytoplasmic_spots()
 
-        # Compute all possible distance in a matrix [512x512]
-        dsAll = image_processing.compute_all_distances_to_nucleus_centroid(nucleus_centroid,
-                                                  image_width = constants.dataset_config['IMAGE_WIDTH'],
-                                                  image_height = constants.dataset_config['IMAGE_HEIGHT'])
+        # average distance for all cytoplasmic voxels
+        dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)
+        avg_dist = self.compute_average_cytoplasmic_distance_from_nucleus(dsAll)
 
-        # Computing spots distance from nucleus centroid
-        points_dists = [math.sqrt( (spot[0] - nucleus_centroid[0])**2 +
-                                   (spot[1] - nucleus_centroid[1])**2)  for spot in spots]
-
-        height_map_dist = np.multiply(height_map, dsAll)
-        # S : Average distance of a cytoplasmic voxel from the nucleus centroid
-        S = height_map_dist.sum() / height_map.sum()
-
-        # val is average 2D distance from the nucleus centroid of cytoplasmic mRNAs
+        # 2D distance from the nucleus centroid of cytoplasmic mRNAs
         # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
-        # distributed across the cytoplasm).
-        normalized_average_2d_distance = np.mean(points_dists) / S
-        return normalized_average_2d_distance
+        # distributed across the cytoplasm wrt to nucleus centroid)
+        # TODO: this can be greater than 1
+        dsCytoplasmic = dsAll[cytoplasmic_spots[:, 1], cytoplasmic_spots[:, 0]]
+        normalized_dist_to_centroid = np.mean(dsCytoplasmic) / avg_dist
+
+        # Compute the Standard Distance - value representing the distance from the
+        # Mean Center. In a Normal Distribution you would expect around 68% of all
+        # points to fall within the Standard Distance.
+
+        return normalized_dist_to_centroid
+
+    def compute_spots_normalized_cytoplasmic_spread(self) -> float:
+        '''
+        Computes the Standard Distance measure of spread as the average distance for all spots
+        from the Mean Center. This measures the compactness of a distribution of spots.
+        In a Normal Distribution you would expect around 68% of all points to fall within
+        the Standard Distance.
+        '''
+        cytoplasmic_spots = self.get_cytoplasmic_spots()
+        mu_x = cytoplasmic_spots[:, 0].sum() / len(cytoplasmic_spots)
+        mu_y = cytoplasmic_spots[:, 1].sum() / len(cytoplasmic_spots)
+        mu_z = cytoplasmic_spots[:, 2].sum() / len(cytoplasmic_spots)
+        sd = math.sqrt( np.sum((cytoplasmic_spots[:, 0] - mu_x) ** 2) / len(cytoplasmic_spots) +
+                        np.sum((cytoplasmic_spots[:, 1] - mu_y) ** 2) / len(cytoplasmic_spots) +
+                        np.sum((cytoplasmic_spots[:, 2] - mu_z) ** 2) / len(cytoplasmic_spots))
+        d = pairwise_distances(cytoplasmic_spots, metric='euclidean')
+        return sd / np.mean(d[d != 0])
 
 
 class Image3dWithIntensities(Image3d, ImageWithIntensities):
@@ -378,21 +390,22 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         volume = self.get_cell_volume()
         return intensity_count / volume
 
-    def compute_intensities_cytoplasmic_spread(self):
-        height_map = self.adjust_height_map(cytoplasm=True)  #get_height_map()
+    def compute_intensities_normalized_spread_to_centroid(self):
+        height_map = self.adjust_height_map(cytoplasm=True)
         nucleus_centroid = self.get_nucleus_centroid()
         IF = self.get_cytoplasmic_intensities()
 
-        # Compute all possible distance in a matrix [512x512]
-        dsAll = image_processing.compute_all_distances_to_nucleus_centroid(nucleus_centroid,
-                                                                           image_width=constants.dataset_config['IMAGE_WIDTH'],
-                                                                           image_height=constants.dataset_config['IMAGE_HEIGHT'])
+        # Compute all possible distances in a matrix [512x512]
+        dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid,
+                                                             image_width=constants.dataset_config['IMAGE_WIDTH'],
+                                                             image_height=constants.dataset_config['IMAGE_HEIGHT'])
 
         height_map_dist = np.multiply(height_map, dsAll)
         S = height_map_dist.sum() / height_map.sum()
         dist_IF = np.multiply(IF, dsAll)
         val = dist_IF.sum() / (IF.sum() * S)
         return val
+
 
     def compute_clustering_indices(self) -> np.ndarray:
         """

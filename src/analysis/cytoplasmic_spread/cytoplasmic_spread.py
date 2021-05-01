@@ -13,14 +13,6 @@ from helpers import open_repo
 from path import global_root_dir
 import helpers
 
-configurations = [
-
-    ["src/analysis/cytoplasmic_spread/config_nocodazole_arhgdia.json", ["arhgdia", "arhgdia_nocodazole"], "Gene"],
-    ["src/analysis/cytoplasmic_spread/config_nocodazole_pard3.json", ["pard3", "pard3_nocodazole"], "Gene"],
-    ["src/analysis/cytoplasmic_spread/config_prrc2c.json", ["arhgdia/control", "arhgdia/prrc2c_depleted"], "Timepoint"],
-    ["src/analysis/cytoplasmic_spread/config_cytod.json", ["arhgdia_control", "arhgdia_cytod"], "Gene"]
-]
-
 
 def plot_cytoplasmic_spread(analysis_repo, molecule_type, genes, annot=False):
 
@@ -79,6 +71,15 @@ def plot_cytoplasmic_spread(analysis_repo, molecule_type, genes, annot=False):
 # Figure S4D : protein cytoplasmic spread arhgdia prrc2c
 # Figure S6B left: mRNA cytoplasmic spread for cytod
 # Figure S6B right : protein cytoplasmic spread for cytod
+
+
+configurations = [
+    ["src/analysis/cytoplasmic_spread/config_original.json", ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"], "Gene"],
+    ["src/analysis/cytoplasmic_spread/config_nocodazole_arhgdia.json", ["arhgdia", "arhgdia_nocodazole"], "Gene"],
+    ["src/analysis/cytoplasmic_spread/config_nocodazole_pard3.json", ["pard3", "pard3_nocodazole"], "Gene"],
+    ["src/analysis/cytoplasmic_spread/config_prrc2c.json", ["arhgdia/control", "arhgdia/prrc2c_depleted"], "Timepoint"],
+    ["src/analysis/cytoplasmic_spread/config_cytod.json", ["arhgdia_control", "arhgdia_cytod"], "Gene"]
+]
 
 if __name__ == '__main__':
     for conf in configurations:

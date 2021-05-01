@@ -134,3 +134,4 @@ def compute_all_distances_to_nucleus_centroid(nucleus_centroid: np.ndarray, imag
     dist = np.sqrt((i - nucleus_centroid[0]) ** 2 + (j - nucleus_centroid[1]) ** 2)
 
     return dist
+
