@@ -136,7 +136,6 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
     ax.set_xlim(-0.5, len(ind) - 0.5)
     fig.savefig(figname)
     plt.close()
-    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
 def bar_profile(data, figname, plot_colors):
@@ -167,7 +166,6 @@ def violin_profile(_dict, tgt_fp, xlabels, rotation=0, annot=False):
     dd = pd.DataFrame(
         dict([(k, pd.Series(v).astype(float)) for k, v in _dict.items()])).melt().dropna().rename(
         columns={"variable": "gene"})
-    print(dd)
     my_pal = {}
     for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(constants.analysis_config['MRNA_GENES'])]):
         my_pal[constants.analysis_config['MRNA_GENES'][i]] = color

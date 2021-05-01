@@ -638,7 +638,7 @@ class ImageWithIntensities(Image):
 
         return normalized_value
 
-    def compute_intensities_cytoplasmic_spread(self):
+    def compute_intensities_normalized_cytoplasmic_spread(self):
         IF = self.get_cytoplasmic_intensities()
         cytoplasmic_mask = self.get_cytoplasm_mask()
 

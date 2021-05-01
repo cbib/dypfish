@@ -211,19 +211,33 @@ class ImageSet(object):
             total_cytoplasmic_intensities.append(image.get_cytoplasmic_total_intensity())
         return total_cytoplasmic_intensities
 
-    def compute_spots_cytoplasmic_spread(self) -> List[float]:
-        cytoplasmic_spread_list = []
-        image: Image3dWithSpots
+    def compute_cytoplasmic_spots_centrality(self) -> List[float]:
+        spot_centralities = []
+        image: Union[ImageWithSpots, Image3dWithSpots]
         for image in self.images:
-            cytoplasmic_spread_list.append(image.compute_spots_normalized_distance_to_centroid())
-        return cytoplasmic_spread_list
+            spot_centralities.append(image.compute_spots_normalized_distance_to_centroid())
+        return spot_centralities
+
+    def compute_cytoplasmic_spots_spread(self) -> List[float]:
+        spots_spread = []
+        image: Union[ImageWithSpots, Image3dWithSpots]
+        for image in self.images:
+            spots_spread.append(image.compute_spots_normalized_cytoplasmic_spread())
+        return spots_spread
+
+    def compute_intensities_cytoplasmic_centrality(self) -> List[float]:
+        centralities = []
+        image: Union[ImageWithIntensities, Image3dWithIntensities]
+        for image in self.images:
+            centralities.append(image.compute_intensities_normalized_spread_to_centroid())
+        return centralities
 
     def compute_intensities_cytoplasmic_spread(self) -> List[float]:
-        cytoplasmic_spread_list = []
-        image: Image3dWithIntensities
+        cytoplasmic_spreads = []
+        image: Union[ImageWithIntensities, Image3dWithIntensities]
         for image in self.images:
-            cytoplasmic_spread_list.append(image.compute_intensities_normalized_spread_to_centroid())
-        return cytoplasmic_spread_list
+            cytoplasmic_spreads.append(image.compute_intensities_normalized_cytoplasmic_spread())
+        return cytoplasmic_spreads
 
     def compute_degree_of_clustering(self):
         image: Union[ImageWithSpots, Image3dWithSpots]

@@ -268,7 +268,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         :return: clustering indices for all r
         Was : clustering_index_point_process
         """
-        logger.info("Running {} simulations of Ripley-K for {}",
+        logger.info("Running {} simulations of Ripley-K for {} in 3D",
                     constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
         spots = self.get_spots()
         n_spots = len(spots)
@@ -406,6 +406,23 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         val = dist_IF.sum() / (IF.sum() * S)
         return val
 
+    def compute_intensities_normalized_cytoplasmic_spread(self):
+        IF = self.get_cytoplasmic_intensities()
+        height_map = self.adjust_height_map(cytoplasm=True)
+        IF = np.multiply(IF, height_map) # factoring in the 3D
+        cytoplasmic_mask = self.get_cytoplasm_mask()
+
+        # Calculate the spread of signal peaks
+        mean_signal = np.mean(IF[cytoplasmic_mask == 1])
+        peaks = np.argwhere(IF > mean_signal * 1.5)  # arbitrary choice to reduce the number of peaks
+        d = pairwise_distances(peaks, metric='euclidean')
+
+        mu_x = peaks[:, 0].sum() / len(peaks)
+        mu_y = peaks[:, 1].sum() / len(peaks)
+        sd = math.sqrt(np.sum((peaks[:, 0] - mu_x) ** 2) / len(peaks) +
+                       np.sum((peaks[:, 1] - mu_y) ** 2) / len(peaks))
+
+        return sd / np.mean(d[d != 0])
 
     def compute_clustering_indices(self) -> np.ndarray:
         """

@@ -66,7 +66,7 @@ def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors
     # generate the bar profile plot
     plot.bar_profile_median(medians, errors.values(), 'mrna', xlabels, tgt_fp, confidence_interval=CI,
                             annot=annotations, data_to_annot=fractions)
-    logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
+    logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
     # generate the violin plot
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type,
@@ -74,6 +74,7 @@ def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
     plot.violin_profile(fractions, tgt_fp, xlabels, annot=annotations)
+    logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
 
 # configurations contain the order in which the degree of clustering is plotted

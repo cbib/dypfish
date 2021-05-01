@@ -14,9 +14,7 @@ from path import global_root_dir
 import helpers
 
 
-def plot_cytoplasmic_spread(analysis_repo, molecule_type, genes, annot=False):
-
-    gene2image_set = {}
+def build_cytoplasmic_spread_statistics(analysis_repo, molecule_type, genes, keyorder):
     gene2cyto_spread = {}
     gene2median_cyto_spread = {}
     gene2error = {}
@@ -24,9 +22,11 @@ def plot_cytoplasmic_spread(analysis_repo, molecule_type, genes, annot=False):
 
     for gene in genes:
         logger.info("Running {} cytoplasmic spread analysis for {}", molecule_type, gene)
-        gene2image_set[gene] = ImageSet(analysis_repo, ['%s/%s/' % (molecule_type, gene)])
-        gene2cyto_spread[gene] = gene2image_set[gene].compute_spots_cytoplasmic_spread() if molecule_type == 'mrna' else gene2image_set[
-            gene].compute_intensities_cytoplasmic_spread()
+        image_set = ImageSet(analysis_repo, ['{0}/{1}/'.format(molecule_type, gene)])
+        if molecule_type == 'mrna':
+            gene2cyto_spread[gene] = image_set.compute_cytoplasmic_spots_centrality()
+        else:
+            gene2cyto_spread[gene] = image_set.compute_intensities_cytoplasmic_centrality()
         gene2median_cyto_spread[gene] = np.median(gene2cyto_spread[gene])
         gene2error[gene] = helpers.sem(gene2cyto_spread[gene], factor=0)
         lower, higher = helpers.median_confidence_interval(gene2cyto_spread[gene])
@@ -34,33 +34,37 @@ def plot_cytoplasmic_spread(analysis_repo, molecule_type, genes, annot=False):
 
     # generate bar plot image
 
-    gene2median_cyto_spread = collections.OrderedDict(sorted(gene2median_cyto_spread.items(), key=lambda i: keyorder.index(i[0])))
+    gene2median_cyto_spread = collections.OrderedDict(sorted(gene2median_cyto_spread.items(),
+                                                             key=lambda i: keyorder.index(i[0])))
     gene2error = collections.OrderedDict(sorted(gene2error.items(), key=lambda i: keyorder.index(i[0])))
-    gene2confidence_interval = collections.OrderedDict(sorted(gene2confidence_interval.items(), key=lambda i: keyorder.index(i[0])))
-    xlabels = constants.analysis_config['MRNA_GENES_LABEL'] if molecule_type == 'mrna' else constants.analysis_config['PROTEINS_LABEL']
+    gene2confidence_interval = collections.OrderedDict(sorted(gene2confidence_interval.items(),
+                                                              key=lambda i: keyorder.index(i[0])))
+    return gene2median_cyto_spread, gene2cyto_spread, gene2error, gene2confidence_interval
 
+
+def plot_bar_profile_median_and_violin(molecule_type, median_spread, spread, errors,
+                                       confidence_intervals):
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
-    plot.bar_profile_median(gene2median_cyto_spread,
-                            gene2error.values(),
-                            molecule_type,
-                            xlabels,
-                            tgt_fp,
-                            gene2confidence_interval.values(),
-                            annot=annot,
-                            data_to_annot=gene2cyto_spread
-                            )
+
+    if molecule_type == 'mrna':
+        xlabels = constants.analysis_config['MRNA_GENES_LABEL']
+    else:
+        xlabels = constants.analysis_config['PROTEINS_LABEL']
+
+    # generate the bar profile plot
+    plot.bar_profile_median(median_spread, errors.values(), molecule_type,
+                            xlabels, tgt_fp, confidence_intervals,
+                            annot=False, data_to_annot=None)
+    logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
     # generate violin plot image
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
-    if molecule_type == 'mrna':
-        xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-    else:
-        xlabels = constants.analysis_config['PROTEINS_LABEL']
-    plot.violin_profile(gene2cyto_spread, tgt_fp, xlabels, rotation=0, annot=annot)
+    plot.violin_profile(spread, tgt_fp, xlabels, rotation=0, annot=False)
+    logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
 
 # Figure 6B top left panel : mRNA cytoplasmic spread arhgdia and arhgdia nocodazole
@@ -87,7 +91,11 @@ if __name__ == '__main__':
         constants.init_config(analysis_config_js_path=conf_full_path)
         repo = open_repo()
         keyorder = conf[1]
-        annot = False
-        for _molecule_type in constants.dataset_config["MOLECULE_TYPES"]:
-            molecules = constants.analysis_config['MRNA_GENES'] if _molecule_type == 'mrna' else constants.analysis_config['PROTEINS']
-            plot_cytoplasmic_spread(repo, _molecule_type, molecules, annot)
+        for molecule_type in ['mrna', 'protein']:
+            if molecule_type == 'mrna':
+                molecules = constants.analysis_config['MRNA_GENES']
+            else:
+                molecules = constants.analysis_config['PROTEINS']
+            medians, spread, err, CI = build_cytoplasmic_spread_statistics(repo, molecule_type,
+                                                                           molecules, keyorder)
+            plot_bar_profile_median_and_violin(molecule_type, medians, spread, err, CI)
