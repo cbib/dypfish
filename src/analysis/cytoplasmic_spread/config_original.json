@@ -1,8 +1,10 @@
 {
   "PNG_IMAGES_MIME_TYPE": "image/png",
   "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/cytoplasmic_spread/output",
-  "FIGURE_NAME_FORMAT": "original_{molecule_type}_cytoplasmic_spread.png",
-  "FIGURE_NAME_VIOLIN_FORMAT": "original_{molecule_type}_cytoplasmic_spread_violin_plot.png",
+  "FIGURE_NAME_SPREAD": "original_{molecule_type}_cytoplasmic_spread.png",
+  "FIGURE_NAME_SPREAD_VIOLIN": "original_{molecule_type}_cytoplasmic_spread_violin_plot.png",
+  "FIGURE_NAME_CENTRALITY": "original_{molecule_type}_cytoplasmic_centrality.png",
+  "FIGURE_NAME_CENTRALITY_VIOLIN": "original_{molecule_type}_cytoplasmic_centrality_violin_plot.png",
   "MPI_SUB_SAMPLE_SIZE": 100,
   "PERIPHERAL_FRACTION_THRESHOLD": 10,
   "NUM_CONTOURS": 100,

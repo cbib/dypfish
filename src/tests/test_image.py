@@ -83,3 +83,6 @@ class TestImageSecondary(TestCase):
         # test some coords in the nucleus
         self.assertEqual(self.img.is_in_cytoplasm([266, 265]), False)
 
+    def test_compute_cell_diameter(self):
+        d = self.img.compute_cell_diameter()
+        self.assertAlmostEqual(d, 311.192866242, places=5)

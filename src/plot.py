@@ -260,7 +260,6 @@ def sns_violinplot(dd, my_pal, figname, plot_xlabels, x="Gene", y='value', hue=N
         ax.legend_.remove()
     fig.savefig(figname, format='png')
     plt.close()
-    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
 def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
@@ -336,8 +335,8 @@ def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type"
     mrna_err = list(dd[dd["Molecule_type"] == "mrna"][err])
     protein_values = list(dd[dd["Molecule_type"] == "protein"][y])
     protein_err = list(dd[dd["Molecule_type"] == "protein"][err])
-    protein_err = [x if (float(x) < 0.0000000000001) else 0.05 for x in protein_err]
-    mrna_err = [x if (float(x) < 0.0000000000001) else 0.05 for x in mrna_err]
+    #protein_err = [x if (float(x) < 0.0000000000001) else 0.05 for x in protein_err]
+    #mrna_err = [x if (float(x) < 0.0000000000001) else 0.05 for x in mrna_err]
     assert (len(mrna_values) == len(protein_values))
     assert (len(mrna_values) == len(mrna_err))
 

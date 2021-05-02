@@ -212,32 +212,56 @@ class ImageSet(object):
         return total_cytoplasmic_intensities
 
     def compute_cytoplasmic_spots_centrality(self) -> List[float]:
-        spot_centralities = []
+        centralities = np.array([])
         image: Union[ImageWithSpots, Image3dWithSpots]
         for image in self.images:
-            spot_centralities.append(image.compute_spots_normalized_distance_to_centroid())
-        return spot_centralities
+            centralities= np.append(centralities, image.compute_spots_normalized_distance_to_centroid())
+        valid_centralities = centralities[~np.isnan(centralities)]
+        if len(valid_centralities) < len(centralities):
+            logger.warning("spots out of hull for {} images out of {}",
+                           len(centralities)-len(valid_centralities), self.__sizeof__())
+        l = len(valid_centralities[valid_centralities > 1])
+        if l > 0:
+            logger.warning("normalized distance to centroid is > 1 for {} images out of {}",
+                           l, self.__sizeof__())
+        return valid_centralities
 
     def compute_cytoplasmic_spots_spread(self) -> List[float]:
-        spots_spread = []
+        spots_spread = np.array([])
         image: Union[ImageWithSpots, Image3dWithSpots]
         for image in self.images:
-            spots_spread.append(image.compute_spots_normalized_cytoplasmic_spread())
+            spots_spread = np.append(spots_spread, image.compute_spots_normalized_cytoplasmic_spread())
+        l = len(spots_spread[spots_spread > 1])
+        if l > 0:
+            logger.warning("normalized distance to centroid is > 1 for {} images out of {}",
+                           l, self.__sizeof__())
         return spots_spread
 
     def compute_intensities_cytoplasmic_centrality(self) -> List[float]:
-        centralities = []
+        centralities = np.array([])
         image: Union[ImageWithIntensities, Image3dWithIntensities]
         for image in self.images:
-            centralities.append(image.compute_intensities_normalized_spread_to_centroid())
-        return centralities
+            centralities = np.append(centralities, image.compute_intensities_normalized_spread_to_centroid())
+        valid_centralities = centralities[~np.isnan(centralities)]
+        if len(valid_centralities) < len(centralities):
+            logger.warning("problematic internsity spread for {} images out of {}",
+                           len(centralities) - len(valid_centralities), self.__sizeof__())
+        l = len(centralities[centralities>1])
+        if l > 0:
+            logger.warning("normalized distance to centroid is > 1 for {} images out of {}",
+                            l, self.__sizeof__())
+        return valid_centralities
 
     def compute_intensities_cytoplasmic_spread(self) -> List[float]:
-        cytoplasmic_spreads = []
+        spreads = np.array([])
         image: Union[ImageWithIntensities, Image3dWithIntensities]
         for image in self.images:
-            cytoplasmic_spreads.append(image.compute_intensities_normalized_cytoplasmic_spread())
-        return cytoplasmic_spreads
+            spreads = np.append(spreads, image.compute_intensities_normalized_cytoplasmic_spread())
+        l = len(spreads[spreads > 1])
+        if l > 0:
+            logger.warning("normalized distance to centroid is > 1 for {} images out of {}",
+                           l, self.__sizeof__())
+        return spreads
 
     def compute_degree_of_clustering(self):
         image: Union[ImageWithSpots, Image3dWithSpots]

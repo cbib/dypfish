@@ -116,14 +116,14 @@ class TestImageSet(TestCase):
     def test_compute_spots_cytoplasmic_centrality(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = np.sort(image_set.compute_cytoplasmic_spots_centrality())
-        self.assertAlmostEqual(np.sum(result), 5.03189680905, places=5)
-        self.assertAlmostEqual(result[1], 0.9654172726, places=5)
+        self.assertAlmostEqual(np.sum(result), 4.2862456696, places=5)
+        self.assertAlmostEqual(result[2], 0.96043751834, places=5)
 
     def test_compute_intensities_cytoplasmic_centrality(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
         result = np.sort(image_set.compute_intensities_cytoplasmic_centrality())
-        self.assertAlmostEqual(np.sum(result), 5.4393450603, places=5)
-        self.assertAlmostEqual(result[1], 1.07338770681, places=5)
+        self.assertAlmostEqual(np.sum(result), 4.37111963970, places=5)
+        self.assertAlmostEqual(result[1], 0.85254875731, places=5)
 
     def test_compute_intensities_cytoplasmic_spread(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])

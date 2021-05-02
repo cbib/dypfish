@@ -7,7 +7,6 @@ from unittest import TestCase
 import numpy as np
 import constants
 import path
-import helpers
 import image_processing as ip
 from image3d import Image3dWithSpots
 from repository import H5RepositoryWithCheckpoint
@@ -34,11 +33,11 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_spots_normalized_distance_to_centroid(self):
         relative_to_centroid = self.img.compute_spots_normalized_distance_to_centroid()
-        self.assertAlmostEqual(relative_to_centroid, 1.003760558730487, places = 5)
+        self.assertAlmostEqual(relative_to_centroid, 0.7861878093213, places = 5)
 
     def test_compute_spots_normalized_cytoplasmic_spread(self):
         spread = self.img.compute_spots_normalized_cytoplasmic_spread()
-        self.assertAlmostEqual(spread, 0.78832658144765, places = 5)
+        self.assertAlmostEqual(spread,  0.7744905608468, places = 5)
 
     def test_clustering_index_point_process(self):
         np.random.seed(0)
@@ -58,10 +57,4 @@ class TestImage3dWithSpots(TestCase):
     def test_compute_mrna_density(self):
         mrna_density = self.img.compute_cytoplasmic_density()
         self.assertAlmostEqual(mrna_density, 0.128494541373, places=5)
-
-    def test_compute_average_cytoplasmic_distance_from_nucleus(self):
-        nucleus_centroid = self.img.get_nucleus_centroid()
-        dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)
-        result = self.img.compute_average_cytoplasmic_distance_from_nucleus(dsAll)
-        self.assertAlmostEqual(result, 90.88332071929095, places=5)
 

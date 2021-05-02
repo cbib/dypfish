@@ -69,7 +69,38 @@ class Test(TestCase):
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid, 11, 11)
         self.assertEqual(np.sum(dsAll).astype(int), 602)
 
+    def test_compute_all_distances_to_nucleus_centroid(self):
+        nucleus_centroid = [6, 6]
+        dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid, 11, 11)
+        self.assertEqual(np.sum(dsAll).astype(int),
+                         526)  # TODO : should be 507, but we keep the 1 offset for the V0 compatibility
+        with self.assertRaises(IndexError):
+            nucleus_centroid = [6, 16]
+            ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid, 11, 31)
+
+        nucleus_centroid = [2, 6]
+        dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid, 11, 11)
+        self.assertEqual(np.sum(dsAll).astype(int), 602)
+
+    def test_compute_all_distances_to_nucleus_centroid3D(self):
+        nucleus_centroid = [1, 1]
+        height_map = np.full((3,3), 1)
+        height_map[1, 1] = 3
+        dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid, 3, 3)
+        self.assertAlmostEqual(np.sum(dsAll), 36.826969209, places=5)
+
+        height_map = np.full((3, 3), 1)
+        nucleus_centroid = [2, 1]
+        height_map[2, 1] = 3
+        dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid, 3, 3)
+        self.assertAlmostEqual(np.sum(dsAll), 43.98414261, places=5)
+
     def test_compute_spots_cytoplasmic_spread(self):
+        '''
+        For the development purposes only. Does not test any function.
+        The code for spread in ImageWithSpots and Image3dWIthSpots
+        should follow the same principles
+        '''
         cell_mask = helpers.unit_circle(43, 17.5)
         nucleus_mask = helpers.unit_circle(43, 5.5)
         cytoplasm_mask = cell_mask - nucleus_mask
@@ -79,18 +110,19 @@ class Test(TestCase):
         rspots = np.array([random.choice(indices) for i in range(0,100)])
         mu_x = rspots[:,0].sum() / len(rspots)
         mu_y = rspots[:,1].sum() / len(rspots)
-        d_r = pairwise_distances(rspots, metric='euclidean')
         sd_r = math.sqrt( np.sum((rspots[:,0] - mu_x)**2) / len(rspots) +
-                          np.sum((rspots[:,0] - mu_y)**2) / len(rspots) )
+                          np.sum((rspots[:,1] - mu_y)**2) / len(rspots) )
+        d_r = pairwise_distances(rspots, metric='euclidean')
 
         # clustered spots
-        spots = np.array([random.choice(indices) for i in range(0,150)])
-        clustered_spots = spots[spots[:,0]>=28]
+        spots = np.array([random.choice(indices) for i in range(0,200)])
+        clustered_spots = spots[(spots[:,0]>=25) & (spots[:,1]>=25)]
         mu_x = clustered_spots[:, 0].sum() / len(clustered_spots)
         mu_y = clustered_spots[:, 1].sum() / len(clustered_spots)
         sd_c = math.sqrt( np.sum((clustered_spots[:, 0] - mu_x) ** 2) / len(clustered_spots)+
                           np.sum((clustered_spots[:, 0] - mu_y) ** 2) / len(clustered_spots) )
-
         d_c = pairwise_distances(clustered_spots, metric='euclidean')
-        self.assertAlmostEqual(sd_r / np.mean(d_r[d_r != 0]), 1)
-        self.assertAlmostEqual(sd_c / np.mean(d_r[d_c != 0]), 1)
+
+        self.assertAlmostEqual(sd_r / (0.68 * 17.5), 1)
+        self.assertAlmostEqual(sd_c / (0.68 * 17.5), 1)
+

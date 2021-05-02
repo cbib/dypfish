@@ -57,7 +57,7 @@ class TestImageWithSpots(TestCase):
 
     def test_compute_spots_normalizaed_distance_to_centroid(self):
         normalized_average_2d_distance = self.img.compute_spots_normalized_distance_to_centroid()
-        self.assertAlmostEqual(normalized_average_2d_distance, 0.8400835839881672, places=5)
+        self.assertAlmostEqual(normalized_average_2d_distance, 0.84008358398, places=5)
 
     def test_compute_spots_normalized_cytoplasmic_spread(self):
         result = self.img.compute_spots_normalized_cytoplasmic_spread()
@@ -65,6 +65,4 @@ class TestImageWithSpots(TestCase):
 
     def test_compute_random_spots(self):
         random_spots = self.img.compute_random_spots()
-        original_spots = self.img.get_spots()
         self.assertTrue(random_spots.shape == (218, 2))
-        self.assertTrue(np.any(random_spots == original_spots[32][0:2]))

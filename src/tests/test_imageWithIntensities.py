@@ -51,7 +51,7 @@ class TestImageWithIntensities(TestCase):
 
     def test_compute_intensities_normalized_spread_to_centroid(self):
         normalized_value = self.img.compute_intensities_normalized_spread_to_centroid()
-        self.assertAlmostEqual(normalized_value, 0.9035539481333, places=5)
+        self.assertAlmostEqual(normalized_value, 0.6647823338506, places=5)
 
     def test_compute_intensities_cytoplasmic_spread(self):
         spread = self.img.compute_intensities_normalized_cytoplasmic_spread()

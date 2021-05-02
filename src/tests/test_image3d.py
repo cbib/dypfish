@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import unittest
+import image_processing as ip
 import pathlib
 from unittest import TestCase
 import path
@@ -70,3 +70,11 @@ class TestImage3d(TestCase):
         self.assertGreater(height_map.sum(), height_map_original.sum())
         adj_height_map = self.img.adjust_height_map(cytoplasm=True)
         self.assertGreater(height_map.sum(), adj_height_map.sum())
+
+    def test_compute_average_cytoplasmic_distance_from_nucleus(self):
+        nucleus_centroid = self.img.get_nucleus_centroid()
+        height_map = self.img.get_cytoplasm_height_map()
+        dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid)
+        result = self.img.compute_average_cytoplasmic_distance_from_nucleus3d(dsAll)
+        self.assertAlmostEqual(result, 92.585592446906, places=5)
+

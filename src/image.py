@@ -11,6 +11,7 @@ from loguru import logger
 from scipy import signal
 import constants
 import helpers
+from scipy import spatial
 import image_processing as ip
 from repository import Repository
 from sklearn.metrics.pairwise import pairwise_distances
@@ -143,6 +144,14 @@ class Image(object):
     def is_in_cytoplasm(self, position: List) -> bool:
         cytoplasm_mask = self.get_cytoplasm_mask()
         return cytoplasm_mask[position[0], position[1]] == 1
+
+    def compute_cell_diameter(self) -> float:
+        cell_mask = self.get_cell_mask()
+        cell_mask_points = np.argwhere(cell_mask == 1)
+        convex_hull = spatial.ConvexHull(cell_mask_points)
+        boundary_points = cell_mask_points[convex_hull.vertices]
+        d = np.max(pairwise_distances(boundary_points))
+        return d
 
     def compute_peripheral_areas(self) -> List[float]:
         """
@@ -417,23 +426,26 @@ class ImageWithSpots(Image):
         return self.compute_peripheral_total_spots()
 
     def compute_average_cytoplasmic_distance_from_nucleus(self, dsAll) -> float:
+        # Ben please test
         cytoplasm_mask = self.get_cytoplasm_mask()
-        map_dist = np.multiply(cytoplasm_mask, dsAll)  # TODO : this should be useless
-        return map_dist.sum() / cytoplasm_mask.sum()
+        map_dist = np.multiply(cytoplasm_mask, dsAll)
+        return np.mean(map_dist[map_dist != 0])
 
     def compute_spots_normalized_distance_to_centroid(self) -> float:
+        # Ben please test
         nucleus_centroid = self.get_nucleus_centroid()
         cytoplasmic_spots = self.get_cytoplasmic_spots()[:, 0:2]  # 2d coordinates of 3d spots
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
 
         dsCytoplasmic = dsAll[cytoplasmic_spots[:, 1], cytoplasmic_spots[:, 0]]
-        S = self.compute_average_cytoplasmic_distance_from_nucleus(dsAll)
+        avg_dist = self.compute_average_cytoplasmic_distance_from_nucleus(dsAll)
 
         # val is average 2D distance from the nucleus centroid of cytoplasmic mRNAs
         # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
         # distributed across the cytoplasm).
         # TODO : this assumption is probably wrong. Should check it
-        normalized_average_2d_distance = np.mean(dsCytoplasmic) / S
+        normalized_average_2d_distance = np.mean(dsCytoplasmic) / avg_dist
+        assert normalized_average_2d_distance <= 1
         return normalized_average_2d_distance
 
     def compute_spots_normalized_cytoplasmic_spread(self) -> float:
@@ -628,15 +640,20 @@ class ImageWithIntensities(Image):
 
     def compute_intensities_normalized_spread_to_centroid(self) -> float:
         nucleus_centroid = self.get_nucleus_centroid()
-        intensities = self.get_cytoplasmic_intensities()
+        IF = self.get_cytoplasmic_intensities()
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
         dsAll = dsAll * self.get_cytoplasm_mask()
-        S = self.compute_average_cytoplasmic_distance_proportional_intensity(dsAll)
+        avg_dist = self.compute_average_cytoplasmic_distance_proportional_intensity(dsAll)
 
-        proportional_intensities = np.multiply(intensities, dsAll)
-        normalized_value = proportional_intensities.sum() / (S * intensities.sum())
+        # Calculate the distances of signal peaks to nucleus_centroid
+        mean_signal = np.mean(IF[IF > 0])
+        peaks = np.argwhere(IF > mean_signal * 1.5)  # arbitrary choice to reduce the number of peaks
+        d = math.sqrt(np.sum((peaks[:, 1] - nucleus_centroid[0]) ** 2) / len(peaks) +
+                      np.sum((peaks[:, 0] - nucleus_centroid[1]) ** 2) / len(peaks))
 
-        return normalized_value
+        spread_to_centroid = d / avg_dist
+        assert spread_to_centroid <= 1
+        return spread_to_centroid
 
     def compute_intensities_normalized_cytoplasmic_spread(self):
         IF = self.get_cytoplasmic_intensities()
