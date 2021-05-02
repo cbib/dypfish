@@ -137,18 +137,18 @@ def compute_all_distances_to_nucleus_centroid(nucleus_centroid: np.ndarray, imag
 def compute_all_distances_to_nucleus_centroid3d(heightmap: np.ndarray, nucleus_centroid: np.ndarray,
                                                 image_width=None, image_height=None) -> np.ndarray:
     """
-    Compute distances between all points and nucleus_centroid in a
-    IMAGE_WIDTH x IMAGE_HEIGHT x cell_height matrix
+    Compute distances within the cytoplasm between all points and nucleus_centroid in a
+    IMAGE_WIDTH x IMAGE_HEIGHT x cytoplasm_height matrix (max height of the cytoplasm)
     """
     image_width = image_width or constants.dataset_config['IMAGE_WIDTH']
     image_height = image_height or constants.dataset_config['IMAGE_HEIGHT']
-    cell_height = np.max(heightmap)
+    cytoplsam_height = np.max(heightmap)
     nucleus_centroid_z = heightmap[nucleus_centroid[0], nucleus_centroid[1]] // 2
     if image_width != image_height:
         raise IndexError("Implemented only for images with IMAGE_WIDTH == IMAGE_HEIGHT, {} != {}",
                          image_width, image_height)
 
-    i, j, k = np.meshgrid(np.arange(image_height), np.arange(image_width), np.arange(cell_height))
+    i, j, k = np.meshgrid(np.arange(image_height), np.arange(image_width), np.arange(cytoplsam_height))
     dist = np.sqrt((j - nucleus_centroid[0]) ** 2 +
                    (i - nucleus_centroid[1]) ** 2 +
                    (k - nucleus_centroid_z) ** 2)

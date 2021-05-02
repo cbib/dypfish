@@ -105,6 +105,7 @@ if __name__ == '__main__':
         keyorder = conf[1]
         for molecule_type, statistics_type in itertools.product(['mrna', 'protein'],
                                                                 ['centrality', 'spread']):
+            if  molecule_type != 'mrna' or statistics_type != 'spread': continue
             if molecule_type == 'mrna':
                 molecules = constants.analysis_config['MRNA_GENES']
             else:

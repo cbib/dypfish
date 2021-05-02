@@ -58,11 +58,11 @@ class TestImageWithMTOC(TestCase):
         nucleus_centroid = [5, 5]
         mtoc_position = [5, 2]
 
-        quadrant_mask = self.img.compute_quadrant_mask(degree=45, slices_num=4, nucleus_centroid=nucleus_centroid,
-                                                       image_width=11, image_height=11, cell_mask=cell_mask,
-                                                       mtoc_position=mtoc_position)
+        quadrant_mask = self.img.rotate_quadrant_mask(degree=45, slices_num=4, nucleus_centroid=nucleus_centroid,
+                                                      image_width=11, image_height=11, cell_mask=cell_mask,
+                                                      mtoc_position=mtoc_position)
         self.assertEqual(quadrant_mask.sum(), 179)
 
-        quadrant_mask = self.img.compute_quadrant_mask(degree=45, slices_num=4)
+        quadrant_mask = self.img.rotate_quadrant_mask(degree=45, slices_num=4)
         self.assertEqual(quadrant_mask.sum(), 133618)
 

@@ -28,6 +28,7 @@ from constants import MTOC_POSITION_PATH_SUFFIX
 from constants import MTOC_LEADING_EDGE_SUFFIX
 
 # secondary basic image descriptors
+from constants import QUADRANT_MASK_PATH_SUFFIX
 from constants import NUCLEUS_AREA_PATH_SUFFIX
 from constants import CELL_AREA_PATH_SUFFIX
 from constants import CELL_MASK_DISTANCE_PATH_SUFFIX
@@ -186,12 +187,13 @@ class ImageWithMTOC(Image):
     def get_mtoc_position(self) -> np.ndarray:
         return np.around(self._repository.get(self._path + MTOC_POSITION_PATH_SUFFIX)).flatten().astype(np.int)
 
-    def compute_quadrant_mask(self, degree, slices_num=4, nucleus_centroid=None, mtoc_position=None,
-                              cell_mask=None, image_width=None, image_height=None):
+    def rotate_quadrant_mask(self, degree, slices_num=4, nucleus_centroid=None, mtoc_position=None,
+                             cell_mask=None, image_width=None, image_height=None):
         """
         Computes the quadrant mask (slices are quadrants if slices_num == 4) of a cell anchored in
         the MTOC position, rotated by a degree. The original quadrant of the MTOC (before rotation)
-        is defined by two lines 45 degrees to the right
+        is defined by two lines anchored at the nucleus_centroid and at 45 degrees relative to
+        the nucleus_centroid-MTOC line
         Returns a mask where each pixel of the cell has it's quadrant number
         """
         # TODO problem with quadrant num when mtoc and nucleus centroid are in the top right quadrant of the whole image
@@ -210,7 +212,8 @@ class ImageWithMTOC(Image):
         rotated_xx, rotated_yy = helpers.rotate_meshgrid(xx, yy, -radians)
 
         # Arbitrarily assign number to each slice
-        # This trunc of pi is used for compatibility between macOS and Linux on how they deal with infinite decimal (0.9999999999999...)
+        # This trunc of pi is used for compatibility between macOS and Linux vs how they deal
+        # with infinite decimals (0.9999999999999...)
         pi = format(math.pi, '.10f')
         pi = float(pi)
 
@@ -223,35 +226,7 @@ class ImageWithMTOC(Image):
 
     @helpers.checkpoint_decorator(PERIPHERAL_QUADRANT_DENSITIES_PATH_SUFFIX, dtype=np.float)
     def get_peripheral_quadrants_densities(self, quadrants_num=4):
-        return self.peripheral_split_in_quadrants(quadrants_num=quadrants_num)
-
-    def peripheral_split_in_quadrants(self, quadrants_num=4) -> np.ndarray:
-        """
-        was : compute_max_density_MTOC_quadrant
-        For all possible subdivisions of the cell in quadrants (90 possible)
-        computes the normalized density (vs whole cytoplasm) per quadrant
-        and keeps the subdivision such that the MTOC containing quadrant is the densiest.
-        The anchor for the computation is the MTOC containing quadrant.
-        Returns an array with the density values per quadrant and associated MTOC flags
-        """
-        if not quadrants_num in [2, 3, 4, 5, 6, 8, 9]:  # just in case
-            raise (RuntimeError, "Unexpected number of slices (quadrants) %i" % quadrants_num)
-
-        max_density = 0.0
-        quadrants_max_MTOC_density = np.zeros((quadrants_num, 2), dtype=float)
-        mtoc_position = self.get_mtoc_position()
-
-        degree_span = 360 // quadrants_num
-        for degree in range(degree_span):
-            quadrant_mask = self.compute_quadrant_mask(degree, quadrants_num)
-            mtoc_quad_num = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-            # assign each spot to the corresponding quadrant excluding those in the nucleus
-            density_per_quadrant = self.compute_density_per_quadrant(mtoc_quad_num, quadrant_mask, quadrants_num)
-            if density_per_quadrant[mtoc_quad_num - 1, 0] > max_density:
-                max_density = density_per_quadrant[mtoc_quad_num - 1, 0]
-                quadrants_max_MTOC_density = density_per_quadrant
-
-        return quadrants_max_MTOC_density
+        return self.compute_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=True)
 
     @helpers.checkpoint_decorator(QUADRANT_DENSITIES_PATH_SUFFIX, dtype=np.float)
     def get_quadrants_densities(self, quadrants_num=4):
@@ -278,7 +253,7 @@ class ImageWithMTOC(Image):
         if peripheral_flag and (not stripes_flag):
             density_per_quadrant = self.get_peripheral_quadrants_densities(quadrants_num, peripheral_flag)
         if (not peripheral_flag) and stripes_flag:
-            density_per_quadrant = self.get_quadrants_and_slices_densities(quadrants_num, stripes,stripes_flag)
+            density_per_quadrant = self.get_quadrants_and_slices_densities(quadrants_num, stripes, stripes_flag)
         if peripheral_flag and stripes_flag:
             density_per_quadrant = self.get_peripheral_quadrants_and_slices_densities(quadrants_num, peripheral_flag,
                                                                                       stripes, stripes_flag)
@@ -301,7 +276,7 @@ class ImageWithMTOC(Image):
 
         degree_span = 360 // quadrants_num
         for degree in range(degree_span):
-            quadrant_mask = self.compute_quadrant_mask(degree, quadrants_num)
+            quadrant_mask = self.rotate_quadrant_mask(degree, quadrants_num)
             mtoc_quad_num = quadrant_mask[mtoc_position[1], mtoc_position[0]]
             # assign each spot to the corresponding quadrant excluding those in the nucleus
             if (not peripheral_flag) and (not stripes_flag):
@@ -326,14 +301,15 @@ class ImageWithMTOC(Image):
     def compute_density_per_quadrant(self, mtoc_quad_num, quadrant_mask, quadrants_num):
         raise NotImplementedError
 
+    def compute_peripheral_density_per_quadrant(self, mtoc_quad_num, quadrant_mask, quadrants_num):
+        raise NotImplementedError
+
     def compute_density_per_quadrant_and_slices(self, mtoc_quad_num, quadrant_mask, stripes, quadrants_num):
         raise NotImplementedError
 
     def compute_peripheral_density_per_quadrant_and_slices(self, mtoc_quad_num, quadrant_mask, stripes, quadrants_num):
         raise NotImplementedError
 
-    def compute_peripheral_density_per_quadrant(self, mtoc_quad_num, quadrant_mask, quadrants_num):
-        raise NotImplementedError
 
 
 class ImageWithSpots(Image):
@@ -443,7 +419,6 @@ class ImageWithSpots(Image):
         # val is average 2D distance from the nucleus centroid of cytoplasmic mRNAs
         # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
         # distributed across the cytoplasm).
-        # TODO : this assumption is probably wrong. Should check it
         normalized_average_2d_distance = np.mean(dsCytoplasmic) / avg_dist
         assert normalized_average_2d_distance <= 1
         return normalized_average_2d_distance
@@ -503,8 +478,7 @@ class ImageWithSpots(Image):
     def compute_clustering_indices(self) -> np.ndarray:
         """
         Point process Ripkey-K computation for disks of radius r < MAX_CELL_RADIUS
-        :return: clustering indices for all r
-        Was : clustering_index_point_process
+        return: clustering indices for all r
         """
         logger.info("Running {} simulations of Ripley-K for {}",
                     constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
@@ -620,14 +594,13 @@ class ImageWithIntensities(Image):
 
     def compute_peripheral_intensities(self) -> np.ndarray:
         """
-         :returns: np.ndarray of floats (total intensity for each distance percentage from the periphery)
+         returns: np.ndarray of floats (total intensity for each distance percentage from the periphery)
          normalization is the responsibility of the caller
          """
-        # cytoplasmic_intensities = self.get_cytoplasmic_intensities()
         intensities = self.get_intensities()
         cell_mask_distance_map = self.get_cell_mask_distance_map()
         intensities_sums = np.zeros(100)  # TODO check evrywhere : maybe NUM_CONTOURS is better ?
-        for i in range(0, 100):  # TODO : normalization should be done by the caller
+        for i in range(0, 100):  # normalization is done by the caller if needed
             # TODO : should be intensities_sums[i] = cytoplasmic_intensities[cell_mask_distance_map <= i + 1].sum()
             intensities_sums[i] = intensities[(cell_mask_distance_map <= i + 1) & (cell_mask_distance_map > 0)].sum()
         return intensities_sums

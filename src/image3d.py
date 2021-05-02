@@ -176,14 +176,14 @@ class Image3d(Image):
         '''Average distance of a cytoplasmic voxel from the nucleus centroid'''
         height_map = self.get_cytoplasm_height_map()
         cytoplasm_mask = self.get_cytoplasm_mask()
-        zero_level = self.get_zero_level()
+        max_slice = min(np.max(height_map), int(self.get_zero_level()))-1 # we are in the cytoplasm
         dist_sum, count = 0, 0
         max_dist = []
-        for slice_num in range(zero_level, -1, -1):
-            if slice_num >= dsAll.shape[2]: continue # should not happen but does
-            slice_mask = np.zeros(height_map.shape)
-            slice_mask[height_map >= zero_level + 1 - slice_num] = 1
-            slice_mask = slice_mask * cytoplasm_mask # not precise since it is not propagarted through slices
+        slices = self.get_cell_mask_slices()
+        for slice_num in range(max_slice, -1, -1):
+            if slice_num >= dsAll.shape[2]: continue # should not happen, just in case
+            slice_mask = slices[:,:,slice_num]
+            slice_mask = slice_mask * cytoplasm_mask # not very precise since it is not propagarted through slices
             slice = np.multiply(dsAll[:,:,slice_num], slice_mask)
             dist_sum = dist_sum + slice.sum()
             count = count + slice_mask[slice_mask == 1].sum()
@@ -352,7 +352,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
                                         [nucleus_centroid[0], nucleus_centroid[1], nucleus_centroid_z])**2,
                                        axis=1))
 
-        dsCytoplasmic = dsCytoplasmic[dsCytoplasmic < max_dist] # taking out problematic spots outside of the cell
+        dsCytoplasmic = dsCytoplasmic[dsCytoplasmic < max_dist] # problematic spots outside of the cell
         normalized_dist_to_centroid = np.mean(dsCytoplasmic) / avg_dist
         return normalized_dist_to_centroid
 
@@ -498,6 +498,9 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
     def is_a(repo: Repository, path: str):
         return ImageWithMTOC.is_a(repo, path) and Image3d.is_a(repo, path)
 
+    def compute_density_per_quadrant(self, mtoc_quad, quadrant_mask, quadrants_num=4):
+        raise NotImplementedError
+
     def compute_peripheral_density_per_quadrant(self, mtoc_quad, quadrant_mask, quadrants_num=4):
         """
         compute volumic density per quadrant;
@@ -527,14 +530,15 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
         assert arr.shape[0] == quadrants_num * stripes, "Incorrect shape"
         return arr
 
-    def compute_peripheral_density_per_quadrant_and_slices(self, mtoc_quad_num, quadrant_mask, stripes, quadrants_num=4):
+    def compute_peripheral_density_per_quadrant_and_slices(self, mtoc_quad_num, quadrant_mask, stripes,
+                                                           quadrants_num=4):
         peripheral_fraction_threshold = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"]
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         peripheral_binary_mask = (cell_mask_dist_map > 0) & \
                                  (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
         quadrant_mask = quadrant_mask * peripheral_binary_mask
-        return self.compute_density_per_quadrant_and_slices(mtoc_quad_num, quadrant_mask, stripes, quadrants_num,
-                                                            peripheral_flag=True)
+        return self.compute_density_per_quadrant_and_slices(mtoc_quad_num, quadrant_mask, stripes,
+                                                            quadrants_num, peripheral_flag=True)
 
 
 class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
@@ -606,7 +610,10 @@ class Image3dWithSpotsAndIntensitiesAndMTOC(Image3dWithSpotsAndMTOC, Image3dWith
 
 
 class Image3dMultiNucleus(Image3d):
-    """ Represents a generic image with one cell mask and multiple nucleus. It has at least a cell_mask, a nucleus_mask and one or more nucleus_centroid """
+    """
+    Represents a generic image with one cell mask and multiple nucleus.
+    It has at least a cell_mask, a nucleus_mask and one or more nucleus_centroid
+    """
 
     @staticmethod
     def is_a(repo: Repository, path: str):
@@ -626,7 +633,7 @@ class Image3dMultiNucleus(Image3d):
 
     def compute_cell_volume(self):
         """
-        compute cell surface in pixels using the cell mask
+        computes cell surface in pixels using the cell mask
         """
         volume_offset = constants.dataset_config['VOLUME_OFFSET']
         cell_mask = self.get_cell_mask()
@@ -640,7 +647,7 @@ class Image3dMultiNucleus(Image3d):
 
     def compute_peripheral_cell_volume(self):
         """
-        compute cell surface in pixels using the cell mask
+        computes cell surface in pixels using the cell mask
         """
         peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
         volume_offset = constants.dataset_config['VOLUME_OFFSET']
@@ -660,7 +667,9 @@ class Image3dMultiNucleus(Image3d):
 
 
 class Image3dMultiNucleusWithSpots(Image3dMultiNucleus, Image3dWithSpots):
-    """ Represents an image with identified spots (e.g. from FISH), has to have spots descriptor """
+    """
+    Represents an image with identified spots (e.g. from FISH), has to have spots descriptor
+    """
 
     @staticmethod
     def is_a(repo: Repository, path: str):

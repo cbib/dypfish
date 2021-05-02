@@ -32,8 +32,11 @@ class TestImage3dWithSpots(TestCase):
         self.assertEqual(results.sum(), 7313) # TODO: double check this
 
     def test_compute_spots_normalized_distance_to_centroid(self):
+        # self.small_img = Image3dWithSpots(repository=self.repo, image_path="mrna/my_third_gene/2h/1")
+        # relative_to_centroid = self.small_img.compute_spots_normalized_distance_to_centroid()
+        # print(relative_to_centroid)
         relative_to_centroid = self.img.compute_spots_normalized_distance_to_centroid()
-        self.assertAlmostEqual(relative_to_centroid, 0.7861878093213, places = 5)
+        self.assertAlmostEqual(relative_to_centroid, 0.792196411969, places = 5)
 
     def test_compute_spots_normalized_cytoplasmic_spread(self):
         spread = self.img.compute_spots_normalized_cytoplasmic_spread()

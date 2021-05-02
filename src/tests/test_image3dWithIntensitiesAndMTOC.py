@@ -29,7 +29,7 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         self.assertAlmostEqual(result, 1759171.4466687627)
 
     def test_compute_density_per_quadrant(self):
-        quadrant_mask = self.img.compute_quadrant_mask(45, 4)
+        quadrant_mask = self.img.rotate_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
         result = self.img.compute_density_per_quadrant(mtoc_quad, quadrant_mask)
@@ -39,7 +39,7 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         self.assertEqual(result[:, 1].sum(), 1.0)
 
     def test_compute_peripheral_density_per_quadrant(self):
-        quadrant_mask = self.img.compute_quadrant_mask(45, 4)
+        quadrant_mask = self.img.rotate_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
         result = self.img.compute_peripheral_density_per_quadrant(mtoc_quad, quadrant_mask)
@@ -55,7 +55,7 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         self.assertEqual(result[2, 1], 1)
 
     def test_compute_density_per_quadrant_and_slices(self):
-        quadrant_mask = self.img.compute_quadrant_mask(45, 4)
+        quadrant_mask = self.img.rotate_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
         result = self.img.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
@@ -64,7 +64,7 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         self.assertEqual(result[:, 1].sum(), 3)
 
     def test_compute_peripheral_density_per_quadrant_and_slices(self):
-        quadrant_mask = self.img.compute_quadrant_mask(45, 4)
+        quadrant_mask = self.img.rotate_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
         result = self.img.compute_peripheral_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
