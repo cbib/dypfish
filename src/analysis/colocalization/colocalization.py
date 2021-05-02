@@ -17,7 +17,7 @@ from loguru import logger
 
 
 def compute_relative_density_per_quadrants_and_slices(analysis_repo, molecule_type, quadrants_num=4):
-    protein_cs_dict = {}
+    colocalisation_score, dense_voxels = {}, {}
     stripes = constants.analysis_config['STRIPE_NUM']
     if molecule_type == 'mrna':
         timepoints = constants.dataset_config['TIMEPOINTS_MRNA']
@@ -25,7 +25,7 @@ def compute_relative_density_per_quadrants_and_slices(analysis_repo, molecule_ty
         timepoints = constants.dataset_config['TIMEPOINTS_PROTEIN']
 
     for gene in constants.analysis_config['PROTEINS']:
-        mean_densities = []
+        mean_densities, dense_voxels = [], []
         for timepoint in timepoints:
             image_set = ImageSet(analysis_repo, [molecule_type + "/{0}/{1}/".format(gene, timepoint)])
             arr = image_set.compute_normalised_quadrant_densities(quadrants_num=quadrants_num,
@@ -33,10 +33,13 @@ def compute_relative_density_per_quadrants_and_slices(analysis_repo, molecule_ty
                                                                   stripes=stripes, stripes_flag=True)
             aligned_densities = arr[:, 0].reshape(image_set.__sizeof__(), quadrants_num * stripes)
             mean_densities_per_slice = np.nanmean(aligned_densities, axis=0)
+            dense_voxels_per_cell = np.count_nonzero(aligned_densities >= 1, axis=0)
             mean_densities.append(mean_densities_per_slice)
-        protein_cs_dict[gene] = mean_densities
+            dense_voxels.append(np.mean(dense_voxels_per_cell))
+        colocalisation_score[gene] = mean_densities
+        dense_voxels[gene] = dense_voxels
 
-    return protein_cs_dict
+    return colocalisation_score, dense_voxels
 
 
 # configurations contain the order in which the degree of clustering is plotted
@@ -59,15 +62,15 @@ if __name__ == '__main__':
         repo = helpers.open_repo()
 
         # Use annot=True if you want to add stats annotation in plots
-        mrna_cs_dict = compute_relative_density_per_quadrants_and_slices(repo, 'mrna', quadrants_num=8)
-        prot_cs_dict = compute_relative_density_per_quadrants_and_slices(repo, 'protein', quadrants_num=8)
+        mrna_cs, mrna_dense_v = compute_relative_density_per_quadrants_and_slices(repo, 'mrna', quadrants_num=8)
+        prot_cs, prot_dense_v = compute_relative_density_per_quadrants_and_slices(repo, 'protein', quadrants_num=8)
 
         css, p_vals = [], {}
         for gene in constants.analysis_config['PROTEINS']:
-            cs, p, ranking = helpers.calculate_colocalization_score(mrna_cs_dict[gene], prot_cs_dict[gene],
-                                                              constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                              constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
-                                                              permutation_num=conf[2])
+            cs, p, ranking = helpers.calculate_colocalization_score(mrna_cs[gene], prot_cs[gene],
+                                                                    constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
+                                                                    constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
+                                                                    permutation_num=conf[2])
             css.append(cs)
             p_vals[gene] = p
             print("gene: ", gene, " p-values (random permutation test): ", p)

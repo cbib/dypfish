@@ -46,7 +46,7 @@ class TestImage3dWithSpots(TestCase):
         np.random.seed(0)
         h_star = self.img.compute_clustering_indices()
         self.assertEqual(len(h_star), 300)
-        self.assertAlmostEqual(h_star.sum(), 289.98034888178876)  # I think this is ok, but might not work since random
+        self.assertAlmostEqual(h_star.sum(), 289.98034888178876)  # might not work since random
 
     def test_ripley_k_point_process(self):
         K = self.img.ripley_k_point_process(nuw=1158349.7249999999, my_lambda=0.00018819877563315348)

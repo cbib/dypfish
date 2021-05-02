@@ -147,43 +147,22 @@ class ImageSet(object):
     def get_images(self):
         return self.images
 
-    # TODO : change this function's name !!!
-    def compute_histogram_spots_peripheral_fraction(self):
-        arr = []
-        for image in tqdm.tqdm(self.images, desc="Images"):
+    def compute_spots_fractions_per_periphery(self):
+        arr = np.zeros((self.__sizeof__(),100))
+        for img_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
             spots_peripheral_distance = image.get_spots_peripheral_distance()
-            peripheral_profile = np.zeros(100)
             for i in range(0, 100):
-                peripheral_profile[i] = float(len(np.where(spots_peripheral_distance <= (i + 1))[0])) / float(
-                    len(spots_peripheral_distance))
-            arr.append(peripheral_profile)
+                arr[img_num, i] = (spots_peripheral_distance <= i + 1).sum() / len(spots_peripheral_distance)
         return arr
 
-    # TODO why here are counts and for intensities fractions ?
-    # TODO why here it is not normalized and for intensities it is ?
-    def compute_histogram_spots_peripheral_counts(self):
-        arr = []
-        for image in tqdm.tqdm(self.images, desc="Images"):
-            spots_peripheral_distance = image.get_spots_peripheral_distance()
-            arr.append(len(spots_peripheral_distance[spots_peripheral_distance <=
-                                                     constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']]) / len(
-                spots_peripheral_distance))
-        return arr
-
-    # TODO this is only computed in 2D  ??????
-    def compute_histogram_intensities_peripheral_fractions(self):
-        arr = []
+    def compute_intensities_fractions_from_periphery(self):
+        arr = np.zeros((self.__sizeof__(), 100))
         image: Image3dWithIntensitiesAndMTOC
-        for image in tqdm.tqdm(self.images, desc="Images"):
-            intensities = image.get_intensities()
-            # TODO this line below not present in V1, we have to add it to reproduce nocodazole protein peripheral fraction results
-            # intensities = np.multiply(intensities, cell_mask)
-            cytoplasmic_intensity = intensities[
-                image.get_nucleus_mask() == 0].sum()  # TODO : should be = image.get_cytoplasmic_total_intensity()
-            peripheral_intensities = image.compute_peripheral_intensities()
-            peripheral_intensities = peripheral_intensities[constants.analysis_config[
-                'PERIPHERAL_FRACTION_THRESHOLD']] / cytoplasmic_intensity
-            arr.append(peripheral_intensities)
+        for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
+            cell_intensities = image.get_intensities()[image.get_cell_mask()==1].sum()
+            periph_i = image.compute_peripheral_intensities()
+            periph_i = periph_i[constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']] / cell_intensities
+            arr[image_num] = periph_i
         return arr
 
     def compute_cytoplasmic_spots_counts(self) -> List[int]:

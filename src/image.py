@@ -594,15 +594,14 @@ class ImageWithIntensities(Image):
 
     def compute_peripheral_intensities(self) -> np.ndarray:
         """
-         returns: np.ndarray of floats (total intensity for each distance percentage from the periphery)
+         np.ndarray of floats (total intensity for each distance percentage from the periphery)
          normalization is the responsibility of the caller
          """
-        intensities = self.get_intensities()
+        intensities = np.multiply(self.get_intensities(), self.get_cell_mask())
         cell_mask_distance_map = self.get_cell_mask_distance_map()
-        intensities_sums = np.zeros(100)  # TODO check evrywhere : maybe NUM_CONTOURS is better ?
+        intensities_sums = np.zeros(100)
         for i in range(0, 100):  # normalization is done by the caller if needed
-            # TODO : should be intensities_sums[i] = cytoplasmic_intensities[cell_mask_distance_map <= i + 1].sum()
-            intensities_sums[i] = intensities[(cell_mask_distance_map <= i + 1) & (cell_mask_distance_map > 0)].sum()
+            intensities_sums[i] = intensities[cell_mask_distance_map <= i + 1].sum()
         return intensities_sums
 
     # TODO : why would we consider that distance can be proportional to intensity, does not make sense
@@ -669,9 +668,8 @@ class ImageWithIntensities(Image):
 
     def compute_clustering_indices(self) -> np.ndarray:
         """
-        Point process Ripkey-K computation for disks of radius r < MAX_CELL_RADIUS
-        :return: clustering indices for all r
-        Was : clustering_index_point_process
+        Point process Ripkey-K computation in 2D for disks of radius r < MAX_CELL_RADIUS
+        return: clustering indices for all r
         """
         logger.info("Running {} simulations of Ripley-K for {}",
                     constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
@@ -703,7 +701,6 @@ class ImageWithIntensities(Image):
     def ripley_k_random_measure_2D(self, IF, my_lambda, nuw):
         IF_rev = IF[::-1, ::-1]
         P = signal.convolve(IF, IF_rev)
-        dMap = np.zeros((P.shape[0], P.shape[1]))
         p, q = np.meshgrid(range(P.shape[0]), range(P.shape[0]))
         dMap = np.sqrt((p - IF.shape[0]) ** 2 + (q - IF.shape[1]) ** 2)
         # sum convolution using dMap

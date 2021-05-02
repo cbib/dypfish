@@ -19,7 +19,7 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo):
     for gene in constants.analysis_config['MRNA_GENES']:
         image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene])
         gene2profile_mrna_periph_fraction.append(
-            np.average(image_set.compute_histogram_spots_peripheral_fraction(), axis=0))
+            np.average(image_set.compute_spots_fractions_per_periphery(), axis=0))
 
     # normalized by gapdh profile
     gene2profile_mrna_periph_fraction = gene2profile_mrna_periph_fraction / \
@@ -27,12 +27,12 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo):
                                                          len(constants.dataset_config['MRNA_GENES']), 1)
     return gene2profile_mrna_periph_fraction
 
-# TODO : code redundancy below
+
 def build_histogram_peripheral_fraction(analysis_repo, molecule_type, force2D=False):
     gene2periph_fraction = {}
     gene2median_periph_fraction = {}
     gene2error = {}
-    gene2confidence_interval = {}
+    gene2ci = {}
     if molecule_type == 'mrna':
         genes = constants.analysis_config['MRNA_GENES']
     else:
@@ -42,13 +42,13 @@ def build_histogram_peripheral_fraction(analysis_repo, molecule_type, force2D=Fa
         if molecule_type == 'mrna':
             gene2periph_fraction[gene] = image_set.compute_histogram_spots_peripheral_counts()
         else:
-            gene2periph_fraction[gene] = image_set.compute_histogram_intensities_peripheral_fractions()
+            gene2periph_fraction[gene] = image_set.compute_intensities_fractions_from_periphery()
         gene2median_periph_fraction[gene] = np.median(gene2periph_fraction[gene])
         gene2error[gene] = helpers.sem(gene2periph_fraction[gene], factor=0)
         lower, higher = helpers.median_confidence_interval(gene2periph_fraction[gene])
-        gene2confidence_interval[gene] = [lower, higher]
+        gene2ci[gene] = [lower, higher]
 
-    return gene2median_periph_fraction, gene2periph_fraction, gene2error, gene2confidence_interval
+    return gene2median_periph_fraction, gene2periph_fraction, gene2error, gene2ci
 
 
 def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors, CI, annotations):

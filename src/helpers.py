@@ -300,7 +300,7 @@ def get_forward_timepoints(mrna_timepoints: list, protein_timepoints: list) -> n
                 fwd_interactions[x, y] = 1
     return fwd_interactions
 
-def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein, permutation_num=1000):
+def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
     num_mrna_tp, num_protein_tp = len(timepoint_num_mrna), len(timepoint_num_protein)
     correlations = np.zeros((num_mrna_tp, num_protein_tp))
     for i, j in itertools.product(range(num_mrna_tp), range(num_protein_tp)):

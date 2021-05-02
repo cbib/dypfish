@@ -78,8 +78,6 @@ class Image3d(Image):
         """
         Reconstructs the z-slices given a height_map;
         out of focus slices (defined by zero_level) are not reconstructed
-        Was : compute_cell_mask_3d
-        :return:
         """
         if cell_mask is None: cell_mask = self.get_cell_mask()
         if height_map is None: height_map = self.get_height_map()
@@ -173,7 +171,9 @@ class Image3d(Image):
         return peripheral_cell_volume
 
     def compute_average_cytoplasmic_distance_from_nucleus3d(self, dsAll) -> float:
-        '''Average distance of a cytoplasmic voxel from the nucleus centroid'''
+        '''
+        Average distance of a cytoplasmic voxel from the nucleus centroid
+        '''
         height_map = self.get_cytoplasm_height_map()
         cytoplasm_mask = self.get_cytoplasm_mask()
         max_slice = min(np.max(height_map), int(self.get_zero_level()))-1 # we are in the cytoplasm
@@ -276,9 +276,8 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
     def compute_clustering_indices(self) -> np.ndarray:
         """
-        Point process Ripkey-K computation for disks of radius r < MAX_CELL_RADIUS
-        :return: clustering indices for all r
-        Was : clustering_index_point_process
+        Point process Ripley-K computation in 3D for spheres of radius r < MAX_CELL_RADIUS
+        return: clustering indices for all r
         """
         logger.info("Running {} simulations of Ripley-K for {} in 3D",
                     constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
@@ -287,7 +286,8 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         pixels_in_slice = numexpr.evaluate(constants.dataset_config["PIXELS_IN_SLICE"]).item()
 
         cell_mask_slices = self.get_cell_mask_slices()
-        nuw = (np.sum(cell_mask_slices[:, :, :] == 1)) * pixels_in_slice  # whole volume of the cell
+        nuw = np.sum(cell_mask_slices == 1) * pixels_in_slice  # whole volume of the cell
+        # TODO try instead of the previous 2 line : nuw = self.get_cell_volume()
         my_lambda = float(n_spots) / float(nuw)  # spot's volumic density
 
         k = self.ripley_k_point_process(nuw=nuw, my_lambda=my_lambda)  # TODO : first call for _all_ spots while the subsequent only for those in the height_map
@@ -433,7 +433,6 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         # Calculate the spread of signal peaks
         mean_signal = np.mean(IF[cytoplasm_mask == 1])
         peaks = np.argwhere(IF > mean_signal * 1.5)  # arbitrary choice to reduce the number of peaks
-        # d = pairwise_distances(peaks, metric='euclidean')
 
         mu_x = peaks[:, 0].sum() / len(peaks)
         mu_y = peaks[:, 1].sum() / len(peaks)
@@ -443,13 +442,11 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         diameter = self.compute_cell_diameter()
         return sd / (0.68 * diameter / 2)
 
-        #return sd / np.mean(d[d != 0])
 
     def compute_clustering_indices(self) -> np.ndarray:
         """
         Point process Ripkey-K computation for disks of radius r < MAX_CELL_RADIUS
-        :return: clustering indices for all r
-        Was : clustering_index_point_process
+        return: clustering indices for all r
         """
         logger.info("Running {} simulations of Ripley-K for {}",
                     constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
@@ -477,20 +474,6 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
             (constants.analysis_config["MAX_CELL_RADIUS"], 1))).flatten()
         synth5, synth50, synth95 = helpers.compute_statistics_random_h_star_2d(k_sim)
         return helpers.compute_h_star_2d(h, synth5, synth50, synth95)
-
-    def ripley_k_random_measure_2D(self, IF, my_lambda, nuw):
-        IF_rev = IF[::-1, ::-1]
-        P = signal.convolve(IF, IF_rev)
-        dMap = np.zeros((P.shape[0], P.shape[1]))
-        p, q = np.meshgrid(range(P.shape[0]), range(P.shape[0]))
-        dMap = np.sqrt((p - IF.shape[0]) ** 2 + (q - IF.shape[1]) ** 2)
-        # sum convolution using dMap
-        K = np.zeros((constants.analysis_config["MAX_CELL_RADIUS"], 1))
-        for dist in range(constants.analysis_config["MAX_CELL_RADIUS"]):
-            K[dist] = P[dMap[:, :] <= dist].sum()
-        K = K * (1 / (my_lambda * nuw)) - (1 / my_lambda)
-
-        return K
 
 
 class Image3dWithMTOC(Image3d, ImageWithMTOC):
@@ -561,7 +544,7 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
             density_per_quadrant[spot_quad - 1, 0] += 1
 
         if (density_per_quadrant[:,0].sum() == 0):
-            logger.warning("No spots in image within quadrants {}", self._path)
+            logger.debug("No spots in image within quadrants {}", self._path)
             return density_per_quadrant
 
         # mark the mtoc quadrant

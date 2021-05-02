@@ -39,29 +39,21 @@ class TestImageSet(TestCase):
             self.assertEqual(i.get_intensities().shape, (512, 512))
 
     # TODO : major bottleneck identified in draw polygon
-    def test_compute_histogram_spots_peripheral_counts_perf(self):
-        self.skipTest("Skipping for inefficiency reasons")
-        image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
-        peripheral_fractions = image_set.compute_histogram_spots_peripheral_counts()
-        test = [0.2679738562091503, 0.2191780821917808, 0.12121212121212122, 0.3380281690140845, 0.16176470588235295]
-        self.assertEqual(sorted(peripheral_fractions), sorted(test))
+    def test_compute_spots_fractions_per_periphery(self):
+        #self.skipTest("Skipping for inefficiency reasons")
+        image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/'])
+        self.assertEqual(len(image_set.images), 20, "Expected 20 images")
+        peripheral_fractions = image_set.compute_spots_fractions_per_periphery()
+        self.assertEqual(peripheral_fractions.shape, (20, 100))
+        self.assertAlmostEqual(peripheral_fractions.sum(), 1985.585078961, places=5)
 
-    # this can be long : ~5min
-    def test_compute_histogram_spots_peripheral_counts(self):
-        self.skipTest("Skipping for inefficiency reasons")
-        image_set = ImageSet(self.repo, path_list=['mrna/'])
-        self.assertEqual(len(image_set.images), 40, "Expected 40 images")
-        peripheral_fractions = image_set.compute_histogram_spots_peripheral_counts()
-        self.assertEqual(len(peripheral_fractions), 40, "Expected 40 fractions")
-        # TODO : test the sum?
-
-    def test_compute_histogram_intensities_peripheral_fractions(self):
-        self.skipTest("Skipping for inefficiency reasons")
-        image_set = ImageSet(self.repo, path_list=['protein/'])
-        self.assertEqual(len(image_set.images), 40, "Expected 40 images")
-        peripheral_fractions = image_set.compute_histogram_intensities_peripheral_fractions()
-        self.assertEqual(len(peripheral_fractions), 40, "Expected 40 fraction arrays")
-        # TODO : test the sum?
+    def test_compute_intensities_fractions_from_periphery(self):
+        #self.skipTest("Skipping for inefficiency reasons")
+        image_set = ImageSet(self.repo, path_list=['protein/arhgdia/'])
+        self.assertEqual(len(image_set.images), 20, "Expected 20 images")
+        peripheral_fractions = image_set.compute_intensities_fractions_from_periphery()
+        self.assertEqual(peripheral_fractions.shape, (20, 100))
+        self.assertAlmostEqual(peripheral_fractions.sum(), 947.7339075841, places=5)
 
     def test_compute_cytoplasmic_spots_counts(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
