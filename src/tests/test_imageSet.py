@@ -110,26 +110,26 @@ class TestImageSet(TestCase):
     def test_compute_cytoplasmic_spots_spread(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = np.sort(image_set.compute_cytoplasmic_spots_spread())
-        self.assertAlmostEqual(np.sum(result), 3.9468945203, places=5)
-        self.assertAlmostEqual(result[2], 0.789056175955, places=5)
+        self.assertAlmostEqual(np.sum(result), 3.7360605912, places=5)
+        self.assertAlmostEqual(result[2], 0.75042495387, places=5)
 
     def test_compute_spots_cytoplasmic_centrality(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = np.sort(image_set.compute_cytoplasmic_spots_centrality())
         self.assertAlmostEqual(np.sum(result), 4.2862456696, places=5)
-        self.assertAlmostEqual(result[2], 0.96043751834, places=5)
+        self.assertAlmostEqual(result[2], 0.83062847062, places=5)
 
     def test_compute_intensities_cytoplasmic_centrality(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
         result = np.sort(image_set.compute_intensities_cytoplasmic_centrality())
-        self.assertAlmostEqual(np.sum(result), 4.37111963970, places=5)
-        self.assertAlmostEqual(result[1], 0.85254875731, places=5)
+        self.assertAlmostEqual(np.sum(result), 3.28441039362, places=5)
+        self.assertAlmostEqual(result[1], 0.59415287988, places=5)
 
     def test_compute_intensities_cytoplasmic_spread(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
         result = np.sort(image_set.compute_intensities_cytoplasmic_spread())
-        self.assertAlmostEqual(np.sum(result), 3.966412138, places=5)
-        self.assertAlmostEqual(result[1], 0.78870677328, places=5)
+        self.assertAlmostEqual(np.sum(result), 3.38954627718, places=5)
+        self.assertAlmostEqual(result[1], 0.6615370616, places=5)
 
     def test_compute_surface_corrected_nm(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])

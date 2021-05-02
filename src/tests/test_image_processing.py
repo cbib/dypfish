@@ -13,7 +13,6 @@ import random
 import math
 import helpers
 import image_processing as ip
-from sklearn.metrics.pairwise import pairwise_distances
 
 constants.init_config(analysis_config_js_path=path.test_config_path)  # TODO this is annoying
 
@@ -112,7 +111,6 @@ class Test(TestCase):
         mu_y = rspots[:,1].sum() / len(rspots)
         sd_r = math.sqrt( np.sum((rspots[:,0] - mu_x)**2) / len(rspots) +
                           np.sum((rspots[:,1] - mu_y)**2) / len(rspots) )
-        d_r = pairwise_distances(rspots, metric='euclidean')
 
         # clustered spots
         spots = np.array([random.choice(indices) for i in range(0,200)])
@@ -121,8 +119,6 @@ class Test(TestCase):
         mu_y = clustered_spots[:, 1].sum() / len(clustered_spots)
         sd_c = math.sqrt( np.sum((clustered_spots[:, 0] - mu_x) ** 2) / len(clustered_spots)+
                           np.sum((clustered_spots[:, 0] - mu_y) ** 2) / len(clustered_spots) )
-        d_c = pairwise_distances(clustered_spots, metric='euclidean')
 
-        self.assertAlmostEqual(sd_r / (0.68 * 17.5), 1)
-        self.assertAlmostEqual(sd_c / (0.68 * 17.5), 1)
+        self.assertGreater(sd_r / (0.68 * 17.5), sd_c / (0.68 * 17.5))
 

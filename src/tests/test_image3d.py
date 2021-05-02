@@ -75,6 +75,6 @@ class TestImage3d(TestCase):
         nucleus_centroid = self.img.get_nucleus_centroid()
         height_map = self.img.get_cytoplasm_height_map()
         dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid)
-        result = self.img.compute_average_cytoplasmic_distance_from_nucleus3d(dsAll)
-        self.assertAlmostEqual(result, 92.585592446906, places=5)
-
+        avg, max = self.img.compute_average_cytoplasmic_distance_from_nucleus3d(dsAll)
+        self.assertAlmostEqual(avg, 115.1654782986, places=5)
+        self.assertAlmostEqual(max, 204.022057631, places=5)

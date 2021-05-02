@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import sys
 from typing import List, Union
 import tqdm
 from loguru import logger
 import numpy as np
-import pandas as pd
 import constants
-import scipy.stats as stats
 from repository import Repository
 from image import ImageWithSpots, ImageWithIntensities, ImageWithMTOC, \
     ImageWithSpotsAndIntensities, ImageWithSpotsAndMTOC, ImageWithSpotsAndIntensitiesAndMTOC, \
@@ -75,7 +72,7 @@ class ImageSet(object):
                 else:
                     raise NotImplemented("Couldn't deduce type for image %s" % p)
             else:
-                if  is_3d_spots_multi_nucleus:
+                if is_3d_spots_multi_nucleus:
                     img = Image3dMultiNucleusWithSpots(self._repository, p)
                 elif is_3d_multi_nucleus:
                     img = Image3dMultiNucleus(self._repository, p)
@@ -222,7 +219,7 @@ class ImageSet(object):
                            len(centralities)-len(valid_centralities), self.__sizeof__())
         l = len(valid_centralities[valid_centralities > 1])
         if l > 0:
-            logger.warning("normalized distance to centroid is > 1 for {} images out of {}",
+            logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
                            l, self.__sizeof__())
         return valid_centralities
 
@@ -233,7 +230,7 @@ class ImageSet(object):
             spots_spread = np.append(spots_spread, image.compute_spots_normalized_cytoplasmic_spread())
         l = len(spots_spread[spots_spread > 1])
         if l > 0:
-            logger.warning("normalized distance to centroid is > 1 for {} images out of {}",
+            logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
                            l, self.__sizeof__())
         return spots_spread
 
@@ -248,7 +245,7 @@ class ImageSet(object):
                            len(centralities) - len(valid_centralities), self.__sizeof__())
         l = len(centralities[centralities>1])
         if l > 0:
-            logger.warning("normalized distance to centroid is > 1 for {} images out of {}",
+            logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
                             l, self.__sizeof__())
         return valid_centralities
 
@@ -259,7 +256,7 @@ class ImageSet(object):
             spreads = np.append(spreads, image.compute_intensities_normalized_cytoplasmic_spread())
         l = len(spreads[spreads > 1])
         if l > 0:
-            logger.warning("normalized distance to centroid is > 1 for {} images out of {}",
+            logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
                            l, self.__sizeof__())
         return spreads
 

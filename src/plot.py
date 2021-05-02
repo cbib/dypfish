@@ -101,7 +101,7 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
 
     # Search for ymin and y max
     y_max = np.float(np.max(list(medians))) + (np.float(np.nanmin(list(medians))) / 10)
-    y_min = np.float(np.nanmin(list(medians))) - (np.float(np.nanmin(list(medians))) / 5)
+    y_min = 0 # np.float(np.nanmin(list(medians))) - (np.float(np.nanmin(list(medians))) / 5)
     plt.ylim([y_min, y_max])
 
     if annot:
@@ -317,11 +317,11 @@ def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: De
         my_pal = {"mrna": str(plot_colors[color_num]),
                   "protein": str(helpers.color_variant(plot_colors[color_num], +80))}
         helpers.create_dir_if_needed_for_filepath(tgt_fp)
-        sns_barplot(df, my_pal, tgt_fp, x="Timepoint", y="MPI", hue="Molecule_type", err="err")
+        sns_barplot(df, my_pal, tgt_fp, y="MPI", err="err")
         logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
 
-def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type", err="err"):
+def sns_barplot(dd, my_pal, figname, y="MPI", err="err"):
     fig, ax = plt.subplots()
     ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')

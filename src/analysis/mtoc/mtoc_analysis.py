@@ -86,7 +86,7 @@ if __name__ == '__main__':
                                               groupby_key=group_key, mpi_sample_size=mpi_sample_size)
             dfs.append(df)
 
-            if conf[2] == "":
+            if "original" in conf[0]:
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT_RATIO'].format(molecule_type=molecule_type)
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
                 plot.compute_violin_plot_ratio(df, molecule_type, tgt_fp)
