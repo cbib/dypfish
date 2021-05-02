@@ -15,17 +15,20 @@ import helpers
 
 
 def build_mrna_peripheral_fraction_profiles(analysis_repo):
-    gene2profile_mrna_periph_fraction = []
-    for gene in constants.analysis_config['MRNA_GENES']:
+    genes= constants.analysis_config['MRNA_GENES']
+    gene2mean_fractions = {}
+    for gene in genes:
         image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene])
-        gene2profile_mrna_periph_fraction.append(
-            np.average(image_set.compute_spots_fractions_per_periphery(), axis=0))
+        peripheral_fractions = image_set.compute_spots_fractions_per_periphery()
+        gene2mean_fractions[gene] = np.mean(peripheral_fractions, axis=0)
 
     # normalized by gapdh profile
-    gene2profile_mrna_periph_fraction = gene2profile_mrna_periph_fraction / \
-                                        np.matlib.repmat(gene2profile_mrna_periph_fraction[2],
-                                                         len(constants.dataset_config['MRNA_GENES']), 1)
-    return gene2profile_mrna_periph_fraction
+    for gene in genes:
+        gene2mean_fractions[gene]  = gene2mean_fractions[gene] / gene2mean_fractions['gapdh']
+
+    # this is because of the format that the plotting function expects
+    fractions = np.array([list(v) for v in gene2mean_fractions.values()])
+    return fractions
 
 
 def build_histogram_peripheral_fraction(analysis_repo, molecule_type, force2D=False):
@@ -96,11 +99,11 @@ if __name__ == '__main__':
         repo = open_repo()
         if "original" in conf[0]:
             logger.info("Peripheral fraction profile for the mRNA original data")
-            gene2profile_mrna_periph_fraction = build_mrna_peripheral_fraction_profiles(repo)
+            gene2mean_fraction = build_mrna_peripheral_fraction_profiles(repo)
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
-            plot.profile(gene2profile_mrna_periph_fraction, constants.dataset_config['MRNA_GENES'],
+            plot.profile(gene2mean_fraction, constants.dataset_config['MRNA_GENES'],
                          constants.analysis_config['NUM_CONTOURS'], figname=tgt_fp)
             logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 

@@ -446,13 +446,13 @@ def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, f
     outliers = helpers.detect_outliers(np.array(dd["value"]), limit_threshold)
     dd = dd[~np.isin(dd["value"], outliers)]
     dd.dropna(inplace=True)
-    ## apply log scale
+    # apply log scale
     if (log):
         dd['value'] = dd['value'].apply(np.log2)
-    ## Choose color palette
+    # Choose color palette
     my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#1a8cff"}
 
-    ## remove outliers
+    # remove outliers
     if molecule_type == 'mrna':
         xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     else:
@@ -465,7 +465,7 @@ def compute_categorical_violin_plot_enrichment(density_stats: DensityStats, mole
     df = density_stats.df
     value_vars = [density_stats.mtoc_quadrant_label] + density_stats.quadrant_labels
 
-    ## melt dataframe and group together all non MTOC quadrant
+    # melt dataframe and group together all non MTOC quadrant
     groups = [tp for tp, line in df.groupby(groupby_key, sort=False)]
     if term != "":
         df[groupby_key] = df.apply(lambda row: term if term[2:len(term)] in row[groupby_key] else row["Gene"], axis=1)
