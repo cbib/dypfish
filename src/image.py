@@ -503,6 +503,10 @@ class ImageWithSpots(Image):
             spots_counts[i] = len(spots_distances[spots_distances <= i + 1])
         return spots_counts
 
+    def compute_peripheral_total_spots(self):
+        all_counts = self.get_signal_from_periphery()
+        return all_counts[constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']]
+
 
 class ImageWithIntensities(Image):
     """ Represents an image with intensity data (e.g. from IF), has to have IF descriptor """

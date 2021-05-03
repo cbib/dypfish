@@ -309,7 +309,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
     def compute_peripheral_density(self):
         # compute mRNA density in the peripheral area
-        peripheral_mrna_count = self.get_peripheral_total_spots()
+        peripheral_mrna_count = self.compute_peripheral_total_spots()
         if peripheral_mrna_count == 0:
             raise RuntimeError("Image contains no spots in periphery %s" % self._path)
         peripheral_volume = self.compute_peripheral_volume()

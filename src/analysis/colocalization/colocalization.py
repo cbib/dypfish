@@ -16,8 +16,8 @@ from image_set import ImageSet
 from loguru import logger
 
 
-def compute_relative_density_per_quadrants_and_slices(analysis_repo, molecule_type, quadrants_num=4):
-    colocalisation_score, dense_voxels = {}, {}
+def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4):
+    colocalisation_score = {}
     stripes = constants.analysis_config['STRIPE_NUM']
     if molecule_type == 'mrna':
         timepoints = constants.dataset_config['TIMEPOINTS_MRNA']
@@ -33,20 +33,17 @@ def compute_relative_density_per_quadrants_and_slices(analysis_repo, molecule_ty
                                                                   stripes=stripes, stripes_flag=True)
             aligned_densities = arr[:, 0].reshape(image_set.__sizeof__(), quadrants_num * stripes)
             mean_densities_per_slice = np.nanmean(aligned_densities, axis=0)
-            dense_voxels_per_cell = np.count_nonzero(aligned_densities >= 1, axis=0)
             mean_densities.append(mean_densities_per_slice)
-            dense_voxels.append(np.mean(dense_voxels_per_cell))
         colocalisation_score[gene] = mean_densities
-        dense_voxels[gene] = dense_voxels
 
-    return colocalisation_score, dense_voxels
+    return colocalisation_score
 
 
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
-    ["src/analysis/colocalization/config_original.json", [], 10000],
-    ["src/analysis/colocalization/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"], 24],
-    ["src/analysis/colocalization/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"], 24]
+    ["src/analysis/colocalization/config_original.json", []],
+    ["src/analysis/colocalization/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"]],
+    ["src/analysis/colocalization/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
 ]
 
 # Figure 5D Analysis Colocalization Score (CS) for original data (5 figures)
@@ -62,8 +59,8 @@ if __name__ == '__main__':
         repo = helpers.open_repo()
 
         # Use annot=True if you want to add stats annotation in plots
-        mrna_cs, mrna_dense_v = compute_relative_density_per_quadrants_and_slices(repo, 'mrna', quadrants_num=8)
-        prot_cs, prot_dense_v = compute_relative_density_per_quadrants_and_slices(repo, 'protein', quadrants_num=8)
+        mrna_cs, mrna_dense_v = compute_relative_densities(repo, 'mrna', quadrants_num=8)
+        prot_cs, prot_dense_v = compute_relative_densities(repo, 'protein', quadrants_num=8)
 
         css, p_vals = [], {}
         for gene in constants.analysis_config['PROTEINS']:
