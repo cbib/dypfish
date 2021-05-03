@@ -7,7 +7,7 @@ from unittest import TestCase
 import numpy as np
 import constants
 import path
-import image_processing as ip
+import warnings
 from image3d import Image3dWithSpots
 from repository import H5RepositoryWithCheckpoint
 
@@ -25,6 +25,7 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_spots_peripheral_distance_3d(self):
         results = self.img.compute_spots_peripheral_distance_3d()
+        warnings.warn("This functions is currently not called and insufficiently tested", RuntimeWarning)
         self.assertGreater(len(results), 100)  # more than 100 spots
         # arbitrarily check two values
         self.assertEqual(results[0], 75)

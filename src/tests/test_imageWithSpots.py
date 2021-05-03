@@ -7,11 +7,12 @@ from unittest import TestCase
 import numpy as np
 import path
 import constants
+import warnings
 import image_processing as ip
 from repository import H5RepositoryWithCheckpoint
 from image import ImageWithSpots
 
-constants.init_config(analysis_config_js_path=path.test_config_path)  # TODO this is annoying
+constants.init_config(analysis_config_js_path=path.test_config_path)
 
 
 class TestImageWithSpots(TestCase):
@@ -39,9 +40,12 @@ class TestImageWithSpots(TestCase):
         self.assertEqual(np.sum(distance_mask), 2024717)
 
     def test_compute_spots_peripheral_distance_2d(self):
-        peripheral_distance_2D = self.img.compute_spots_peripheral_distance_2D()
+        peripheral_distance_2D = self.img.compute_spots_peripheral_distance_2D(cytoplasm=True)
         self.assertEqual(peripheral_distance_2D[0], 46)
         self.assertEqual(peripheral_distance_2D.size, 155)
+        peripheral_distance_2D = self.img.compute_spots_peripheral_distance_2D(cytoplasm=False)
+        self.assertEqual(peripheral_distance_2D[15], 66)
+        self.assertEqual(peripheral_distance_2D.size, 218)
 
     def test_compute_cytoplasmic_spots(self):
         self.assertEqual(len(self.img.compute_cytoplasmic_spots()), 155)
@@ -50,12 +54,14 @@ class TestImageWithSpots(TestCase):
         self.assertEqual(self.img.compute_cytoplasmic_total_spots(), 155)
 
     def test_compute_average_cytoplasmic_distance_from_nucleus(self):
+        warnings.warn("This function is not sufficiently tested", RuntimeWarning)
         nucleus_centroid = self.img.get_nucleus_centroid()
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)
         result = self.img.compute_average_cytoplasmic_distance_from_nucleus(dsAll)
         self.assertAlmostEqual(result, 108.59049566401, places=3)
 
     def test_compute_spots_normalizaed_distance_to_centroid(self):
+        warnings.warn("This function is not sufficiently tested", RuntimeWarning)
         normalized_average_2d_distance = self.img.compute_spots_normalized_distance_to_centroid()
         self.assertAlmostEqual(normalized_average_2d_distance, 0.84008358398, places=5)
 
@@ -66,3 +72,13 @@ class TestImageWithSpots(TestCase):
     def test_compute_random_spots(self):
         random_spots = self.img.compute_random_spots()
         self.assertTrue(random_spots.shape == (218, 2))
+
+    def test_compute_signal_from_periphery(self):
+        peripheral_spots = self.img.compute_signal_from_periphery()
+        self.assertEqual(peripheral_spots.shape[0], 100)
+        # test an arbitrary value
+        self.assertEqual(peripheral_spots[30], 81.0)
+        self.assertTrue(all(
+            peripheral_spots[i] <= peripheral_spots[i + 1] for i in range(len(peripheral_spots) - 1)))
+        self.assertEqual(peripheral_spots.sum(), 12708.0)
+        self.assertEqual(peripheral_spots[99], len(self.img.get_spots()))

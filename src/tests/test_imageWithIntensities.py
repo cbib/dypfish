@@ -31,8 +31,8 @@ class TestImageWithIntensities(TestCase):
         self.assertEqual(self.img.compute_cytoplasmic_intensities().shape, (512, 512))
         self.assertEqual(self.img.get_cytoplasmic_total_intensity(), 1373183555.0)
 
-    def test_compute_peripheral_intensities(self):
-        peripheral_intensities = self.img.compute_peripheral_intensities()
+    def test_compute_signal_from_periphery(self):
+        peripheral_intensities = self.img.compute_signal_from_periphery()
         self.assertEqual(peripheral_intensities.shape[0], 100)
         # test an arbitrary value
         self.assertEqual(peripheral_intensities[10], 505617567.0)

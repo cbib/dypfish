@@ -32,10 +32,8 @@ from constants import QUADRANT_MASK_PATH_SUFFIX
 from constants import NUCLEUS_AREA_PATH_SUFFIX
 from constants import CELL_AREA_PATH_SUFFIX
 from constants import CELL_MASK_DISTANCE_PATH_SUFFIX
-from constants import SPOTS_PERIPHERAL_DISTANCE_2D_PATH_SUFFIX
 from constants import CYTOPLASMIC_SPOTS_PATH_SUFFIX
 from constants import PERIPHERAL_SPOTS_PATH_SUFFIX
-from constants import CYTOPLASMIC_SPOT_COUNT_PATH_SUFFIX
 from constants import PERIPHERAL_SPOT_COUNT_PATH_SUFFIX
 from constants import TOTAL_INTENSITY_PATH_SUFFIX
 from constants import CELL_TOTAL_INTENSITY_PATH_SUFFIX
@@ -171,6 +169,9 @@ class Image(object):
             tmp_mask[(tmp_mask > i) & (tmp_mask <= 100)] = 1
             peripheral_areas.append(tmp_mask.sum() * helpers.surface_coeff() + nucleus_area)
         return peripheral_areas
+
+    def compute_signal_from_periphery(self) -> np.ndarray:
+        raise NotImplementedError
 
 
 class ImageWithMTOC(Image):
@@ -337,9 +338,6 @@ class ImageWithSpots(Image):
 
     # TODO : this will load the mask for each spot
     def compute_cytoplasmic_spots(self) -> np.ndarray:
-        """
-        :return: np.ndarray of int
-        """
         spots = self.get_spots()
         mask = [self.is_in_cytoplasm(s[0:2][::-1]) for s in spots]  # TODO check coordinate coherency for spots
         cytoplasmic_spots = spots[mask]
@@ -364,15 +362,14 @@ class ImageWithSpots(Image):
     def get_cytoplasmic_spots(self) -> np.ndarray:
         return self.compute_cytoplasmic_spots()
 
-    @helpers.checkpoint_decorator(PERIPHERAL_SPOTS_PATH_SUFFIX, np.int)
-    def get_peripheral_spots(self) -> np.ndarray:
-        return self.compute_peripheral_spots()
-
-    def compute_spots_peripheral_distance_2D(self) -> np.ndarray:
+    def compute_spots_peripheral_distance_2D(self, cytoplasm=False) -> np.ndarray:
         """
-        Return an array of distances to the periphery for cytoplasmic spots (np.ndarray of uint8)
+        Return an array of distances to the periphery for cellular or cytoplasmic spots (default)
+        returns an array of int
         """
-        spots = self.get_cytoplasmic_spots()
+        spots = self.get_spots()
+        if cytoplasm:
+            spots = self.get_cytoplasmic_spots()
         logger.info("Computing {} spots 2D peripheral distance spots for {}",
                     len(spots), self._path)
 
@@ -381,34 +378,16 @@ class ImageWithSpots(Image):
         spots_distances = [1 if d == 0 else d for d in spots_distances]  # TODO : why this hack ?
         return np.asarray(spots_distances, dtype=np.uint8)
 
-    @helpers.checkpoint_decorator(SPOTS_PERIPHERAL_DISTANCE_2D_PATH_SUFFIX, np.uint8)
-    def get_spots_peripheral_distance(self):
-        return self.compute_spots_peripheral_distance_2D()
-
     def compute_cytoplasmic_total_spots(self):
         cytoplasmic_spots = self.get_cytoplasmic_spots()
         return len(cytoplasmic_spots)
 
-    @helpers.checkpoint_decorator(CYTOPLASMIC_SPOT_COUNT_PATH_SUFFIX, dtype=np.uint)
-    def get_cytoplasmic_total_spots(self):
-        return self.compute_cytoplasmic_total_spots()
-
-    def compute_peripheral_total_spots(self):
-        peripheral_spots = self.get_peripheral_spots()
-        return len(peripheral_spots)
-
-    @helpers.checkpoint_decorator(PERIPHERAL_SPOT_COUNT_PATH_SUFFIX, dtype=np.uint)
-    def get_peripheral_total_spots(self):
-        return self.compute_peripheral_total_spots()
-
     def compute_average_cytoplasmic_distance_from_nucleus(self, dsAll) -> float:
-        # Ben please test
         cytoplasm_mask = self.get_cytoplasm_mask()
         map_dist = np.multiply(cytoplasm_mask, dsAll)
         return np.mean(map_dist[map_dist != 0])
 
     def compute_spots_normalized_distance_to_centroid(self) -> float:
-        # Ben please test
         nucleus_centroid = self.get_nucleus_centroid()
         cytoplasmic_spots = self.get_cytoplasmic_spots()[:, 0:2]  # 2d coordinates of 3d spots
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
@@ -440,7 +419,7 @@ class ImageWithSpots(Image):
 
     def compute_cytoplasmic_density(self):
         # compute mRNA density in the cytoplasm
-        cytoplasmic_mrna_count = self.get_cytoplasmic_total_spots()
+        cytoplasmic_mrna_count = self.compute_cytoplasmic_total_spots()
         if cytoplasmic_mrna_count == 0:
             raise RuntimeError("Image contains no spots %s" % self._path)
         cytoplasmic_area = self.compute_cell_area()
@@ -508,6 +487,22 @@ class ImageWithSpots(Image):
     def compute_degree_of_clustering(self) -> int:
         h_star = self.get_clustering_indices()
         return np.array(h_star[h_star > 1] - 1).sum()
+
+    @helpers.checkpoint_decorator(PERIPHERAL_SPOT_COUNT_PATH_SUFFIX, dtype=np.float)
+    def get_signal_from_periphery(self):
+        return self.compute_signal_from_periphery()
+
+    def compute_signal_from_periphery(self) -> np.ndarray:
+        """
+         np.ndarray of floats (total spots for each distance percentage from the periphery)
+         normalization is the responsibility of the caller
+         """
+        spots_distances = self.compute_spots_peripheral_distance_2D()
+        spots_counts = np.zeros(100)
+        for i in range(0, 100):  # normalization is done by the caller if needed
+            spots_counts[i] = len(spots_distances[spots_distances <= i + 1])
+        return spots_counts
+
 
 class ImageWithIntensities(Image):
     """ Represents an image with intensity data (e.g. from IF), has to have IF descriptor """
@@ -583,7 +578,7 @@ class ImageWithIntensities(Image):
 
     def compute_peripheral_intensity_mask(self) -> np.ndarray:
         """
-         :returns: np.ndarray of floats (total intensity for each distance percentage from the periphery)
+         returns: np.ndarray of floats (total intensity for each distance percentage from the periphery)
          normalization is the responsibility of the caller
         """
         intensities = self.get_intensities()
@@ -591,8 +586,11 @@ class ImageWithIntensities(Image):
         peripheral_intensity_mask = np.multiply(intensities, peripheral_mask)
         return peripheral_intensity_mask
 
+    @helpers.checkpoint_decorator(PERIPHERAL_INTENSITIES_PATH_SUFFIX, dtype=np.float)
+    def get_signal_from_periphery(self):
+        return self.compute_signal_from_periphery()
 
-    def compute_peripheral_intensities(self) -> np.ndarray:
+    def compute_signal_from_periphery(self) -> np.ndarray:
         """
          np.ndarray of floats (total intensity for each distance percentage from the periphery)
          normalization is the responsibility of the caller

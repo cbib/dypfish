@@ -43,9 +43,9 @@ def build_histogram_peripheral_fraction(analysis_repo, molecule_type, force2D=Fa
     for gene in genes:
         image_set = ImageSet(analysis_repo, ['{0}/{1}/'.format(molecule_type, gene)], force2D=force2D)
         if molecule_type == 'mrna':
-            gene2periph_fraction[gene] = image_set.compute_histogram_spots_peripheral_counts()
+            gene2periph_fraction[gene] = image_set.compute_spots_fractions_per_periphery()
         else:
-            gene2periph_fraction[gene] = image_set.compute_intensities_fractions_from_periphery()
+            gene2periph_fraction[gene] = image_set.compute_intensities_fractions_per_periphery()
         gene2median_periph_fraction[gene] = np.median(gene2periph_fraction[gene])
         gene2error[gene] = helpers.sem(gene2periph_fraction[gene], factor=0)
         lower, higher = helpers.median_confidence_interval(gene2periph_fraction[gene])
@@ -111,6 +111,7 @@ if __name__ == '__main__':
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna')
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
                                                errors=err, CI=CI, annotations=stat_annotations)
+            exit()
 
         elif "chx" in conf[0]:
             logger.info("Peripheral fraction histogram for the protein CHX data")
@@ -119,7 +120,7 @@ if __name__ == '__main__':
                                                errors=err, CI=CI, annotations=stat_annotations)
 
             logger.info("Peripheral fraction histogram for the mRNA CHX data")
-            # this analysis is done as if it is protein to be in 2D
+            # this analysis is done in 2D
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein')
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
                                                errors=err, CI=CI, annotations=stat_annotations)

@@ -8,21 +8,17 @@ from repository import Repository
 from image import Image, ImageWithSpots, ImageWithIntensities, ImageWithMTOC, ImageMultiNucleus, \
     ImageMultiNucleusWithSpots
 import numexpr
-from scipy import signal
 from loguru import logger
 import constants
-import random
 import image_processing as ip
 import math
 import tqdm
-from sklearn.metrics.pairwise import pairwise_distances
 
 from constants import HEIGHT_MAP_PATH_SUFFIX
 from constants import CELL_MASK_SLICES_PATH_SUFFIX
 from constants import ZERO_LEVEL_PATH_SUFFIX
 from constants import NUCLEUS_VOLUME_PATH_SUFFIX
 from constants import CELL_VOLUME_PATH_SUFFIX
-from constants import SPOTS_PERIPHERAL_DISTANCE_3D_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
 from constants import NUCLEUS_CENTROID_PATH_SUFFIX
 
@@ -236,11 +232,6 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
         return np.asarray(spots_peripheral_distance, dtype=np.uint8)
 
-
-    @helpers.checkpoint_decorator(SPOTS_PERIPHERAL_DISTANCE_3D_PATH_SUFFIX, dtype=np.float)
-    def get_spots_peripheral_distance(self):
-        return self.compute_spots_peripheral_distance_3d()
-
     def ripley_k_point_process(self, nuw: float, my_lambda: float, spots=None, r_max: int = None) -> np.ndarray:
         if spots is None: spots = self.get_spots()
         n_spots = len(spots)
@@ -326,12 +317,11 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
     def compute_cytoplasmic_density(self):
         # compute mRNA density in the cytoplasm
-        cytoplasmic_mrna_count = self.get_cytoplasmic_total_spots()
+        cytoplasmic_mrna_count = self.compute_cytoplasmic_total_spots()
         if cytoplasmic_mrna_count == 0:
             raise RuntimeError("Image contains no spots %s" % self._path)
         cytoplasmic_volume = self.compute_cytoplasmic_volume()
         return cytoplasmic_mrna_count / cytoplasmic_volume
-
 
     def compute_spots_normalized_distance_to_centroid(self) -> float:
         nucleus_centroid = self.get_nucleus_centroid()

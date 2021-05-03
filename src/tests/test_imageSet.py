@@ -39,21 +39,35 @@ class TestImageSet(TestCase):
             self.assertEqual(i.get_intensities().shape, (512, 512))
 
     # TODO : major bottleneck identified in draw polygon
-    def test_compute_spots_fractions_per_periphery(self):
+    def test_compute_spots_signal_from_periphery(self):
         #self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/'])
         self.assertEqual(len(image_set.images), 20, "Expected 20 images")
-        peripheral_fractions = image_set.compute_spots_fractions_per_periphery()
-        self.assertEqual(peripheral_fractions.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_fractions.sum(), 1985.585078961, places=5)
+        peripheral_signals = image_set.compute_signal_from_periphery()
+        self.assertEqual(peripheral_signals.shape, (20, 100))
+        self.assertAlmostEqual(peripheral_signals.sum(), 163639.0)
 
-    def test_compute_intensities_fractions_from_periphery(self):
+    def test_compute_intensities_signal_from_periphery(self):
         #self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/'])
         self.assertEqual(len(image_set.images), 20, "Expected 20 images")
-        peripheral_fractions = image_set.compute_intensities_fractions_from_periphery()
+        peripheral_signals = image_set.compute_signal_from_periphery()
+        self.assertEqual(peripheral_signals.shape, (20, 100))
+        self.assertAlmostEqual(peripheral_signals.sum(), 1152737096589.0)
+
+    def test_compute_spots_fractions_per_periphery(self):
+        image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/'])
+        peripheral_fractions = image_set.compute_spots_fractions_per_periphery()
         self.assertEqual(peripheral_fractions.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_fractions.sum(), 947.7339075841, places=5)
+        self.assertAlmostEqual(peripheral_fractions.sum(), 980.6250782814989, places=5)
+        self.assertTrue(np.all(peripheral_fractions[:,99] == 1))
+
+    def test_compute_intensities_fractions_per_periphery(self):
+        image_set = ImageSet(self.repo, path_list=['protein/arhgdia/'])
+        peripheral_fractions = image_set.compute_intensities_fractions_per_periphery()
+        self.assertEqual(peripheral_fractions.shape, (20, 100))
+        self.assertAlmostEqual(peripheral_fractions.sum(), 1249.542190894077, places=5)
+        self.assertTrue(np.all(peripheral_fractions[:, 99] == 1))
 
     def test_compute_cytoplasmic_spots_counts(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])

@@ -10,9 +10,11 @@ import constants
 from repository import Repository
 from image import ImageWithSpots, ImageWithIntensities, ImageWithMTOC, \
     ImageWithSpotsAndIntensities, ImageWithSpotsAndMTOC, ImageWithSpotsAndIntensitiesAndMTOC, \
-    ImageWithIntensitiesAndMTOC, ImageMultiNucleus, ImageMultiNucleusWithSpots, imageWithSpotsAndZlines, imageMultiNucleusWithSpotsAndZlines
+    ImageWithIntensitiesAndMTOC, ImageMultiNucleus, ImageMultiNucleusWithSpots, \
+    imageWithSpotsAndZlines, imageMultiNucleusWithSpotsAndZlines
 from image3d import Image3d, Image3dWithSpots, Image3dWithIntensities, \
-    Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC, Image3dWithSpotsAndIntensitiesAndMTOC, Image3dMultiNucleus, Image3dMultiNucleusWithSpots
+    Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC, Image3dWithSpotsAndIntensitiesAndMTOC, \
+    Image3dMultiNucleus, Image3dMultiNucleusWithSpots
 
 
 class ImageSet(object):
@@ -127,17 +129,11 @@ class ImageSet(object):
                              constants.analysis_config['MAX_SPOT_NUM'])
                 continue
 
-            # # TODO: should we fix it? this is a hack
-            # if is_3d and np.sum(img.get_height_map()) < constants.analysis_config['MIN_HEIGHT_MAP_AREA']:
-            #     logger.debug("Image has bad height map {}", img._path)
-            #     continue
-
             if has_intensities and img.signal_to_noise() < constants.analysis_config['MIN_SNR']:
                 logger.debug("Insufficient signal to noise ratio for image {}", img._path)
                 continue
 
             self.images.append(img)
-            #logger.debug("Image type : {} ", img.__class__.__name__)
 
         logger.info("Initialized image set from {} with {} images", path_list, len(self.images))
 
@@ -148,39 +144,33 @@ class ImageSet(object):
         return self.images
 
     def compute_spots_fractions_per_periphery(self):
-        arr = np.zeros((self.__sizeof__(),100))
-        for img_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
-            spots_peripheral_distance = image.get_spots_peripheral_distance()
-            for i in range(0, 100):
-                arr[img_num, i] = (spots_peripheral_distance <= i + 1).sum() / len(spots_peripheral_distance)
-        return arr
+        all_signals = self.compute_signal_from_periphery()
+        image: ImageWithIntensities
+        spot_counts = [len(image.get_spots()) for image in self.images]
+        return np.array(all_signals) / np.array(spot_counts)[:, None]
 
-    def compute_intensities_fractions_from_periphery(self):
+    def compute_intensities_fractions_per_periphery(self):
+        all_signals = self.compute_signal_from_periphery()
+        image: ImageWithIntensities
+        intensities_counts = [np.multiply(image.get_intensities(), image.get_cell_mask()).sum()
+                              for image in self.images]
+        return np.array(all_signals) / np.array(intensities_counts)[:, None]
+
+    def compute_signal_from_periphery(self):
         arr = np.zeros((self.__sizeof__(), 100))
-        image: Image3dWithIntensitiesAndMTOC
+        image: Union[ImageWithSpots, ImageWithIntensities]
         for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
-            cell_intensities = image.get_intensities()[image.get_cell_mask()==1].sum()
-            periph_i = image.compute_peripheral_intensities()
-            periph_i = periph_i[constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']] / cell_intensities
-            arr[image_num] = periph_i
+            arr[image_num] = image.get_signal_from_periphery()
         return arr
 
     def compute_cytoplasmic_spots_counts(self) -> List[int]:
-        """
-        was previously compute_cytoplasmic_total
-        :return:
-        """
         cytoplasmic_spots_counts = []
         image: ImageWithSpots
         for image in self.images:
-            cytoplasmic_spots_counts.append(image.get_cytoplasmic_total_spots())
+            cytoplasmic_spots_counts.append(image.compute_cytoplasmic_total_spots())
         return cytoplasmic_spots_counts
 
     def compute_cytoplasmic_intensities(self) -> List[float]:
-        """
-        was previously compute_cytoplasmic_total
-        :return:
-        """
         total_cytoplasmic_intensities = []
         image: ImageWithIntensities
         for image in self.images:
@@ -270,7 +260,7 @@ class ImageSet(object):
         return [image.compute_cytoplasmic_density() for image in self.images]
 
     def compute_spots_peripheral_distance(self):
-        return np.array([image.get_spots_peripheral_distance() for image in self.images])
+        return np.array([image.compute_spots_peripheral_distance() for image in self.images])
 
     def compute_zline_distance(self, z_line_spacing):
         image: imageMultiNucleusWithSpotsAndZlines
