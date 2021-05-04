@@ -26,7 +26,7 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
 
     def test_compute_cytoplasmic_density(self):
         result = self.img.compute_cytoplasmic_density()
-        self.assertAlmostEqual(result, 1759171.4466687627)
+        self.assertAlmostEqual(result, 2052091.52470807, places=5)
 
     def test_compute_density_per_quadrant(self):
         quadrant_mask = self.img.rotate_quadrant_mask(45, 4)
@@ -45,8 +45,8 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         result = self.img.compute_peripheral_density_per_quadrant(mtoc_quad, quadrant_mask)
 
         self.assertEqual(result.shape, (4, 2))
-        self.assertAlmostEqual(result[1, 0], 3519770.290827437, places=3)
-        self.assertAlmostEqual(result[:, 0].sum(), 21936379.835062217, places=3)
+        self.assertAlmostEqual(result[1, 0], 3626622.2756118467, places=3)
+        self.assertAlmostEqual(result[:, 0].sum(), 22299061.50705328, places=3)
         self.assertEqual(result[:, 1].sum(), 1.0)
 
     def test_compute_quadrant_densities(self):
@@ -59,8 +59,8 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
         result = self.img.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
-        self.assertAlmostEqual(result[:,0].sum(), 35743106.157463335, places=3)
-        self.assertAlmostEqual(result[3,0], 9870531.478862531)
+        self.assertAlmostEqual(result[:,0].sum(), 36080096.91802345, places=3)
+        self.assertAlmostEqual(result[3,0], 9911765.260131167)
         self.assertEqual(result[:, 1].sum(), 3)
 
     def test_compute_peripheral_density_per_quadrant_and_slices(self):
@@ -68,5 +68,5 @@ class TestImage3dWithIntensitiesAndMTOC(TestCase):
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
         result = self.img.compute_peripheral_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
-        self.assertAlmostEqual(result.sum(), 80097725.51824857, places=3)
+        self.assertAlmostEqual(result.sum(), 79737408.88673353, places=3)
         self.assertAlmostEqual(result[7,0], 10437447.769777933, places=3)

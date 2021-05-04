@@ -3,18 +3,21 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 from typing import List, Union
+
+import numpy as np
 import tqdm
 from loguru import logger
-import numpy as np
+
 import constants
-from repository import Repository
-from image import Image, ImageWithSpots, ImageWithIntensities, ImageWithMTOC, \
-    ImageWithSpotsAndIntensities, ImageWithSpotsAndMTOC, ImageWithSpotsAndIntensitiesAndMTOC, \
-    ImageWithIntensitiesAndMTOC, ImageMultiNucleus, ImageMultiNucleusWithSpots, \
-    imageWithSpotsAndZlines, imageMultiNucleusWithSpotsAndZlines
+from image import Image
 from image3d import Image3d, Image3dWithSpots, Image3dWithIntensities, \
     Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC, Image3dWithSpotsAndIntensitiesAndMTOC, \
     Image3dMultiNucleus, Image3dMultiNucleusWithSpots
+from imageWithIntensities import ImageWithIntensities, ImageWithIntensitiesAndMTOC
+from imageWithSpots import ImageWithSpots, ImageWithSpotsAndMTOC
+from imageWithZlines import imageMultiNucleusWithSpotsAndZlines, imageWithSpotsAndZlines, ImageMultiNucleus, \
+    ImageMultiNucleusWithSpots, ImageWithSpotsAndIntensitiesAndMTOC, ImageWithSpotsAndIntensities
+from repository import Repository
 
 
 class ImageSet(object):

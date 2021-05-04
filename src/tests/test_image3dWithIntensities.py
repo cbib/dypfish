@@ -27,7 +27,7 @@ class TestImage3dWithIntensities(TestCase):
 
     def test_compute_cytoplasmic_density(self):
         result = self.img.compute_cytoplasmic_density()
-        self.assertEqual(1759171.4466687627, result)
+        self.assertAlmostEqual(2052091.5247080757, result, places=5)
 
     def test_compute_intensities_normalized_cytoplasmic_spread(self):
         spread = self.img.compute_intensities_normalized_cytoplasmic_spread()

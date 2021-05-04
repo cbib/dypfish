@@ -93,27 +93,27 @@ class TestImageSet(TestCase):
     def test_compute_normalised_quadrant_densities_mrna(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         res = image_set.compute_normalised_quadrant_densities()
-        expected = np.array([[1.74626861, 1.], [0.64688921, 0.], [0.65049158, 0.], [1.54168467, 0.],
-                             [1.14561588, 1.], [2.77314831, 0.], [1.26125903, 0.], [0.50137217, 0.],
-                             [1.38473332, 1.], [0.51311625, 0.], [1.26063698, 0.], [1.02385656, 0.],
-                             [1.17236082, 1.], [0.4422494, 0.], [2.20267986, 0.], [1.69777197, 0.],
-                             [1.08763936, 1.], [3.26577748, 0.], [2.42107527, 0.], [0.46270397, 0.]])
+        expected = np.array([[0.97150359, 1.], [2.35168138, 0.], [1.06957113, 0.], [0.42517294, 0.],
+                             [1.4817793,  1.], [0.54891157, 0.], [0.55196833, 0.], [1.30818158, 0.],
+                             [0.91236952, 1.], [2.73950718, 0.], [2.0309262,  0.], [0.38814061, 0.],
+                             [1.2292511,  1.], [0.45550194, 0.], [1.11908869, 0.], [0.90889472, 0.],
+                             [1.00019428, 1.], [0.37730306, 0.], [1.87920627, 0.], [1.4484464, 0.]])
 
         self.assertEqual(res.shape[0], expected.shape[0])
         mtoc_density = res[res[:, 1] == 1].sum() / len(res[res[:, 1] == 1])
         expected_mtoc_density = expected[expected[:, 1] == 1].sum() / len(expected[expected[:, 1] == 1])
-        self.assertAlmostEqual(mtoc_density, expected_mtoc_density)
+        self.assertAlmostEqual(mtoc_density, expected_mtoc_density, places = 5)
         non_mtoc_density = res[res[:, 1] == 0].sum() / len(res[res[:, 1] == 0])
         expected_non_mtoc_density = expected[expected[:, 1] == 0].sum() / len(expected[expected[:, 1] == 0])
-        self.assertAlmostEqual(non_mtoc_density, expected_non_mtoc_density)
+        self.assertAlmostEqual(non_mtoc_density, expected_non_mtoc_density, places = 5)
 
     def test_compute_normalised_quadrant_densities_protein(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
         res = image_set.compute_normalised_quadrant_densities()
         mtoc_density = res[res[:, 1] == 1].sum() / len(res[res[:, 1] == 1])
         non_mtoc_density = res[res[:, 1] == 0].sum() / len(res[res[:, 1] == 0])
-        self.assertAlmostEqual(mtoc_density, 2.1244031950903275, places=3)
-        self.assertAlmostEqual(non_mtoc_density, 1.244101903437526, places=3)
+        self.assertAlmostEqual(mtoc_density, 1.9702934626808, places=3)
+        self.assertAlmostEqual(non_mtoc_density, 1.0734285610952, places=3)
 
     def test_mtoc_is_in_leading_edge(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])

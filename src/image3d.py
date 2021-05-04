@@ -2,23 +2,26 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import helpers
-import numpy as np
-from repository import Repository
-from image import Image, ImageWithSpots, ImageWithIntensities, ImageWithMTOC, ImageMultiNucleus, \
-    ImageMultiNucleusWithSpots
-import numexpr
-from loguru import logger
-import constants
-import image_processing as ip
 import math
-import tqdm
 
-from constants import HEIGHT_MAP_PATH_SUFFIX
+import numexpr
+import numpy as np
+import tqdm
+from loguru import logger
+
+import constants
+import helpers
+import image_processing as ip
 from constants import CELL_MASK_SLICES_PATH_SUFFIX
-from constants import ZERO_LEVEL_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
+from constants import HEIGHT_MAP_PATH_SUFFIX
 from constants import NUCLEUS_CENTROID_PATH_SUFFIX
+from constants import ZERO_LEVEL_PATH_SUFFIX
+from image import Image, ImageWithMTOC
+from imageWithIntensities import ImageWithIntensities
+from imageWithSpots import ImageWithSpots
+from repository import Repository
+
 
 class Image3d(Image):
     """ Represents an 3D image, has to have a height map descriptor """
@@ -189,7 +192,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         spots = self.get_cytoplasmic_spots()  # was get_spots(), changed to be coherent with the 2D version
         logger.info("Computing 3D peripheral distance for {} spots in image {}",
                     len(spots), self._path)
-        peripheral_areas = self.compute_peripheral_areas()
+        peripheral_areas = self.compute_areas_from_periphery()
         problematic_spot_num = 0
         for slice_num in range(zero_level, -1, -1):
             height_map_copy = np.array(height_map, copy=True)
