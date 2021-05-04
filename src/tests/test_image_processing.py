@@ -39,13 +39,6 @@ class Test(TestCase):
         self.assertEqual(segments[1].sum(), 8)  # cytoplasm
 
     def test_compute_cell_mask_distance_map(self):
-        nucleus_mask = self.img.get_nucleus_mask()
-        nucleus_centroid = self.img.get_nucleus_centroid()
-        cytoplasm_mask = self.img.get_cytoplasm_mask()
-        contour_points = ip.compute_contour_points(nucleus_mask, nucleus_centroid, cytoplasm_mask)
-        dm = ip.compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points)
-        self.assertEqual(dm.sum(), 2024717)  # self.assertEqual(dm.sum(), 2137740) # new code version
-
         cell_mask = helpers.unit_circle(45, 12.5)
         nucleus_mask = helpers.unit_circle(45, 5.5)
         nucleus_centroid = [22, 22]
@@ -53,7 +46,25 @@ class Test(TestCase):
         contour_points = ip.compute_contour_points(nucleus_mask, nucleus_centroid, cytoplasm_mask, num_contours=4,
                                                    max_cell_radius=13, image_width=45, image_height=45)
         dm = ip.compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points, num_contours=4)
-        self.assertEqual(dm.sum(), 572)  # self.assertEqual(dm.sum(), 1160) #  new code version
+        self.assertEqual(dm.sum(), 745)
+        self.assertEqual(len(dm[dm!=0]), cytoplasm_mask.sum()) # they are the same size
+
+        cell_mask = helpers.unit_circle(45, 12.5)
+        nucleus_mask = helpers.unit_circle(45, 5.5)
+        nucleus_centroid = [25, 22]
+        cytoplasm_mask = cell_mask - nucleus_mask
+        contour_points = ip.compute_contour_points(nucleus_mask, nucleus_centroid, cytoplasm_mask, num_contours=4,
+                                                   max_cell_radius=13, image_width=45, image_height=45)
+        dm = ip.compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points, num_contours=4)
+        self.assertEqual(dm.sum(), 672)
+
+        nucleus_mask = self.img.get_nucleus_mask()
+        nucleus_centroid = self.img.get_nucleus_centroid()
+        cytoplasm_mask = self.img.get_cytoplasm_mask()
+        contour_points = ip.compute_contour_points(nucleus_mask, nucleus_centroid, cytoplasm_mask)
+        dm = ip.compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points)
+        self.assertEqual(dm.sum(),  2026342)
+        self.assertEqual(len(dm[dm!=0]),cytoplasm_mask.sum())
 
     def test_compute_all_distances_to_nucleus_centroid(self):
         nucleus_centroid = [6, 6]

@@ -29,7 +29,6 @@ from constants import MTOC_LEADING_EDGE_SUFFIX
 
 # secondary basic image descriptors
 from constants import QUADRANT_MASK_PATH_SUFFIX
-from constants import NUCLEUS_AREA_PATH_SUFFIX
 from constants import CELL_AREA_PATH_SUFFIX
 from constants import CELL_MASK_DISTANCE_PATH_SUFFIX
 from constants import CYTOPLASMIC_SPOTS_PATH_SUFFIX
@@ -74,8 +73,8 @@ class Image(object):
         cell_mask = self.get_cell_mask()
         peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
         cell_mask_dist_map = self.get_cell_mask_distance_map()
-        peripheral_binary_mask = (cell_mask_dist_map > 0) & \
-                                 (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
+        peripheral_binary_mask = ((cell_mask_dist_map > 0) &
+                                  (cell_mask_dist_map <= peripheral_fraction_threshold)).astype(int)
         return np.multiply(cell_mask, peripheral_binary_mask)
 
     def get_nucleus_mask(self) -> np.ndarray:
@@ -102,15 +101,23 @@ class Image(object):
         area = nucleus_mask.sum() * helpers.surface_coeff()  # * by pixel dimensions
         return area
 
-    @helpers.checkpoint_decorator(NUCLEUS_AREA_PATH_SUFFIX, float)
     def get_nucleus_area(self) -> float:
         return self.compute_nucleus_area()
 
     def compute_cell_area(self):
-        """compute cell surface in pixel using cell mask"""
+        """compute cell surface in real pixel size using cell mask"""
         cell_mask = self.get_cell_mask()
         area = cell_mask.sum() * helpers.surface_coeff()  # * by pixel dimensions
         return area
+
+    def compute_areas_from_periphery(self):
+        # compute mRNA densities per isoline in cytoplasm
+        cytoplasm_mask = self.get_cytoplasm_mask()
+        distance_map = self.get_cell_mask_distance_map()
+        areas = np.zeros(constants.analysis_config['NUM_CONTOURS'])
+        for i in range(constants.analysis_config['NUM_CONTOURS']):
+            areas[i] = cytoplasm_mask[(distance_map <= i+1)].sum() * helpers.surface_coeff()
+        return areas
 
     @helpers.checkpoint_decorator(CELL_AREA_PATH_SUFFIX, float)
     def get_cell_area(self) -> float:
@@ -125,10 +132,9 @@ class Image(object):
         return self.compute_peripheral_mask()
 
     def compute_cell_mask_distance_map(self):
-        cell_mask = self.get_cell_mask()
+        cytoplasm_mask = self.get_cytoplasm_mask()
         nucleus_mask = self.get_nucleus_mask()
         nucleus_centroid = self.get_nucleus_centroid().transpose()  # TODO why the transpose ??
-        cytoplasm_mask = (cell_mask == 1) & (nucleus_mask == 0)
 
         # for each degree, analyse the line segment between the nucleus and the periphery
         contour_points = ip.compute_contour_points(nucleus_mask, nucleus_centroid, cytoplasm_mask,
@@ -162,7 +168,7 @@ class Image(object):
         peripheral_distance_map = self.get_cell_mask_distance_map()
         cytoplasm_mask = self.get_cytoplasm_mask()
         peripheral_distance_map[(peripheral_distance_map == 0) & (cytoplasm_mask == 1)] = 1
-        nucleus_area = self.get_nucleus_area()
+        nucleus_area = self.compute_nucleus_area()
         for i in range(101):
             tmp_mask = np.array(peripheral_distance_map, copy=True)
             tmp_mask[tmp_mask <= i] = 0
@@ -879,10 +885,6 @@ class ImageMultiNucleus(Image):
             return area / len(self.get_multiple_nucleus_centroid())
         else:
             return area
-
-    @helpers.checkpoint_decorator(NUCLEUS_AREA_PATH_SUFFIX, float)
-    def get_nucleus_area(self) -> float:
-        return self.compute_nucleus_area()
 
     def compute_cell_area(self):
         """compute cell surface in pixel using cell mask"""

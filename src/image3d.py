@@ -17,8 +17,6 @@ import tqdm
 from constants import HEIGHT_MAP_PATH_SUFFIX
 from constants import CELL_MASK_SLICES_PATH_SUFFIX
 from constants import ZERO_LEVEL_PATH_SUFFIX
-from constants import NUCLEUS_VOLUME_PATH_SUFFIX
-from constants import CELL_VOLUME_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
 from constants import NUCLEUS_CENTROID_PATH_SUFFIX
 
@@ -105,66 +103,53 @@ class Image3d(Image):
     def get_cell_mask_slices(self) -> np.ndarray:
         return self.compute_cell_mask_slices()
 
-    @helpers.checkpoint_decorator(CELL_VOLUME_PATH_SUFFIX, float)
-    def get_cell_volume(self) -> float:
-        return self.compute_cell_volume()
+    def compute_peripheral_cell_volume(self, peripheral_threshold=None):
+        """
+        compute volume in the periphery in real pixel size using the cell mask
+        """
+        peripheral_threshold = peripheral_threshold or constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
+        cell_mask_dist_map = self.get_cell_mask_distance_map()
+        peripheral_binary_mask = ((cell_mask_dist_map > 0) &
+                                  (cell_mask_dist_map <= peripheral_threshold+1)).astype(int)
+        height_map = self.adjust_height_map()
+        height_map_periph = np.multiply(height_map, peripheral_binary_mask)
+        peripheral_cell_volume = height_map_periph.sum() * helpers.volume_coeff()
+        return peripheral_cell_volume
 
-    def get_peripheral_cell_volume(self) -> float:
-        return self.compute_peripheral_cell_volume()
+    def compute_volumes_from_periphery(self):
+        volumes = np.zeros(constants.analysis_config['NUM_CONTOURS'])
+        for i in range(1, constants.analysis_config['NUM_CONTOURS']+1):
+            volumes[i-1] = self.compute_peripheral_cell_volume(peripheral_threshold=i)
+        return volumes
 
     def compute_cell_volume(self):
         """
-        compute cell surface in pixels using the cell mask
+        compute cell volume in real pixel size using the cell mask
         """
-        volume_offset = constants.dataset_config['VOLUME_OFFSET']
         cell_mask = self.get_cell_mask()
-        height_map = self.get_height_map()
-        height_map = height_map + volume_offset
-        cell_volume = height_map[np.where(cell_mask[:] == 1)].sum()
+        height_map = self.adjust_height_map()
+        cell_volume = height_map[cell_mask[:] == 1].sum()
         return cell_volume * helpers.volume_coeff()
 
-    def compute_peripheral_cell_volume(self):
-        """
-        compute cell surface in pixels using the cell mask
-        """
-        peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-        cell_mask_dist_map = self.get_cell_mask_distance_map()
-        peripheral_binary_mask = (cell_mask_dist_map > 0) & \
-                                 (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
-        volume_offset = constants.dataset_config['VOLUME_OFFSET']
-        cell_mask = self.get_cell_mask()
-        height_map = self.get_height_map()
-        height_map = height_map + volume_offset
-        height_map_periph = np.multiply(height_map, peripheral_binary_mask)
-        peripheral_cell_volume = height_map_periph[np.where(cell_mask[:] == 1)].sum()
-        return peripheral_cell_volume * helpers.volume_coeff()
-
-    @helpers.checkpoint_decorator(NUCLEUS_VOLUME_PATH_SUFFIX, float)
-    def get_nucleus_volume(self) -> float:
-        return self.compute_nucleus_volume()
-
     def compute_nucleus_volume(self):
-        """compute nucleus volume in pixel using nucleus mask"""
-        volume_offset = constants.dataset_config['VOLUME_OFFSET']
+        """compute nucleus volume in in real pixel size using nucleus mask"""
         nucleus_mask = self.get_nucleus_mask()
-        height_map = self.get_height_map()
-        height_map = height_map + volume_offset
-        nucleus_volume = height_map[np.where(nucleus_mask[:] == 1)].sum()
+        height_map = self.adjust_height_map()
+        nucleus_volume = height_map[nucleus_mask[:] == 1].sum()
         return nucleus_volume * helpers.volume_coeff()
 
     def compute_cytoplasmic_volume(self):
-        cell_volume = self.get_cell_volume()
-        nucleus_volume = self.get_nucleus_volume()
-        cytoplasmic_volume = (cell_volume - nucleus_volume)
-        if (cytoplasmic_volume <= 0):
-            raise (RuntimeError, "cytoplasm and nucleus have inconsistent volumes for image %s" % self._path)
-        return cytoplasmic_volume
+        """compute volume of the cytoplasm in in real pixel size using cytoplasm mask"""
+        cytoplasm_mask = self.get_cytoplasm_mask()
+        height_map = self.adjust_height_map()
+        cytoplasm_volume = height_map[cytoplasm_mask[:] == 1].sum()
+        return cytoplasm_volume * helpers.volume_coeff()
 
     def compute_peripheral_volume(self):
-        peripheral_cell_volume = self.get_peripheral_cell_volume()
-        if (peripheral_cell_volume <= 0):
-            raise (RuntimeError, "peripheral area have inconsistent volumes for image %s" % self._path)
-        return peripheral_cell_volume
+         peripheral_cell_volume = self.compute_peripheral_cell_volume()
+         if (peripheral_cell_volume <= 0):
+             raise (RuntimeError, "peripheral area has inconsistent volumes for image %s" % self._path)
+         return peripheral_cell_volume
 
     def compute_average_cytoplasmic_distance_from_nucleus3d(self, dsAll) -> float:
         '''
@@ -392,7 +377,7 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
     def compute_cell_density(self):
         # compute density of the cell
         intensity_count = self.get_total_intensity()
-        volume = self.get_cell_volume()
+        volume = self.compute_cell_volume()
         return intensity_count / volume
 
     def compute_intensities_normalized_spread_to_centroid(self):
@@ -597,21 +582,12 @@ class Image3dMultiNucleus(Image3d):
         if not self._repository.is_multiple(image_path, image_path + NUCLEUS_CENTROID_PATH_SUFFIX):
             raise AttributeError("Incorrect format for image %s" % image_path)
 
-    @helpers.checkpoint_decorator(CELL_VOLUME_PATH_SUFFIX, float)
-    def get_cell_volume(self) -> float:
-        return self.compute_cell_volume()
-
-    def get_peripheral_cell_volume(self) -> float:
-        return self.compute_peripheral_cell_volume()
-
     def compute_cell_volume(self):
         """
-        computes cell surface in pixels using the cell mask
+        computes cell volume in in real pixel size using the cell mask
         """
-        volume_offset = constants.dataset_config['VOLUME_OFFSET']
         cell_mask = self.get_cell_mask()
-        height_map = self.get_height_map()
-        height_map = height_map + volume_offset
+        height_map = self.adjust_height_map()
         cell_volume = height_map[np.where(cell_mask[:] == 1)].sum()
         if (len(self.get_multiple_nucleus_centroid())) > 1:
             return cell_volume / len(self.get_multiple_nucleus_centroid()) * helpers.volume_coeff()
@@ -620,16 +596,14 @@ class Image3dMultiNucleus(Image3d):
 
     def compute_peripheral_cell_volume(self):
         """
-        computes cell surface in pixels using the cell mask
+        computes cell volume in in real pixel size using the cell mask
         """
         peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-        volume_offset = constants.dataset_config['VOLUME_OFFSET']
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         peripheral_binary_mask = (cell_mask_dist_map > 0) & \
                                  (cell_mask_dist_map <= peripheral_fraction_threshold).astype(int)
         cell_mask = self.get_cell_mask()
-        height_map = self.get_height_map()
-        height_map = height_map + volume_offset
+        height_map = self.adjust_height_map()
         height_map_periph = np.multiply(height_map, peripheral_binary_mask)
         peripheral_cell_volume = height_map_periph[np.where(cell_mask[:] == 1)].sum()
 

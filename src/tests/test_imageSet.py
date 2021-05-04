@@ -40,15 +40,23 @@ class TestImageSet(TestCase):
 
     # TODO : major bottleneck identified in draw polygon
     def test_compute_spots_signal_from_periphery(self):
-        #self.skipTest("Skipping for inefficiency reasons")
+        # self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/'])
         self.assertEqual(len(image_set.images), 20, "Expected 20 images")
         peripheral_signals = image_set.compute_signal_from_periphery()
         self.assertEqual(peripheral_signals.shape, (20, 100))
         self.assertAlmostEqual(peripheral_signals.sum(), 107139.0)
 
+    def test_compute_areas_from_periphery(self):
+        # self.skipTest("Skipping for inefficiency reasons")
+        image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/'])
+        self.assertEqual(len(image_set.images), 20, "Expected 20 images")
+        peripheral_areas = image_set.compute_areas_from_periphery()
+        self.assertEqual(peripheral_areas.shape, (20, 100))
+        self.assertAlmostEqual(peripheral_areas.sum(), 630578.85075608, places=5)
+
     def test_compute_intensities_signal_from_periphery(self):
-        #self.skipTest("Skipping for inefficiency reasons")
+        # self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/'])
         self.assertEqual(len(image_set.images), 20, "Expected 20 images")
         peripheral_signals = image_set.compute_signal_from_periphery()
@@ -198,4 +206,3 @@ class TestImageSet(TestCase):
                  0.0, 0.0, 0.0, 0.0, 0.0]]
         self.assertEqual(len(result), len(test))
         self.assertAlmostEqual(np.sum(result), np.sum(test), places=5)
-

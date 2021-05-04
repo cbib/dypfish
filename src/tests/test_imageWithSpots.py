@@ -32,13 +32,6 @@ class TestImageWithSpots(TestCase):
         self.assertEqual(cytoplasmic_spots.shape, (155, 3))
         self.assertTrue((cytoplasmic_spots[0] == [302, 123, 12]).all())
 
-    def test_compute_cell_mask_distance_map(self):
-        distance_mask = self.img.compute_cell_mask_distance_map()
-        self.assertEqual(distance_mask.shape, (512, 512))
-        self.assertEqual(np.min(distance_mask), 0)
-        self.assertEqual(np.max(distance_mask), 100)
-        self.assertEqual(np.sum(distance_mask), 2024717)
-
     def test_compute_peripheral_total_spots(self):
         spots_num = self.img.compute_peripheral_total_spots()
         self.assertEqual(spots_num, 18.0)

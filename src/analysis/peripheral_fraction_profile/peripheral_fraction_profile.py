@@ -21,12 +21,13 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo):
     gene2mean_fractions = {}
     for gene in genes:
         image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene])
+        #peripheral_fractions = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
         peripheral_fractions = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
         gene2mean_fractions[gene] = np.mean(peripheral_fractions, axis=0)
 
     # normalized by gapdh profile
-    for gene in genes:
-        gene2mean_fractions[gene]  = gene2mean_fractions[gene] / gene2mean_fractions['gapdh']
+    # for gene in genes:
+    #     gene2mean_fractions[gene]  = gene2mean_fractions[gene] / gene2mean_fractions['gapdh']
 
     # this is because of the format that the plotting function expects
     fractions = np.array([list(v) for v in gene2mean_fractions.values()])

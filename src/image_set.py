@@ -8,7 +8,7 @@ from loguru import logger
 import numpy as np
 import constants
 from repository import Repository
-from image import ImageWithSpots, ImageWithIntensities, ImageWithMTOC, \
+from image import Image, ImageWithSpots, ImageWithIntensities, ImageWithMTOC, \
     ImageWithSpotsAndIntensities, ImageWithSpotsAndMTOC, ImageWithSpotsAndIntensitiesAndMTOC, \
     ImageWithIntensitiesAndMTOC, ImageMultiNucleus, ImageMultiNucleusWithSpots, \
     imageWithSpotsAndZlines, imageMultiNucleusWithSpotsAndZlines
@@ -151,9 +151,12 @@ class ImageSet(object):
 
     def compute_cytoplsamic_spots_fractions_per_periphery(self):
         all_signals = self.compute_signal_from_periphery()
-        image: ImageWithIntensities
+        image: ImageWithSpots
+        cytoplasmic_densities = [image.compute_cytoplasmic_density() for image in self.images]
+        all_areas = self.compute_areas_from_periphery()
         spot_counts = [len(image.get_cytoplasmic_spots()) for image in self.images]
-        return np.array(all_signals) / np.array(spot_counts)[:, None]
+        # return np.array(all_signals) / np.array(spot_counts)[:, None]
+        return np.divide(np.array(all_signals), np.array(all_areas)) / np.array(cytoplasmic_densities)[:, None]
 
     def compute_intensities_fractions_per_periphery(self):
         all_signals = self.compute_signal_from_periphery()
@@ -173,6 +176,20 @@ class ImageSet(object):
         image: Union[ImageWithSpots, ImageWithIntensities]
         for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
             arr[image_num] = image.get_signal_from_periphery()
+        return arr
+
+    def compute_areas_from_periphery(self):
+        arr = np.zeros((self.__sizeof__(), 100))
+        image: Image
+        for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
+            arr[image_num] = image.compute_areas_from_periphery()
+        return arr
+
+    def compute_volumes_from_periphery(self):
+        arr = np.zeros((self.__sizeof__(), 100))
+        image: Image3d
+        for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
+            arr[image_num] = image.compute_volumes_from_periphery()
         return arr
 
     def compute_cytoplasmic_spots_counts(self) -> List[int]:

@@ -78,3 +78,28 @@ class TestImage3d(TestCase):
         avg, max = self.img.compute_average_cytoplasmic_distance_from_nucleus3d(dsAll)
         self.assertAlmostEqual(avg, 114.29197825824, places=5)
         self.assertAlmostEqual(max, 203.6909423612, places=5)
+
+    def test_compute_cell_volume(self):
+        volume = self.img.compute_cell_volume()
+        self.assertAlmostEqual(volume, 1413.78145956607, places=5)
+
+    def test_compute_nucleus_volume(self):
+        volume = self.img.compute_nucleus_volume()
+        self.assertAlmostEqual(volume, 342.949112426035, places=5)
+
+    def test_compute_cytoplasmic_volume(self):
+        volume = self.img.compute_cytoplasmic_volume()
+        self.assertAlmostEqual(volume, 1070.83234714, places=5)
+        self.assertAlmostEqual(volume, self.img.compute_cell_volume() - self.img.compute_nucleus_volume(), places=5)
+
+    def test_compute_peripheral_cell_volume(self):
+        volume = self.img.compute_peripheral_cell_volume()
+        self.assertAlmostEqual(volume, 130.805522682445, places = 5)
+
+    def test_compute_volumes_from_periphery(self):
+        volumes = self.img.compute_volumes_from_periphery()
+        self.assertEqual(len(volumes), 100)
+        self.assertTrue(all(volumes[i] <= volumes[i + 1] for i in range(len(volumes) - 1)))
+        self.assertAlmostEqual(volumes.sum(), 46560.7842209072, places = 5)
+        self.assertEqual(volumes[99], self.img.compute_cytoplasmic_volume())
+

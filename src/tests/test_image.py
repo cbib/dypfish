@@ -11,7 +11,7 @@ import path
 class TestImage(TestCase):
     def setUp(self) -> None:
         self.h5_sample_path = pathlib.Path(path.global_example_data, "basic.h5")
-        self.repo = H5Repository(repo_path=self.h5_sample_path)
+        self.repo = H5RepositoryWithCheckpoint(repo_path=self.h5_sample_path)
         self.img = Image(repository=self.repo, image_path="mrna/arhgdia/2h/1")
 
     def test_get_cell_mask(self):
@@ -44,19 +44,6 @@ class TestImage(TestCase):
             # primary h5 repo should not allow write
             area = self.img.get_cell_area()
 
-
-constants.init_config(analysis_config_js_path=path.test_config_path)
-
-
-class TestImageSecondary(TestCase):
-    def setUp(self) -> None:
-        self.h5_sample_path = pathlib.Path(path.global_example_data, "basic.h5")
-        self.repo = H5RepositoryWithCheckpoint(repo_path=self.h5_sample_path)
-        self.img = Image(repository=self.repo, image_path="mrna/arhgdia/2h/1")
-
-    def tearDown(self) -> None:
-        self.repo.clear()
-
     def test_get_cell_area_write(self):
         area = self.img.get_cell_area()
         self.assertIsNotNone(area)
@@ -86,3 +73,28 @@ class TestImageSecondary(TestCase):
     def test_compute_cell_diameter(self):
         d = self.img.compute_cell_diameter()
         self.assertAlmostEqual(d, 311.192866242, places=5)
+
+    def test_compute_areas_from_periphery(self):
+        areas = self.img.compute_areas_from_periphery()
+        self.assertEqual(areas[99], self.img.compute_cell_area() - self.img.compute_nucleus_area())
+        self.assertAlmostEqual(areas.sum(), 30652.160420775, places=3)
+
+    def test_compute_cell_mask_distance_map(self):
+        distance_mask = self.img.compute_cell_mask_distance_map()
+        self.assertEqual(distance_mask.shape, (512, 512))
+        self.assertEqual(np.min(distance_mask), 0)
+        self.assertEqual(np.max(distance_mask), 100)
+        self.assertEqual(np.sum(distance_mask), 2024717)
+
+
+constants.init_config(analysis_config_js_path=path.test_config_path)
+
+
+class TestImageSecondary(TestCase):
+    def setUp(self) -> None:
+        self.h5_sample_path = pathlib.Path(path.global_example_data, "basic.h5")
+        self.repo = H5RepositoryWithCheckpoint(repo_path=self.h5_sample_path)
+        self.img = Image(repository=self.repo, image_path="mrna/arhgdia/2h/1")
+
+    def tearDown(self) -> None:
+        self.repo.clear()
