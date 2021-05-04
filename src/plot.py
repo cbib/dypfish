@@ -89,18 +89,18 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
     """
     Plot a barplot for each gene with height given by medians, error bars defined by err
     and confidence intervals by CI; CI is a dictionary with keys = genes
-    test: t-test_ind, t-test_welch, t-test_paired, Mann-Whitney, Mann-Whitney-gt, Mann-Whitney-ls, Levene, Wilcoxon, Kruskal.
+    test: a string (t-test_ind, t-test_welch, t-test_paired, etc)
     """
     # Define plot variables
     all_genes = list(data_median.keys())
-    medians = data_median.values()
+    medians = list(data_median.values())
     plot_colors = constants.analysis_config['PLOT_COLORS']
     bar_width = 0.35
     ind = np.arange(len(all_genes))
     fig, ax = plt.subplots()
 
     # Search for ymin and y max
-    y_max = np.float(np.max(list(medians))) + (np.float(np.nanmin(list(medians))) / 10)
+    y_max = np.max(medians) + np.nanmin(medians) / 10
     y_min = 0 # np.float(np.nanmin(list(medians))) - (np.float(np.nanmin(list(medians))) / 5)
     plt.ylim([y_min, y_max])
 
@@ -162,9 +162,9 @@ def bar_profile(data, figname, plot_colors):
     logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
-def violin_profile(_dict, tgt_fp, xlabels, rotation=0, annot=False):
+def violin_profile(dict, tgt_fp, xlabels, rotation=0, annot=False):
     dd = pd.DataFrame(
-        dict([(k, pd.Series(v).astype(float)) for k, v in _dict.items()])).melt().dropna().rename(
+        dict([(k, pd.Series(v).astype(float)) for k, v in dict.items()])).melt().dropna().rename(
         columns={"variable": "gene"})
     my_pal = {}
     for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(constants.analysis_config['MRNA_GENES'])]):

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
+# This analysis will produce incogerent results if PERIPHERAL_FRACTION goes within the nucleus
+
 import pathlib
 from loguru import logger
 import constants
@@ -19,7 +21,7 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo):
     gene2mean_fractions = {}
     for gene in genes:
         image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene])
-        peripheral_fractions = image_set.compute_spots_fractions_per_periphery()
+        peripheral_fractions = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
         gene2mean_fractions[gene] = np.mean(peripheral_fractions, axis=0)
 
     # normalized by gapdh profile
@@ -32,8 +34,9 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo):
 
 
 def build_histogram_peripheral_fraction(analysis_repo, molecule_type, force2D=False):
-    gene2periph_fraction = {}
-    gene2median_periph_fraction = {}
+    fraction = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
+    gene2periph_fractions = {}
+    gene2median_pfraction = {}
     gene2error = {}
     gene2ci = {}
     if molecule_type == 'mrna':
@@ -43,16 +46,17 @@ def build_histogram_peripheral_fraction(analysis_repo, molecule_type, force2D=Fa
     for gene in genes:
         image_set = ImageSet(analysis_repo, ['{0}/{1}/'.format(molecule_type, gene)], force2D=force2D)
         if molecule_type == 'mrna':
-            gene2periph_fraction[gene] = image_set.compute_spots_fractions_per_periphery()
+            gene2periph_fractions[gene] = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
         else:
-            gene2periph_fraction[gene] = image_set.compute_intensities_fractions_per_periphery()
-        gene2median_periph_fraction[gene] = np.median(gene2periph_fraction[gene])
-        gene2error[gene] = helpers.sem(gene2periph_fraction[gene], factor=0)
-        lower, higher = helpers.median_confidence_interval(gene2periph_fraction[gene])
+            gene2periph_fractions[gene] = image_set.compute_cytoplasmic_intensities_fractions_per_periphery()
+        median_pfractions = np.median(gene2periph_fractions[gene], axis=0)
+        gene2median_pfraction[gene] = median_pfractions[fraction]
+        gene2error[gene] = helpers.sem(median_pfractions, factor=0)
+        lower, higher = helpers.median_confidence_interval(median_pfractions)
         gene2ci[gene] = [lower, higher]
 
-    return gene2median_periph_fraction, gene2periph_fraction, gene2error, gene2ci
-
+    fractions = np.array([list(v) for v in gene2periph_fractions.values()])
+    return gene2median_pfraction, fractions, gene2error, gene2ci
 
 def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors, CI, annotations):
     fraction = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
@@ -67,7 +71,7 @@ def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors
         xlabels = constants.analysis_config['PROTEINS_LABEL']
 
     # generate the bar profile plot
-    plot.bar_profile_median(medians, errors.values(), 'mrna', xlabels, tgt_fp, confidence_interval=CI,
+    plot.bar_profile_median(medians, errors, 'mrna', xlabels, tgt_fp, confidence_interval=CI,
                             annot=annotations, data_to_annot=fractions)
     logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
@@ -110,7 +114,7 @@ if __name__ == '__main__':
             logger.info("Peripheral fraction histogram for mRNA the original data")
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna')
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
-                                               errors=err, CI=CI, annotations=stat_annotations)
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
             exit()
 
         elif "chx" in conf[0]:

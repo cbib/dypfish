@@ -35,10 +35,10 @@ class TestImageWithIntensities(TestCase):
         peripheral_intensities = self.img.compute_signal_from_periphery()
         self.assertEqual(peripheral_intensities.shape[0], 100)
         # test an arbitrary value
-        self.assertEqual(peripheral_intensities[10], 505617567.0)
+        self.assertEqual(peripheral_intensities[10], 132752104.0)
         self.assertTrue(all(
             peripheral_intensities[i] <= peripheral_intensities[i + 1] for i in range(len(peripheral_intensities) - 1)))
-        self.assertAlmostEqual(peripheral_intensities.sum(), 105464189589.0)
+        self.assertAlmostEqual(peripheral_intensities.sum(), 68177643289.0)
 
     def test_compute_cell_total_intensity(self):
         cell_intensity = self.img.get_cell_total_intensity()

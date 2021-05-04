@@ -41,15 +41,12 @@ class TestImageWithSpots(TestCase):
 
     def test_compute_peripheral_total_spots(self):
         spots_num = self.img.compute_peripheral_total_spots()
-        self.assertEqual(spots_num, 81)
+        self.assertEqual(spots_num, 18.0)
 
     def test_compute_spots_peripheral_distance_2d(self):
-        peripheral_distance_2D = self.img.compute_spots_peripheral_distance_2D(cytoplasm=True)
+        peripheral_distance_2D = self.img.compute_spots_peripheral_distance_2D()
         self.assertEqual(peripheral_distance_2D[0], 46)
-        self.assertEqual(peripheral_distance_2D.size, 155)
-        peripheral_distance_2D = self.img.compute_spots_peripheral_distance_2D(cytoplasm=False)
-        self.assertEqual(peripheral_distance_2D[15], 66)
-        self.assertEqual(peripheral_distance_2D.size, 218)
+        self.assertEqual(peripheral_distance_2D.size, len(self.img.get_cytoplasmic_spots()))
 
     def test_compute_cytoplasmic_spots(self):
         self.assertEqual(len(self.img.compute_cytoplasmic_spots()), 155)
@@ -81,8 +78,8 @@ class TestImageWithSpots(TestCase):
         peripheral_spots = self.img.compute_signal_from_periphery()
         self.assertEqual(peripheral_spots.shape[0], 100)
         # test an arbitrary value
-        self.assertEqual(peripheral_spots[30], 81.0)
+        self.assertEqual(peripheral_spots[30], 18.0)
         self.assertTrue(all(
             peripheral_spots[i] <= peripheral_spots[i + 1] for i in range(len(peripheral_spots) - 1)))
-        self.assertEqual(peripheral_spots.sum(), 12708.0)
-        self.assertEqual(peripheral_spots[99], len(self.img.get_spots()))
+        self.assertEqual(peripheral_spots.sum(), 6408.0)
+        self.assertEqual(peripheral_spots[99], len(self.img.get_cytoplasmic_spots()))
