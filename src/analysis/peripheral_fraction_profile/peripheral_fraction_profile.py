@@ -21,7 +21,6 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo):
     gene2mean_fractions = {}
     for gene in genes:
         image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene])
-        #peripheral_fractions = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
         peripheral_fractions = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
         gene2mean_fractions[gene] = np.mean(peripheral_fractions, axis=0)
 

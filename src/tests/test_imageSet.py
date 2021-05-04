@@ -11,8 +11,7 @@ from image_set import ImageSet
 import path
 import constants
 
-constants.init_config(analysis_config_js_path=path.test_config_path)  # TODO this is annoying
-
+constants.init_config(analysis_config_js_path=path.test_config_path)
 
 class TestImageSet(TestCase):
     def setUp(self) -> None:

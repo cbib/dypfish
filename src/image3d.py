@@ -364,19 +364,19 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
 
     def compute_cytoplasmic_density(self):
         # compute signal density of the cytoplasm
-        cytoplasmic_intensity_count = self.get_cytoplasmic_total_intensity()
+        cytoplasmic_intensity_count = self.compute_cytoplasmic_total_intensity()
         cytoplasmic_volume = self.compute_cytoplasmic_volume()
         return cytoplasmic_intensity_count / cytoplasmic_volume
 
     def compute_peripheral_density(self):
         # compute mRNA density in the peripheral area
-        peripheral_intensity_count = self.get_peripheral_total_intensity()
+        peripheral_intensity_count = self.compute_peripheral_total_intensity()
         peripheral_volume = self.compute_peripheral_volume()
         return peripheral_intensity_count / peripheral_volume
 
     def compute_cell_density(self):
         # compute density of the cell
-        intensity_count = self.get_total_intensity()
+        intensity_count = self.compute_cell_total_intensity()
         volume = self.compute_cell_volume()
         return intensity_count / volume
 
@@ -384,7 +384,7 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         height_map = self.adjust_height_map(cytoplasm=True)
         nucleus_centroid = self.get_nucleus_centroid()
         cytoplasm_mask = self.get_cytoplasm_mask()
-        IF = np.multiply(self.get_cytoplasmic_intensities(), height_map)
+        IF = np.multiply(self.compute_cytoplasmic_intensities(), height_map)
 
         # Compute all possible distances in a matrix [512x512]
         dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid)
@@ -400,7 +400,7 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         return spread_to_centroid
 
     def compute_intensities_normalized_cytoplasmic_spread(self):
-        IF = self.get_cytoplasmic_intensities()
+        IF = self.compute_cytoplasmic_intensities()
         height_map = self.adjust_height_map(cytoplasm=True)
         IF = np.multiply(IF, height_map) # factoring in the 3D
         cytoplasm_mask = self.get_cytoplasm_mask()
@@ -545,7 +545,7 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
         compute volumic density per quadrant;
         return an array of values of density paired with the MTOC presence flag (0/1)
         """
-        IF = self.get_cytoplasmic_intensities()
+        IF = self.compute_cytoplasmic_intensities()
         height_map = self.adjust_height_map(cytoplasm=True)
         density_per_quadrant = np.zeros((quadrants_num, 2))
         # mark the MTOC quadrant

@@ -29,16 +29,9 @@ from constants import MTOC_LEADING_EDGE_SUFFIX
 
 # secondary basic image descriptors
 from constants import QUADRANT_MASK_PATH_SUFFIX
-from constants import CELL_AREA_PATH_SUFFIX
 from constants import CELL_MASK_DISTANCE_PATH_SUFFIX
 from constants import CYTOPLASMIC_SPOTS_PATH_SUFFIX
-from constants import PERIPHERAL_SPOTS_PATH_SUFFIX
 from constants import PERIPHERAL_SPOT_COUNT_PATH_SUFFIX
-from constants import TOTAL_INTENSITY_PATH_SUFFIX
-from constants import CELL_TOTAL_INTENSITY_PATH_SUFFIX
-from constants import CYTOPLASMIC_TOTAL_INTENSITY_PATH_SUFFIX
-from constants import PERIPHERAL_TOTAL_INTENSITY_PATH_SUFFIX
-from constants import CYTOPLASMIC_INTENSITIES_PATH_SUFFIX
 from constants import PERIPHERAL_INTENSITIES_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
 from constants import QUADRANT_DENSITIES_PATH_SUFFIX
@@ -69,26 +62,8 @@ class Image(object):
     def get_cell_mask(self) -> np.ndarray:
         return np.array(self._repository.get(self._path + CELL_MASK_PATH_SUFFIX)).astype(int)
 
-    def get_peripheral_cell_mask(self) -> np.ndarray:
-        cell_mask = self.get_cell_mask()
-        peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-        cell_mask_dist_map = self.get_cell_mask_distance_map()
-        peripheral_binary_mask = ((cell_mask_dist_map > 0) &
-                                  (cell_mask_dist_map <= peripheral_fraction_threshold)).astype(int)
-        return np.multiply(cell_mask, peripheral_binary_mask)
-
     def get_nucleus_mask(self) -> np.ndarray:
         return np.array(self._repository.get(self._path + NUCLEUS_MASK_PATH_SUFFIX)).astype(int)
-
-    def compute_cytoplasm_mask(self) -> np.ndarray:
-        cell_mask = self.get_cell_mask()
-        nucleus_mask = 1 - self.get_nucleus_mask()
-        return np.multiply(cell_mask, nucleus_mask)
-
-    def compute_peripheral_mask(self) -> np.ndarray:
-        peripheral_cell_mask = self.get_peripheral_cell_mask()
-        nucleus_mask = 1 - self.get_nucleus_mask()
-        return np.multiply(peripheral_cell_mask, nucleus_mask)
 
     def get_nucleus_centroid(self) -> np.ndarray:
         return np.around(
@@ -119,17 +94,22 @@ class Image(object):
             areas[i] = cytoplasm_mask[(distance_map <= i+1)].sum() * helpers.surface_coeff()
         return areas
 
-    @helpers.checkpoint_decorator(CELL_AREA_PATH_SUFFIX, float)
-    def get_cell_area(self) -> float:
-        return self.compute_cell_area()
-
     @helpers.checkpoint_decorator(CYTOPLASM_MASK_PATH_SUFFIX, float)
     def get_cytoplasm_mask(self) -> np.ndarray:
         return self.compute_cytoplasm_mask()
 
-    @helpers.checkpoint_decorator(PERIPHERAL_MASK_PATH_SUFFIX, float)
-    def get_peripheral_mask(self) -> np.ndarray:
-        return self.compute_peripheral_mask()
+    def compute_cytoplasm_mask(self) -> np.ndarray:
+        cell_mask = self.get_cell_mask()
+        nucleus_mask = 1 - self.get_nucleus_mask()
+        return np.multiply(cell_mask, nucleus_mask)
+
+    def compute_peripheral_mask(self) -> np.ndarray:
+        cytoplasm_mask = self.get_cytoplasm_mask()
+        peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
+        cell_mask_dist_map = self.get_cell_mask_distance_map()
+        peripheral_binary_mask = ((cell_mask_dist_map > 0) &
+                                  (cell_mask_dist_map <= peripheral_fraction_threshold)).astype(int)
+        return np.multiply(peripheral_binary_mask, cytoplasm_mask)
 
     def compute_cell_mask_distance_map(self):
         cytoplasm_mask = self.get_cytoplasm_mask()
@@ -157,24 +137,6 @@ class Image(object):
         boundary_points = cell_mask_points[convex_hull.vertices]
         d = np.max(pairwise_distances(boundary_points))
         return d
-
-    def compute_peripheral_areas(self) -> List[float]:
-        """
-        TODO cache this ?
-        TODO : why the returned length is 101 and not 100 ?
-        :return:
-        """
-        peripheral_areas = []
-        peripheral_distance_map = self.get_cell_mask_distance_map()
-        cytoplasm_mask = self.get_cytoplasm_mask()
-        peripheral_distance_map[(peripheral_distance_map == 0) & (cytoplasm_mask == 1)] = 1
-        nucleus_area = self.compute_nucleus_area()
-        for i in range(101):
-            tmp_mask = np.array(peripheral_distance_map, copy=True)
-            tmp_mask[tmp_mask <= i] = 0
-            tmp_mask[(tmp_mask > i) & (tmp_mask <= 100)] = 1
-            peripheral_areas.append(tmp_mask.sum() * helpers.surface_coeff() + nucleus_area)
-        return peripheral_areas
 
     def compute_signal_from_periphery(self) -> np.ndarray:
         raise NotImplementedError
@@ -343,13 +305,6 @@ class ImageWithSpots(Image):
         return spots
 
     # TODO : this will load the mask for each spot
-    def compute_cytoplasmic_spots(self) -> np.ndarray:
-        spots = self.get_spots()
-        mask = [self.is_in_cytoplasm(s[0:2][::-1]) for s in spots]  # TODO check coordinate coherency for spots
-        cytoplasmic_spots = spots[mask]
-        return np.asarray(cytoplasmic_spots, dtype=int)
-
-    # TODO : this will load the mask for each spot
     def compute_peripheral_spots(self) -> np.ndarray:
         """
         :return: np.ndarray of int
@@ -368,7 +323,14 @@ class ImageWithSpots(Image):
     def get_cytoplasmic_spots(self) -> np.ndarray:
         return self.compute_cytoplasmic_spots()
 
-    def compute_spots_peripheral_distance_2D(self) -> np.ndarray:
+    # TODO : this will load the mask for each spot
+    def compute_cytoplasmic_spots(self) -> np.ndarray:
+        spots = self.get_spots()
+        mask = [self.is_in_cytoplasm(s[0:2][::-1]) for s in spots]  # TODO check coordinate coherency for spots
+        cytoplasmic_spots = spots[mask]
+        return np.asarray(cytoplasmic_spots, dtype=int)
+
+    def compute_cytoplasmic_spots_peripheral_distance_2D(self) -> np.ndarray:
         """
         Return an array of distances to the periphery for cytoplasmic spots
         returns an array of int
@@ -500,9 +462,9 @@ class ImageWithSpots(Image):
          np.ndarray of floats (total spots for each distance percentage from the periphery)
          normalization is the responsibility of the caller
          """
-        spots_distances = self.compute_spots_peripheral_distance_2D()
-        spots_counts = np.zeros(100)
-        for i in range(0, 100):  # normalization is done by the caller if needed
+        spots_distances = self.compute_cytoplasmic_spots_peripheral_distance_2D()
+        spots_counts = np.zeros(constants.analysis_config['NUM_CONTOURS'])
+        for i in range(0, constants.analysis_config['NUM_CONTOURS']):
             spots_counts[i] = len(spots_distances[spots_distances <= i + 1])
         return spots_counts
 
@@ -525,16 +487,17 @@ class ImageWithIntensities(Image):
 
     def get_intensities(self) -> np.ndarray:
         """
-          :returns: np.ndarray of floats (intensities of the cell)
-          """
+        returns: np.ndarray of floats (intensities of the cell)
+        """
         descriptor = self._path + IF_PATH_SUFFIX
         if not self._repository.is_present(descriptor):
             raise LookupError("No intensities for image %s" % self._path)
         raw_value = self._repository.get(descriptor)
         intensities = np.array(raw_value)
-        return intensities
+        cell_mask = self.get_cell_mask()
+        return np.multiply(intensities, cell_mask)
 
-    def compute_cell_total_intensity(self) -> float:  # TODO should be redundant with compute_total_intensity, but it is not in V0
+    def compute_cell_total_intensity(self) -> float:
         intensities = self.get_intensities()
         cell_mask = self.get_cell_mask()
         cell_intensities = np.multiply(intensities, cell_mask)
@@ -546,51 +509,15 @@ class ImageWithIntensities(Image):
         cytoplasmic_intensities = np.multiply(intensities, cytoplasm_mask)
         return cytoplasmic_intensities
 
-    def compute_total_intensity(self) -> float:
-        intensities = self.get_intensities()
-        return intensities.sum()
-
     def compute_cytoplasmic_total_intensity(self) -> float:
-        cytoplasmic_intensities = self.get_cytoplasmic_intensities()
+        cytoplasmic_intensities = self.compute_cytoplasmic_intensities()
         return cytoplasmic_intensities.sum()
 
-    @helpers.checkpoint_decorator(CYTOPLASMIC_TOTAL_INTENSITY_PATH_SUFFIX, dtype=np.float)
-    def get_cytoplasmic_total_intensity(self):
-        return self.compute_cytoplasmic_total_intensity()
-
     def compute_peripheral_total_intensity(self) -> float:
-        peripheral_intensity_mask = self.get_peripheral_intensity_mask()
-        return peripheral_intensity_mask.sum()
-
-    @helpers.checkpoint_decorator(PERIPHERAL_TOTAL_INTENSITY_PATH_SUFFIX, dtype=np.float)
-    def get_peripheral_total_intensity(self):
-        return self.compute_peripheral_total_intensity()
-
-    @helpers.checkpoint_decorator(CELL_TOTAL_INTENSITY_PATH_SUFFIX, dtype=np.float)
-    def get_cell_total_intensity(self):
-        return self.compute_cell_total_intensity()
-
-    @helpers.checkpoint_decorator(TOTAL_INTENSITY_PATH_SUFFIX, dtype=np.float)
-    def get_total_intensity(self):
-        return self.compute_total_intensity()
-
-    @helpers.checkpoint_decorator(CYTOPLASMIC_INTENSITIES_PATH_SUFFIX, dtype=np.float)
-    def get_cytoplasmic_intensities(self) -> np.ndarray:
-        return self.compute_cytoplasmic_intensities()
-
-    @helpers.checkpoint_decorator(PERIPHERAL_INTENSITIES_PATH_SUFFIX, dtype=np.float)
-    def get_peripheral_intensity_mask(self) -> np.ndarray:
-        return self.compute_peripheral_intensity_mask()
-
-    def compute_peripheral_intensity_mask(self) -> np.ndarray:
-        """
-         returns: np.ndarray of floats (total intensity for each distance percentage from the periphery)
-         normalization is the responsibility of the caller
-        """
-        intensities = self.get_intensities()
-        peripheral_mask = self.get_peripheral_mask()
+        intensities = self.compute_cytoplasmic_intensities()
+        peripheral_mask = self.compute_peripheral_mask()
         peripheral_intensity_mask = np.multiply(intensities, peripheral_mask)
-        return peripheral_intensity_mask
+        return peripheral_intensity_mask.sum()
 
     @helpers.checkpoint_decorator(PERIPHERAL_INTENSITIES_PATH_SUFFIX, dtype=np.float)
     def get_signal_from_periphery(self):
@@ -603,8 +530,8 @@ class ImageWithIntensities(Image):
          """
         intensities = np.multiply(self.get_intensities(), self.get_cytoplasm_mask())
         cell_mask_distance_map = self.get_cell_mask_distance_map()
-        intensities_sums = np.zeros(100)
-        for i in range(0, 100):  # normalization is done by the caller if needed
+        intensities_sums = np.zeros(constants.analysis_config['NUM_CONTOURS'])
+        for i in range(0, constants.analysis_config['NUM_CONTOURS']):
             intensities_sums[i] = intensities[cell_mask_distance_map <= i + 1].sum()
         return intensities_sums
 
@@ -616,7 +543,7 @@ class ImageWithIntensities(Image):
 
     def compute_intensities_normalized_spread_to_centroid(self) -> float:
         nucleus_centroid = self.get_nucleus_centroid()
-        IF = self.get_cytoplasmic_intensities()
+        IF = self.compute_cytoplasmic_intensities()
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
         dsAll = dsAll * self.get_cytoplasm_mask()
         avg_dist = self.compute_average_cytoplasmic_distance_proportional_intensity(dsAll)
@@ -632,7 +559,7 @@ class ImageWithIntensities(Image):
         return spread_to_centroid
 
     def compute_intensities_normalized_cytoplasmic_spread(self):
-        IF = self.get_cytoplasmic_intensities()
+        IF = self.compute_cytoplasmic_intensities()
         cytoplasmic_mask = self.get_cytoplasm_mask()
 
         # Calculate the spread of signal peaks
@@ -654,7 +581,7 @@ class ImageWithIntensities(Image):
 
     def compute_cytoplasmic_density(self):
         # compute signal density of the cytoplasm
-        cytoplasmic_intensity_count = self.get_cytoplasmic_total_intensity()
+        cytoplasmic_intensity_count = self.compute_cytoplasmic_total_intensity()
         cytoplasmic_area = self.compute_cell_area()
         return cytoplasmic_intensity_count / cytoplasmic_area
 
@@ -726,7 +653,7 @@ class ImageWithIntensitiesAndMTOC(ImageWithMTOC, ImageWithIntensities):
         Given a quadrant mask and number of MTOC containing quadrant, compute 2D density per quadrant;
         return an array of values of density paired with the MTOC presence flag (0/1)
         """
-        IF = self.get_cytoplasmic_intensities()
+        IF = self.compute_cytoplasmic_intensities()
         density_per_quadrant = np.zeros((quadrants_num, 2))
         # mark the MTOC quadrant
         density_per_quadrant[mtoc_quad - 1, 1] = 1
@@ -894,10 +821,6 @@ class ImageMultiNucleus(Image):
             return area / len(self.get_multiple_nucleus_centroid())
         else:
             return area
-
-    @helpers.checkpoint_decorator(CELL_AREA_PATH_SUFFIX, float)
-    def get_cell_area(self) -> float:
-        return self.compute_cell_area()
 
 
 class ImageMultiNucleusWithSpots(ImageMultiNucleus, ImageWithSpots):

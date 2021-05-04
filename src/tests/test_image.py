@@ -3,7 +3,7 @@ from unittest import TestCase
 
 import numpy as np
 import constants
-from repository import H5Repository, H5RepositoryWithCheckpoint
+from repository import H5RepositoryWithCheckpoint
 from image import Image
 import path
 
@@ -39,11 +39,6 @@ class TestImage(TestCase):
         nucleus_centroid = self.img.get_nucleus_centroid()
         self.assertEqual(nucleus_centroid.tolist(), [253, 220])
 
-    def test_get_cell_area(self):
-        with self.assertRaises(PermissionError):
-            # primary h5 repo should not allow write
-            area = self.img.get_cell_area()
-
     def test_get_cell_area_write(self):
         area = self.img.get_cell_area()
         self.assertIsNotNone(area)
@@ -53,13 +48,6 @@ class TestImage(TestCase):
 
     def test_get_cytoplasm_mask(self):
         self.assertEqual(self.img.get_cytoplasm_mask().sum(), 48913)
-
-    def test_compute_peripheral_areas_in_cytoplasm(self):
-        areas = self.img.compute_peripheral_areas()
-        self.assertEqual(len(areas), 101)
-        # test arbitrary values
-        self.assertEqual(areas[2], 585.8251150558842)  # without nucleus : 490.5614727153188
-        self.assertEqual(areas[4], 571.4766600920447)  # without nucleus : 476.21301775147924
 
     def test_is_in_cytoplasm(self):
         # test a random coord
@@ -86,6 +74,11 @@ class TestImage(TestCase):
         self.assertEqual(np.max(distance_mask), 100)
         self.assertEqual(np.sum(distance_mask), 2026342)
 
+    def test_compute_peripheral_mask(self):
+        mask = self.img.compute_peripheral_mask()
+        self.assertAlmostEqual(mask.sum(), 20196.0)
+        self.assertLess(mask.sum(), self.img.get_cytoplasm_mask().sum())
+
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
 
@@ -98,3 +91,4 @@ class TestImageSecondary(TestCase):
 
     def tearDown(self) -> None:
         self.repo.clear()
+

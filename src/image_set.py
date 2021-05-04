@@ -152,11 +152,11 @@ class ImageSet(object):
     def compute_cytoplsamic_spots_fractions_per_periphery(self):
         all_signals = self.compute_signal_from_periphery()
         image: ImageWithSpots
-        cytoplasmic_densities = [image.compute_cytoplasmic_density() for image in self.images]
-        all_areas = self.compute_areas_from_periphery()
+        #cytoplasmic_densities = [image.compute_cytoplasmic_density() for image in self.images]
+        #all_areas = self.compute_areas_from_periphery()
         spot_counts = [len(image.get_cytoplasmic_spots()) for image in self.images]
-        # return np.array(all_signals) / np.array(spot_counts)[:, None]
-        return np.divide(np.array(all_signals), np.array(all_areas)) / np.array(cytoplasmic_densities)[:, None]
+        return np.array(all_signals) / np.array(spot_counts)[:, None]
+        #return np.divide(np.array(all_signals), np.array(all_areas)) / np.array(cytoplasmic_densities)[:, None]
 
     def compute_intensities_fractions_per_periphery(self):
         all_signals = self.compute_signal_from_periphery()
@@ -168,11 +168,11 @@ class ImageSet(object):
     def compute_cytoplsamic_intensities_fractions_per_periphery(self):
         all_signals = self.compute_signal_from_periphery()
         image: ImageWithIntensities
-        intensities_counts = [image.get_cytoplasmic_intensities().sum() for image in self.images]
+        intensities_counts = [image.compute_cytoplasmic_intensities().sum() for image in self.images]
         return np.array(all_signals) / np.array(intensities_counts)[:, None]
 
     def compute_signal_from_periphery(self):
-        arr = np.zeros((self.__sizeof__(), 100))
+        arr = np.zeros((self.__sizeof__(), constants.analysis_config['NUM_CONTOURS']))
         image: Union[ImageWithSpots, ImageWithIntensities]
         for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
             arr[image_num] = image.get_signal_from_periphery()
@@ -203,7 +203,7 @@ class ImageSet(object):
         total_cytoplasmic_intensities = []
         image: ImageWithIntensities
         for image in self.images:
-            total_cytoplasmic_intensities.append(image.get_cytoplasmic_total_intensity())
+            total_cytoplasmic_intensities.append(image.compute_cytoplasmic_total_intensity())
         return total_cytoplasmic_intensities
 
     def compute_cytoplasmic_spots_centrality(self) -> List[float]:

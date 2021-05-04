@@ -25,11 +25,12 @@ class TestImageWithIntensities(TestCase):
 
     def test_get_intensities(self):
         self.assertEqual(self.img.get_intensities().shape, (512, 512))
-        self.assertEqual(self.img.get_total_intensity(), 3585026376.0)  # in the cell : 1746049018.0
+        total_intensities = self.img.compute_cell_total_intensity()
+        self.assertEqual(total_intensities, 1746049018.0)
 
     def test_compute_cytoplasmic_intensities(self):
         self.assertEqual(self.img.compute_cytoplasmic_intensities().shape, (512, 512))
-        self.assertEqual(self.img.get_cytoplasmic_total_intensity(), 1373183555.0)
+        self.assertEqual(self.img.compute_cytoplasmic_total_intensity(), 1373183555.0)
 
     def test_compute_signal_from_periphery(self):
         peripheral_intensities = self.img.compute_signal_from_periphery()
@@ -41,7 +42,7 @@ class TestImageWithIntensities(TestCase):
         self.assertAlmostEqual(peripheral_intensities.sum(), 68177643289.0)
 
     def test_compute_cell_total_intensity(self):
-        cell_intensity = self.img.get_cell_total_intensity()
+        cell_intensity = self.img.compute_cell_total_intensity()
         self.assertEqual(cell_intensity, 1746049018.0)
 
     def test_compute_average_cytoplasmic_distance_proportional_intensity(self):
@@ -58,6 +59,14 @@ class TestImageWithIntensities(TestCase):
         spread = self.img.compute_intensities_normalized_cytoplasmic_spread()
         self.assertAlmostEqual(spread, 0.78921627304, places=5)
 
+    def test_compute_peripheral_total_intensity(self):
+        intensity = self.img.compute_peripheral_total_intensity()
+        self.assertAlmostEqual(intensity, 382727324.0)
+        self.assertLess(intensity, self.img.compute_cytoplasmic_total_intensity())
+
+    def test_compute_cytoplasmic_total_intensity(self):
+        intensity = self.img.compute_cytoplasmic_total_intensity()
+        self.assertAlmostEqual(intensity, 1373183555.0)
 
 if __name__ == '__main__':
     unittest.main()
