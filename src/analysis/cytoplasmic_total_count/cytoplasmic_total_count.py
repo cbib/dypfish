@@ -45,7 +45,7 @@ def mrna_cytoplasmic_total_count(analysis_repo, keyorder):
                             'mrna',
                             xlabels,
                             tgt_fp,
-                            gene2confidence_interval.values(),
+                            gene2confidence_interval,
                             annot=False,
                             data_to_annot=gene2cyto_count
                             )

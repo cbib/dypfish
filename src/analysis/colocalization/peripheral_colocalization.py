@@ -46,8 +46,7 @@ if __name__ == '__main__':
     for gene in constants.analysis_config['PROTEINS']:
         cs, p, ranking = helpers.calculate_colocalization_score(mrna_cs_dict[gene], prot_cs_dict[gene],
                                                                 constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                                constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
-                                                                permutation_num=10000)
+                                                                constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
         css.append(cs)
         p_vals[gene] = p
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS'].format(gene=gene)

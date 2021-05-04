@@ -59,15 +59,14 @@ if __name__ == '__main__':
         repo = helpers.open_repo()
 
         # Use annot=True if you want to add stats annotation in plots
-        mrna_cs, mrna_dense_v = compute_relative_densities(repo, 'mrna', quadrants_num=8)
-        prot_cs, prot_dense_v = compute_relative_densities(repo, 'protein', quadrants_num=8)
+        mrna_cs = compute_relative_densities(repo, 'mrna', quadrants_num=8)
+        prot_cs = compute_relative_densities(repo, 'protein', quadrants_num=8)
 
         css, p_vals = [], {}
         for gene in constants.analysis_config['PROTEINS']:
             cs, p, ranking = helpers.calculate_colocalization_score(mrna_cs[gene], prot_cs[gene],
                                                                     constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                                    constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
-                                                                    permutation_num=conf[2])
+                                                                    constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
             css.append(cs)
             p_vals[gene] = p
             print("gene: ", gene, " p-values (random permutation test): ", p)
