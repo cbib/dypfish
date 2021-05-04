@@ -46,23 +46,17 @@ class TestImage3d(TestCase):
 
     def test_compute_cytoplasmic_volume(self):
         cyt_vol = self.img.compute_cytoplasmic_volume()
-        self.assertEqual(cyt_vol, 1206.2769230769227)
+        self.assertAlmostEqual(cyt_vol, 1206.276923076, places=5)
+        self.assertAlmostEqual(cyt_vol,
+                               self.img.compute_cell_volume() - self.img.compute_nucleus_volume()(), places=5)
 
     def test_compute_cell_volume(self):
         cell_vol = self.img.get_cell_volume()
-        self.assertEqual(cell_vol, 1577.8051282051279)
-
-    def test_get_cell_volume(self):
-        cell_vol = self.img.compute_cell_volume()
-        self.assertEqual(cell_vol, 1577.8051282051279)
-
-    def test_get_nucleus_volume(self):
-        cell_vol = self.img.get_nucleus_volume()
-        self.assertEqual(cell_vol, 371.52820512820506)
+        self.assertAlmostEqual(cell_vol, 1577.805128205, places = 5)
 
     def test_compute_nucleus_volume(self):
         cell_vol = self.img.compute_nucleus_volume()
-        self.assertEqual(cell_vol, 371.52820512820506)
+        self.assertAlmostEqual(cell_vol, 371.528205128, places = 5)
 
     def test_adjust_height_map(self):
         height_map_original = self.img.get_height_map()
@@ -94,12 +88,12 @@ class TestImage3d(TestCase):
 
     def test_compute_peripheral_cell_volume(self):
         volume = self.img.compute_peripheral_cell_volume()
-        self.assertAlmostEqual(volume, 130.805522682445, places = 5)
+        self.assertAlmostEqual(volume, 144.564891518737, places = 5)
 
     def test_compute_volumes_from_periphery(self):
         volumes = self.img.compute_volumes_from_periphery()
         self.assertEqual(len(volumes), 100)
         self.assertTrue(all(volumes[i] <= volumes[i + 1] for i in range(len(volumes) - 1)))
-        self.assertAlmostEqual(volumes.sum(), 46560.7842209072, places = 5)
-        self.assertEqual(volumes[99], self.img.compute_cytoplasmic_volume())
+        self.assertAlmostEqual(volumes.sum(), 46817.194477317, places = 5)
+        self.assertAlmostEqual(volumes[99], self.img.compute_cytoplasmic_volume(), places=5)
 
