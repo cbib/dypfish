@@ -84,7 +84,7 @@ class TestImage(TestCase):
         self.assertEqual(distance_mask.shape, (512, 512))
         self.assertEqual(np.min(distance_mask), 0)
         self.assertEqual(np.max(distance_mask), 100)
-        self.assertEqual(np.sum(distance_mask), 2024717)
+        self.assertEqual(np.sum(distance_mask), 2026342)
 
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
