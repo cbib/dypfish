@@ -45,7 +45,7 @@ class TestImageSet(TestCase):
         self.assertEqual(len(image_set.images), 20, "Expected 20 images")
         peripheral_signals = image_set.compute_signal_from_periphery()
         self.assertEqual(peripheral_signals.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_signals.sum(), 163639.0)
+        self.assertAlmostEqual(peripheral_signals.sum(), 107139.0)
 
     def test_compute_intensities_signal_from_periphery(self):
         #self.skipTest("Skipping for inefficiency reasons")
@@ -53,20 +53,20 @@ class TestImageSet(TestCase):
         self.assertEqual(len(image_set.images), 20, "Expected 20 images")
         peripheral_signals = image_set.compute_signal_from_periphery()
         self.assertEqual(peripheral_signals.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_signals.sum(), 1152737096589.0)
+        self.assertAlmostEqual(peripheral_signals.sum(), 704058573489.0)
 
-    def test_compute_spots_fractions_per_periphery(self):
+    def test_compute_cytoplsamic_spots_fractions_per_periphery(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/'])
-        peripheral_fractions = image_set.compute_spots_fractions_per_periphery()
+        peripheral_fractions = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
         self.assertEqual(peripheral_fractions.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_fractions.sum(), 980.6250782814989, places=5)
-        self.assertTrue(np.all(peripheral_fractions[:,99] == 1))
+        self.assertAlmostEqual(peripheral_fractions.sum(), 765.7522590806, places=5)
+        self.assertTrue(np.all(peripheral_fractions[:, 99] == 1))
 
-    def test_compute_intensities_fractions_per_periphery(self):
+    def test_compute_cytoplsamic_intensities_fractions_per_periphery(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/'])
-        peripheral_fractions = image_set.compute_intensities_fractions_per_periphery()
+        peripheral_fractions = image_set.compute_cytoplsamic_intensities_fractions_per_periphery()
         self.assertEqual(peripheral_fractions.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_fractions.sum(), 1249.542190894077, places=5)
+        self.assertAlmostEqual(peripheral_fractions.sum(), 996.87461962831, places=5)
         self.assertTrue(np.all(peripheral_fractions[:, 99] == 1))
 
     def test_compute_cytoplasmic_spots_counts(self):

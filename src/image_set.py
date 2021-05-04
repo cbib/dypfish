@@ -149,11 +149,23 @@ class ImageSet(object):
         spot_counts = [len(image.get_spots()) for image in self.images]
         return np.array(all_signals) / np.array(spot_counts)[:, None]
 
+    def compute_cytoplsamic_spots_fractions_per_periphery(self):
+        all_signals = self.compute_signal_from_periphery()
+        image: ImageWithIntensities
+        spot_counts = [len(image.get_cytoplasmic_spots()) for image in self.images]
+        return np.array(all_signals) / np.array(spot_counts)[:, None]
+
     def compute_intensities_fractions_per_periphery(self):
         all_signals = self.compute_signal_from_periphery()
         image: ImageWithIntensities
         intensities_counts = [np.multiply(image.get_intensities(), image.get_cell_mask()).sum()
                               for image in self.images]
+        return np.array(all_signals) / np.array(intensities_counts)[:, None]
+
+    def compute_cytoplsamic_intensities_fractions_per_periphery(self):
+        all_signals = self.compute_signal_from_periphery()
+        image: ImageWithIntensities
+        intensities_counts = [image.get_cytoplasmic_intensities().sum() for image in self.images]
         return np.array(all_signals) / np.array(intensities_counts)[:, None]
 
     def compute_signal_from_periphery(self):

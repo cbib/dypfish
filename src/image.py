@@ -362,16 +362,13 @@ class ImageWithSpots(Image):
     def get_cytoplasmic_spots(self) -> np.ndarray:
         return self.compute_cytoplasmic_spots()
 
-    def compute_spots_peripheral_distance_2D(self, cytoplasm=False) -> np.ndarray:
+    def compute_spots_peripheral_distance_2D(self) -> np.ndarray:
         """
-        Return an array of distances to the periphery for cellular or cytoplasmic spots (default)
+        Return an array of distances to the periphery for cytoplasmic spots
         returns an array of int
         """
-        spots = self.get_spots()
-        if cytoplasm:
-            spots = self.get_cytoplasmic_spots()
-        logger.info("Computing {} spots 2D peripheral distance spots for {}",
-                    len(spots), self._path)
+        spots = self.get_cytoplasmic_spots()
+        logger.info("Computing {} spots 2D peripheral distance spots for {}", len(spots), self._path)
 
         peripheral_distance_map = self.get_cell_mask_distance_map()
         spots_distances = [peripheral_distance_map[s[1], s[0]] for s in spots]
@@ -579,7 +576,6 @@ class ImageWithIntensities(Image):
     def get_peripheral_intensity_mask(self) -> np.ndarray:
         return self.compute_peripheral_intensity_mask()
 
-
     def compute_peripheral_intensity_mask(self) -> np.ndarray:
         """
          returns: np.ndarray of floats (total intensity for each distance percentage from the periphery)
@@ -599,7 +595,7 @@ class ImageWithIntensities(Image):
          np.ndarray of floats (total intensity for each distance percentage from the periphery)
          normalization is the responsibility of the caller
          """
-        intensities = np.multiply(self.get_intensities(), self.get_cell_mask())
+        intensities = np.multiply(self.get_intensities(), self.get_cytoplasm_mask())
         cell_mask_distance_map = self.get_cell_mask_distance_map()
         intensities_sums = np.zeros(100)
         for i in range(0, 100):  # normalization is done by the caller if needed
