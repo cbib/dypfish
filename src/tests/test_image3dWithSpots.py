@@ -37,11 +37,11 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_spots_normalized_distance_to_centroid(self):
         relative_to_centroid = self.img.compute_spots_normalized_distance_to_centroid()
-        self.assertAlmostEqual(relative_to_centroid, 0.792196411969, places = 5)
+        self.assertAlmostEqual(relative_to_centroid, 0.792196411969, places=5)
 
     def test_compute_spots_normalized_cytoplasmic_spread(self):
         spread = self.img.compute_spots_normalized_cytoplasmic_spread()
-        self.assertAlmostEqual(spread,  0.7744905608468, places = 5)
+        self.assertAlmostEqual(spread, 0.7751296754744, places=5)
 
     def test_clustering_index_point_process(self):
         np.random.seed(0)
@@ -60,5 +60,5 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_mrna_density(self):
         mrna_density = self.img.compute_cytoplasmic_density()
-        self.assertAlmostEqual(mrna_density, 0.144747215018271, places=5)
+        self.assertAlmostEqual(mrna_density, 0.142879509018, places=5)
 

@@ -10,7 +10,7 @@ import constants
 import warnings
 import image_processing as ip
 from repository import H5RepositoryWithCheckpoint
-from image import ImageWithSpots
+from imageWithSpots import ImageWithSpots
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
 

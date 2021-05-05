@@ -212,7 +212,7 @@ class ImageWithSpots(Image):
         return spots_counts
 
     def compute_peripheral_total_spots(self):
-        all_counts = self.get_signal_from_periphery()
+        all_counts = self.compute_signal_from_periphery()
         return all_counts[constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']]
 
 

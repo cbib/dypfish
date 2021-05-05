@@ -9,7 +9,7 @@ import tqdm
 from loguru import logger
 
 import constants
-from image import Image
+from image import Image, ImageWithMTOC
 from image3d import Image3d, Image3dWithSpots, Image3dWithIntensities, \
     Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC, Image3dWithSpotsAndIntensitiesAndMTOC, \
     Image3dMultiNucleus, Image3dMultiNucleusWithSpots

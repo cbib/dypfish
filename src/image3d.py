@@ -197,7 +197,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
         assert len(cytoplasmic_spots) <= len(spots), "incoherent cytoplasmic spots computation"
         if (len(cytoplasmic_spots) < len(spots)):
-            logger.debug("{} spots out of cytoplasm", len(spots) - len(cytoplasmic_spots), self._path)
+            logger.debug("{} spots out of cytoplasm for {}", len(spots) - len(cytoplasmic_spots), self._path)
         return cytoplasmic_spots
 
 
@@ -224,7 +224,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
                 old_periph_distance = peripheral_distance_map[spot[1], spot[0]]
                 new_periph_distance = math.sqrt(area_ratio) * old_periph_distance
 
-                if new_periph_distance < 0:
+                if new_periph_distance > old_periph_distance:
                     # this means that the spot falls out of the slice, it is a discrepancy
                     # between the 2D calculation and the slice area estimation
                     spots_peripheral_distance.append(int(1))
@@ -236,6 +236,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
             logger.debug("Peripheral spot distance could not be be determined in 3d for {} spots {}",
                          problematic_spot_num, self._path)
 
+        assert len(spots_peripheral_distance) <= len(spots), "Incoherent spot peripheral distance"
         if len(spots_peripheral_distance) < len(spots):
             logger.debug("Peripheral spot distance could not be be determined in 3d for {} spots {}",
                          len(spots) - len(spots_peripheral_distance), self._path)
@@ -545,7 +546,7 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
 
         if (density_per_quadrant[:,0].sum() == 0):
             logger.debug("No spots in image within quadrants {}", self._path)
-            return density_per_quadrant
+            # return density_per_quadrant
 
         # mark the mtoc quadrant
         density_per_quadrant[mtoc_quad - 1, 1] = 1
