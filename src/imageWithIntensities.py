@@ -66,9 +66,9 @@ class ImageWithIntensities(Image):
         peripheral_intensity_mask = np.multiply(intensities, peripheral_mask)
         return peripheral_intensity_mask.sum()
 
-    @helpers.checkpoint_decorator(PERIPHERAL_INTENSITIES_PATH_SUFFIX, dtype=np.float)
-    def get_signal_from_periphery(self):
-        return self.compute_signal_from_periphery()
+    # @helpers.checkpoint_decorator(PERIPHERAL_INTENSITIES_PATH_SUFFIX, dtype=np.float)
+    # def get_signal_from_periphery(self):
+    #     return self.compute_signal_from_periphery()
 
     def compute_signal_from_periphery(self) -> np.ndarray:
         """

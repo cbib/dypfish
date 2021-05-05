@@ -23,6 +23,10 @@ class TestImage3dWithSpots(TestCase):
     def tearDown(self) -> None:
         self.repo.clear()
 
+    def test_compute_cytoplasmic_spots(self):
+        result = self.img.compute_cytoplasmic_spots()
+        self.assertEqual(len(result), 153)
+
     def test_compute_cytoplasmic_spots_peripheral_distance(self):
         results = self.img.compute_cytoplasmic_spots_peripheral_distance()
         self.assertEqual(len(results), 153)

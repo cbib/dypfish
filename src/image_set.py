@@ -178,7 +178,7 @@ class ImageSet(object):
         arr = np.zeros((self.__sizeof__(), constants.analysis_config['NUM_CONTOURS']))
         image: Union[ImageWithSpots, ImageWithIntensities]
         for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
-            arr[image_num] = image.get_signal_from_periphery()
+            arr[image_num] = image.compute_signal_from_periphery()
         return arr
 
     def compute_areas_from_periphery(self):

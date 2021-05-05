@@ -196,9 +196,9 @@ class ImageWithSpots(Image):
         h_star = self.get_clustering_indices()
         return np.array(h_star[h_star > 1] - 1).sum()
 
-    @helpers.checkpoint_decorator(PERIPHERAL_SPOT_COUNT_PATH_SUFFIX, dtype=np.float)
-    def get_signal_from_periphery(self):
-        return self.compute_signal_from_periphery()
+    # @helpers.checkpoint_decorator(PERIPHERAL_SPOT_COUNT_PATH_SUFFIX, dtype=np.float)
+    # def get_signal_from_periphery(self):
+    #     return self.compute_signal_from_periphery()
 
     def compute_signal_from_periphery(self) -> np.ndarray:
         """
