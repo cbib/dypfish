@@ -6,8 +6,8 @@ import math
 import numpy as np
 import tqdm
 from loguru import logger
-import constants
 import helpers
+import constants
 import image_processing as ip
 from repository import Repository
 from sklearn.metrics.pairwise import pairwise_distances
@@ -18,6 +18,7 @@ from constants import SPOTS_PATH_SUFFIX
 from constants import CYTOPLASMIC_SPOTS_PATH_SUFFIX
 from constants import PERIPHERAL_SPOT_COUNT_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
+from constants import CYTOPLASMIC_SPOTS_PERIPHERAL_DISTANCE_PATH_SUFFIX
 
 class ImageWithSpots(Image):
     """ Represents an image with identified spots (e.g. from FISH), has to have spots descriptor """
@@ -68,7 +69,11 @@ class ImageWithSpots(Image):
         cytoplasmic_spots = spots[mask]
         return np.asarray(cytoplasmic_spots, dtype=int)
 
-    def compute_cytoplasmic_spots_peripheral_distance_2D(self) -> np.ndarray:
+    @helpers.checkpoint_decorator(CYTOPLASMIC_SPOTS_PERIPHERAL_DISTANCE_PATH_SUFFIX, dtype=np.int)
+    def get_cytoplasmic_spots_peripheral_distance(self):
+        return self.compute_cytoplasmic_spots_peripheral_distance()
+
+    def compute_cytoplasmic_spots_peripheral_distance(self) -> np.ndarray:
         """
         Return an array of distances to the periphery for cytoplasmic spots
         returns an array of int
@@ -200,7 +205,7 @@ class ImageWithSpots(Image):
          np.ndarray of floats (total spots for each distance percentage from the periphery)
          normalization is the responsibility of the caller
          """
-        spots_distances = self.compute_cytoplasmic_spots_peripheral_distance_2D()
+        spots_distances = self.get_cytoplasmic_spots_peripheral_distance()
         spots_counts = np.zeros(constants.analysis_config['NUM_CONTOURS'])
         for i in range(0, constants.analysis_config['NUM_CONTOURS']):
             spots_counts[i] = len(spots_distances[spots_distances <= i + 1])

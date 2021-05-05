@@ -29,8 +29,8 @@ class Image3d(Image):
     @staticmethod
     def is_a(repo: Repository, path: str):
         # TODO : check if we need zero level to define a 3D cell.
-        #  comment ZERO_LEVEL_PATH_SUFFIX is present() for Cultured data to run volume corrected analysis.
-        #  they do not have ZERO LEVEL descriptors and so was rejected as a 3D image
+        # comment ZERO_LEVEL_PATH_SUFFIX is present() for Cultured data to run volume corrected analysis.
+        # they do not have ZERO LEVEL descriptors and so was rejected as a 3D image
         return repo.is_present(path + HEIGHT_MAP_PATH_SUFFIX)
 
     def __init__(self, repository: Repository, image_path: str):
@@ -70,6 +70,10 @@ class Image3d(Image):
             raise LookupError("No zero level for image %s" % self._path)
         return np.array(self._repository.get(descriptor))
 
+    @helpers.checkpoint_decorator(CELL_MASK_SLICES_PATH_SUFFIX, dtype=np.float)
+    def get_cell_mask_slices(self) :
+        return self.compute_cell_mask_slices()
+
     def compute_cell_mask_slices(self, cell_mask=None, height_map=None,
                                  zero_level=None, image_width=None, image_height=None) -> np.ndarray:
         """
@@ -77,7 +81,7 @@ class Image3d(Image):
         out of focus slices (defined by zero_level) are not reconstructed
         """
         if cell_mask is None: cell_mask = self.get_cell_mask()
-        if height_map is None: height_map = self.get_height_map()
+        if height_map is None: height_map = self.adjust_height_map()
         zero_level = zero_level or self.get_zero_level()
         image_width = image_width or constants.dataset_config["IMAGE_WIDTH"]
         image_height = image_height or constants.dataset_config["IMAGE_HEIGHT"]
@@ -101,10 +105,6 @@ class Image3d(Image):
             slice_mask = np.nan_to_num(slice_mask)
             cell_masks[:, :, slice] = slice_mask
         return cell_masks
-
-    @helpers.checkpoint_decorator(CELL_MASK_SLICES_PATH_SUFFIX, dtype=np.int)
-    def get_cell_mask_slices(self) -> np.ndarray:
-        return self.compute_cell_mask_slices()
 
     def compute_peripheral_cell_volume(self, peripheral_threshold=None):
         """
@@ -180,31 +180,28 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
     def is_a(repo: Repository, path: str):
         return Image3d.is_a(repo, path) and ImageWithSpots.is_a(repo, path)
 
-    def compute_spots_peripheral_distance_3d(self) -> np.ndarray:
+    def compute_cytoplasmic_spots_peripheral_distance(self)  -> np.ndarray:
         """
         Perform the computation in pseudo 3D using the height map
         Return an array of distances
         """
-        height_map = self.get_height_map()
+        height_map = self.adjust_height_map()
         zero_level = self.get_zero_level()
         peripheral_distance_map = self.get_cell_mask_distance_map()
+        cell_area = self.compute_cell_area()
         spots_peripheral_distance = []
-        spots = self.get_cytoplasmic_spots()  # was get_spots(), changed to be coherent with the 2D version
-        logger.info("Computing 3D peripheral distance for {} spots in image {}",
-                    len(spots), self._path)
-        peripheral_areas = self.compute_areas_from_periphery()
+        spots = self.get_cytoplasmic_spots()
+        logger.info("Computing 3D peripheral distance for {} spots in image {}", len(spots), self._path)
+
         problematic_spot_num = 0
         for slice_num in range(zero_level, -1, -1):
-            height_map_copy = np.array(height_map, copy=True)
-            height_map_copy[height_map >= zero_level + 1 - slice_num] = 1
-            # TODO : maybe better stay in pixels ?
-            slice_area = height_map_copy[height_map_copy == 1].sum() * helpers.surface_coeff()
-            slice_index = helpers.find_nearest(peripheral_areas, slice_area)
+            slice_area = len(height_map[height_map > zero_level + 1 - slice_num]) * helpers.surface_coeff()
+            assert slice_area >= 0, "Negative slice area"
             spots_in_slice = spots[np.around(spots[:, 2]) == slice_num]
-            for j in range(len(spots_in_slice)):
-                old_periph_distance = peripheral_distance_map[spots_in_slice[j][1], spots_in_slice[j][0]]
-                new_periph_distance = (old_periph_distance - slice_index) * \
-                                      (101 / (101 - slice_index))  # 101 to avoid divide by 0 error
+            for spot in spots_in_slice:
+                area_ratio = slice_area / cell_area
+                old_periph_distance = peripheral_distance_map[spot[1], spot[0]]
+                new_periph_distance = math.sqrt(area_ratio) * old_periph_distance
 
                 if new_periph_distance < 0:
                     # this means that the spot falls out of the slice, it is a discrepancy
@@ -217,6 +214,10 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         if problematic_spot_num > 0:
             logger.debug("Peripheral spot distance could not be be determined in 3d for {} spots {}",
                          problematic_spot_num, self._path)
+
+        if len(spots_peripheral_distance) < len(spots):
+            logger.debug("Peripheral spot distance could not be be determined in 3d for {} spots {}",
+                         len(spots) - len(spots_peripheral_distance), self._path)
 
         return np.asarray(spots_peripheral_distance, dtype=np.uint8)
 

@@ -4,10 +4,11 @@
 
 import pathlib
 from unittest import TestCase
+
 import constants
 import path
-from repository import H5RepositoryWithCheckpoint
 from image3d import Image3dWithIntensities
+from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
 

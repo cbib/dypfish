@@ -4,12 +4,14 @@
 
 import pathlib
 from unittest import TestCase
+
 import numpy as np
-from repository import H5RepositoryWithCheckpoint
+
+import constants
+import path
 from image3d import Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC
 from image_set import ImageSet
-import path
-import constants
+from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
 

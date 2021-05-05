@@ -242,7 +242,7 @@ class ImageSet(object):
             centralities = np.append(centralities, image.compute_intensities_normalized_spread_to_centroid())
         valid_centralities = centralities[~np.isnan(centralities)]
         if len(valid_centralities) < len(centralities):
-            logger.warning("problematic internsity spread for {} images out of {}",
+            logger.warning("problematic intensity spread for {} images out of {}",
                            len(centralities) - len(valid_centralities), self.__sizeof__())
         l = len(centralities[centralities>1])
         if l > 0:

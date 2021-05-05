@@ -23,14 +23,13 @@ class TestImage3dWithSpots(TestCase):
     def tearDown(self) -> None:
         self.repo.clear()
 
-    def test_compute_spots_peripheral_distance_3d(self):
-        results = self.img.compute_spots_peripheral_distance_3d()
-        warnings.warn("This function comes from V0, is currently not called and insufficiently tested", RuntimeWarning)
-        #self.assertGreater(len(results), 100)  # more than 100 spots
+    def test_compute_cytoplasmic_spots_peripheral_distance(self):
+        results = self.img.compute_cytoplasmic_spots_peripheral_distance()
+        self.assertEqual(len(results), 153)
         # arbitrarily check two values
-        #self.assertEqual(results[0], 75)
-        #self.assertEqual(results[65], 16)
-        #self.assertEqual(results.sum(), 7313) # TODO: double check this
+        self.assertEqual(results[4], 71)
+        self.assertEqual(results[65], 27)
+        self.assertEqual(results.sum(), 7310)
 
     def test_compute_spots_normalized_distance_to_centroid(self):
         relative_to_centroid = self.img.compute_spots_normalized_distance_to_centroid()

@@ -39,7 +39,6 @@ def compute_nucleus_and_cytoplasm_line_segments(nucleus_mask: np.ndarray, cytopl
     return nucleus_segment, cytoplasm_segment
 
 
-# TODO : + 1 differences with the old code part of the reason cell_distance_map is wrong at the periphery
 def compute_edge_points(nucleus_segment: np.ndarray, cytoplasm_segment: np.ndarray) -> (int, int):
     """
     Given line segments, return points that fall on the nucleus and on the cytoplasm edges

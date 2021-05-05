@@ -4,6 +4,7 @@
 
 import pathlib
 from unittest import TestCase
+
 import constants
 import path
 from image3d import Image3dWithSpotsAndMTOC
