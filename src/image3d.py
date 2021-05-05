@@ -181,12 +181,11 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
     def is_a(repo: Repository, path: str):
         return Image3d.is_a(repo, path) and ImageWithSpots.is_a(repo, path)
 
-    # TODO : this will load the mask for each spot
     def compute_cytoplasmic_spots(self) -> np.ndarray:
         spots = super(Image3dWithSpots, self).compute_cytoplasmic_spots()
         height_map = self.adjust_height_map()
         zero_level = self.get_zero_level()
-        logger.info("Computing 3D peripheral distance for {} spots in image {}", len(spots), self._path)
+        logger.info("Keeping cytoplasmic spots out of {} spots in image {}", len(spots), self._path)
 
         cytoplasmic_spots = np.array([], dtype=int).reshape(0,3)
         for slice_num in range(zero_level, -1, -1):
@@ -195,7 +194,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
             spots_in_slice = spots[np.around(spots[:, 2]) == slice_num]
             cytoplasmic_spots = np.vstack((cytoplasmic_spots, spots_in_slice))
 
-        assert len(cytoplasmic_spots) <= len(spots), "incoherent cytoplasmic spots computation"
+        assert len(cytoplasmic_spots) <= len(spots), "Incoherent cytoplasmic spots computation"
         if (len(cytoplasmic_spots) < len(spots)):
             logger.debug("{} spots out of cytoplasm for {}", len(spots) - len(cytoplasmic_spots), self._path)
         return cytoplasmic_spots

@@ -46,7 +46,7 @@ class TestImageSet(TestCase):
         self.assertEqual(len(image_set.images), 20, "Expected 20 images")
         peripheral_signals = image_set.compute_signal_from_periphery()
         self.assertEqual(peripheral_signals.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_signals.sum(), 107139.0)
+        self.assertAlmostEqual(peripheral_signals.sum(), 130097.0)
 
     def test_compute_areas_from_periphery(self):
         # self.skipTest("Skipping for inefficiency reasons")
