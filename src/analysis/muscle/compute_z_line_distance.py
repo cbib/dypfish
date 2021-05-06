@@ -3,14 +3,16 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-from loguru import logger
-import constants
-from plot import profile
-from image_set import ImageSet
-from path import global_root_dir
-from repository import H5RepositoryWithCheckpoint
+
 import numpy as np
 import pandas as pd
+from loguru import logger
+
+import constants
+from image_set import ImageSet
+from path import global_root_dir
+from plot import profile
+from repository import H5RepositoryWithCheckpoint
 
 
 def compute_zline_distance(repo, molecule_list, timepoints, z_line_spacing):

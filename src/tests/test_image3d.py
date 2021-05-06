@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import image_processing as ip
 import pathlib
 from unittest import TestCase
-import path
-import helpers
+
 import constants
-from repository import H5RepositoryWithCheckpoint
+import helpers
+import image_processing as ip
+import path
 from image3d import Image3d
+from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)  # TODO this is annoying
 
@@ -65,12 +66,12 @@ class TestImage3d(TestCase):
         adj_height_map = self.img.adjust_height_map(cytoplasm=True)
         self.assertGreater(height_map.sum(), adj_height_map.sum())
 
-    def test_compute_average_cytoplasmic_distance_from_nucleus(self):
+    def test_compute_median_cytoplasmic_distance_from_nucleus(self):
         nucleus_centroid = self.img.get_nucleus_centroid()
         height_map = self.img.get_cytoplasm_height_map()
         dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid)
-        avg, max = self.img.compute_average_cytoplasmic_distance_from_nucleus3d(dsAll)
-        self.assertAlmostEqual(avg, 114.29197825824, places=5)
+        median, max = self.img.compute_median_cytoplasmic_distance_from_nucleus3d(dsAll)
+        self.assertAlmostEqual(median, 121.82364302548, places=5)
         self.assertAlmostEqual(max, 203.6909423612, places=5)
 
     def test_compute_cell_volume(self):
@@ -87,7 +88,8 @@ class TestImage3d(TestCase):
         self.assertAlmostEqual(volume, self.img.compute_cell_volume() - self.img.compute_nucleus_volume(), places=5)
 
     def test_compute_peripheral_cell_volume(self):
-        volume = self.img.compute_peripheral_cell_volume()
+        threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
+        volume = self.img.compute_peripheral_cell_volume(threshold)
         self.assertAlmostEqual(volume, 144.564891518737, places = 5)
 
     def test_compute_volumes_from_periphery(self):

@@ -16,7 +16,6 @@ from image import Image, ImageWithMTOC
 
 from constants import SPOTS_PATH_SUFFIX
 from constants import CYTOPLASMIC_SPOTS_PATH_SUFFIX
-from constants import PERIPHERAL_SPOT_COUNT_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
 from constants import CYTOPLASMIC_SPOTS_PERIPHERAL_DISTANCE_PATH_SUFFIX
 
@@ -90,10 +89,10 @@ class ImageWithSpots(Image):
         cytoplasmic_spots = self.get_cytoplasmic_spots()
         return len(cytoplasmic_spots)
 
-    def compute_average_cytoplasmic_distance_from_nucleus(self, dsAll) -> float:
+    def compute_median_cytoplasmic_distance_from_nucleus(self, dsAll) -> float:
         cytoplasm_mask = self.get_cytoplasm_mask()
         map_dist = np.multiply(cytoplasm_mask, dsAll)
-        return np.mean(map_dist[map_dist != 0])
+        return np.median(map_dist[map_dist != 0])
 
     def compute_spots_normalized_distance_to_centroid(self) -> float:
         nucleus_centroid = self.get_nucleus_centroid()
@@ -101,13 +100,12 @@ class ImageWithSpots(Image):
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
 
         dsCytoplasmic = dsAll[cytoplasmic_spots[:, 1], cytoplasmic_spots[:, 0]]
-        avg_dist = self.compute_average_cytoplasmic_distance_from_nucleus(dsAll)
+        median_dist = self.compute_median_cytoplasmic_distance_from_nucleus(dsAll)
 
         # val is average 2D distance from the nucleus centroid of cytoplasmic mRNAs
         # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
         # distributed across the cytoplasm).
-        normalized_average_2d_distance = np.mean(dsCytoplasmic) / avg_dist
-        assert normalized_average_2d_distance <= 1
+        normalized_average_2d_distance = np.median(dsCytoplasmic) / median_dist
         return normalized_average_2d_distance
 
     def compute_spots_normalized_cytoplasmic_spread(self) -> float:
@@ -123,7 +121,7 @@ class ImageWithSpots(Image):
         sd = math.sqrt( np.sum((cytoplasmic_spots[:, 0] - mu_x) ** 2) / len(cytoplasmic_spots)+
                            np.sum((cytoplasmic_spots[:, 1] - mu_y) ** 2) / len(cytoplasmic_spots) )
         d = pairwise_distances(cytoplasmic_spots, metric='euclidean')
-        return sd / np.mean(d[d != 0])
+        return sd / np.median(d[d != 0])
 
     def compute_cytoplasmic_density(self):
         # compute mRNA density in the cytoplasm

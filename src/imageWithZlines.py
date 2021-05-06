@@ -128,7 +128,7 @@ class ImageMultiNucleus(Image):
                 self._repository.get_multiple(self._path, self._path + NUCLEUS_CENTROID_PATH_SUFFIX)]
 
     def compute_nucleus_area(self):
-        """compute nucleus surface in pixel using nucleus mask"""
+        """compute nucleus surface in real pixel size using nucleus mask"""
         nucleus_mask = self.get_nucleus_mask()
         area = nucleus_mask.sum() * helpers.surface_coeff()  # * by pixel dimensions
         if (len(self.get_multiple_nucleus_centroid())) > 1:
@@ -137,7 +137,7 @@ class ImageMultiNucleus(Image):
             return area
 
     def compute_cell_area(self):
-        """compute cell surface in pixel using cell mask"""
+        """compute cell surface in real pixel size using cell mask"""
         cell_mask = self.get_cell_mask()
         area = cell_mask.sum() * helpers.surface_coeff()  # * by pixel dimensions
         if (len(self.get_multiple_nucleus_centroid())) > 1:
@@ -165,6 +165,7 @@ class imageMultiNucleusWithSpotsAndZlines(ImageMultiNucleusWithSpots):
             raise AttributeError("Incorrect format for image %s" % image_path)
 
     def get_z_lines_masks(self):
+        assert False, "This function is not tested"
         descriptor = self._path + ZLINES_PATH_SUFFIX
         if not self._repository.is_include(self._path, descriptor):
             raise LookupError("No zlines for image %s" % self._path)
@@ -180,6 +181,7 @@ class imageMultiNucleusWithSpotsAndZlines(ImageMultiNucleusWithSpots):
         return self.compute_minimal_z_line_distance(z_line_spacing)
 
     def compute_minimal_z_line_distance(self, z_line_spacing):
+        assert False, "This function is not tested"
         spots = self.get_spots()
         z_lines = self.get_z_lines_masks()
         image_spots_min_distance = np.zeros(len(spots))

@@ -68,7 +68,7 @@ class TestImageSet(TestCase):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/'])
         peripheral_fractions = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
         self.assertEqual(peripheral_fractions.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_fractions.sum(), 1062.8600080821, places=5)
+        self.assertAlmostEqual(peripheral_fractions.sum(), 2549.166535276, places=5)
         self.assertTrue(np.all(peripheral_fractions[:, 99] == 1))
 
     def test_compute_cytoplsamic_intensities_fractions_per_periphery(self):
@@ -116,20 +116,20 @@ class TestImageSet(TestCase):
     def test_compute_cytoplasmic_spots_spread(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = np.sort(image_set.compute_cytoplasmic_spots_spread())
-        self.assertAlmostEqual(np.sum(result), 3.63303109514, places=5)
-        self.assertAlmostEqual(result[2], 0.73548979809, places=5)
+        self.assertAlmostEqual(np.sum(result), 2.470461144699, places=5)
+        self.assertAlmostEqual(result[2], 0.5001330627, places=5)
 
     def test_compute_spots_cytoplasmic_centrality(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = np.sort(image_set.compute_cytoplasmic_spots_centrality())
-        self.assertAlmostEqual(np.sum(result), 4.445184544252, places=5)
-        self.assertAlmostEqual(result[2], 0.86929413285, places=5)
+        self.assertAlmostEqual(np.sum(result), 4.52595344681, places=5)
+        self.assertAlmostEqual(result[2], 0.90269627884, places=5)
 
     def test_compute_intensities_cytoplasmic_centrality(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
         result = np.sort(image_set.compute_intensities_cytoplasmic_centrality())
-        self.assertAlmostEqual(np.sum(result), 3.35035785762, places=5)
-        self.assertAlmostEqual(result[1], 0.60617975966, places=5)
+        self.assertAlmostEqual(np.sum(result), 4.97198077749, places=5)
+        self.assertAlmostEqual(result[1], 0.92969214548, places=5)
 
     def test_compute_intensities_cytoplasmic_spread(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])

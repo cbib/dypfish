@@ -8,7 +8,6 @@ import helpers
 import mpi_calculator
 import constants
 import path
-import math
 import numpy as np
 
 constants.init_config(analysis_config_js_path=path.test_config_path)

@@ -3,22 +3,22 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import math
-import numpy as np
+
 import numexpr
+import numpy as np
 import tqdm
 from loguru import logger
 from scipy import signal
+from sklearn.metrics.pairwise import pairwise_distances
+
 import constants
 import helpers
 import image_processing as ip
-from repository import Repository
-from sklearn.metrics.pairwise import pairwise_distances
-
-from image import Image, ImageWithMTOC
-
-from constants import IF_PATH_SUFFIX
-from constants import PERIPHERAL_INTENSITIES_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
+from constants import IF_PATH_SUFFIX
+from image import Image, ImageWithMTOC
+from repository import Repository
+
 
 class ImageWithIntensities(Image):
     """ Represents an image with intensity data (e.g. from IF), has to have IF descriptor """
@@ -66,10 +66,6 @@ class ImageWithIntensities(Image):
         peripheral_intensity_mask = np.multiply(intensities, peripheral_mask)
         return peripheral_intensity_mask.sum()
 
-    # @helpers.checkpoint_decorator(PERIPHERAL_INTENSITIES_PATH_SUFFIX, dtype=np.float)
-    # def get_signal_from_periphery(self):
-    #     return self.compute_signal_from_periphery()
-
     def compute_signal_from_periphery(self) -> np.ndarray:
         """
          np.ndarray of floats (total intensity for each distance percentage from the periphery)
@@ -82,27 +78,24 @@ class ImageWithIntensities(Image):
             intensities_sums[i] = intensities[cell_mask_distance_map <= i + 1].sum()
         return intensities_sums
 
-    # TODO : why would we consider that distance can be proportional to intensity, does not make sense
-    def compute_average_cytoplasmic_distance_proportional_intensity(self, dsAll):
+    def compute_median_cytoplasmic_distance_from_nucleus2d(self, dsAll):
         cytoplasm_mask = self.get_cytoplasm_mask()
-        dsCellular = np.multiply(cytoplasm_mask, dsAll)
-        return dsCellular.sum() / cytoplasm_mask.sum()
+        distances = np.multiply(dsAll, cytoplasm_mask)
+        return np.median(distances[distances != 0]), np.max(distances[distances != 0])
 
     def compute_intensities_normalized_spread_to_centroid(self) -> float:
         nucleus_centroid = self.get_nucleus_centroid()
         IF = self.compute_cytoplasmic_intensities()
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
         dsAll = dsAll * self.get_cytoplasm_mask()
-        avg_dist = self.compute_average_cytoplasmic_distance_proportional_intensity(dsAll)
+        median_dist, max_dist = self.compute_median_cytoplasmic_distance_from_nucleus2d(dsAll)
 
         # Calculate the distances of signal peaks to nucleus_centroid
         mean_signal = np.mean(IF[IF > 0])
         peaks = np.argwhere(IF > mean_signal * 1.5)  # arbitrary choice to reduce the number of peaks
-        d = math.sqrt(np.sum((peaks[:, 1] - nucleus_centroid[0]) ** 2) / len(peaks) +
-                      np.sum((peaks[:, 0] - nucleus_centroid[1]) ** 2) / len(peaks))
+        dsPeaks = np.sqrt(np.sum((peaks - [nucleus_centroid[0], nucleus_centroid[1]]) ** 2, axis=1))
 
-        spread_to_centroid = d / avg_dist
-        assert spread_to_centroid <= 1
+        spread_to_centroid = np.median(dsPeaks) / median_dist
         return spread_to_centroid
 
     def compute_intensities_normalized_cytoplasmic_spread(self):

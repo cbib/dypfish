@@ -53,7 +53,6 @@ def plot_bar_profile_median_and_violin(molecule_type, median_d_of_c, d_of_c,
     # generate the bar profile plot
     plot.bar_profile_median(median_d_of_c, errors.values(), molecule_type, xlabels,
                             tgt_fp, confidence_interval, annot=False, data_to_annot=None)
-
     logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
     # generate violin plot image

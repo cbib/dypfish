@@ -2,17 +2,20 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import pathlib
-from loguru import logger
-import constants
 import collections
-import plot
-import numpy as np
-from image_set import ImageSet
-from helpers import open_repo
-from path import global_root_dir
-import helpers
 import itertools
+import pathlib
+
+import numpy as np
+from loguru import logger
+
+import constants
+import helpers
+import plot
+from helpers import open_repo
+from image_set import ImageSet
+from path import global_root_dir
+
 
 def build_cytoplasmic_statistics(analysis_repo, statistics_type, molecule_type, genes, keyorder):
     gene2stat, gene2median, gene2error, gene2confidence_interval = {}, {}, {}, {}
@@ -105,7 +108,6 @@ if __name__ == '__main__':
         keyorder = conf[1]
         for molecule_type, statistics_type in itertools.product(['mrna', 'protein'],
                                                                 ['centrality', 'spread']):
-            if  molecule_type != 'mrna' or statistics_type != 'spread': continue
             if molecule_type == 'mrna':
                 molecules = constants.analysis_config['MRNA_GENES']
             else:

@@ -2,17 +2,19 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import pathlib
-from unittest import TestCase
-import numpy as np
-from image3d import Image3dWithSpots
-from repository import H5RepositoryWithCheckpoint
-import path
-import constants
-import random
 import math
+import pathlib
+import random
+from unittest import TestCase
+
+import numpy as np
+
+import constants
 import helpers
 import image_processing as ip
+import path
+from image3d import Image3dWithSpots
+from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)  # TODO this is annoying
 

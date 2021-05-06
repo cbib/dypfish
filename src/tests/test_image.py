@@ -40,11 +40,9 @@ class TestImage(TestCase):
         self.assertEqual(nucleus_centroid.tolist(), [253, 220])
 
     def test_get_cell_area_write(self):
-        area = self.img.get_cell_area()
+        area = self.img.compute_cell_area()
         self.assertIsNotNone(area)
-        # second call
-        area = self.img.get_cell_area()
-        self.assertIsNotNone(area)
+        self.assertAlmostEqual(area, 609.798816568, places=5)
 
     def test_get_cytoplasm_mask(self):
         self.assertEqual(self.img.get_cytoplasm_mask().sum(), 48913)

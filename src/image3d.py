@@ -17,6 +17,7 @@ from constants import CLUSTERING_INDICES_PATH_SUFFIX
 from constants import HEIGHT_MAP_PATH_SUFFIX
 from constants import NUCLEUS_CENTROID_PATH_SUFFIX
 from constants import ZERO_LEVEL_PATH_SUFFIX
+from constants import VOLUMES_FROM_PERIPHERY_PATH_SUFFIX
 from image import Image, ImageWithMTOC
 from imageWithIntensities import ImageWithIntensities
 from imageWithSpots import ImageWithSpots
@@ -106,11 +107,15 @@ class Image3d(Image):
             cell_masks[:, :, slice] = slice_mask
         return cell_masks
 
-    def compute_peripheral_cell_volume(self, peripheral_threshold=None):
+    def get_peripheral_cell_volume(self, peripheral_threshold=None):
+        peripheral_threshold = peripheral_threshold or constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
+        volumes = self.get_volumes_from_periphery()
+        return volumes[peripheral_threshold]
+
+    def compute_peripheral_cell_volume(self, peripheral_threshold):
         """
         compute volume in the periphery in real pixel size using the cell mask
         """
-        peripheral_threshold = peripheral_threshold or constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         peripheral_binary_mask = ((cell_mask_dist_map > 0) &
                                   (cell_mask_dist_map <= peripheral_threshold+1)).astype(int)
@@ -119,7 +124,13 @@ class Image3d(Image):
         peripheral_cell_volume = height_map_periph.sum() * helpers.volume_coeff()
         return peripheral_cell_volume
 
+    @helpers.checkpoint_decorator(VOLUMES_FROM_PERIPHERY_PATH_SUFFIX, dtype=np.float)
+    def get_volumes_from_periphery(self):
+        return self.compute_volumes_from_periphery()
+
     def compute_volumes_from_periphery(self):
+        logger.info("Computing {} volumes from the periphery for {}",
+                    constants.analysis_config['NUM_CONTOURS'], self._path)
         volumes = np.zeros(constants.analysis_config['NUM_CONTOURS'])
         for i in range(1, constants.analysis_config['NUM_CONTOURS']+1):
             volumes[i-1] = self.compute_peripheral_cell_volume(peripheral_threshold=i)
@@ -154,26 +165,24 @@ class Image3d(Image):
              raise (RuntimeError, "peripheral area has inconsistent volumes for image %s" % self._path)
          return peripheral_cell_volume
 
-    def compute_average_cytoplasmic_distance_from_nucleus3d(self, dsAll) -> float:
+    def compute_median_cytoplasmic_distance_from_nucleus3d(self, dsAll) -> float:
         '''
         Average distance of a cytoplasmic voxel from the nucleus centroid
         '''
         height_map = self.get_cytoplasm_height_map()
         cytoplasm_mask = self.get_cytoplasm_mask()
         max_slice = min(np.max(height_map), int(self.get_zero_level()))-1 # we are in the cytoplasm
-        dist_sum, count = 0, 0
-        max_dist = []
+        distances = np.array([])
         slices = self.get_cell_mask_slices()
         for slice_num in range(max_slice, -1, -1):
             if slice_num >= dsAll.shape[2]: continue # should not happen, just in case
             slice_mask = slices[:,:,slice_num]
             slice_mask = slice_mask * cytoplasm_mask # not very precise since it is not propagarted through slices
-            slice = np.multiply(dsAll[:,:,slice_num], slice_mask)
-            dist_sum = dist_sum + slice.sum()
-            count = count + slice_mask[slice_mask == 1].sum()
-            max_dist.append(np.max(slice))
+            slice_distances = np.multiply(dsAll[:,:,slice_num], slice_mask)
+            distances = np.append(distances, slice_distances[slice_distances > 0])
 
-        return dist_sum / count, np.max(max_dist)
+#        return dist_sum / count, np.max(max_dist)
+        return np.median(distances), np.max(distances)
 
 
 class Image3dWithSpots(Image3d, ImageWithSpots):
@@ -336,13 +345,11 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
     def compute_spots_normalized_distance_to_centroid(self) -> float:
         nucleus_centroid = self.get_nucleus_centroid()
         cytoplasmic_spots = self.get_cytoplasmic_spots()
-        zero_level = self.get_zero_level()
-        cytoplasmic_spots = cytoplasmic_spots[cytoplasmic_spots[:,2] < zero_level]
         height_map = self.adjust_height_map(cytoplasm=True)
 
         # average distance for all cytoplasmic voxels
         dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid)
-        avg_dist, max_dist = self.compute_average_cytoplasmic_distance_from_nucleus3d(dsAll)
+        median_dist, max_dist = self.compute_median_cytoplasmic_distance_from_nucleus3d(dsAll)
 
         # 2D distance from the nucleus centroid of cytoplasmic mRNAs
         # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
@@ -353,7 +360,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
                                        axis=1))
 
         dsCytoplasmic = dsCytoplasmic[dsCytoplasmic < max_dist] # problematic spots outside of the cell
-        normalized_dist_to_centroid = np.mean(dsCytoplasmic) / avg_dist
+        normalized_dist_to_centroid = np.median(dsCytoplasmic) / median_dist
         return normalized_dist_to_centroid
 
     def compute_spots_normalized_cytoplasmic_spread(self) -> float:
@@ -372,7 +379,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
                         np.sum((cytoplasmic_spots[:, 2] - mu_z) ** 2) / len(cytoplasmic_spots))
 
         diameter = self.compute_cell_diameter()
-        return sd/(0.68*diameter/2) #sd / np.mean(d[d != 0])
+        return sd/(diameter/2) #sd / np.mean(d[d != 0])
 
 
 class Image3dWithIntensities(Image3d, ImageWithIntensities):
@@ -409,19 +416,23 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         height_map = self.adjust_height_map(cytoplasm=True)
         nucleus_centroid = self.get_nucleus_centroid()
         cytoplasm_mask = self.get_cytoplasm_mask()
-        IF = np.multiply(self.compute_cytoplasmic_intensities(), height_map)
+        IF = self.compute_cytoplasmic_intensities()
 
         # Compute all possible distances in a matrix [512x512]
         dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid)
-        avg_dist, max_dist = self.compute_average_cytoplasmic_distance_from_nucleus3d(dsAll)
+        median_dist, max_dist = self.compute_median_cytoplasmic_distance_from_nucleus3d(dsAll)
 
         # Calculate the distances of signal peaks to nucleus_centroid
         mean_signal = np.mean(IF[cytoplasm_mask == 1])
         peaks = np.argwhere(IF > mean_signal * 1.5)  # arbitrary choice to reduce the number of peaks
-        d = math.sqrt(np.sum((peaks[:,1] - nucleus_centroid[0]) ** 2) / len(peaks) +
-                       np.sum((peaks[:,0] - nucleus_centroid[1]) ** 2) / len(peaks))
+        peaks_z = np.array([height_map[peaks[i][0], peaks[i][1]] for i in range(peaks.shape[0])])
+        peaks = np.hstack((peaks, peaks_z[:, None]))
+        nucleus_centroid_z = height_map[nucleus_centroid[0], nucleus_centroid[1]] // 2
+        dsPeaks = np.sqrt(np.sum((peaks -
+                                  [nucleus_centroid[0], nucleus_centroid[1], nucleus_centroid_z]) ** 2,
+                                 axis=1))
 
-        spread_to_centroid = d / avg_dist
+        spread_to_centroid = np.median(dsPeaks) / median_dist
         return spread_to_centroid
 
     def compute_intensities_normalized_cytoplasmic_spread(self):

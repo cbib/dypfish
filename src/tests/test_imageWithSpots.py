@@ -47,21 +47,20 @@ class TestImageWithSpots(TestCase):
     def test_compute_cytoplasmic_total_spots(self):
         self.assertEqual(self.img.compute_cytoplasmic_total_spots(), 155)
 
-    def test_compute_average_cytoplasmic_distance_from_nucleus(self):
+    def test_compute_median_cytoplasmic_distance_from_nucleus(self):
         warnings.warn("This function is not sufficiently tested", RuntimeWarning)
         nucleus_centroid = self.img.get_nucleus_centroid()
         dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)
-        result = self.img.compute_average_cytoplasmic_distance_from_nucleus(dsAll)
-        self.assertAlmostEqual(result, 108.59049566401, places=3)
+        result = self.img.compute_median_cytoplasmic_distance_from_nucleus(dsAll)
+        self.assertAlmostEqual(result, 109.17875251164, places=3)
 
     def test_compute_spots_normalizaed_distance_to_centroid(self):
-        warnings.warn("This function is not sufficiently tested", RuntimeWarning)
         normalized_average_2d_distance = self.img.compute_spots_normalized_distance_to_centroid()
-        self.assertAlmostEqual(normalized_average_2d_distance, 0.84008358398, places=5)
+        self.assertAlmostEqual(normalized_average_2d_distance, 0.792794733794, places=5)
 
     def test_compute_spots_normalized_cytoplasmic_spread(self):
         result = self.img.compute_spots_normalized_cytoplasmic_spread()
-        self.assertAlmostEqual(result, 0.78863996136, places=5)
+        self.assertAlmostEqual(result, 0.783341863054, places=5)
 
     def test_compute_random_spots(self):
         random_spots = self.img.compute_random_spots()
