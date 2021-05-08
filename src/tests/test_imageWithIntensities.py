@@ -53,9 +53,9 @@ class TestImageWithIntensities(TestCase):
         self.assertAlmostEqual(median, 97.0824391947, places=3)
         self.assertAlmostEqual(max, 149.9333185119, places=3)
 
-    def test_compute_intensities_normalized_spread_to_centroid(self):
-        normalized_value = self.img.compute_intensities_normalized_spread_to_centroid()
-        self.assertAlmostEqual(normalized_value, 0.7031569584543, places=5)
+    def test_compute_intensities_normalized_distance_to_nucleus(self):
+        normalized_value = self.img.compute_intensities_normalized_distance_to_nucleus()
+        self.assertAlmostEqual(normalized_value, 0.58, places=5)
 
     def test_compute_intensities_cytoplasmic_spread(self):
         spread = self.img.compute_intensities_normalized_cytoplasmic_spread()

@@ -68,6 +68,16 @@ class Test(TestCase):
         self.assertEqual(h, 57)
 
     def test_sem(self):
-        a = np.array([0, 0.1, 0,3, 0.001, 10])
+        a = np.array([0, 0.1, 0, 3, 0.001, 10])
         sem = helpers.sem(a)
         self.assertAlmostEqual(sem, 1.49447, places=5)
+
+    def test_compute_entropy(self):
+        center = np.array([5, 5, 5])
+        radius = 3
+        points1 = helpers.random_points_in_sphere(center, radius, 400)
+        entropy1 = helpers.compute_entropy(points1, k=15, norm='euclidean')
+        radius = 5
+        points2 = helpers.random_points_in_sphere(center, radius, 400)
+        entropy2 = helpers.compute_entropy(points2, k=15, norm='euclidean')
+        self.assertLess(entropy1, entropy2) # increases with volume

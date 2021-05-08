@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
+
 import pathlib
 from unittest import TestCase
 
@@ -77,6 +81,11 @@ class TestImage(TestCase):
         self.assertAlmostEqual(mask.sum(), 20196.0)
         self.assertLess(mask.sum(), self.img.get_cytoplasm_mask().sum())
 
+    def test_compute_cytoplasmic_coordinates_peripheral_distance(self):
+        coordinates = np.array([(20, 20), (178, 178)])
+        distances = self.img.compute_cytoplasmic_coordinates_peripheral_distance(coordinates)
+        self.assertTrue(np.isnan(distances[0]))
+        self.assertEqual(distances[1], 36)
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
 
@@ -89,4 +98,3 @@ class TestImageSecondary(TestCase):
 
     def tearDown(self) -> None:
         self.repo.clear()
-

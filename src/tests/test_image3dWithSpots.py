@@ -4,15 +4,16 @@
 
 import pathlib
 from unittest import TestCase
+
 import numpy as np
+from loguru import logger
+
 import constants
 import path
-import warnings
-from image3d import Image3dWithSpots
+from image3dWithSpots import Image3dWithSpots
 from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
-
 
 class TestImage3dWithSpots(TestCase):
     def setUp(self) -> None:
@@ -25,40 +26,55 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_cytoplasmic_spots(self):
         result = self.img.compute_cytoplasmic_spots()
-        self.assertEqual(len(result), 153)
+        self.assertEqual(len(result), 151)
 
     def test_compute_cytoplasmic_spots_peripheral_distance(self):
         results = self.img.compute_cytoplasmic_spots_peripheral_distance()
-        self.assertEqual(len(results), 153)
+        self.assertEqual(len(results), 151)
         # arbitrarily check two values
-        self.assertEqual(results[4], 71)
-        self.assertEqual(results[65], 27)
-        self.assertEqual(results.sum(), 7310)
+        self.assertEqual(results[4], 79)
+        self.assertEqual(results[65], 37)
+        self.assertEqual(results.sum(), 7013)
 
-    def test_compute_spots_normalized_distance_to_centroid(self):
-        relative_to_centroid = self.img.compute_spots_normalized_distance_to_centroid()
-        self.assertAlmostEqual(relative_to_centroid, 0.7105526831687, places=5)
+    def test_compute_spots_normalized_distance_to_nucleus(self):
+        relative_to_centroid = self.img.compute_spots_normalized_distance_to_nucleus()
+        self.assertAlmostEqual(relative_to_centroid, 0.63, places=5)
 
-    def test_compute_spots_normalized_cytoplasmic_spread(self):
-        spread = self.img.compute_spots_normalized_cytoplasmic_spread()
-        self.assertAlmostEqual(spread, 0.7751296754744, places=5)
+    def test_compute_spots_cytoplasmic_spread_entropy(self):
+        spread = self.img.compute_spots_cytoplasmic_spread_entropy()
+        self.assertAlmostEqual(spread, 16.343390216199, places=5)
 
     def test_clustering_index_point_process(self):
+        logger.error("was not tested with cytoplasmic spots and new random spots")
+        self.fail()
         np.random.seed(0)
         h_star = self.img.compute_clustering_indices()
         self.assertEqual(len(h_star), 300)
         self.assertAlmostEqual(h_star.sum(), 289.98034888178876)  # might not work since random
 
     def test_ripley_k_point_process(self):
+        logger.error("Function was not tested with cytoplasmic spots and the new random spots")
+        self.fail()
         K = self.img.ripley_k_point_process(nuw=1158349.7249999999, my_lambda=0.00018819877563315348)
         self.assertAlmostEqual(K.sum(), 234044508.31346154, places=3)
         self.assertEqual(K.shape, (300,))
 
     def test_compute_degree_of_clustering(self):
+        logger.error("was not tested with cytoplasmic spots and new random spots")
+        self.fail()
         np.random.seed(0)
         self.assertAlmostEqual(self.img.compute_degree_of_clustering(), 71.93654959822, places=5)
 
     def test_compute_mrna_density(self):
         mrna_density = self.img.compute_cytoplasmic_density()
-        self.assertAlmostEqual(mrna_density, 0.142879509018, places=5)
+        self.assertAlmostEqual(mrna_density, 0.144137790282, places=5)
+
+    def test_compute_random_cytoplasmic_spots_in_slices(self):
+        #logger.error("needs checking that the spots coordinates order is coherent with the rest of the code")
+        #self.fail()
+        np.random.seed(0)
+        random_spots = self.img.compute_random_cytoplasmic_spots_in_slices(100)
+        self.assertTrue(np.all([self.img.is_in_cytoplasm(s[::-1]) for s in random_spots[:,0:2]]))
+        self.assertEqual(random_spots.shape[0], 79)
+
 

@@ -13,7 +13,7 @@ import constants
 import helpers
 import image_processing as ip
 import path
-from image3d import Image3dWithSpots
+from image3dWithSpots import Image3dWithSpots
 from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)  # TODO this is annoying

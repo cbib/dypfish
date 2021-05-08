@@ -3,30 +3,18 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import math
+
 import numpy as np
 import tqdm
 
 import helpers
-# secondary basic image descriptors
+from image import Image
+from imageWithSpots import ImageWithSpots
+from repository import Repository
+
 from constants import NUCLEUS_CENTROID_PATH_SUFFIX
 from constants import ZLINES_PATH_SUFFIX
 from constants import Z_LINE_DISTANCE_PATH_SUFFIX
-from repository import Repository
-
-from image import Image
-from imageWithSpots import ImageWithSpots, ImageWithSpotsAndMTOC
-from imageWithIntensities import ImageWithIntensities, ImageWithIntensitiesAndMTOC
-
-class ImageWithSpotsAndIntensities(ImageWithSpots, ImageWithIntensities):
-    @staticmethod
-    def is_a(repo: Repository, path: str):
-        return ImageWithSpots.is_a(repo, path) and ImageWithIntensities.is_a(repo, path)
-
-
-class ImageWithSpotsAndIntensitiesAndMTOC(ImageWithSpotsAndMTOC, ImageWithIntensitiesAndMTOC):
-    @staticmethod
-    def is_a(repo: Repository, path: str):
-        return ImageWithSpotsAndMTOC.is_a(repo, path) and ImageWithIntensitiesAndMTOC.is_a(repo, path)
 
 
 class imageWithSpotsAndZlines(ImageWithSpots):

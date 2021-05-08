@@ -21,7 +21,7 @@ def build_cytoplasmic_statistics(analysis_repo, statistics_type, molecule_type, 
     gene2stat, gene2median, gene2error, gene2confidence_interval = {}, {}, {}, {}
 
     for gene in genes:
-        logger.info("Running {} cytoplasmic spread analysis for {}", molecule_type, gene)
+        logger.info("Running {} cytoplasmic {} analysis for {}", molecule_type, statistics_type, gene)
         image_set = ImageSet(analysis_repo, ['{0}/{1}/'.format(molecule_type, gene)])
         if statistics_type == 'centrality':
             if molecule_type == 'mrna':
@@ -33,13 +33,23 @@ def build_cytoplasmic_statistics(analysis_repo, statistics_type, molecule_type, 
                 gene2stat[gene] = image_set.compute_cytoplasmic_spots_spread()
             else:
                 gene2stat[gene] = image_set.compute_intensities_cytoplasmic_spread()
-        gene2median[gene] = np.median(gene2stat[gene])
-        gene2error[gene] = helpers.sem(gene2stat[gene], factor=0)
-        lower, higher = helpers.median_confidence_interval(gene2stat[gene])
-        gene2confidence_interval[gene] = [lower, higher]
+        if (statistics_type == 'centrality'):
+            gene2median[gene] = np.mean(gene2stat[gene])
+            gene2error[gene] = helpers.sem(gene2stat[gene], factor=0)
+            lower, higher = helpers.median_confidence_interval(gene2stat[gene])
+            gene2confidence_interval[gene] = [lower, higher]
 
-    gene2median = collections.OrderedDict(sorted(gene2median.items(),
-                                                             key=lambda i: keyorder.index(i[0])))
+    if (statistics_type == 'spread'):
+        max_entropy = np.max([np.max(gene2stat[k]) for k in gene2stat.keys()])
+        for gene in gene2stat.keys():
+            gene2stat[gene] = gene2stat[gene] / max_entropy
+            gene2median[gene] = np.median(gene2stat[gene])
+            gene2error[gene] = helpers.sem(gene2stat[gene], factor=0)
+            lower, higher = helpers.median_confidence_interval(gene2stat[gene])
+            gene2confidence_interval[gene] = [lower, higher]
+
+    gene2stat = collections.OrderedDict(sorted(gene2stat.items(), key=lambda i: keyorder.index(i[0])))
+    gene2median = collections.OrderedDict(sorted(gene2median.items(), key=lambda i: keyorder.index(i[0])))
     gene2error = collections.OrderedDict(sorted(gene2error.items(), key=lambda i: keyorder.index(i[0])))
     gene2confidence_interval = collections.OrderedDict(sorted(gene2confidence_interval.items(),
                                                               key=lambda i: keyorder.index(i[0])))
@@ -108,6 +118,7 @@ if __name__ == '__main__':
         keyorder = conf[1]
         for molecule_type, statistics_type in itertools.product(['mrna', 'protein'],
                                                                 ['centrality', 'spread']):
+            if statistics_type != 'centrality' or molecule_type != 'mrna' : continue
             if molecule_type == 'mrna':
                 molecules = constants.analysis_config['MRNA_GENES']
             else:

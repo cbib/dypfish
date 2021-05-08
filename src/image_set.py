@@ -9,15 +9,19 @@ import tqdm
 from loguru import logger
 
 import constants
-from image import Image, ImageWithMTOC
-from image3d import Image3d, Image3dWithSpots, Image3dWithIntensities, \
-    Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC, Image3dWithSpotsAndIntensitiesAndMTOC, \
-    Image3dMultiNucleus, Image3dMultiNucleusWithSpots
+from image3d import Image3d, Image3dMultiNucleus
+from image3dWithIntensities import Image3dWithIntensities, Image3dWithIntensitiesAndMTOC
+from image3dWithSpots import Image3dWithSpots, Image3dWithSpotsAndMTOC
 from imageWithIntensities import ImageWithIntensities, ImageWithIntensitiesAndMTOC
 from imageWithSpots import ImageWithSpots, ImageWithSpotsAndMTOC
-from imageWithZlines import imageMultiNucleusWithSpotsAndZlines, imageWithSpotsAndZlines, ImageMultiNucleus, \
-    ImageMultiNucleusWithSpots, ImageWithSpotsAndIntensitiesAndMTOC, ImageWithSpotsAndIntensities
+from imageWithSpotsAndIntensities import ImageWithSpotsAndIntensitiesAndMTOC, Image3dWithSpotsAndIntensitiesAndMTOC, \
+    Image3dMultiNucleusWithSpots, ImageWithSpotsAndIntensities
+from imageWithZlines import imageMultiNucleusWithSpotsAndZlines, ImageMultiNucleus, imageWithSpotsAndZlines, \
+    ImageMultiNucleusWithSpots
 from repository import Repository
+
+from image import Image, ImageWithMTOC
+
 
 
 class ImageSet(object):
@@ -156,10 +160,7 @@ class ImageSet(object):
         all_signals = self.compute_signal_from_periphery()
         image: ImageWithSpots
         cytoplasmic_densities = [image.compute_cytoplasmic_density() for image in self.images]
-        #all_areas = self.compute_areas_from_periphery()
         all_volumes = self.compute_volumes_from_periphery()
-        #spot_counts = [len(image.get_cytoplasmic_spots()) for image in self.images]
-        #return np.array(all_signals) / np.array(spot_counts)[:, None]
         return np.divide(np.array(all_signals), np.array(all_volumes)) / np.array(cytoplasmic_densities)[:, None]
 
     def compute_intensities_fractions_per_periphery(self):
@@ -214,26 +215,25 @@ class ImageSet(object):
         centralities = np.array([])
         image: Union[ImageWithSpots, Image3dWithSpots]
         for image in self.images:
-            centralities= np.append(centralities, image.compute_spots_normalized_distance_to_centroid())
+            centralities = np.append(centralities, image.compute_spots_normalized_distance_to_nucleus())
         valid_centralities = centralities[~np.isnan(centralities)]
         if len(valid_centralities) < len(centralities):
             logger.warning("spots out of hull for {} images out of {}",
                            len(centralities)-len(valid_centralities), self.__sizeof__())
         l = len(valid_centralities[valid_centralities > 1])
         if l > 0:
-            logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
-                           l, self.__sizeof__())
+            logger.debug("normalized distance to centroid is > 1 for {} images out of {}", l, self.__sizeof__())
         return valid_centralities
 
-    def compute_cytoplasmic_spots_spread(self) -> List[float]:
+    def compute_cytoplasmic_spots_spread(self) -> np.ndarray:
+        '''
+        Computes entropy of the spatial distribution of cytoplasmic spots using
+        Kozachenko-Leonenko entropy estimate. Returns an array wihth entropy values for each image
+        '''
         spots_spread = np.array([])
         image: Union[ImageWithSpots, Image3dWithSpots]
         for image in self.images:
-            spots_spread = np.append(spots_spread, image.compute_spots_normalized_cytoplasmic_spread())
-        l = len(spots_spread[spots_spread > 1])
-        if l > 0:
-            logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
-                           l, self.__sizeof__())
+            spots_spread = np.append(spots_spread, image.compute_spots_cytoplasmic_spread_entropy())
         return spots_spread
 
     def compute_intensities_cytoplasmic_centrality(self) -> List[float]:
@@ -243,7 +243,7 @@ class ImageSet(object):
             centralities = np.append(centralities, image.compute_intensities_normalized_spread_to_centroid())
         valid_centralities = centralities[~np.isnan(centralities)]
         if len(valid_centralities) < len(centralities):
-            logger.warning("problematic intensity spread for {} images out of {}",
+            logger.warning("intensity spread > 1 for {} images out of {}",
                            len(centralities) - len(valid_centralities), self.__sizeof__())
         l = len(centralities[centralities>1])
         if l > 0:
@@ -309,7 +309,6 @@ class ImageSet(object):
 
     # Implements equation 17 (supplemental)of padovan-merhar et al. 2015
     def compute_volume_corrected_nm(self):
-        #image: ImageMultiNucleusWithSpots
         cell_volume= [image.compute_cell_volume() for image in self.images]
         transcount = [len(image.get_spots()) for image in self.images]
         coeffs = np.polyfit(cell_volume, transcount, 1)
@@ -337,7 +336,7 @@ class ImageSet(object):
         nm = (variance_mrnas - variance_expected_mrnas) / exp_mrnas
         return nm
 
-    def compute_cell_mask_between_nucleus_centroid(self):
+    def compute_cell_mask_between_nucleus_centroids(self):
         image: imageMultiNucleusWithSpotsAndZlines
         nuc_dist = []
         nucs_pos = []

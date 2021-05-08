@@ -3,14 +3,14 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-from unittest import TestCase
-import numpy as np
-import path
-import constants
 import warnings
+from unittest import TestCase
+
+import constants
 import image_processing as ip
-from repository import H5RepositoryWithCheckpoint
+import path
 from imageWithSpots import ImageWithSpots
+from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
 
@@ -54,12 +54,12 @@ class TestImageWithSpots(TestCase):
         result = self.img.compute_median_cytoplasmic_distance_from_nucleus(dsAll)
         self.assertAlmostEqual(result, 109.17875251164, places=3)
 
-    def test_compute_spots_normalizaed_distance_to_centroid(self):
-        normalized_average_2d_distance = self.img.compute_spots_normalized_distance_to_centroid()
-        self.assertAlmostEqual(normalized_average_2d_distance, 0.792794733794, places=5)
+    def test_compute_spots_normalizaed_distance_to_nucleus(self):
+        normalized_average_2d_distance = self.img.compute_spots_normalized_distance_to_nucleus()
+        self.assertAlmostEqual(normalized_average_2d_distance, 0.49720000000000014, places=5)
 
     def test_compute_spots_normalized_cytoplasmic_spread(self):
-        result = self.img.compute_spots_normalized_cytoplasmic_spread()
+        result = self.img.compute_spots_cytoplasmic_spread_entropy()
         self.assertAlmostEqual(result, 0.783341863054, places=5)
 
     def test_compute_random_spots(self):

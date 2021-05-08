@@ -19,7 +19,7 @@ from image_set import ImageSet
 from path import global_root_dir
 
 
-def build_mrna_peripheral_fraction_profiles(analysis_repo):
+def build_mrna_peripheral_fraction_profiles(analysis_repo, normalisation_gene=None):
     genes= constants.analysis_config['MRNA_GENES']
     gene2m_fractions = {}
     for gene in genes:
@@ -28,10 +28,10 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo):
         gene2m_fractions[gene] = np.median(peripheral_fractions, axis=0)
 
     # normalized by gapdh profile
-    for gene in genes:
-        gene2m_fractions[gene]  = gene2m_fractions[gene] / gene2m_fractions['gapdh']
+    if normalisation_gene:
+        for gene in genes:
+            gene2m_fractions[gene]  = gene2m_fractions[gene] / gene2m_fractions[normalisation_gene]
 
-    # this is because of the format that the plotting function expects
     fractions = collections.OrderedDict(sorted(gene2m_fractions.items(), key=lambda i: keyorder.index(i[0])))
     return fractions
 
@@ -64,6 +64,7 @@ def build_histogram_peripheral_fraction(analysis_repo, molecule_type, keyorder, 
     gene2ci = collections.OrderedDict(sorted(gene2ci.items(), key=lambda i: keyorder.index(i[0])))
 
     return gene2median, fractions, gene2error, gene2ci
+
 
 def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors, CI, annotations):
     fraction = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']

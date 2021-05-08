@@ -83,20 +83,17 @@ class ImageWithIntensities(Image):
         distances = np.multiply(dsAll, cytoplasm_mask)
         return np.median(distances[distances != 0]), np.max(distances[distances != 0])
 
-    def compute_intensities_normalized_spread_to_centroid(self) -> float:
-        nucleus_centroid = self.get_nucleus_centroid()
+    def compute_intensities_normalized_distance_to_nucleus(self, quantile=.68) -> float:
         IF = self.compute_cytoplasmic_intensities()
-        dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
-        dsAll = dsAll * self.get_cytoplasm_mask()
-        median_dist, max_dist = self.compute_median_cytoplasmic_distance_from_nucleus2d(dsAll)
-
-        # Calculate the distances of signal peaks to nucleus_centroid
         mean_signal = np.mean(IF[IF > 0])
-        peaks = np.argwhere(IF > mean_signal * 1.5)  # arbitrary choice to reduce the number of peaks
-        dsPeaks = np.sqrt(np.sum((peaks - [nucleus_centroid[0], nucleus_centroid[1]]) ** 2, axis=1))
+        peaks = np.argwhere(IF > mean_signal * 2)
+        dists = constants.analysis_config['NUM_CONTOURS'] - \
+                self.compute_cytoplasmic_coordinates_peripheral_distance(peaks[:,[1,0]]) # inverted wrt spots coordinates
+        assert np.all(dists >= 0), "Negative distance to nucleus"
+        normalized_dist_to_nucleus = np.quantile(dists, quantile) / constants.analysis_config['NUM_CONTOURS']
 
-        spread_to_centroid = np.median(dsPeaks) / median_dist
-        return spread_to_centroid
+        return normalized_dist_to_nucleus
+
 
     def compute_intensities_normalized_cytoplasmic_spread(self):
         IF = self.compute_cytoplasmic_intensities()

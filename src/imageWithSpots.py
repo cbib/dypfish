@@ -8,7 +8,6 @@ import tqdm
 from loguru import logger
 import helpers
 import constants
-import image_processing as ip
 from repository import Repository
 from sklearn.metrics.pairwise import pairwise_distances
 
@@ -78,12 +77,8 @@ class ImageWithSpots(Image):
         returns an array of int
         """
         spots = self.get_cytoplasmic_spots()
-        logger.info("Computing {} spots 2D peripheral distance spots for {}", len(spots), self._path)
-
-        peripheral_distance_map = self.get_cell_mask_distance_map()
-        spots_distances = [peripheral_distance_map[s[1], s[0]] for s in spots]
-        spots_distances = [1 if d == 0 else d for d in spots_distances]  # TODO : why this hack ?
-        return np.asarray(spots_distances, dtype=np.uint8)
+        distances = self.compute_cytoplasmic_coordinates_peripheral_distance(spots[:,0:2])
+        return distances
 
     def compute_cytoplasmic_total_spots(self):
         cytoplasmic_spots = self.get_cytoplasmic_spots()
@@ -94,21 +89,14 @@ class ImageWithSpots(Image):
         map_dist = np.multiply(cytoplasm_mask, dsAll)
         return np.median(map_dist[map_dist != 0])
 
-    def compute_spots_normalized_distance_to_centroid(self) -> float:
-        nucleus_centroid = self.get_nucleus_centroid()
-        cytoplasmic_spots = self.get_cytoplasmic_spots()[:, 0:2]  # 2d coordinates of 3d spots
-        dsAll = ip.compute_all_distances_to_nucleus_centroid(nucleus_centroid)  # 2d distances from nucleus_centroid
+    def compute_spots_normalized_distance_to_nucleus(self, quantile=.68) -> float:
+        dists = constants.analysis_config['NUM_CONTOURS'] - self.get_cytoplasmic_spots_peripheral_distance()
+        assert np.all(dists >= 0), "Negative distance to nucleus"
+        normalized_dist_to_nucleus = np.quantile(dists, quantile) / constants.analysis_config['NUM_CONTOURS']
 
-        dsCytoplasmic = dsAll[cytoplasmic_spots[:, 1], cytoplasmic_spots[:, 0]]
-        median_dist = self.compute_median_cytoplasmic_distance_from_nucleus(dsAll)
+        return normalized_dist_to_nucleus
 
-        # val is average 2D distance from the nucleus centroid of cytoplasmic mRNAs
-        # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
-        # distributed across the cytoplasm).
-        normalized_average_2d_distance = np.median(dsCytoplasmic) / median_dist
-        return normalized_average_2d_distance
-
-    def compute_spots_normalized_cytoplasmic_spread(self) -> float:
+    def compute_spots_cytoplasmic_spread_entropy(self) -> float:
         '''
         Computes the Standard Distance measure of spread as the average distance for all spots
         from the Mean Center. This measures the compactness of a distribution of spots.

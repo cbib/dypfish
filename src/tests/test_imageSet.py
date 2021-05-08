@@ -6,14 +6,17 @@ import pathlib
 from unittest import TestCase
 
 import numpy as np
+from loguru import logger
 
 import constants
 import path
-from image3d import Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC
+from image3dWithIntensities import Image3dWithIntensitiesAndMTOC
+from image3dWithSpots import Image3dWithSpotsAndMTOC
 from image_set import ImageSet
 from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
+
 
 class TestImageSet(TestCase):
     def setUp(self) -> None:
@@ -54,7 +57,7 @@ class TestImageSet(TestCase):
         self.assertEqual(len(image_set.images), 20, "Expected 20 images")
         peripheral_areas = image_set.compute_areas_from_periphery()
         self.assertEqual(peripheral_areas.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_areas.sum(), 630578.85075608, places=5)
+        self.assertAlmostEqual(peripheral_areas.sum(), 429444.207758053, places=5)
 
     def test_compute_intensities_signal_from_periphery(self):
         # self.skipTest("Skipping for inefficiency reasons")
@@ -68,22 +71,25 @@ class TestImageSet(TestCase):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/'])
         peripheral_fractions = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
         self.assertEqual(peripheral_fractions.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_fractions.sum(), 2549.166535276, places=5)
+        self.assertAlmostEqual(peripheral_fractions.sum(), 1909.56435359227, places=5)
         self.assertTrue(np.all(peripheral_fractions[:, 99] == 1))
 
     def test_compute_cytoplsamic_intensities_fractions_per_periphery(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/'])
         peripheral_fractions = image_set.compute_cytoplsamic_intensities_fractions_per_periphery()
         self.assertEqual(peripheral_fractions.shape, (20, 100))
-        self.assertAlmostEqual(peripheral_fractions.sum(), 996.87461962831, places=5)
+        self.assertAlmostEqual(peripheral_fractions.sum(), 1076.1379240779, places=5)
         self.assertTrue(np.all(peripheral_fractions[:, 99] == 1))
 
     def test_compute_cytoplasmic_spots_counts(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         spots_counts = image_set.compute_cytoplasmic_spots_counts()
-        self.assertEqual(sorted(spots_counts), [33, 68, 71, 73, 153])
+        self.assertEqual(sorted(spots_counts), [33, 62, 64, 68, 151])
 
     def test_compute_degree_of_clustering(self):
+        logger.error("This function has not been tested with cytoplasmic spots and new random spots")
+        self.fail()
+        self.skipTest() # skipping because not tested, see above
         np.random.seed(0)
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         clustering_indices = image_set.compute_degree_of_clustering()
@@ -96,9 +102,9 @@ class TestImageSet(TestCase):
         res = image_set.compute_normalised_quadrant_densities()
         self.assertEqual(res.shape[0], 20)
         mtoc_density = res[res[:, 1] == 1].sum() / len(res[res[:, 1] == 1])
-        self.assertAlmostEqual(mtoc_density, 2.2218930612692054, places = 5)
+        self.assertAlmostEqual(mtoc_density, 2.2218930612692054, places=5)
         non_mtoc_density = res[res[:, 1] == 0].sum() / len(res[res[:, 1] == 0])
-        self.assertAlmostEqual(non_mtoc_density, 1.1013546485392969, places = 5)
+        self.assertAlmostEqual(non_mtoc_density, 1.1013546485392969, places=5)
 
     def test_compute_normalised_quadrant_densities_protein(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
@@ -116,8 +122,8 @@ class TestImageSet(TestCase):
     def test_compute_cytoplasmic_spots_spread(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = np.sort(image_set.compute_cytoplasmic_spots_spread())
-        self.assertAlmostEqual(np.sum(result), 2.470461144699, places=5)
-        self.assertAlmostEqual(result[2], 0.5001330627, places=5)
+        self.assertAlmostEqual(np.sum(result), 84.32560104311, places=5)
+        self.assertAlmostEqual(result[2], 16.983566893, places=5)
 
     def test_compute_spots_cytoplasmic_centrality(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
@@ -199,3 +205,19 @@ class TestImageSet(TestCase):
                  0.0, 0.0, 0.0, 0.0, 0.0]]
         self.assertEqual(len(result), len(test))
         self.assertAlmostEqual(np.sum(result), np.sum(test), places=5)
+
+    def test_compute_cell_mask_between_nucleus_centroids(self):
+        logger.error("This function has not been tested")
+        self.fail()
+
+    def test_compute_volume_corrected_nm(self):
+        logger.error("This function has not been tested")
+        self.fail()
+
+    def test_compute_spots_peripheral_distance(self):
+        logger.error("This function has not been tested")
+        self.fail()
+
+    def test_compute_cytoplasmic_density(self):
+        logger.error("This function has not been tested")
+        self.fail()

@@ -4,23 +4,17 @@
 
 import math
 
-import numexpr
 import numpy as np
-import tqdm
 from loguru import logger
 
 import constants
 import helpers
-import image_processing as ip
 from constants import CELL_MASK_SLICES_PATH_SUFFIX
-from constants import CLUSTERING_INDICES_PATH_SUFFIX
 from constants import HEIGHT_MAP_PATH_SUFFIX
 from constants import NUCLEUS_CENTROID_PATH_SUFFIX
-from constants import ZERO_LEVEL_PATH_SUFFIX
 from constants import VOLUMES_FROM_PERIPHERY_PATH_SUFFIX
+from constants import ZERO_LEVEL_PATH_SUFFIX
 from image import Image, ImageWithMTOC
-from imageWithIntensities import ImageWithIntensities
-from imageWithSpots import ImageWithSpots
 from repository import Repository
 
 
@@ -39,6 +33,10 @@ class Image3d(Image):
         if not self._repository.is_present(image_path + HEIGHT_MAP_PATH_SUFFIX):
             raise AttributeError("Incorrect format for image %s" % image_path)
 
+    def get_cell_mask(self) -> np.ndarray:
+        slices = self.get_cell_mask_slices()
+        return slices[:,:,0]
+
     def get_height_map(
             self) -> np.ndarray:  # TODO : not restricted to the cell_mask in V0 (same as for the intensities)
         descriptor = self._path + HEIGHT_MAP_PATH_SUFFIX
@@ -47,22 +45,23 @@ class Image3d(Image):
         return np.array(self._repository.get(descriptor))
 
     def get_cytoplasm_height_map(self):
-        height_map = self.get_height_map()
+        height_map = self.adjust_height_map()
         height_map[self.get_cytoplasm_mask() == 0] = 0
         return height_map
 
     def adjust_height_map(self, cytoplasm=False):
         '''
         adjust the periphery of the cell to be at 0.5 height
+        cytoplasm = 3 is the same as get_cytoplasm_height_map
         '''
         if cytoplasm == True:
             height_map = self.get_cytoplasm_height_map().astype(float)
-            cell_mask = self.get_cytoplasm_mask()
+            mask = self.get_cytoplasm_mask()
         else:
             height_map = self.get_height_map().astype(float)
-            cell_mask = self.get_cell_mask()
+            mask = self.get_cell_mask()
 
-        height_map[(cell_mask == 1) & (height_map == 0)] = 0.5
+        height_map[(mask == 1) & (height_map == 0)] = 0.5
         return height_map
 
     def get_zero_level(self):
@@ -75,37 +74,28 @@ class Image3d(Image):
     def get_cell_mask_slices(self) :
         return self.compute_cell_mask_slices()
 
-    def compute_cell_mask_slices(self, cell_mask=None, height_map=None,
-                                 zero_level=None, image_width=None, image_height=None) -> np.ndarray:
+    def compute_cell_mask_slices(self, height_map=None, zero_level=None,
+                                 image_width=None, image_height=None) -> np.ndarray:
         """
         Reconstructs the z-slices given a height_map;
         out of focus slices (defined by zero_level) are not reconstructed
+        index 0 is for the bottom slice, index zero_level is for the top
+        this makes it coherent with the height_map, however z spots coordinates
+        are the the inversed relationship with the index slice
         """
-        if cell_mask is None: cell_mask = self.get_cell_mask()
-        if height_map is None: height_map = self.adjust_height_map()
+        if height_map is None: height_map = self.get_height_map()#adjust_height_map()
         zero_level = zero_level or self.get_zero_level()
         image_width = image_width or constants.dataset_config["IMAGE_WIDTH"]
         image_height = image_height or constants.dataset_config["IMAGE_HEIGHT"]
-        height_map = height_map.astype(float)  # TODO : make this code work without converting to float and using np.nan
-        height_map[cell_mask == 0] = np.nan
-        reversed_height_map = zero_level - height_map + 1
-
-        if np.nanmin(reversed_height_map) < 0:
-            logger.debug("reversed_height_map has negative values for {}", self._path)
 
         # Create binary cell masks per slice
-        cell_masks = np.zeros((image_width, image_height, zero_level))
-
-        # build slice mask
-        for slice in range(0, zero_level):
-            slice_mask = np.array(reversed_height_map, copy=True)
-            with np.errstate(
-                    invalid='ignore'):  # TODO : this is to avoid RuntimeWarning due to the comparison with np.nan
-                slice_mask[slice_mask > slice] = np.nan
-                slice_mask[slice_mask <= float(slice)] = 1
-            slice_mask = np.nan_to_num(slice_mask)
-            cell_masks[:, :, slice] = slice_mask
-        return cell_masks
+        slice_masks = np.zeros((image_width, image_height, zero_level))
+        for slice_num in range(zero_level, 0, -1):
+            slice_mask = np.array(height_map, copy=True)
+            slice_mask[height_map <= slice_num] = 0
+            slice_mask[height_map > slice_num] = 1
+            slice_masks[:, :, slice_num-1] = slice_mask # 0 slice the largest
+        return slice_masks
 
     def get_peripheral_cell_volume(self, peripheral_threshold=None):
         peripheral_threshold = peripheral_threshold or constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
@@ -156,7 +146,7 @@ class Image3d(Image):
         """compute volume of the cytoplasm in in real pixel size using cytoplasm mask"""
         cytoplasm_mask = self.get_cytoplasm_mask()
         height_map = self.adjust_height_map()
-        cytoplasm_volume = height_map[cytoplasm_mask[:] == 1].sum()
+        cytoplasm_volume = height_map[cytoplasm_mask == 1].sum()
         return cytoplasm_volume * helpers.volume_coeff()
 
     def compute_peripheral_volume(self):
@@ -167,7 +157,7 @@ class Image3d(Image):
 
     def compute_median_cytoplasmic_distance_from_nucleus3d(self, dsAll) -> float:
         '''
-        Average distance of a cytoplasmic voxel from the nucleus centroid
+        Computes median and maximal distance of a cytoplasmic voxel from the nucleus centroid
         '''
         height_map = self.get_cytoplasm_height_map()
         cytoplasm_mask = self.get_cytoplasm_mask()
@@ -181,310 +171,39 @@ class Image3d(Image):
             slice_distances = np.multiply(dsAll[:,:,slice_num], slice_mask)
             distances = np.append(distances, slice_distances[slice_distances > 0])
 
-#        return dist_sum / count, np.max(max_dist)
         return np.median(distances), np.max(distances)
 
-
-class Image3dWithSpots(Image3d, ImageWithSpots):
-    @staticmethod
-    def is_a(repo: Repository, path: str):
-        return Image3d.is_a(repo, path) and ImageWithSpots.is_a(repo, path)
-
-    def compute_cytoplasmic_spots(self) -> np.ndarray:
-        spots = super(Image3dWithSpots, self).compute_cytoplasmic_spots()
-        height_map = self.adjust_height_map()
-        zero_level = self.get_zero_level()
-        logger.info("Keeping cytoplasmic spots out of {} spots in image {}", len(spots), self._path)
-
-        cytoplasmic_spots = np.array([], dtype=int).reshape(0,3)
-        for slice_num in range(zero_level, -1, -1):
-            slice_area = len(height_map[height_map > zero_level + 1 - slice_num]) * helpers.surface_coeff()
-            assert slice_area >= 0, "Negative slice area"
-            spots_in_slice = spots[np.around(spots[:, 2]) == slice_num]
-            cytoplasmic_spots = np.vstack((cytoplasmic_spots, spots_in_slice))
-
-        assert len(cytoplasmic_spots) <= len(spots), "Incoherent cytoplasmic spots computation"
-        if (len(cytoplasmic_spots) < len(spots)):
-            logger.debug("{} spots out of cytoplasm for {}", len(spots) - len(cytoplasmic_spots), self._path)
-        return cytoplasmic_spots
-
-
-    def compute_cytoplasmic_spots_peripheral_distance(self)  -> np.ndarray:
+    def compute_cytoplasmic_coordinates_peripheral_distance(self, coordinates) -> np.ndarray:
         """
-        Perform the computation in pseudo 3D using the height map
-        Return an array of distances
-        """
-        height_map = self.adjust_height_map()
+         Perform the computation of distance to the periphery for cytoplasmic coordinates
+         Computation is done in pseudo 3D using the height map
+         Returns an array of integer distances
+         """
+        logger.info("Computing 3D peripheral distance for {} coordinates in image {}", len(coordinates), self._path)
+        assert coordinates.shape[1] == 3, "3D coordinates needed for distance to the periphery"
         zero_level = self.get_zero_level()
         peripheral_distance_map = self.get_cell_mask_distance_map()
         cell_area = self.compute_cell_area()
-        spots_peripheral_distance = []
-        spots = self.get_cytoplasmic_spots()
-        logger.info("Computing 3D peripheral distance for {} spots in image {}", len(spots), self._path)
 
-        problematic_spot_num = 0
-        for slice_num in range(zero_level, -1, -1):
-            slice_area = len(height_map[height_map > zero_level + 1 - slice_num]) * helpers.surface_coeff()
-            assert slice_area >= 0, "Negative slice area"
-            spots_in_slice = spots[np.around(spots[:, 2]) == slice_num]
-            for spot in spots_in_slice:
-                area_ratio = slice_area / cell_area
-                old_periph_distance = peripheral_distance_map[spot[1], spot[0]]
-                new_periph_distance = math.sqrt(area_ratio) * old_periph_distance
-
-                if new_periph_distance > old_periph_distance:
-                    # this means that the spot falls out of the slice, it is a discrepancy
-                    # between the 2D calculation and the slice area estimation
-                    spots_peripheral_distance.append(int(1))
-                    problematic_spot_num = problematic_spot_num + 1
-                else:
-                    spots_peripheral_distance.append(int(np.around(new_periph_distance)))
-
-        if problematic_spot_num > 0:
-            logger.debug("Peripheral spot distance could not be be determined in 3d for {} spots {}",
-                         problematic_spot_num, self._path)
-
-        assert len(spots_peripheral_distance) <= len(spots), "Incoherent spot peripheral distance"
-        if len(spots_peripheral_distance) < len(spots):
-            logger.debug("Peripheral spot distance could not be be determined in 3d for {} spots {}",
-                         len(spots) - len(spots_peripheral_distance), self._path)
-
-        return np.asarray(spots_peripheral_distance, dtype=np.uint8)
-
-    def ripley_k_point_process(self, nuw: float, my_lambda: float, spots=None, r_max: int = None) -> np.ndarray:
-        if spots is None: spots = self.get_spots()
-        n_spots = len(spots)
-        r_max = r_max or constants.analysis_config["MAX_CELL_RADIUS"]
-        pixels_in_slice = numexpr.evaluate(constants.dataset_config["PIXELS_IN_SLICE"]).item()
-
-        K = np.zeros(r_max)
-        for i in range(n_spots):
-            # TODO : why only z_squared is computed in real size ?
-            mask = np.zeros((n_spots, 3));
-            mask[i, :] = 1
-            other_spots = np.ma.masked_where(mask == 1, np.ma.array(spots, mask=False)).compressed().reshape(
-                n_spots - 1, 3)
-            x_squared = np.square(spots[i, 0] - other_spots[:, 0])
-            y_squared = np.square(spots[i, 1] - other_spots[:, 1])
-            z_squared = np.square(pixels_in_slice * (spots[i, 2] - other_spots[:, 2]))
-            ds = np.sqrt(x_squared + y_squared + z_squared)
-            if n_spots - 1 < r_max:
-                for m in range(n_spots - 1):
-                    K[math.ceil(ds[m]):r_max] = K[math.ceil(ds[m]):r_max] + 1
-            else:
-                for m in range(r_max):
-                    K[m] = K[m] + ds[ds <= m].sum()
-        K = K * (1 / (my_lambda ** 2 * nuw))
-        return K
-
-    def compute_random_spots_in_slices(self):
-        n_spots = len(self.get_spots())
+        distances = np.array([])
         slices = self.get_cell_mask_slices()
-        x, y, z = np.where(slices == 1)
-        idx = np.random.randint(0, len(x), n_spots)  # we chose random indices
-        return np.vstack((x[idx], y[idx], z[idx])).T
+        for slice_num in range(0, zero_level):
+            slice_mask = slices[:, :, slice_num]
+            slice_area = slice_mask.sum() * helpers.surface_coeff()
+            assert slice_area >= 0, "Empty slice area"
+            coordinates_this_height = coordinates[np.around(coordinates[:, 2]) == zero_level - slice_num]
+            for c in coordinates_this_height:
+                if not self.is_in_cytoplasm(c[0:2][::-1]):
+                    distances = np.append(distances, np.nan)
+                else:
+                    area_ratio = slice_area / cell_area
+                    old_periph_distance = peripheral_distance_map[c[1], c[0]]
+                    new_periph_distance = math.sqrt(area_ratio) * old_periph_distance
+                    assert new_periph_distance <= old_periph_distance # coordinate falls out of the slice
+                    distances = np.append(distances, int(np.around(new_periph_distance)))
 
-    def compute_clustering_indices(self) -> np.ndarray:
-        """
-        Point process Ripley-K computation in 3D for spheres of radius r < MAX_CELL_RADIUS
-        return: clustering indices for all r
-        """
-        logger.info("Running {} simulations of Ripley-K for {} in 3D",
-                    constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
-        spots = self.get_spots()
-        n_spots = len(spots)
-        pixels_in_slice = numexpr.evaluate(constants.dataset_config["PIXELS_IN_SLICE"]).item()
-
-        cell_mask_slices = self.get_cell_mask_slices()
-        nuw = np.sum(cell_mask_slices == 1) * pixels_in_slice  # whole volume of the cell
-        # TODO try instead of the previous 2 line : nuw = self.get_cell_volume()
-        my_lambda = float(n_spots) / float(nuw)  # spot's volumic density
-
-        k = self.ripley_k_point_process(nuw=nuw, my_lambda=my_lambda)  # TODO : first call for _all_ spots while the subsequent only for those in the height_map
-        k_sim = np.zeros((constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], constants.analysis_config["MAX_CELL_RADIUS"]))
-
-        # simulate RIPLEY_K_SIMULATION_NUMBER lists of random spots and run ripley_k
-        for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):
-            random_spots = self.compute_random_spots_in_slices()
-            tmp_k = self.ripley_k_point_process(spots=random_spots, nuw=nuw, my_lambda=my_lambda).flatten()
-            k_sim[t] = tmp_k
-
-        h = np.subtract(np.power(((k * 3) / (4 * math.pi)), 1. / 3),
-                        np.arange(1, constants.analysis_config["MAX_CELL_RADIUS"] + 1))
-        synth5, synth50, synth95 = helpers.compute_statistics_random_h_star(h_sim=k_sim)
-        return helpers.compute_h_star(h, synth5, synth50, synth95)
-
-    @helpers.checkpoint_decorator(CLUSTERING_INDICES_PATH_SUFFIX, dtype=np.float)
-    def get_clustering_indices(self):
-        return self.compute_clustering_indices()
-
-    def compute_degree_of_clustering(self) -> int:
-        h_star = self.get_clustering_indices()
-        d_of_c = np.array(h_star[h_star > 1] - 1).sum()
-        if int(d_of_c) == 0:
-            return 0.0001 # TODO this is a hack so that a downstream log does not fail
-
-        return d_of_c
-
-    def compute_peripheral_density(self):
-        # compute mRNA density in the peripheral area
-        peripheral_mrna_count = self.compute_peripheral_total_spots()
-        if peripheral_mrna_count == 0:
-            raise RuntimeError("Image contains no spots in periphery %s" % self._path)
-        peripheral_volume = self.compute_peripheral_volume()
-        return peripheral_mrna_count / peripheral_volume
-
-    def compute_cytoplasmic_density(self):
-        # compute mRNA density in the cytoplasm
-        cytoplasmic_mrna_count = self.compute_cytoplasmic_total_spots()
-        if cytoplasmic_mrna_count == 0:
-            raise RuntimeError("Image contains no spots %s" % self._path)
-        cytoplasmic_volume = self.compute_cytoplasmic_volume()
-        return cytoplasmic_mrna_count / cytoplasmic_volume
-
-    def compute_spots_normalized_distance_to_centroid(self) -> float:
-        nucleus_centroid = self.get_nucleus_centroid()
-        cytoplasmic_spots = self.get_cytoplasmic_spots()
-        height_map = self.adjust_height_map(cytoplasm=True)
-
-        # average distance for all cytoplasmic voxels
-        dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid)
-        median_dist, max_dist = self.compute_median_cytoplasmic_distance_from_nucleus3d(dsAll)
-
-        # 2D distance from the nucleus centroid of cytoplasmic mRNAs
-        # normalized by the cytoplasmic cell spread (taking a value 1 when mRNAs are evenly
-        # distributed across the cytoplasm wrt to nucleus centroid)
-        nucleus_centroid_z = height_map[nucleus_centroid[0], nucleus_centroid[1]] // 2
-        dsCytoplasmic = np.sqrt(np.sum((cytoplasmic_spots -
-                                        [nucleus_centroid[0], nucleus_centroid[1], nucleus_centroid_z])**2,
-                                       axis=1))
-
-        dsCytoplasmic = dsCytoplasmic[dsCytoplasmic < max_dist] # problematic spots outside of the cell
-        normalized_dist_to_centroid = np.median(dsCytoplasmic) / median_dist
-        return normalized_dist_to_centroid
-
-    def compute_spots_normalized_cytoplasmic_spread(self) -> float:
-        '''
-        Computes the Standard Distance measure of spread as the average distance for all spots
-        from the Mean Center. This measures the compactness of a distribution of spots.
-        In a Normal Distribution you would expect around 68% of all points to fall within
-        the Standard Distance.
-        '''
-        cytoplasmic_spots = self.get_cytoplasmic_spots()
-        mu_x = cytoplasmic_spots[:, 0].sum() / len(cytoplasmic_spots)
-        mu_y = cytoplasmic_spots[:, 1].sum() / len(cytoplasmic_spots)
-        mu_z = cytoplasmic_spots[:, 2].sum() / len(cytoplasmic_spots)
-        sd = math.sqrt( np.sum((cytoplasmic_spots[:, 0] - mu_x) ** 2) / len(cytoplasmic_spots) +
-                        np.sum((cytoplasmic_spots[:, 1] - mu_y) ** 2) / len(cytoplasmic_spots) +
-                        np.sum((cytoplasmic_spots[:, 2] - mu_z) ** 2) / len(cytoplasmic_spots))
-
-        diameter = self.compute_cell_diameter()
-        return sd/(diameter/2) #sd / np.mean(d[d != 0])
-
-
-class Image3dWithIntensities(Image3d, ImageWithIntensities):
-    @staticmethod
-    def is_a(repo: Repository, path: str):
-        return Image3d.is_a(repo, path) and ImageWithIntensities.is_a(repo, path)
-
-    def compute_average_distance_proportional_intensity(self, dsAll, cell_mask) -> float:
-        height_map = self.get_height_map()
-        height_map += 1
-        height_map = np.multiply(height_map, cell_mask)
-        dsCellular = np.multiply(height_map, dsAll)
-        return dsCellular.sum() / height_map.sum()  # TODO : what for ?
-
-    def compute_cytoplasmic_density(self):
-        # compute signal density of the cytoplasm
-        cytoplasmic_intensity_count = self.compute_cytoplasmic_total_intensity()
-        cytoplasmic_volume = self.compute_cytoplasmic_volume()
-        return cytoplasmic_intensity_count / cytoplasmic_volume
-
-    def compute_peripheral_density(self):
-        # compute mRNA density in the peripheral area
-        peripheral_intensity_count = self.compute_peripheral_total_intensity()
-        peripheral_volume = self.compute_peripheral_volume()
-        return peripheral_intensity_count / peripheral_volume
-
-    def compute_cell_density(self):
-        # compute density of the cell
-        intensity_count = self.compute_cell_total_intensity()
-        volume = self.compute_cell_volume()
-        return intensity_count / volume
-
-    def compute_intensities_normalized_spread_to_centroid(self):
-        height_map = self.adjust_height_map(cytoplasm=True)
-        nucleus_centroid = self.get_nucleus_centroid()
-        cytoplasm_mask = self.get_cytoplasm_mask()
-        IF = self.compute_cytoplasmic_intensities()
-
-        # Compute all possible distances in a matrix [512x512]
-        dsAll = ip.compute_all_distances_to_nucleus_centroid3d(height_map, nucleus_centroid)
-        median_dist, max_dist = self.compute_median_cytoplasmic_distance_from_nucleus3d(dsAll)
-
-        # Calculate the distances of signal peaks to nucleus_centroid
-        mean_signal = np.mean(IF[cytoplasm_mask == 1])
-        peaks = np.argwhere(IF > mean_signal * 1.5)  # arbitrary choice to reduce the number of peaks
-        peaks_z = np.array([height_map[peaks[i][0], peaks[i][1]] for i in range(peaks.shape[0])])
-        peaks = np.hstack((peaks, peaks_z[:, None]))
-        nucleus_centroid_z = height_map[nucleus_centroid[0], nucleus_centroid[1]] // 2
-        dsPeaks = np.sqrt(np.sum((peaks -
-                                  [nucleus_centroid[0], nucleus_centroid[1], nucleus_centroid_z]) ** 2,
-                                 axis=1))
-
-        spread_to_centroid = np.median(dsPeaks) / median_dist
-        return spread_to_centroid
-
-    def compute_intensities_normalized_cytoplasmic_spread(self):
-        IF = self.compute_cytoplasmic_intensities()
-        height_map = self.adjust_height_map(cytoplasm=True)
-        IF = np.multiply(IF, height_map) # factoring in the 3D
-        cytoplasm_mask = self.get_cytoplasm_mask()
-
-        # Calculate the spread of signal peaks
-        mean_signal = np.mean(IF[cytoplasm_mask == 1])
-        peaks = np.argwhere(IF > mean_signal * 1.5)  # arbitrary choice to reduce the number of peaks
-
-        mu_x = peaks[:, 0].sum() / len(peaks)
-        mu_y = peaks[:, 1].sum() / len(peaks)
-        sd = math.sqrt(np.sum((peaks[:, 0] - mu_x) ** 2) / len(peaks) +
-                       np.sum((peaks[:, 1] - mu_y) ** 2) / len(peaks))
-
-        diameter = self.compute_cell_diameter()
-        return sd / (0.68 * diameter / 2)
-
-
-    def compute_clustering_indices(self) -> np.ndarray:
-        """
-        Point process Ripkey-K computation for disks of radius r < MAX_CELL_RADIUS
-        return: clustering indices for all r
-        """
-        logger.info("Running {} simulations of Ripley-K for {}",
-                    constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
-
-        pixels_in_slice = numexpr.evaluate(constants.dataset_config["PIXELS_IN_SLICE"]).item()
-        IF = self.get_intensities()
-        cell_mask = self.get_cell_mask()
-        IF = IF.astype(float) * cell_mask
-        # TODO in VO we do not multiply by pixels_in_slice ???
-        nuw = (np.sum(cell_mask[:, :] == 1))  # * pixels_in_slice  # whole surface of the cell
-        my_lambda = float(np.sum(IF)) / float(nuw)  # volumic density
-        k = self.ripley_k_random_measure_2D(IF, my_lambda, nuw)
-        k_sim = np.zeros(
-            (constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], constants.analysis_config["MAX_CELL_RADIUS"]))
-        # simulate RIPLEY_K_SIMULATION_NUMBER list of random intensities and run ripley_k
-        indsAll = np.where(cell_mask[:, :] == 1)
-        for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):
-            inds_permuted = np.random.permutation(range(len(indsAll[0])))
-            I_samp = np.zeros(IF.shape)
-            for u in range(len(inds_permuted)):
-                I_samp[indsAll[0][inds_permuted[u]], indsAll[1][inds_permuted[u]]] = IF[indsAll[0][u], indsAll[1][u]]
-            k_sim[t, :] = self.ripley_k_random_measure_2D(I_samp, my_lambda, nuw).flatten()
-
-        h = np.subtract(np.sqrt(k / math.pi), np.arange(1, constants.analysis_config["MAX_CELL_RADIUS"] + 1).reshape(
-            (constants.analysis_config["MAX_CELL_RADIUS"], 1))).flatten()
-        synth5, synth50, synth95 = helpers.compute_statistics_random_h_star_2d(k_sim)
-        return helpers.compute_h_star_2d(h, synth5, synth50, synth95)
+        logger.info("  found {} coordinates outside of cytoplasm", len(distances[np.isnan(distances)]))
+        return distances
 
 
 class Image3dWithMTOC(Image3d, ImageWithMTOC):
@@ -535,74 +254,6 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
                                                             quadrants_num, peripheral_flag=True)
 
 
-class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
-    @staticmethod
-    def is_a(repo: Repository, path: str):
-        return Image3dWithMTOC.is_a(repo, path) and Image3dWithSpots.is_a(repo, path)
-
-    def compute_density_per_quadrant(self, mtoc_quad, quadrant_mask, quadrants_num=4) -> np.ndarray:
-        """
-        compute volumic density per quadrant;
-        return an array of values of density paired with the MTOC presence flag (0/1)
-        """
-        volume_coeff = helpers.volume_coeff()
-        height_map = self.adjust_height_map(cytoplasm=True)
-        spots = self.get_cytoplasmic_spots()
-        density_per_quadrant = np.zeros((quadrants_num, 2))
-        for spot in spots:
-            spot_quad = quadrant_mask[spot[1], spot[0]]
-            if spot_quad == 0: continue
-            density_per_quadrant[spot_quad - 1, 0] += 1
-
-        if (density_per_quadrant[:,0].sum() == 0):
-            logger.debug("No spots in image within quadrants {}", self._path)
-            # return density_per_quadrant
-
-        # mark the mtoc quadrant
-        density_per_quadrant[mtoc_quad - 1, 1] = 1
-        for quad_num in range(quadrants_num):
-            quadrant_volume = np.sum(height_map[quadrant_mask == quad_num + 1]) * volume_coeff
-            density_per_quadrant[quad_num, 0] = density_per_quadrant[quad_num, 0] / quadrant_volume
-
-        if density_per_quadrant[:, 1].sum() != 1.0:
-            raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
-
-        return density_per_quadrant
-
-
-class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
-
-    @staticmethod
-    def is_a(repo: Repository, path: str):
-        return Image3dWithMTOC.is_a(repo, path) and Image3dWithIntensities.is_a(repo, path)
-
-    def compute_density_per_quadrant(self, mtoc_quad, quadrant_mask, quadrants_num=4) -> np.ndarray:
-        """
-        compute volumic density per quadrant;
-        return an array of values of density paired with the MTOC presence flag (0/1)
-        """
-        IF = self.compute_cytoplasmic_intensities()
-        height_map = self.adjust_height_map(cytoplasm=True)
-        density_per_quadrant = np.zeros((quadrants_num, 2))
-        # mark the MTOC quadrant
-        density_per_quadrant[mtoc_quad - 1, 1] = 1
-        for quad_num in range(quadrants_num):
-            height = np.sum(height_map[quadrant_mask == quad_num + 1])
-            quadrant_volume = height * helpers.volume_coeff()
-            density_per_quadrant[quad_num, 0] = np.sum(IF[quadrant_mask == (quad_num + 1)]) / quadrant_volume
-
-        if density_per_quadrant[:, 1].sum() != 1.0:
-            raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
-
-        return density_per_quadrant
-
-
-class Image3dWithSpotsAndIntensitiesAndMTOC(Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC):
-    @staticmethod
-    def is_a(repo: Repository, path: str):
-        return Image3dWithSpotsAndMTOC.is_a(repo, path) and Image3dWithIntensitiesAndMTOC.is_a(repo, path)
-
-
 class Image3dMultiNucleus(Image3d):
     """
     Represents a generic image with one cell mask and multiple nucleus.
@@ -648,12 +299,3 @@ class Image3dMultiNucleus(Image3d):
         else:
             return peripheral_cell_volume * helpers.volume_coeff()
 
-
-class Image3dMultiNucleusWithSpots(Image3dMultiNucleus, Image3dWithSpots):
-    """
-    Represents an image with identified spots (e.g. from FISH), has to have spots descriptor
-    """
-
-    @staticmethod
-    def is_a(repo: Repository, path: str):
-        return Image3dMultiNucleus.is_a(repo, path) and Image3dWithSpots.is_a(repo, path)

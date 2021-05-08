@@ -6,13 +6,13 @@ import math
 from typing import List
 
 import numpy as np
+from loguru import logger
 from scipy import spatial
 from sklearn.metrics.pairwise import pairwise_distances
 
 import constants
 import helpers
 import image_processing as ip
-# secondary basic image descriptors
 from constants import CELL_MASK_DISTANCE_PATH_SUFFIX
 from constants import CELL_MASK_PATH_SUFFIX
 from constants import CYTOPLASM_MASK_PATH_SUFFIX
@@ -73,7 +73,7 @@ class Image(object):
         return area
 
     def compute_areas_from_periphery(self):
-        # compute mRNA densities per isoline in cytoplasm
+        # compute cell area per isoline in cytoplasm
         cytoplasm_mask = self.get_cytoplasm_mask()
         distance_map = self.get_cell_mask_distance_map()
         areas = np.zeros(constants.analysis_config['NUM_CONTOURS'])
@@ -124,6 +124,24 @@ class Image(object):
         boundary_points = cell_mask_points[convex_hull.vertices]
         d = np.max(pairwise_distances(boundary_points))
         return d
+
+    def compute_cytoplasmic_coordinates_peripheral_distance(self, coordinates) -> np.ndarray:
+        """
+        Return an array of integerer distances to the periphery for coordinates
+        Returns np.nan for those coordinates that ate outside of the cytoplasm
+        """
+        logger.info("Computing {} coordinates 2D peripheral distances for {} coordinates", len(coordinates), self._path)
+        assert coordinates.shape[1] == 2, "2D coordinates needed for distance to the periphery"
+
+        peripheral_distance_map = self.get_cell_mask_distance_map()
+        distances = np.array([])
+        for c in coordinates:
+            if self.is_in_cytoplasm(c[::-1]):
+                distances = np.append(distances, peripheral_distance_map[c[1], c[0]])
+            else:
+                distances = np.append(distances, np.nan)
+        logger.info("  found {} coordinates outside of cytoplasm", len(distances[np.isnan(distances)]))
+        return distances
 
     def compute_signal_from_periphery(self) -> np.ndarray:
         raise NotImplementedError
@@ -178,7 +196,7 @@ class ImageWithMTOC(Image):
         quadrant_mask = sliceno + cell_mask
         quadrant_mask[quadrant_mask == slices_num + 1] = slices_num  # int conversion sometimes rounds the value
         quadrant_mask[cell_mask == 0] = 0
-        return quadrant_mask
+        return quadrant_mask.astype(int)
 
     @helpers.checkpoint_decorator(PERIPHERAL_QUADRANT_DENSITIES_PATH_SUFFIX, dtype=np.float)
     def get_peripheral_quadrants_densities(self, quadrants_num=4):

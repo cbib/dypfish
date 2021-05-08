@@ -7,7 +7,7 @@ from unittest import TestCase
 
 import constants
 import path
-from image3d import Image3dWithSpotsAndMTOC
+from image3dWithSpots import Image3dWithSpotsAndMTOC
 from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
