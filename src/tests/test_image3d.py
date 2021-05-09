@@ -47,7 +47,7 @@ class TestImage3d(TestCase):
         self.assertEqual(slices.sum(), height_map.sum())
         slices = self.img.compute_cell_mask_slices()
         self.assertEqual(slices[:, :, 0].sum(), self.img.get_cell_mask().sum()) # bottom slice same as cell_mask
-        self.assertEqual(slices.shape, (512, 512, 12))
+        self.assertEqual(slices.shape, (512, 512, 13))
         self.assertEqual(slices.sum(), 453986.0)
 
     def test_get_zero_level(self):

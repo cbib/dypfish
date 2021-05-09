@@ -22,9 +22,10 @@ class TestImage3dWithSpots(TestCase):
         self.img = Image3dWithSpots(repository=self.repo, image_path="mrna/arhgdia/2h/1")
 
     def test_compute_cytoplasmic_spots(self):
-        logger.warning("Check whether this is nothing more than removing spots with height 0")
-        result = self.img.compute_cytoplasmic_spots()
-        self.assertEqual(len(result), 154)
+        # image 10 has very high z coordinates for spots
+        self.img2 = Image3dWithSpots(repository=self.repo, image_path="mrna/arhgdia/2h/10")
+        result = self.img2.compute_cytoplasmic_spots()
+        self.assertEqual(len(result), 100)
 
     def tearDown(self) -> None:
         self.repo.clear()
@@ -43,7 +44,7 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_spots_cytoplasmic_spread_entropy(self):
         spread = self.img.compute_spots_cytoplasmic_spread_entropy()
-        self.assertAlmostEqual(spread, 16.35286725687, places=5)
+        self.assertAlmostEqual(spread, 16.33504368141, places=5)
 
     def test_clustering_index_point_process(self):
         logger.error("was not tested with cytoplasmic spots and new random spots")
@@ -68,7 +69,7 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_mrna_density(self):
         mrna_density = self.img.compute_cytoplasmic_density()
-        self.assertAlmostEqual(mrna_density, 0.143813362018, places=5)
+        self.assertAlmostEqual(mrna_density, 0.144747215018, places=5)
 
     def test_compute_random_cytoplasmic_spots_in_slices(self):
         #logger.error("needs checking that the spots coordinates order is coherent with the rest of the code")
@@ -80,8 +81,9 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_signal_from_periphery(self):
         # calls the code in the super class (ImageWithSpots)
-        spot_counts = self.img.compute_signal_from_periphery()
-        self.assertEqual(spot_counts[99], len(self.img.get_cytoplasmic_spots()))
-
+        # image 10 has spots with very hight z coordinates
+        self.img2 = Image3dWithSpots(repository=self.repo, image_path="mrna/arhgdia/2h/10")
+        spot_counts = self.img2.compute_signal_from_periphery()
+        self.assertEqual(spot_counts[99], self.img2.compute_cytoplasmic_total_spots())
 
 

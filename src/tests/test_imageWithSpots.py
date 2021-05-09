@@ -75,4 +75,4 @@ class TestImageWithSpots(TestCase):
         self.assertTrue(all(
             peripheral_spots[i] <= peripheral_spots[i + 1] for i in range(len(peripheral_spots) - 1)))
         self.assertEqual(peripheral_spots.sum(), 6408.0)
-        self.assertEqual(peripheral_spots[99], len(self.img.get_cytoplasmic_spots()))
+        self.assertEqual(peripheral_spots[99], self.img.compute_cytoplasmic_total_spots())

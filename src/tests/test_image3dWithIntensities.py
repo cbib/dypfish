@@ -30,7 +30,7 @@ class TestImage3dWithIntensities(TestCase):
 
     def test_compute_intensities_normalized_distance_to_nucleus(self):
         normalized_value = self.img.compute_intensities_normalized_distance_to_nucleus()
-        self.assertAlmostEqual(normalized_value, 0.7, places=3)
+        self.assertAlmostEqual(normalized_value, 0.73, places=3)
 
     def test_compute_cytoplasmic_density(self):
         result = self.img.compute_cytoplasmic_density()

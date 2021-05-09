@@ -48,7 +48,7 @@ class Image3d(Image):
     def adjust_height_map(self, cytoplasm=False):
         '''
         adjust the periphery of the cell to be at 0.5 height
-        cytoplasm = 3 is the same as get_cytoplasm_height_map
+        cytoplasm = True is the same as get_cytoplasm_height_map
         '''
         if cytoplasm == True:
             height_map = self.get_cytoplasm_height_map().astype(float)
@@ -197,9 +197,10 @@ class Image3d(Image):
                     new_periph_distance = math.sqrt(area_ratio) * old_periph_distance
                     if (new_periph_distance > old_periph_distance): # coordinate falls out of the slice
                         distances = np.append(distances, np.nan)
-                    distances = np.append(distances, int(np.around(new_periph_distance)))
+                    else:
+                        distances = np.append(distances, int(np.around(new_periph_distance)))
 
-        if (len(distances) < len(coordinates)) or len(distances[np.isnan(distances)]) > 0:
+        if (len(distances) < len(coordinates)) or (len(distances[np.isnan(distances)]) > 0):
             num = len(coordinates) - len(distances) + len(distances[np.isnan(distances)])
             logger.info("  found {} coordinates outside of cytoplasm", num)
         return distances

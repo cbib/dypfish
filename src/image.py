@@ -127,7 +127,7 @@ class Image(object):
 
     def compute_cytoplasmic_coordinates_peripheral_distance(self, coordinates) -> np.ndarray:
         """
-        Return an array of integerer distances to the periphery for coordinates
+        Return an array of integer distances to the periphery for coordinates
         Returns np.nan for those coordinates that ate outside of the cytoplasm
         """
         logger.info("Computing {} coordinates 2D peripheral distances for {} coordinates", len(coordinates), self._path)

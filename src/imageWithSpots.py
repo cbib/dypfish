@@ -60,7 +60,6 @@ class ImageWithSpots(Image):
     def get_cytoplasmic_spots(self) -> np.ndarray:
         return self.compute_cytoplasmic_spots()
 
-    # TODO : this will load the mask for each spot
     def compute_cytoplasmic_spots(self) -> np.ndarray:
         spots = self.get_spots()
         mask = [self.is_in_cytoplasm(s[0:2][::-1]) for s in spots]  # TODO check coordinate coherency for spots

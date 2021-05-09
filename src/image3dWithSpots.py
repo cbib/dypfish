@@ -24,22 +24,15 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
     def is_a(repo: Repository, path: str):
         return Image3d.is_a(repo, path) and ImageWithSpots.is_a(repo, path)
 
-    # def compute_cytoplasmic_spots(self) -> np.ndarray:
-    #     spots = super(Image3dWithSpots, self).compute_cytoplasmic_spots()
-    #     logger.info("Keeping cytoplasmic spots out of {} spots in image {}", len(spots), self._path)
-    #
-    #     cytoplasmic_spots = np.array([], dtype=int).reshape(0,3)
-    #     max_height = np.max(self.get_height_map())
-    #     slices_masks = self.get_cell_mask_slices()
-    #     for slice_num in range(0, slices_masks.shape[2]):
-    #         spots_in_slice = spots[np.around(spots[:, 2]) == max_height - slice_num]
-    #         cytoplasmic_spots = np.vstack((cytoplasmic_spots, spots_in_slice))
-    #
-    #     assert len(cytoplasmic_spots) <= len(spots), "Incoherent cytoplasmic spots computation"
-    #     if (len(cytoplasmic_spots) < len(spots)):
-    #         logger.debug("{} spots out of cytoplasm for {}", len(spots) - len(cytoplasmic_spots), self._path)
-    #     return cytoplasmic_spots
-
+    def compute_cytoplasmic_spots(self) -> np.ndarray:
+        spots = self.get_spots()
+        max_height = np.max(self.get_height_map()) # TODO this is a hack
+        mask = [self.is_in_cytoplasm(s[0:2][::-1]) for s in spots]  # TODO check coordinate coherency for spots
+        cytoplasmic_spots = spots[mask]
+        cytoplasmic_spots = cytoplasmic_spots[cytoplasmic_spots[:,2] <= max_height]
+        logger.info("Keeping {} cytoplasmic spots out of {} for {}",
+                    len(cytoplasmic_spots), len(spots), self._path)
+        return np.asarray(cytoplasmic_spots, dtype=int)
 
     def compute_cytoplasmic_spots_peripheral_distance(self)  -> np.ndarray:
         """
