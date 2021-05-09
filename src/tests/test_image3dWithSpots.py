@@ -31,7 +31,7 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_cytoplasmic_spots_peripheral_distance(self):
         results = self.img.compute_cytoplasmic_spots_peripheral_distance()
-        self.assertEqual(len(results), 154)
+        self.assertEqual(len(results), 155)
         # arbitrarily check two values
         self.assertEqual(results[3], 60)
         self.assertEqual(results[65], 26)

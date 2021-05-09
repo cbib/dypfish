@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-# This analysis will produce incogerent results if PERIPHERAL_FRACTION goes within the nucleus
+# This analysis will produce incoherent results if PERIPHERAL_FRACTION value provided in
+# the analysis_config.json file goes beyond the cytoplasm and within the nucleus
 
 import collections
 import pathlib
@@ -106,7 +107,6 @@ configurations = [
     ["src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
 ]
 
-# TODO recuperer commentaires indiquant nom de figure généré, le passer en argument des fonctions de plot
 if __name__ == '__main__':
     for conf in configurations:
         stat_annotations = False

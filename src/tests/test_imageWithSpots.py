@@ -39,6 +39,7 @@ class TestImageWithSpots(TestCase):
     def test_compute_spots_peripheral_distance_2d(self):
         peripheral_distance_2D = self.img.compute_cytoplasmic_spots_peripheral_distance()
         self.assertEqual(peripheral_distance_2D[0], 46)
+        self.assertEqual(peripheral_distance_2D.sum(), 9247)
         self.assertEqual(peripheral_distance_2D.size, len(self.img.get_cytoplasmic_spots()))
 
     def test_compute_cytoplasmic_spots(self):

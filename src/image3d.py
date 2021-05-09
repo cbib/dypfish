@@ -80,12 +80,13 @@ class Image3d(Image):
         are in the inversed relationship with the corresponding slice index
         """
         if height_map is None: height_map = self.adjust_height_map()
-        zero_level = zero_level or self.get_zero_level()
+        #zero_level = zero_level or self.get_zero_level()
+        max_height = np.max(height_map).astype(int)
         image_width = image_width or constants.dataset_config["IMAGE_WIDTH"]
         image_height = image_height or constants.dataset_config["IMAGE_HEIGHT"]
 
         # Create binary cell masks per slice
-        slice_masks = np.zeros((image_width, image_height, zero_level+1))
+        slice_masks = np.zeros((image_width, image_height, max_height+1)) #zero_level+1))
         for slice_num in range(0, slice_masks.shape[2]): # we take the bottom slice but it is adjusted
             slice_mask = np.array(height_map, copy=True)
             slice_mask[height_map < slice_num+1] = 0
