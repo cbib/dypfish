@@ -33,10 +33,6 @@ class Image3d(Image):
         if not self._repository.is_present(image_path + HEIGHT_MAP_PATH_SUFFIX):
             raise AttributeError("Incorrect format for image %s" % image_path)
 
-    def get_cell_mask(self) -> np.ndarray:
-        slices = self.get_cell_mask_slices()
-        return slices[:,:,0]
-
     def get_height_map(
             self) -> np.ndarray:  # TODO : not restricted to the cell_mask in V0 (same as for the intensities)
         descriptor = self._path + HEIGHT_MAP_PATH_SUFFIX
@@ -78,23 +74,23 @@ class Image3d(Image):
                                  image_width=None, image_height=None) -> np.ndarray:
         """
         Reconstructs the z-slices given a height_map;
-        out of focus slices (defined by zero_level) are not reconstructed
-        index 0 is for the bottom slice, index zero_level is for the top
+        out of focus slices (defined by zero_level) are reconstructed
+        index 0 is for the bottom slice, index zero_level is for the top;
         this makes it coherent with the height_map, however z spots coordinates
-        are the the inversed relationship with the index slice
+        are in the inversed relationship with the corresponding slice index
         """
-        if height_map is None: height_map = self.get_height_map()#adjust_height_map()
+        if height_map is None: height_map = self.adjust_height_map()
         zero_level = zero_level or self.get_zero_level()
         image_width = image_width or constants.dataset_config["IMAGE_WIDTH"]
         image_height = image_height or constants.dataset_config["IMAGE_HEIGHT"]
 
         # Create binary cell masks per slice
-        slice_masks = np.zeros((image_width, image_height, zero_level))
-        for slice_num in range(zero_level, 0, -1):
+        slice_masks = np.zeros((image_width, image_height, zero_level+1))
+        for slice_num in range(0, slice_masks.shape[2]): # we take the bottom slice but it is adjusted
             slice_mask = np.array(height_map, copy=True)
-            slice_mask[height_map <= slice_num] = 0
-            slice_mask[height_map > slice_num] = 1
-            slice_masks[:, :, slice_num-1] = slice_mask # 0 slice the largest
+            slice_mask[height_map < slice_num+1] = 0
+            slice_mask[height_map >= slice_num+0.5] = 1 # the 0.5 is because of the adjustment
+            slice_masks[:, :, slice_num] = slice_mask # 0 slice the largest
         return slice_masks
 
     def get_peripheral_cell_volume(self, peripheral_threshold=None):
@@ -108,7 +104,7 @@ class Image3d(Image):
         """
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         peripheral_binary_mask = ((cell_mask_dist_map > 0) &
-                                  (cell_mask_dist_map <= peripheral_threshold+1)).astype(int)
+                                  (cell_mask_dist_map <= peripheral_threshold)).astype(int)
         height_map = self.adjust_height_map()
         height_map_periph = np.multiply(height_map, peripheral_binary_mask)
         peripheral_cell_volume = height_map_periph.sum() * helpers.volume_coeff()
@@ -122,8 +118,8 @@ class Image3d(Image):
         logger.info("Computing {} volumes from the periphery for {}",
                     constants.analysis_config['NUM_CONTOURS'], self._path)
         volumes = np.zeros(constants.analysis_config['NUM_CONTOURS'])
-        for i in range(1, constants.analysis_config['NUM_CONTOURS']+1):
-            volumes[i-1] = self.compute_peripheral_cell_volume(peripheral_threshold=i)
+        for i in range(0, constants.analysis_config['NUM_CONTOURS']):
+            volumes[i] = self.compute_peripheral_cell_volume(peripheral_threshold = i+1)
         return volumes
 
     def compute_cell_volume(self):
@@ -132,18 +128,18 @@ class Image3d(Image):
         """
         cell_mask = self.get_cell_mask()
         height_map = self.adjust_height_map()
-        cell_volume = height_map[cell_mask[:] == 1].sum()
+        cell_volume = height_map[cell_mask == 1].sum()
         return cell_volume * helpers.volume_coeff()
 
     def compute_nucleus_volume(self):
         """compute nucleus volume in in real pixel size using nucleus mask"""
         nucleus_mask = self.get_nucleus_mask()
         height_map = self.adjust_height_map()
-        nucleus_volume = height_map[nucleus_mask[:] == 1].sum()
+        nucleus_volume = height_map[nucleus_mask == 1].sum()
         return nucleus_volume * helpers.volume_coeff()
 
     def compute_cytoplasmic_volume(self):
-        """compute volume of the cytoplasm in in real pixel size using cytoplasm mask"""
+        """compute volume of the cytoplasm in in real pixel size using cytoplasm mask and adjusted height map"""
         cytoplasm_mask = self.get_cytoplasm_mask()
         height_map = self.adjust_height_map()
         cytoplasm_volume = height_map[cytoplasm_mask == 1].sum()
@@ -161,10 +157,9 @@ class Image3d(Image):
         '''
         height_map = self.get_cytoplasm_height_map()
         cytoplasm_mask = self.get_cytoplasm_mask()
-        max_slice = min(np.max(height_map), int(self.get_zero_level()))-1 # we are in the cytoplasm
         distances = np.array([])
         slices = self.get_cell_mask_slices()
-        for slice_num in range(max_slice, -1, -1):
+        for slice_num in range(0, slices.shape[2]):
             if slice_num >= dsAll.shape[2]: continue # should not happen, just in case
             slice_mask = slices[:,:,slice_num]
             slice_mask = slice_mask * cytoplasm_mask # not very precise since it is not propagarted through slices
@@ -176,22 +171,22 @@ class Image3d(Image):
     def compute_cytoplasmic_coordinates_peripheral_distance(self, coordinates) -> np.ndarray:
         """
          Perform the computation of distance to the periphery for cytoplasmic coordinates
-         Computation is done in pseudo 3D using the height map
+         Computation is done in pseudo 3D
          Returns an array of integer distances
          """
         logger.info("Computing 3D peripheral distance for {} coordinates in image {}", len(coordinates), self._path)
         assert coordinates.shape[1] == 3, "3D coordinates needed for distance to the periphery"
-        zero_level = self.get_zero_level()
+        max_height = np.max(self.get_height_map())
         peripheral_distance_map = self.get_cell_mask_distance_map()
         cell_area = self.compute_cell_area()
 
         distances = np.array([])
         slices = self.get_cell_mask_slices()
-        for slice_num in range(0, zero_level):
+        for slice_num in range(0, slices.shape[2]):
             slice_mask = slices[:, :, slice_num]
             slice_area = slice_mask.sum() * helpers.surface_coeff()
             assert slice_area >= 0, "Empty slice area"
-            coordinates_this_height = coordinates[np.around(coordinates[:, 2]) == zero_level - slice_num]
+            coordinates_this_height = coordinates[np.around(coordinates[:, 2]) == max_height - slice_num]
             for c in coordinates_this_height:
                 if not self.is_in_cytoplasm(c[0:2][::-1]):
                     distances = np.append(distances, np.nan)
@@ -199,10 +194,13 @@ class Image3d(Image):
                     area_ratio = slice_area / cell_area
                     old_periph_distance = peripheral_distance_map[c[1], c[0]]
                     new_periph_distance = math.sqrt(area_ratio) * old_periph_distance
-                    assert new_periph_distance <= old_periph_distance # coordinate falls out of the slice
+                    if (new_periph_distance > old_periph_distance): # coordinate falls out of the slice
+                        distances = np.append(distances, np.nan)
                     distances = np.append(distances, int(np.around(new_periph_distance)))
 
-        logger.info("  found {} coordinates outside of cytoplasm", len(distances[np.isnan(distances)]))
+        if (len(distances) < len(coordinates)) or len(distances[np.isnan(distances)]) > 0:
+            num = len(coordinates) - len(distances) + len(distances[np.isnan(distances)])
+            logger.info("  found {} coordinates outside of cytoplasm", num)
         return distances
 
 

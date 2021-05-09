@@ -77,8 +77,8 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         nuw = (np.sum(cell_mask[:, :] == 1))  # * pixels_in_slice  # whole surface of the cell
         my_lambda = float(np.sum(IF)) / float(nuw)  # volumic density
         k = self.ripley_k_random_measure_2D(IF, my_lambda, nuw)
-        k_sim = np.zeros(
-            (constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], constants.analysis_config["MAX_CELL_RADIUS"]))
+        k_sim = np.zeros((constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"],
+                          constants.analysis_config["MAX_CELL_RADIUS"]))
         # simulate RIPLEY_K_SIMULATION_NUMBER list of random intensities and run ripley_k
         indsAll = np.where(cell_mask[:, :] == 1)
         for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):

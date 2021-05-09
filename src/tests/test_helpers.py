@@ -13,7 +13,7 @@ import numpy as np
 constants.init_config(analysis_config_js_path=path.test_config_path)
 
 
-class Test(TestCase):
+class TestHelpers(TestCase):
     def test_compute_statistics_random_h_star(self):
         a = np.array([[0.51, 0.13, 0.7, 0.01, 1.9],
                       [0.4, 1.54, 0.3, 0.2, 0.8],

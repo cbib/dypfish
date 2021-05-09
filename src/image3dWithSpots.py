@@ -11,7 +11,6 @@ from loguru import logger
 
 import constants
 import helpers
-import image_processing as ip
 
 from image3d import Image3d, Image3dWithMTOC
 from imageWithSpots import ImageWithSpots
@@ -27,15 +26,13 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
     def compute_cytoplasmic_spots(self) -> np.ndarray:
         spots = super(Image3dWithSpots, self).compute_cytoplasmic_spots()
-        zero_level = self.get_zero_level()
         logger.info("Keeping cytoplasmic spots out of {} spots in image {}", len(spots), self._path)
 
         cytoplasmic_spots = np.array([], dtype=int).reshape(0,3)
+        max_height = np.max(self.get_height_map())
         slices_masks = self.get_cell_mask_slices()
         for slice_num in range(0, slices_masks.shape[2]):
-            slice_area = slices_masks[:,:,slice_num].sum() * helpers.surface_coeff()
-            assert slice_area >= 0, "Negative slice area"
-            spots_in_slice = spots[np.around(spots[:, 2]) == zero_level - slice_num]
+            spots_in_slice = spots[np.around(spots[:, 2]) == max_height - slice_num]
             cytoplasmic_spots = np.vstack((cytoplasmic_spots, spots_in_slice))
 
         assert len(cytoplasmic_spots) <= len(spots), "Incoherent cytoplasmic spots computation"
@@ -47,7 +44,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
     def compute_cytoplasmic_spots_peripheral_distance(self)  -> np.ndarray:
         """
         Perform the computation in pseudo 3D using the height map
-        Return an array of distances
+        Return an array of distances, values are np.nan if the spots is out of cytoplasm
         """
         spots = self.get_cytoplasmic_spots()
         logger.info("Computing 3D peripheral distance for {} spots in image {}", len(spots), self._path)
@@ -83,7 +80,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
     def compute_random_cytoplasmic_spots_in_slices(self, num_spots, factor=100):
         slices = self.get_cell_mask_slices()
         height_map = self.get_cytoplasm_height_map()
-        max_height = min(np.max(height_map), int(self.get_zero_level()))
+        max_height = np.max(height_map)
 
         # generate random spot coordinates in a sphere and convert to int for compatibility
         # with masks; we generate 50 times more than the number of spots due to consecutive
@@ -195,10 +192,6 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
             spot_quad = quadrant_mask[spot[1], spot[0]]
             if spot_quad == 0: continue
             density_per_quadrant[spot_quad - 1, 0] += 1
-
-        if (density_per_quadrant[:,0].sum() == 0):
-            logger.debug("No spots in image within quadrants {}", self._path)
-            # return density_per_quadrant
 
         # mark the mtoc quadrant
         density_per_quadrant[mtoc_quad - 1, 1] = 1

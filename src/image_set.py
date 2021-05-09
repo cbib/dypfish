@@ -236,11 +236,11 @@ class ImageSet(object):
             spots_spread = np.append(spots_spread, image.compute_spots_cytoplasmic_spread_entropy())
         return spots_spread
 
-    def compute_intensities_cytoplasmic_centrality(self) -> List[float]:
+    def compute_cytoplasmic_intensities_centrality(self) -> List[float]:
         centralities = np.array([])
         image: Union[ImageWithIntensities, Image3dWithIntensities]
         for image in self.images:
-            centralities = np.append(centralities, image.compute_intensities_normalized_spread_to_centroid())
+            centralities = np.append(centralities, image.compute_intensities_normalized_distance_to_nucleus())
         valid_centralities = centralities[~np.isnan(centralities)]
         if len(valid_centralities) < len(centralities):
             logger.warning("intensity spread > 1 for {} images out of {}",
@@ -288,9 +288,6 @@ class ImageSet(object):
     def mtoc_is_in_leading_edge(self):
         image: ImageWithMTOC
         return [image.mtoc_is_in_leading_edge() for image in self.images]
-
-    def compute_cytoplasmic_density(self):
-        return [image.compute_cytoplasmic_density() for image in self.images]
 
     def compute_spots_peripheral_distance(self):
         return np.array([image.compute_spots_peripheral_distance() for image in self.images])

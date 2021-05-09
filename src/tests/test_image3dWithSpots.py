@@ -21,28 +21,29 @@ class TestImage3dWithSpots(TestCase):
         self.repo = H5RepositoryWithCheckpoint(repo_path=self.h5_sample_path)
         self.img = Image3dWithSpots(repository=self.repo, image_path="mrna/arhgdia/2h/1")
 
+    def test_compute_cytoplasmic_spots(self):
+        logger.warning("Check whether this is nothing more than removing spots with height 0")
+        result = self.img.compute_cytoplasmic_spots()
+        self.assertEqual(len(result), 154)
+
     def tearDown(self) -> None:
         self.repo.clear()
 
-    def test_compute_cytoplasmic_spots(self):
-        result = self.img.compute_cytoplasmic_spots()
-        self.assertEqual(len(result), 151)
-
     def test_compute_cytoplasmic_spots_peripheral_distance(self):
         results = self.img.compute_cytoplasmic_spots_peripheral_distance()
-        self.assertEqual(len(results), 151)
+        self.assertEqual(len(results), 154)
         # arbitrarily check two values
-        self.assertEqual(results[4], 79)
-        self.assertEqual(results[65], 37)
-        self.assertEqual(results.sum(), 7013)
+        self.assertEqual(results[3], 60)
+        self.assertEqual(results[65], 26)
+        self.assertEqual(results.sum(), 7435.0)
 
     def test_compute_spots_normalized_distance_to_nucleus(self):
         relative_to_centroid = self.img.compute_spots_normalized_distance_to_nucleus()
-        self.assertAlmostEqual(relative_to_centroid, 0.63, places=5)
+        self.assertAlmostEqual(relative_to_centroid, 0.58, places=5)
 
     def test_compute_spots_cytoplasmic_spread_entropy(self):
         spread = self.img.compute_spots_cytoplasmic_spread_entropy()
-        self.assertAlmostEqual(spread, 16.343390216199, places=5)
+        self.assertAlmostEqual(spread, 16.35286725687, places=5)
 
     def test_clustering_index_point_process(self):
         logger.error("was not tested with cytoplasmic spots and new random spots")
@@ -67,7 +68,7 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_mrna_density(self):
         mrna_density = self.img.compute_cytoplasmic_density()
-        self.assertAlmostEqual(mrna_density, 0.144137790282, places=5)
+        self.assertAlmostEqual(mrna_density, 0.143813362018, places=5)
 
     def test_compute_random_cytoplasmic_spots_in_slices(self):
         #logger.error("needs checking that the spots coordinates order is coherent with the rest of the code")
@@ -75,6 +76,12 @@ class TestImage3dWithSpots(TestCase):
         np.random.seed(0)
         random_spots = self.img.compute_random_cytoplasmic_spots_in_slices(100)
         self.assertTrue(np.all([self.img.is_in_cytoplasm(s[::-1]) for s in random_spots[:,0:2]]))
-        self.assertEqual(random_spots.shape[0], 79)
+        self.assertEqual(random_spots.shape[0], 100)
+
+    def test_compute_signal_from_periphery(self):
+        # calls the code in the super class (ImageWithSpots)
+        spot_counts = self.img.compute_signal_from_periphery()
+        self.assertEqual(spot_counts[99], len(self.img.get_cytoplasmic_spots()))
+
 
 

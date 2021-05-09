@@ -19,7 +19,7 @@ from repository import H5RepositoryWithCheckpoint
 constants.init_config(analysis_config_js_path=path.test_config_path)  # TODO this is annoying
 
 
-class Test(TestCase):
+class TestImageProcessing(TestCase):
     def setUp(self) -> None:
         self.h5_sample_path = pathlib.Path(path.global_example_data, "basic.h5")
         self.repo = H5RepositoryWithCheckpoint(repo_path=self.h5_sample_path)
