@@ -5,10 +5,11 @@
 
 import matplotlib
 from loguru import logger
-import constants
 from scipy.interpolate import interp1d
-from path import global_root_dir
+
+import constants
 from mpi_calculator import DensityStats
+from path import global_root_dir
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -243,7 +244,6 @@ def sns_violinplot(dd, my_pal, figname, plot_xlabels, x="Gene", y='value', hue=N
             if i % 2 == 0:
                 box_pairs.append(((gene_list[i - 2], gene_list[i - 1])))
         add_stat_annotation(ax, data=dd, x=x, y=y, hue=hue,
-                            # box_pairs=[((gene_list[0], gene_list[1])), ((gene_list[2], gene_list[3]))],
                             box_pairs=box_pairs,
                             test='t-test_ind', text_format='star', loc='inside', verbose=2)
 
@@ -269,8 +269,6 @@ def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
     box.set_ylabel("", fontsize=15)
     box.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
     box.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
-    # box.set(ylim=(-3, 3))
-    # box.legend_.remove()
     plt.yticks(fontsize=15)
     fig.savefig(figname, format='png')
     plt.close()
@@ -335,8 +333,6 @@ def sns_barplot(dd, my_pal, figname, y="MPI", err="err"):
     mrna_err = list(dd[dd["Molecule_type"] == "mrna"][err])
     protein_values = list(dd[dd["Molecule_type"] == "protein"][y])
     protein_err = list(dd[dd["Molecule_type"] == "protein"][err])
-    #protein_err = [x if (float(x) < 0.0000000000001) else 0.05 for x in protein_err]
-    #mrna_err = [x if (float(x) < 0.0000000000001) else 0.05 for x in mrna_err]
     assert (len(mrna_values) == len(protein_values))
     assert (len(mrna_values) == len(mrna_err))
 
@@ -436,7 +432,7 @@ def compute_categorical_violin_plot_ratio(density_stats: DensityStats, molecule_
 def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, figname,
                                    limit_threshold=6, log=False, groupby_key="Gene"):
     df = density_stats.df
-    ## melt dataframe and group together all non MTOC quadrant
+    # melt dataframe and group together all non MTOC quadrant
 
     value_vars = [density_stats.mtoc_quadrant_label] + density_stats.quadrant_labels
     dd = pd.melt(df, id_vars=[groupby_key], value_vars=value_vars, var_name='Quadrants')
@@ -480,13 +476,13 @@ def compute_categorical_violin_plot_enrichment(density_stats: DensityStats, mole
     outliers = helpers.detect_outliers(np.array(dd["value"]), limit_threshold)
     dd = dd[~np.isin(dd["value"], outliers)]  # dd[dd["value"] < limit_threshold]
     dd.dropna(inplace=True)
-    ## apply log scale
+    # apply log scale
     if (log):
         dd['value'] = dd['value'].apply(np.log2)
-    ## Choose color palette
+    # Choose color palette
     my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#1a8cff"}
 
-    ## remove outliers
+    # remove outliers
     if molecule_type == 'mrna':
         xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     else:
@@ -577,6 +573,5 @@ def add_annot(data, gene_list, ax, test):
             box_pairs.append(tuple((gene_list[i - 2], gene_list[i - 1])))
     # test value should be one of the following:
     add_stat_annotation(ax, data=dd, x='gene', y='value', hue=None,
-                        # box_pairs=[((gene_list[0], gene_list[1])), ((gene_list[2], gene_list[3]))],
                         box_pairs=box_pairs,
                         test=test, text_format='star', loc='inside', verbose=2)
