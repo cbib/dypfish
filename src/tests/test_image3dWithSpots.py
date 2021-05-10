@@ -25,18 +25,18 @@ class TestImage3dWithSpots(TestCase):
         # image 10 has very high z coordinates for spots
         self.img2 = Image3dWithSpots(repository=self.repo, image_path="mrna/arhgdia/2h/10")
         result = self.img2.compute_cytoplasmic_spots()
-        self.assertEqual(len(result), 100)
+        self.assertEqual(len(result), 33)
 
     def tearDown(self) -> None:
         self.repo.clear()
 
     def test_compute_cytoplasmic_spots_peripheral_distance(self):
         results = self.img.compute_cytoplasmic_spots_peripheral_distance()
-        self.assertEqual(len(results), 155)
+        self.assertEqual(len(results), 153)
         # arbitrarily check two values
-        self.assertEqual(results[3], 60)
-        self.assertEqual(results[65], 26)
-        self.assertEqual(results.sum(), 7435.0)
+        self.assertEqual(results[3], 29)
+        self.assertEqual(results[65], 28)
+        self.assertEqual(results.sum(), 7538.0)
 
     def test_compute_spots_normalized_distance_to_nucleus(self):
         relative_to_centroid = self.img.compute_spots_normalized_distance_to_nucleus()
@@ -44,7 +44,7 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_spots_cytoplasmic_spread_entropy(self):
         spread = self.img.compute_spots_cytoplasmic_spread_entropy()
-        self.assertAlmostEqual(spread, 16.33504368141, places=5)
+        self.assertAlmostEqual(spread, 16.334849331, places=5)
 
     def test_clustering_index_point_process(self):
         logger.error("was not tested with cytoplasmic spots and new random spots")
@@ -69,7 +69,7 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_mrna_density(self):
         mrna_density = self.img.compute_cytoplasmic_density()
-        self.assertAlmostEqual(mrna_density, 0.144747215018, places=5)
+        self.assertAlmostEqual(mrna_density, 0.15130537974, places=5)
 
     def test_compute_random_cytoplasmic_spots_in_slices(self):
         #logger.error("needs checking that the spots coordinates order is coherent with the rest of the code")

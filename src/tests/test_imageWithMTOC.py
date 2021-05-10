@@ -65,4 +65,3 @@ class TestImageWithMTOC(TestCase):
 
         quadrant_mask = self.img.rotate_quadrant_mask(degree=45, slices_num=4)
         self.assertEqual(quadrant_mask.sum(), 133618)
-
