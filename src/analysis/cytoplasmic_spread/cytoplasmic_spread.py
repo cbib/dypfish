@@ -27,7 +27,7 @@ def build_cytoplasmic_statistics(analysis_repo, statistics_type, molecule_type, 
             if molecule_type == 'mrna':
                 gene2stat[gene] = image_set.compute_cytoplasmic_spots_centrality()
             else:
-                gene2stat[gene] = image_set.compute_intensities_cytoplasmic_centrality()
+                gene2stat[gene] = image_set.compute_cytoplasmic_intensities_centrality()
         if statistics_type == 'spread':
             if molecule_type == 'mrna':
                 gene2stat[gene] = image_set.compute_cytoplasmic_spots_spread()

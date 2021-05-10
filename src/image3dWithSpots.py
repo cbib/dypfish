@@ -26,7 +26,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
     def compute_cytoplasmic_spots(self) -> np.ndarray:
         spots = self.get_spots()
-        max_height = np.max(self.get_height_map()) # TODO this is a hack
+        max_height = np.max(self.adjust_height_map()) # TODO this is a hack
         mask = [self.is_in_cytoplasm(s[0:2][::-1]) for s in spots]  # TODO check coordinate coherency for spots
         cytoplasmic_spots = spots[mask]
         cytoplasmic_spots = cytoplasmic_spots[cytoplasmic_spots[:,2] <= max_height]

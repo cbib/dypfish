@@ -33,8 +33,10 @@ class Image3d(Image):
         if not self._repository.is_present(image_path + HEIGHT_MAP_PATH_SUFFIX):
             raise AttributeError("Incorrect format for image %s" % image_path)
 
-    def get_height_map(
-            self) -> np.ndarray:  # TODO : not restricted to the cell_mask in V0 (same as for the intensities)
+    def get_height_map(self) -> np.ndarray:
+        '''This function should not be called by other classes / analyses
+         The result is not restricted to the cell_mask and not adjusted to zero_level
+         Aways call adjust_height_map instead'''
         descriptor = self._path + HEIGHT_MAP_PATH_SUFFIX
         if not self._repository.is_present(descriptor):
             raise LookupError("No height map for image %s" % self._path)
@@ -47,7 +49,9 @@ class Image3d(Image):
 
     def adjust_height_map(self, cytoplasm=False):
         '''
-        adjust the periphery of the cell to be at 0.5 height
+        adjust the height_map to respect the zero_level;
+        for the coherency sake the periphery of the cell is set
+        to be at 0.5 height if the cell_map is wider than the lowest height_map level.
         cytoplasm = True is the same as get_cytoplasm_height_map
         '''
         if cytoplasm == True:
@@ -57,6 +61,8 @@ class Image3d(Image):
             height_map = self.get_height_map().astype(float)
             mask = self.get_cell_mask()
 
+        height_diff = int(np.max(height_map)) - self.get_zero_level()
+        height_map[np.where(height_map > self.get_zero_level())] -= height_diff # TODO possibly zero_level+1
         height_map[(mask == 1) & (height_map == 0)] = 0.5
         return height_map
 
@@ -177,7 +183,7 @@ class Image3d(Image):
          """
         logger.info("Computing 3D peripheral distance for {} coordinates in image {}", len(coordinates), self._path)
         assert coordinates.shape[1] == 3, "3D coordinates needed for distance to the periphery"
-        max_height = np.max(self.get_height_map())
+        max_height = np.max(self.adjust_height_map())
         peripheral_distance_map = self.get_cell_mask_distance_map()
         cell_area = self.compute_cell_area()
 
