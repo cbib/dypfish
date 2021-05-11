@@ -126,7 +126,7 @@ class Image3d(Image):
                     constants.analysis_config['NUM_CONTOURS'], self._path)
         volumes = np.zeros(constants.analysis_config['NUM_CONTOURS'])
         for i in range(0, constants.analysis_config['NUM_CONTOURS']):
-            volumes[i] = self.compute_peripheral_cell_volume(peripheral_threshold = i+1)
+            volumes[i] = self.compute_peripheral_cell_volume(peripheral_threshold=i+1)
         return volumes
 
     def compute_cell_volume(self):

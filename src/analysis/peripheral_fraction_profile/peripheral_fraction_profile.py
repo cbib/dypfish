@@ -25,7 +25,7 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo, normalisation_gene=No
     gene2m_fractions = {}
     for gene in genes:
         image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene])
-        peripheral_fractions = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
+        peripheral_fractions = image_set.compute_cytoplasmic_spots_fractions_per_periphery()
         gene2m_fractions[gene] = np.median(peripheral_fractions, axis=0)
 
     # normalized by gapdh profile
@@ -46,18 +46,20 @@ def build_histogram_peripheral_fraction(analysis_repo, molecule_type, keyorder, 
     if molecule_type == 'mrna':
         genes = constants.analysis_config['MRNA_GENES']
     else:
-        genes = constants.analysis_config['PTOTEINS']
+        genes = constants.analysis_config['PROTEINS']
     for gene in genes:
         image_set = ImageSet(analysis_repo, ['{0}/{1}/'.format(molecule_type, gene)], force2D=force2D)
         if molecule_type == 'mrna':
-            gene2fractions[gene] = image_set.compute_cytoplsamic_spots_fractions_per_periphery()
+            gene2fractions[gene] = image_set.compute_cytoplasmic_spots_fractions_per_periphery()
         else:
             gene2fractions[gene] = image_set.compute_cytoplasmic_intensities_fractions_per_periphery()
+
         median_pfractions = np.median(gene2fractions[gene], axis=0)
         gene2median[gene] = median_pfractions[fraction]
         gene2error[gene] = helpers.sem(median_pfractions, factor=0)
         lower, higher = helpers.median_confidence_interval(median_pfractions)
         gene2ci[gene] = [lower, higher]
+        gene2fractions[gene]=gene2fractions[gene][:, fraction]
 
     fractions = collections.OrderedDict(sorted(gene2fractions.items(), key=lambda i: keyorder.index(i[0])))
     gene2median = collections.OrderedDict(sorted(gene2median.items(), key=lambda i: keyorder.index(i[0])))
@@ -129,41 +131,40 @@ if __name__ == '__main__':
                                                                               keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
                                                errors=err.values(), CI=CI, annotations=stat_annotations)
-            exit()
 
         elif "chx" in conf[0]:
             logger.info("Peripheral fraction histogram for the protein CHX data")
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein',
                                                                               keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
-                                               errors=err, CI=CI, annotations=stat_annotations)
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
 
             logger.info("Peripheral fraction histogram for the mRNA CHX data")
             # this analysis is done in 2D
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein',
                                                                               keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
-                                               errors=err, CI=CI, annotations=stat_annotations)
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
 
         elif "nocodazole" in conf[0]:
             logger.info("2D Peripheral fraction histogram for the mRNA nocodazole data")
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna',
                                                                               force2D=True, keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions = fractions,
-                                               errors=err, CI=CI, annotations=stat_annotations)
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
 
             logger.info("Peripheral fraction histogram for the mRNA nocodazole data")
             build_histogram_peripheral_fraction(repo, molecule_type='mrna')
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
-                                               errors=err, CI=CI, annotations=stat_annotations)
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
 
         else:
             logger.info("Peripheral fraction histogram for the prrc2c data")
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna',
                                                                               keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
-                                               errors=err, CI=CI, annotations=stat_annotations)
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein')
             plot_bar_profile_median_and_violin(molecule_type='protein', medians=medians, fractions=fractions,
-                                               errors=err, CI=CI, annotations=stat_annotations)
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
 

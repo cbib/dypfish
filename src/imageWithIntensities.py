@@ -87,10 +87,13 @@ class ImageWithIntensities(Image):
         IF = self.compute_cytoplasmic_intensities()
         mean_signal = np.mean(IF[IF > 0])
         peaks = np.argwhere(IF > mean_signal * 2)
-        dists = constants.analysis_config['NUM_CONTOURS'] - \
-                self.compute_cytoplasmic_coordinates_peripheral_distance(peaks[:,[1,0]]) # inverted wrt spots coordinates
+        dists = constants.analysis_config['NUM_CONTOURS'] - self.compute_cytoplasmic_coordinates_peripheral_distance(peaks[:,[1,0]]) # inverted wrt spots coordinates
         assert np.all(dists >= 0), "Negative distance to nucleus"
-        normalized_dist_to_nucleus = np.quantile(dists, quantile) / constants.analysis_config['NUM_CONTOURS']
+        if len(dists) == 0:
+            logger.debug("Empty cytoplasmic coordinates peripheral distance for {}", self._path)
+            normalized_dist_to_nucleus = dists
+        else:
+            normalized_dist_to_nucleus = np.quantile(dists, quantile) / constants.analysis_config['NUM_CONTOURS']
 
         return normalized_dist_to_nucleus
 
@@ -113,7 +116,7 @@ class ImageWithIntensities(Image):
 
     def signal_to_noise(self) -> float:
         intensities = self.get_intensities()  # the whole image
-        snr = np.power(np.mean(intensities), 2) / np.power(np.std(intensities), 2)
+        snr = np.power(np.mean(intensities[self.get_cell_mask() == 1]), 2) / np.power(np.std(intensities[self.get_cell_mask() == 1]), 2)
         return snr
 
     def compute_cytoplasmic_density(self):

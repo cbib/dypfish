@@ -39,7 +39,10 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         valid_dists = dists[~np.isnan(dists)]
         dists = constants.analysis_config['NUM_CONTOURS'] - valid_dists
         assert np.all(dists >= 0), "Negative distance to nucleus"
-        normalized_dist_to_nucleus = np.quantile(dists, quartile) / constants.analysis_config['NUM_CONTOURS']
+        if len(dists) == 0:
+            normalized_dist_to_nucleus = dists
+        else:
+            normalized_dist_to_nucleus = np.quantile(dists, quartile) / constants.analysis_config['NUM_CONTOURS']
 
         return normalized_dist_to_nucleus
 

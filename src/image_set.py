@@ -156,7 +156,7 @@ class ImageSet(object):
         spot_counts = [len(image.get_spots()) for image in self.images]
         return np.array(all_signals) / np.array(spot_counts)[:, None]
 
-    def compute_cytoplsamic_spots_fractions_per_periphery(self):
+    def compute_cytoplasmic_spots_fractions_per_periphery(self):
         all_signals = self.compute_signal_from_periphery()
         image: ImageWithSpots
         cytoplasmic_densities = [image.compute_cytoplasmic_density() for image in self.images]
@@ -170,7 +170,7 @@ class ImageSet(object):
                               for image in self.images]
         return np.array(all_signals) / np.array(intensities_counts)[:, None]
 
-    def compute_cytoplsamic_intensities_fractions_per_periphery(self):
+    def compute_cytoplasmic_intensities_fractions_per_periphery(self):
         all_signals = self.compute_signal_from_periphery()
         image: ImageWithIntensities
         intensities_counts = [image.compute_cytoplasmic_intensities().sum() for image in self.images]
@@ -234,6 +234,8 @@ class ImageSet(object):
         image: Union[ImageWithSpots, Image3dWithSpots]
         for image in self.images:
             spots_spread = np.append(spots_spread, image.compute_spots_cytoplasmic_spread_entropy())
+        spots_spread = spots_spread[spots_spread != float('inf')]
+
         return spots_spread
 
     def compute_cytoplasmic_intensities_centrality(self) -> List[float]:
@@ -241,6 +243,7 @@ class ImageSet(object):
         image: Union[ImageWithIntensities, Image3dWithIntensities]
         for image in self.images:
             centralities = np.append(centralities, image.compute_intensities_normalized_distance_to_nucleus())
+
         valid_centralities = centralities[~np.isnan(centralities)]
         if len(valid_centralities) < len(centralities):
             logger.warning("intensity spread > 1 for {} images out of {}",

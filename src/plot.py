@@ -163,9 +163,9 @@ def bar_profile(data, figname, plot_colors):
     logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
-def violin_profile(dict, tgt_fp, xlabels, rotation=0, annot=False):
+def violin_profile(_dict, tgt_fp, xlabels, rotation=0, annot=False):
     dd = pd.DataFrame(
-        dict([(k, pd.Series(v).astype(float)) for k, v in dict.items()])).melt().dropna().rename(
+        dict([(k, pd.Series(v).astype(float)) for k, v in _dict.items()])).melt().dropna().rename(
         columns={"variable": "gene"})
     my_pal = {}
     for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(constants.analysis_config['MRNA_GENES'])]):
