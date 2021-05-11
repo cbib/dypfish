@@ -94,16 +94,16 @@ def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors
 
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
-#    ["src/analysis/peripheral_fraction_profile/config_original.json",
-#     ['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']],
-#    ["src/analysis/peripheral_fraction_profile/config_chx.json",
-#     ['arhgdia', 'arhgdia_CHX', 'pard3', 'pard3_CHX']],
-   ["src/analysis/peripheral_fraction_profile/config_cytod.json",
+    ["src/analysis/peripheral_fraction_profile/config_original.json",
+     ['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']],
+    ["src/analysis/peripheral_fraction_profile/config_chx.json",
+     ['arhgdia', 'arhgdia_CHX', 'pard3', 'pard3_CHX']],
+    ["src/analysis/peripheral_fraction_profile/config_cytod.json",
      ["arhgdia_control", "arhgdia_cytod"]],
-#    ["src/analysis/peripheral_fraction_profile/config_prrc2c.json",
-#     ['arhgdia/control', "arhgdia/prrc2c_depleted"]],
-#    ["src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"]],
-#     ["src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
+    ["src/analysis/peripheral_fraction_profile/config_prrc2c.json",
+     ['arhgdia/control', "arhgdia/prrc2c_depleted"]],
+    ["src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"]],
+     ["src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
 ]
 
 if __name__ == '__main__':
