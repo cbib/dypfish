@@ -156,12 +156,15 @@ class ImageSet(object):
         spot_counts = [len(image.get_spots()) for image in self.images]
         return np.array(all_signals) / np.array(spot_counts)[:, None]
 
-    def compute_cytoplasmic_spots_fractions_per_periphery(self):
+    def compute_cytoplasmic_spots_fractions_per_periphery(self, force2D=False):
         all_signals = self.compute_signal_from_periphery()
         image: ImageWithSpots
         cytoplasmic_densities = [image.compute_cytoplasmic_density() for image in self.images]
-        all_volumes = self.compute_volumes_from_periphery()
-        return np.divide(np.array(all_signals), np.array(all_volumes)) / np.array(cytoplasmic_densities)[:, None]
+        if force2D:
+            all_determinants = self.compute_areas_from_periphery()
+        else:
+            all_determinants = self.compute_volumes_from_periphery()
+        return np.divide(np.array(all_signals), np.array(all_determinants)) / np.array(cytoplasmic_densities)[:, None]
 
     def compute_intensities_fractions_per_periphery(self):
         all_signals = self.compute_signal_from_periphery()

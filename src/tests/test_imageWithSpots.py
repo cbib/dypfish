@@ -48,6 +48,10 @@ class TestImageWithSpots(TestCase):
     def test_compute_cytoplasmic_total_spots(self):
         self.assertEqual(self.img.compute_cytoplasmic_total_spots(), 155)
 
+    def test_compute_cytoplasmic_density(self):
+        result = self.img.compute_cytoplasmic_density()
+        self.assertAlmostEqual(result, 0.3012427677, places=5)
+
     def test_compute_median_cytoplasmic_distance_from_nucleus(self):
         warnings.warn("This function is not sufficiently tested", RuntimeWarning)
         nucleus_centroid = self.img.get_nucleus_centroid()

@@ -115,7 +115,7 @@ class ImageWithSpots(Image):
         cytoplasmic_mrna_count = self.compute_cytoplasmic_total_spots()
         if cytoplasmic_mrna_count == 0:
             raise RuntimeError("Image contains no spots %s" % self._path)
-        cytoplasmic_area = self.compute_cell_area()
+        cytoplasmic_area = self.compute_cell_area() - self.compute_nucleus_area()
         return cytoplasmic_mrna_count / cytoplasmic_area
 
     def ripley_k_point_process(self, nuw: float, my_lambda: float, spots=None, r_max: int = None) -> np.ndarray:

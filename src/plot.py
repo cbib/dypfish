@@ -163,13 +163,13 @@ def bar_profile(data, figname, plot_colors):
     logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
-def violin_profile(_dict, tgt_fp, xlabels, rotation=0, annot=False):
-    dd = pd.DataFrame(
-        dict([(k, pd.Series(v).astype(float)) for k, v in _dict.items()])).melt().dropna().rename(
-        columns={"variable": "gene"})
+def violin_profile(dictionary, tgt_fp, xlabels, rotation=0, annot=False):
+    genes = constants.analysis_config['MRNA_GENES']
+    dd = pd.DataFrame({k: pd.Series(v).astype(float)
+                       for k, v in dictionary.items()}).melt().dropna().rename(columns={"variable": "gene"})
     my_pal = {}
-    for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(constants.analysis_config['MRNA_GENES'])]):
-        my_pal[constants.analysis_config['MRNA_GENES'][i]] = color
+    for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(genes)]):
+        my_pal[genes[i]] = color
 
     sns_violinplot(dd, my_pal, tgt_fp, xlabels, x='gene', no_legend=False, rotation=rotation, annot=annot)
 
@@ -226,7 +226,8 @@ def sns_linear_regression(data_1, data_2, color, graph_file_path_name, order=1):
     annot_kws = {'prop': {'family': 'monospace', 'weight': 'bold', 'size': 8}}
     res1 = stats.pearsonr(data_1, data_2)
     sns.set(font_scale=1)
-    sns_plot_regression = sns.jointplot(x=np.log(data_1), y=np.log(data_2), order=order, kind='reg', x_estimator=np.mean, color=color)
+    sns_plot_regression = sns.jointplot(x=np.log(data_1), y=np.log(data_2), order=order, kind='reg',
+                                        x_estimator=np.mean, color=color)
     sns_plot_regression.ax_marg_x.set_xlim(6, 8)
     phantom, = sns_plot_regression.ax_joint.plot([], [], linestyle="", alpha=0)
     sns_plot_regression.ax_joint.legend([phantom], [
@@ -234,7 +235,8 @@ def sns_linear_regression(data_1, data_2, color, graph_file_path_name, order=1):
     sns_plot_regression.savefig(graph_file_path_name, format="png")
 
 
-def sns_violinplot(dd, my_pal, figname, plot_xlabels, x="Gene", y='value', hue=None, no_legend=True, rotation=0, annot=False):
+def sns_violinplot(dd, my_pal, figname, plot_xlabels, x="Gene", y='value',
+                   hue=None, no_legend=True, rotation=0, annot=False):
     fig = plt.figure(figsize=(10, 10))
     ax = sns.violinplot(x=x, y=y, data=dd, hue=hue, palette=my_pal, cut=0)
     gene_list = constants.analysis_config['MRNA_GENES']

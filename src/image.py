@@ -63,9 +63,6 @@ class Image(object):
         area = nucleus_mask.sum() * helpers.surface_coeff()  # * by pixel dimensions
         return area
 
-    def get_nucleus_area(self) -> float:
-        return self.compute_nucleus_area()
-
     def compute_cell_area(self):
         """compute cell surface in real pixel size using cell mask"""
         cell_mask = self.get_cell_mask()
