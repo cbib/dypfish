@@ -68,6 +68,7 @@ class Image3d(Image):
 
     def get_zero_level(self):
         descriptor = self._path + ZERO_LEVEL_PATH_SUFFIX
+        print(descriptor)
         if not self._repository.is_present(descriptor):
             raise LookupError("No zero level for image %s" % self._path)
         return np.array(self._repository.get(descriptor))

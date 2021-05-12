@@ -58,6 +58,8 @@ def build_histogram_peripheral_fraction(analysis_repo, molecule_type, keyorder, 
         CI[gene] = [lower, higher]
         gene2fractions[gene] = gene2fractions[gene][:, fraction]
 
+    print(keyorder)
+
     fractions = collections.OrderedDict(sorted(gene2fractions.items(), key=lambda i: keyorder.index(i[0])))
     medians = collections.OrderedDict(sorted(medians.items(), key=lambda i: keyorder.index(i[0])))
     erros = collections.OrderedDict(sorted(erros.items(), key=lambda i: keyorder.index(i[0])))
@@ -102,8 +104,8 @@ configurations = [
      ["arhgdia_control", "arhgdia_cytod"]],
     ["src/analysis/peripheral_fraction_profile/config_prrc2c.json",
      ['arhgdia/control', "arhgdia/prrc2c_depleted"]],
-    ["src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"]],
-     ["src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
+    ["src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json", ["arhgdia", "arhgdia_nocodazole"]],
+     ["src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json", ["pard3", "pard3_nocodazole"]]
 ]
 
 if __name__ == '__main__':
@@ -147,16 +149,15 @@ if __name__ == '__main__':
                                                                               force2D=True, keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions = fractions,
                                                errors=err.values(), CI=CI, annotations=stat_annotations)
-            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein')
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein', force2D=True, keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
                                                errors=err.values(), CI=CI, annotations=stat_annotations)
 
         elif 'prrc2c' in conf[0]:
             logger.info("Peripheral fraction histograms for prcc2c data")
-            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna',
-                                                                              keyorder=keyorder)
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna', keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
                                                errors=err.values(), CI=CI, annotations=stat_annotations)
-            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein')
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein', keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='protein', medians=medians, fractions=fractions,
                                                errors=err.values(), CI=CI, annotations=stat_annotations)

@@ -19,9 +19,7 @@ from imageWithSpotsAndIntensities import ImageWithSpotsAndIntensitiesAndMTOC, Im
 from imageWithZlines import imageMultiNucleusWithSpotsAndZlines, ImageMultiNucleus, imageWithSpotsAndZlines, \
     ImageMultiNucleusWithSpots
 from repository import Repository
-
 from image import Image, ImageWithMTOC
-
 
 
 class ImageSet(object):
@@ -58,20 +56,18 @@ class ImageSet(object):
             # TODO : Refactor, test and debug the logical branching
             #logger.debug("creating Image for {} ",p)
             if force2D:
-                if has_spots:
-                    img = ImageWithSpots(self._repository, p)
-                elif has_intensities:
-                    img = ImageWithIntensities(self._repository, p)
-                elif is_with_spots_and_MTOC:
-                    img = ImageWithSpotsAndMTOC(self._repository, p)
-                elif is_with_spots_and_MTOC:
-                    img = ImageWithSpotsAndMTOC(self._repository, p)
-                    if has_intensities:
-                        img = ImageWithSpotsAndIntensitiesAndMTOC(self._repository, p)
-                elif is_with_spots_and_intensities_and_MTOC:
+                if is_with_spots_and_intensities_and_MTOC:
                     img = ImageWithSpotsAndIntensitiesAndMTOC(self._repository, p)
                 elif has_spots and has_intensities:
                     img = ImageWithSpotsAndIntensities(self._repository, p)
+                elif is_with_spots_and_MTOC:
+                    img = ImageWithSpotsAndMTOC(self._repository, p)
+                elif is_with_intensities_and_MTOC:
+                    img = ImageWithIntensitiesAndMTOC(self._repository, p)
+                elif has_spots:
+                    img = ImageWithSpots(self._repository, p)
+                elif has_intensities:
+                    img = ImageWithIntensities(self._repository, p)
                 elif has_spots_and_zlines:
                     img = imageWithSpotsAndZlines(self._repository, p)
                 elif has_spots_multi_nucleus:
