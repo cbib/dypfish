@@ -55,7 +55,7 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
         self.assertEqual(result1[3, 1], 1)
         result2 = self.img.compute_quadrant_densities(peripheral_flag=True)
         self.assertAlmostEqual(result2[:, 0].sum(), 0.35643142195, places=5)
-        self.assertEqual(result2[2, 1], 1) # notice the MTOC quadrant is not the same as before!
+        self.assertEqual(result2[2, 1], 1)
         result3 = self.img.compute_quadrant_densities(peripheral_flag=False, stripes=3, stripes_flag=True)
         self.assertAlmostEqual(result3[:, 0].sum(), 1.58483360221, places=5)
         self.assertEqual(result3[4, 1], 1)

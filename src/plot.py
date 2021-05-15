@@ -164,7 +164,7 @@ def bar_profile(data, figname, plot_colors):
 
 
 def violin_profile(dictionary, tgt_fp, xlabels, rotation=0, annot=False):
-    genes = constants.analysis_config['MRNA_GENES']
+    genes = list(dictionary.keys())
     dd = pd.DataFrame({k: pd.Series(v).astype(float)
                        for k, v in dictionary.items()}).melt().dropna().rename(columns={"variable": "gene"})
     my_pal = {}
@@ -577,3 +577,44 @@ def add_annot(data, gene_list, ax, test):
     add_stat_annotation(ax, data=dd, x='gene', y='value', hue=None,
                         box_pairs=box_pairs,
                         test=test, text_format='star', loc='inside', verbose=2)
+
+def plot_clusters(molecule_type, all_densities, slices=3, quadrants=8):
+    if molecule_type == 'mrna':
+        timepoints = constants.dataset_config['TIMEPOINTS_MRNA']
+    else:
+        timepoints = constants.dataset_config['TIMEPOINTS_PROTEIN']
+
+    cmap = matplotlib.colors.ListedColormap(['lightgray', 'lightcoral', 'lightblue'])
+    frame = pd.DataFrame(1, index=[0], columns=range(quadrants))
+    genes = list(all_densities.keys())
+    for gene in genes:
+        all_segments = pd.DataFrame(0, index=timepoints, columns=range(slices * quadrants))
+        fig, ax = plt.subplots(figsize=(8, 8))
+        # add mtoc green cirlce for the mtoc contining quadrant
+        cmap_mtoc = matplotlib.colors.ListedColormap(['lightseagreen', 'white'])
+        mtoc_quadrant = pd.Series([0, 1, 1, 1, 1, 1, 1, 1]) # mtoc quadrant always first
+        mtoc_colors = cmap_mtoc(mtoc_quadrant)
+        ax.pie(frame.loc[0], colors=mtoc_colors, radius=1.55)
+        for tp_num, tp in enumerate(timepoints):
+            densities = all_densities[gene][tp_num]
+            clustered_indices = np.argwhere(densities > np.mean(densities) + np.std(densities)).flatten()
+            underclusstered_indices = np.argwhere(densities < np.mean(densities) - np.std(densities)).flatten()
+            all_segments.loc[tp][clustered_indices] = 1
+            all_segments.loc[tp][underclusstered_indices] = 2
+            for slice_num in range(slices): # slices go in order
+                radius = 1.5 - slice_num / slices # 1.5 - 1.2 - 0.9
+                colors = cmap(all_segments.loc[tp][slice_num * quadrants : (slice_num+1) * quadrants])
+                ax.pie(frame.loc[0], colors=colors, radius=radius,
+                       wedgeprops={"edgecolor":"darkgray", 'linewidth': 1,
+                                   'linestyle': 'dashed', 'antialiased': True})
+            white_circle = plt.Circle((0, 0), 0.5, color='white', linewidth=0)
+            ax.add_patch(white_circle)
+
+            tgt_image_name = constants.analysis_config['FIGUES_CLUSTERS_FORMAT'].format(gene=gene,
+                                                                                       molecule=molecule_type,
+                                                                                       timepoint=tp)
+            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                                  tgt_image_name)
+            plt.savefig(tgt_fp)
+            logger.info("Created clusters figure for {} {} at {}: {}", gene, molecule_type, tp, tgt_fp)
+

@@ -214,7 +214,8 @@ class ImageSet(object):
         centralities = np.array([])
         image: Union[ImageWithSpots, Image3dWithSpots]
         for image in self.images:
-            centralities = np.append(centralities, image.compute_spots_normalized_distance_to_nucleus())
+            centralities = np.append(centralities,
+                                     image.compute_spots_normalized_distance_to_nucleus(quantile=.5))
         valid_centralities = centralities[~np.isnan(centralities)]
         if len(valid_centralities) < len(centralities):
             logger.warning("spots out of hull for {} images out of {}",
@@ -241,7 +242,8 @@ class ImageSet(object):
         centralities = np.array([])
         image: Union[ImageWithIntensities, Image3dWithIntensities]
         for image in self.images:
-            centralities = np.append(centralities, image.compute_intensities_normalized_distance_to_nucleus())
+            centralities = np.append(centralities,
+                                     image.compute_intensities_normalized_distance_to_nucleus(quantile=.5))
 
         valid_centralities = centralities[~np.isnan(centralities)]
         if len(valid_centralities) < len(centralities):
@@ -278,13 +280,20 @@ class ImageSet(object):
             cytoplasmic_density = image.compute_cytoplasmic_density()
             mdmq = image.get_or_compute_quadrant_densities(quadrants_num, peripheral_flag, stripes, stripes_flag)
             mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
-            all_densities = np.append(all_densities, mdmq[mdmq[:, 1].argsort()[::-1]], axis=0)
+            if (mdmq[:,0].sum() > 0):
+                # the mtoc containing quadrant first
+                mtoc_quadrant_position = np.argwhere(mdmq[:, 1] == 1)[0][0]
+                mdmq = np.roll(mdmq, -mtoc_quadrant_position, 0)
+                assert (mdmq[0, 1] == 1)
+                all_densities = np.append(all_densities, mdmq, axis=0)
+            else:
+                logger.info("Densities too low in {}", image._path)
 
-        mtoc_num = all_densities[all_densities[:,1]==1][:,1].sum()
+        mtoc_num = all_densities[all_densities[:,1] == 1][:,1].sum()
         non_mtoc_num = len(all_densities[all_densities[:,1]==0][:,1])
         logger.debug("\nMTOC density {} and non MTOC density {} per element (quadrant or slice)",
-                     all_densities[all_densities[:,1]==1][:,0].sum() / mtoc_num,
-                     all_densities[all_densities[:,1]==0][:,0].sum() / non_mtoc_num)
+                     all_densities[all_densities[:,1] == 1][:,0].sum() / mtoc_num,
+                     all_densities[all_densities[:,1] == 0][:,0].sum() / non_mtoc_num)
         return all_densities
 
     def mtoc_is_in_leading_edge(self):

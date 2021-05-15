@@ -68,7 +68,6 @@ class Image3d(Image):
 
     def get_zero_level(self):
         descriptor = self._path + ZERO_LEVEL_PATH_SUFFIX
-        print(descriptor)
         if not self._repository.is_present(descriptor):
             raise LookupError("No zero level for image %s" % self._path)
         return np.array(self._repository.get(descriptor))
@@ -236,6 +235,10 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
 
     def compute_density_per_quadrant_and_slices(self, mtoc_quad, quadrant_mask, stripes, quadrants_num=4,
                                                 peripheral_flag=False):
+        '''
+        Stripe masks are applied in order from periphery towards the nucleus
+        Within each stripe the density is computed according to the quadrant mask
+        '''
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         slices_per_stripe = np.floor(100.0 / stripes)  # number of isolines per stripe
         if peripheral_flag:

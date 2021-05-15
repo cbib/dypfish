@@ -1,0 +1,23 @@
+{
+  "PNG_IMAGES_MIME_TYPE": "image/png",
+  "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/clustering/output",
+  "FIGUES_CLUSTERS_FORMAT": "{gene}_{molecule}_{timepoint}_clusters.png",
+  "NUM_CONTOURS": 100,
+  "MAX_CELL_RADIUS": 300,
+  "DET_TOLERANCE": 0.00000001,
+  "PIXEL_PER_VOXEL": 16,
+  "VOXELS_PER_IMAGE": 512,
+  "STRIPE_NUM": 3,
+  "SPOTS_MIN": 50,
+  "MIN_SPOTS_NUM_IN_CYTOPLASM": 10,
+  "MIN_SPOT_NUM": 10,
+  "MIN_SNR": 1,
+  "MIN_HEIGHT_MAP_AREA": 20000,
+  "MRNA_GENES_LABEL" : ["ß-Actin", "Arhgdia", "Gapdh", "Pard3", "Pkp4", "Rab13"],
+  "PROTEINS_LABEL" : ["ß-Actin", "Arhgdia", "Gapdh", "Pard3"],
+  "MRNA_GENES" : ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"],
+  "PROTEINS" : ["beta_actin", "arhgdia", "gapdh", "pard3"],
+  "PLOT_COLORS" : ["#0A3950", "#1E95BB", "#A1BA6D", "#F16C1B", "#C02A18", "#E9CB45"],
+  "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/original/config.json"
+}
+

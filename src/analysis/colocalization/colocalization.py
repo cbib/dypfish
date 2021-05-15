@@ -17,7 +17,7 @@ from loguru import logger
 
 
 def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4):
-    colocalisation_score = {}
+    densities = {}
     stripes = constants.analysis_config['STRIPE_NUM']
     if molecule_type == 'mrna':
         timepoints = constants.dataset_config['TIMEPOINTS_MRNA']
@@ -25,25 +25,26 @@ def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4):
         timepoints = constants.dataset_config['TIMEPOINTS_PROTEIN']
 
     for gene in constants.analysis_config['PROTEINS']:
-        mean_densities, dense_voxels = [], []
+        median_densities, gene_clusters = [], []
         for timepoint in timepoints:
             image_set = ImageSet(analysis_repo, [molecule_type + "/{0}/{1}/".format(gene, timepoint)])
             arr = image_set.compute_normalised_quadrant_densities(quadrants_num=quadrants_num,
                                                                   peripheral_flag=False,
                                                                   stripes=stripes, stripes_flag=True)
-            aligned_densities = arr[:, 0].reshape(image_set.__sizeof__(), quadrants_num * stripes)
-            mean_densities_per_slice = np.nanmean(aligned_densities, axis=0)
-            mean_densities.append(mean_densities_per_slice)
-        colocalisation_score[gene] = mean_densities
+            num_images = arr.shape[0] // (quadrants_num * stripes)
+            aligned_densities = arr[:, 0].reshape(num_images, quadrants_num * stripes)
+            median_densities_per_slice = np.nanmedian(aligned_densities, axis=0)
+            median_densities.append(median_densities_per_slice)
+        densities[gene] = median_densities
 
-    return colocalisation_score
+    return densities
 
 
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
-    ["src/analysis/colocalization/config_original.json", []],
-    ["src/analysis/colocalization/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"]],
-    ["src/analysis/colocalization/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
+    ["src/analysis/colocalization/config_original.json"],
+    ["src/analysis/colocalization/config_nocodazole_arhgdia.json"],
+    ["src/analysis/colocalization/config_nocodazole_pard3.json"]
 ]
 
 # Figure 5D Analysis Colocalization Score (CS) for original data (5 figures)
@@ -59,12 +60,12 @@ if __name__ == '__main__':
         repo = helpers.open_repo()
 
         # Use annot=True if you want to add stats annotation in plots
-        mrna_cs = compute_relative_densities(repo, 'mrna', quadrants_num=8)
-        prot_cs = compute_relative_densities(repo, 'protein', quadrants_num=8)
+        mrna_densities = compute_relative_densities(repo, 'mrna', quadrants_num=8)
+        prot_densities = compute_relative_densities(repo, 'protein', quadrants_num=8)
 
         css, p_vals = [], {}
         for gene in constants.analysis_config['PROTEINS']:
-            cs, p, ranking = helpers.calculate_colocalization_score(mrna_cs[gene], prot_cs[gene],
+            cs, p, ranking = helpers.calculate_colocalization_score(mrna_densities[gene], prot_densities[gene],
                                                                     constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
                                                                     constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
             css.append(cs)
@@ -73,7 +74,7 @@ if __name__ == '__main__':
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS'].format(gene=gene)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
-            if len(conf[1]) == 0:
+            if "original" in conf[0]:
                 compute_heatmap(ranking, gene, tgt_fp)
             else:
                 compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
