@@ -9,7 +9,6 @@ from path import global_root_dir
 import time
 import constants
 import plot
-from plot import compute_heatmap
 import helpers
 import numpy as np
 from image_set import ImageSet
@@ -50,7 +49,7 @@ if __name__ == '__main__':
     repo = helpers.open_repo()
 
     mrna_densities = compute_relative_densities(repo, 'mrna', quadrants_num=8)
-    plot.plot_clusters('mrna', mrna_densities)
+    plot.plot_fine_grained_clusters('mrna', mrna_densities)
     prot_densities = compute_relative_densities(repo, 'protein', quadrants_num=8)
-    plot.plot_clusters('protein', prot_densities)
+    plot.plot_fine_grained_clusters('protein', prot_densities)
 

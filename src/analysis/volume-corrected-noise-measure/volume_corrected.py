@@ -3,18 +3,19 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
+
 import tqdm
+
 import constants
-from plot import bar_profile
-from image_set import ImageSet
+import plot
 from helpers import open_repo
+from image_set import ImageSet
 from path import global_root_dir
-from repository import H5RepositoryWithCheckpoint
 
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
-    ["src/analysis/volume-corrected-noise-measure/config_original.json", []],
-    ["src/analysis/volume-corrected-noise-measure/config_standard.json", []]
+    ["src/analysis/volume-corrected-noise-measure/config_original.json"],
+    ["src/analysis/volume-corrected-noise-measure/config_standard.json"]
 ]
 
 if __name__ == '__main__':
@@ -37,7 +38,7 @@ if __name__ == '__main__':
                     imageset = ImageSet(repo, ["{0}/{1}/{2}/".format(molecule_type, gene, timepoint)])
                     nm = imageset.compute_surface_corrected_nm()
                     nms.append(nm)
-                bar_profile(nms, tgt_fp, plot_colors[i])
+                plot.bar_profile(nms, tgt_fp, plot_colors[i])
         else:
             timepoint = '3h'
             nms = []
@@ -46,4 +47,4 @@ if __name__ == '__main__':
                 nms.append(imageset.compute_volume_corrected_nm())
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_VOLUME']
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-                bar_profile(nms, tgt_fp, plot_colors)
+                plot.bar_profile(nms, tgt_fp, plot_colors)

@@ -3,13 +3,15 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-import tqdm
-import constants
-from loguru import logger
 from random import *
+
 import numpy as np
+import tqdm
+from loguru import logger
+
+import constants
 import helpers
-from plot import plot_figure
+import plot
 from image_set import ImageSet
 from path import global_root_dir
 from repository import H5RepositoryWithCheckpoint
@@ -56,5 +58,5 @@ for gene in constants.analysis_config['MRNA_GENES']:
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot_figure(total_mads[0], total_mads[1], tgt_fp)
+plot.plot_figure(total_mads[0], total_mads[1], tgt_fp)
 logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])

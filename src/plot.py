@@ -25,9 +25,10 @@ from statannot import add_stat_annotation
 pd.set_option('display.max_rows', 1000)
 
 
-def bar_profile_median_timepoints(df: pd.DataFrame, palette, figname, gene, fixed_yscale=0):
+def bar_profile_median_timepoints(df: pd.DataFrame, palette, figname, fixed_yscale=0):
     """
-    Plots a barplot for 'd_of_c' column for 2 molecules at each timepoint for gene
+    Plots a barplot for degree of clustering timepoints analysis
+    Plots the 'd_of_c' column for 2 molecules at each timepoint for gene
     Dataframe df contains:
        - 'd_of_c' column to be plotted
        - 'Molecule' column containing either 'mrna' or 'protein'
@@ -264,7 +265,7 @@ def sns_violinplot(dd, my_pal, figname, plot_xlabels, x="Gene", y='value',
     plt.close()
 
 
-def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
+def sns_boxplot(dd, my_pal, figname, x="Gene", y="value"):
     fig, ax = plt.subplots()
     box = sns.boxplot(x=x, y=y, data=dd, palette=my_pal)
     box.set_xlabel("", fontsize=15)
@@ -279,6 +280,7 @@ def sns_boxplot(dd, my_pal, figname, x="Gene", y="value", hue='Quadrants'):
 def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: DensityStats,
                      molecule_list, mrna_timepoint_list, protein_timepoint_list):
     """
+    Formats the data for the sns.barplot
     The timepoint_list has to have the same order as in the mpi() function
     """
     plot_colors = constants.analysis_config['PLOT_COLORS']
@@ -318,7 +320,6 @@ def plot_boxplot_MPI(mrna_density_stats: DensityStats, protein_density_stats: De
                   "protein": str(helpers.color_variant(plot_colors[color_num], +80))}
         helpers.create_dir_if_needed_for_filepath(tgt_fp)
         sns_barplot(df, my_pal, tgt_fp, y="MPI", err="err")
-        logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
 
 def sns_barplot(dd, my_pal, figname, y="MPI", err="err"):
@@ -376,66 +377,13 @@ def plot_MPI(density_stats: DensityStats, molecule_type, figname):
     bar_profile_median(gene_2_mpis, errs, molecule_type, labels, figname)
 
 
-def compute_violin_plot_ratio(density_stats: DensityStats, molecule_type, figname,
-                              limit_threshold=6, groupby_key=['Gene'], term=""):
-    df = density_stats.df
-    if term != "":
-        df[groupby_key[0]] = df.apply(lambda row: term if term[2:len(term)] in row[groupby_key[0]] else row[groupby_key[0]], axis=1)
-    groups = [tp for tp, line in df.groupby(groupby_key, sort=False)]
-    df["MTOC_ratio"] = df.apply(lambda row: row['MTOC'] / row.filter(regex=("Non MTOC.*")).mean() if row.filter(
-        regex=("Non MTOC.*")).mean() != 0 else 0.0, axis=1)
-    dd = pd.melt(df, id_vars=groupby_key[0], value_vars=["MTOC_ratio"], var_name='Quadrants')
-    dd = dd.replace(0.000000, np.nan)
-    dd.dropna(inplace=True)
-
-    my_pal = {}
-    for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(groups)]):
-        my_pal[groups[i]] = color
-    outliers = helpers.detect_outliers(np.array(dd["value"]), limit_threshold)
-    dd = dd[~np.isin(dd["value"], outliers)]  # dd[dd["value"] < limit_threshold]
-    if molecule_type == 'mrna':
-        xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-    else:
-        xlabels = constants.analysis_config['PROTEINS_LABEL']
-    sns_violinplot(dd, my_pal, figname, xlabels, x=groupby_key[0], no_legend=False, rotation=45)
-
-
-def compute_categorical_violin_plot_ratio(density_stats: DensityStats, molecule_type, figname,
-                                          limit_threshold=6, groupby_key=['Gene'], term="", gene=""):
-    df = density_stats.df
-    if term != "":
-        df["Label"] = df.apply(
-            lambda row: term if term[2:len(term) - 1] in row[groupby_key[len(groupby_key) - 1]] else 'Control',
-            axis=1)
-
-    groups = [tp for tp, line in df.groupby(["Label"], sort=False)]
-    df["MTOC_ratio"] = df.apply(lambda row: row['MTOC'] / row.filter(regex=("Non MTOC.*")).mean() if row.filter(
-        regex=("Non MTOC.*")).mean() != 0 else 0.0, axis=1)
-    dd = pd.melt(df, id_vars=groupby_key[len(groupby_key) - 1], value_vars=["MTOC_ratio"], var_name='Quadrants')
-    if term != "":
-        dd["Quadrants"] = df["Label"].values
-    if gene != "":
-        dd["Gene"] = [gene for i in range(len(df["Label"].values))]
-    dd = dd.replace(0.000000, np.nan)
-    dd.dropna(inplace=True)
-
-    my_pal = {}
-    for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(groups)]):
-        my_pal[groups[i]] = color
-    outliers = helpers.detect_outliers(np.array(dd["value"]), limit_threshold)
-    dd = dd[~np.isin(dd["value"], outliers)]  # dd[dd["value"] < limit_threshold]
-    if molecule_type == 'mrna':
-        xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-    else:
-        xlabels = constants.analysis_config['MRNA_GENES_LABEL'][:4]
-    sns_violinplot(dd, my_pal, figname, xlabels, x="Gene", hue="Quadrants")
-
-
-def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, figname,
-                                   limit_threshold=6, log=False, groupby_key="Gene"):
+def enrichment_violin_plot(density_stats: DensityStats, molecule_type, figname,
+                           limit_threshold=6, log=False, groupby_key="Gene"):
+    '''
+    Formats data for mtoc enrichment violin plots
+    '''
     df = density_stats.df
     # melt dataframe and group together all non MTOC quadrant
-
     value_vars = [density_stats.mtoc_quadrant_label] + density_stats.quadrant_labels
     dd = pd.melt(df, id_vars=[groupby_key], value_vars=value_vars, var_name='Quadrants')
     for label in density_stats.quadrant_labels:
@@ -457,41 +405,6 @@ def compute_violin_plot_enrichment(density_stats: DensityStats, molecule_type, f
         xlabels = constants.analysis_config['MRNA_GENES_LABEL'][:4]
     sns_violinplot(dd, my_pal, figname, xlabels, x=groupby_key, hue=dd['Quadrants'], rotation=45)
 
-
-def compute_categorical_violin_plot_enrichment(density_stats: DensityStats, molecule_type, figname, limit_threshold=8, log=False,
-                                               groupby_key="Gene", term="", gene=""):
-    df = density_stats.df
-    value_vars = [density_stats.mtoc_quadrant_label] + density_stats.quadrant_labels
-
-    # melt dataframe and group together all non MTOC quadrant
-    groups = [tp for tp, line in df.groupby(groupby_key, sort=False)]
-    if term != "":
-        df[groupby_key] = df.apply(lambda row: term if term[2:len(term)] in row[groupby_key] else row["Gene"], axis=1)
-
-    dd = pd.melt(df, id_vars=[groupby_key], value_vars=value_vars,
-                 var_name='Quadrants')
-    for label in density_stats.quadrant_labels:
-        dd = dd.replace(label, 'Non MTOC')
-    if gene != "":
-        dd["Gene"] = [gene for i in range(len(df["Label"].values))]
-    dd = dd.replace(0.000000, np.nan)
-    outliers = helpers.detect_outliers(np.array(dd["value"]), limit_threshold)
-    dd = dd[~np.isin(dd["value"], outliers)]  # dd[dd["value"] < limit_threshold]
-    dd.dropna(inplace=True)
-    # apply log scale
-    if (log):
-        dd['value'] = dd['value'].apply(np.log2)
-    # Choose color palette
-    my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#1a8cff"}
-
-    # remove outliers
-    if molecule_type == 'mrna':
-        xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-    else:
-        xlabels = constants.analysis_config['MRNA_GENES_LABEL'][:4]
-    sns_violinplot(dd, my_pal, figname, xlabels, x=groupby_key, hue=dd['Quadrants'])
-
-
 def profile(profiles, genes, num_contours, figname):
     plot_colors = constants.analysis_config['PLOT_COLORS']
     fig = plt.figure(figsize=(15, 10))
@@ -510,6 +423,9 @@ def profile(profiles, genes, num_contours, figname):
 
 
 def plot_figure(total_mads_arhgdia, total_mads_arhgdia_cultured, figname):
+    '''
+    Used in stability_peripheral_fraction
+    '''
     fig, ax = plt.subplots()
     ax.tick_params(right=False, top=False, bottom=False, direction='inout', length=8, width=3, colors='black')
     for axis in ['left']:
@@ -525,6 +441,9 @@ def plot_figure(total_mads_arhgdia, total_mads_arhgdia_cultured, figname):
 
 
 def spline_graph(grid_mat, figname, band_n=100):
+    '''
+    Used for muscle data
+    '''
     fig, ax = plt.subplots()
     x_mrna = np.arange(0, band_n, 0.5)
     fact = np.max(np.array(grid_mat)) / 10
@@ -539,6 +458,9 @@ def spline_graph(grid_mat, figname, band_n=100):
 
 
 def heatmap(grid_mat, figname, band_n=100):
+    '''
+    Used in density_analysis (muscle data)
+    '''
     fig, ax = plt.subplots()
     ax.set_yticks([])
     major_ticks = np.arange(0, int(band_n) + 1, 1)
@@ -550,7 +472,8 @@ def heatmap(grid_mat, figname, band_n=100):
     plt.close()
 
 
-def compute_heatmap(ranking, gene, figname, size=4, xtickslabel=['2h', '3h', '5h', '7h'], ytickslabel=['2h', '3h', '4h', '5h']):
+def plot_heatmap(ranking, gene, figname, size=4,
+                 xtickslabel=['2h', '3h', '5h', '7h'], ytickslabel=['2h', '3h', '4h', '5h']):
     fig, ax = plt.subplots()
     im = np.flipud(np.kron(ranking, np.ones((10, 10))))
     plt.imshow(im, extent=[0, size, 0, size], cmap='GnBu', interpolation='nearest')
@@ -578,22 +501,66 @@ def add_annot(data, gene_list, ax, test):
                         box_pairs=box_pairs,
                         test=test, text_format='star', loc='inside', verbose=2)
 
-def plot_clusters(molecule_type, all_densities, slices=3, quadrants=8):
+
+def plot_clusters(molecule_type, all_densities, peripheral_flag=False):
+    '''
+    Plots medians of densities for cells subdivision in 4 quadrants
+    Number of quadrants is fixed, will not work with a different value
+    '''
+    quadrants = 4
+    color_map = {0: 'lightgray', 1: 'lightcoral', 2: 'lightblue'}
+    frame = pd.DataFrame(1, index=[0], columns=range(quadrants))
+    groups = all_densities.groupby('Gene')
+    for gene, group in groups:
+        densities = np.median(group[['MTOC', "Non MTOC0", "Non MTOC1", "Non MTOC2"]], axis=0)
+        fig, ax = plt.subplots(figsize=(8, 8))
+        # add mtoc green cirlce for the mtoc contining quadrant
+        mtoc_colors = ['lightseagreen', 'white', 'white' 'white'] # mtoc quadrant first
+        ax.pie(frame.loc[0], colors=mtoc_colors, radius=1.05)
+        clustered_indices = np.argwhere(densities > np.mean(densities) + np.std(densities)).flatten()
+        underclusstered_indices = np.argwhere(densities < np.mean(densities) - np.std(densities)).flatten()
+        categorical_densities = np.zeros(quadrants)
+        categorical_densities[clustered_indices] = 1
+        categorical_densities[underclusstered_indices] = 2
+        colors = [color_map[cat] for cat in categorical_densities]
+        ax.pie(frame.loc[0], colors=colors, radius=1,
+               wedgeprops={'edgecolor': 'darkgray', 'linewidth': 1,
+                           'linestyle': 'dashed', 'antialiased': True})
+        if peripheral_flag:
+            colors = ['whitesmoke'] * 8 # no density is meaured within the cytoplasm > peripheral_fraction_thershold
+            ax.pie(frame.loc[0], colors=colors, radius=0.7,
+                   wedgeprops={'edgecolor': 'darkgray', 'linewidth': 1,
+                               'linestyle': 'dashed', 'antialiased': True})
+        white_circle = plt.Circle((0, 0), 0.4, color='white', linewidth=0)
+        ax.add_patch(white_circle)
+
+        tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_DENSITY_MAP'].format(gene=gene,
+                                                                                            molecule_type=molecule_type)
+        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                              tgt_image_name)
+        plt.savefig(tgt_fp)
+        logger.info("Created density map figure for {} {} at {}", gene, molecule_type, tgt_fp)
+
+
+def plot_fine_grained_clusters(molecule_type, all_densities):
+    '''
+    Plots density / cluster maps for fixed quantisation (8 quadrants, 3 stripes)
+    will not work if quantisation was done with different values
+    '''
+    slices, quadrants = 3, 8
     if molecule_type == 'mrna':
         timepoints = constants.dataset_config['TIMEPOINTS_MRNA']
     else:
         timepoints = constants.dataset_config['TIMEPOINTS_PROTEIN']
 
-    cmap = matplotlib.colors.ListedColormap(['lightgray', 'lightcoral', 'lightblue'])
+    color_map = {0: 'lightgray', 1: 'lightcoral', 2: 'lightblue'}
     frame = pd.DataFrame(1, index=[0], columns=range(quadrants))
     genes = list(all_densities.keys())
     for gene in genes:
         all_segments = pd.DataFrame(0, index=timepoints, columns=range(slices * quadrants))
         fig, ax = plt.subplots(figsize=(8, 8))
         # add mtoc green cirlce for the mtoc contining quadrant
-        cmap_mtoc = matplotlib.colors.ListedColormap(['lightseagreen', 'white'])
-        mtoc_quadrant = pd.Series([0, 1, 1, 1, 1, 1, 1, 1]) # mtoc quadrant always first
-        mtoc_colors = cmap_mtoc(mtoc_quadrant)
+        mtoc_colors = ['lightseagreen'] ; mtoc_colors.extend(['white'] * 7) # mtoc quadrant always first
         ax.pie(frame.loc[0], colors=mtoc_colors, radius=1.55)
         for tp_num, tp in enumerate(timepoints):
             densities = all_densities[gene][tp_num]
@@ -603,7 +570,7 @@ def plot_clusters(molecule_type, all_densities, slices=3, quadrants=8):
             all_segments.loc[tp][underclusstered_indices] = 2
             for slice_num in range(slices): # slices go in order
                 radius = 1.5 - slice_num / slices # 1.5 - 1.2 - 0.9
-                colors = cmap(all_segments.loc[tp][slice_num * quadrants : (slice_num+1) * quadrants])
+                colors = [color_map[cat] for cat in all_segments.loc[tp][slice_num * quadrants : (slice_num+1) * quadrants]]
                 ax.pie(frame.loc[0], colors=colors, radius=radius,
                        wedgeprops={"edgecolor":"darkgray", 'linewidth': 1,
                                    'linestyle': 'dashed', 'antialiased': True})

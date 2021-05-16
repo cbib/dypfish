@@ -3,16 +3,17 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
+
+import numpy as np
+from loguru import logger
+
+import constants
+import helpers
+import plot
+from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
 
-from loguru import logger
-import constants
-import plot
-from plot import compute_heatmap
-import helpers
-import numpy as np
-from image_set import ImageSet
 
 def compute_peripheral_relative_density_per_quadrants_and_slices(analysis_repo, molecule_type, quadrants_num=4):
     cs_dict = {}
@@ -51,7 +52,7 @@ if __name__ == '__main__':
         p_vals[gene] = p
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS'].format(gene=gene)
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-        compute_heatmap(ranking, gene, tgt_fp)
+        plot.plot_heatmap(ranking, gene, tgt_fp)
 
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS_HISTOGRAM']
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
