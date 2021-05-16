@@ -47,10 +47,10 @@ def compute_density_per_quadrant(analysis_repo, molecule_type, groupby_key, quad
                         quadrant_labels=quadrant_labels, mtoc_quadrant_label='MTOC')
 
 configurations = [
-  #  ["src/analysis/mtoc/config_original.json", "Gene", [4, 4]], # it was 3 for proteins
-  #  ["src/analysis/mtoc/config_nocodazole_arhgdia.json", "Gene", [4, 4]],
-  #  ["src/analysis/mtoc/config_nocodazole_pard3.json", "Gene", [4, 4]],
-  #  ["src/analysis/mtoc/config_prrc2c.json", "Timepoint", [4, 4]]
+    ["src/analysis/mtoc/config_original.json", "Gene", [4, 4]], # it was 3 for proteins
+    ["src/analysis/mtoc/config_nocodazole_arhgdia.json", "Gene", [4, 4]],
+    ["src/analysis/mtoc/config_nocodazole_pard3.json", "Gene", [4, 4]],
+    ["src/analysis/mtoc/config_prrc2c.json", "Timepoint", [4, 4]]
     ["src/analysis/mtoc/config_periph_original.json", "Gene", [4, 4]],
     ["src/analysis/mtoc/config_periph_prrc2c.json", "Timepoint", [4, 4]]
 ]
@@ -76,6 +76,7 @@ if __name__ == '__main__':
         mrna_genes = constants.analysis_config['MRNA_GENES']
         proteins = constants.analysis_config['PROTEINS']
         mpi_sample_size = constants.analysis_config['MPI_SUB_SAMPLE_SIZE']
+        peripheral_flag = "periph" in conf[0]
 
         group_key = group_keys.get(conf[0], ['Gene'])
         dfs = []
@@ -83,17 +84,11 @@ if __name__ == '__main__':
                                                             ["mrna", "protein"], conf[2]):
             logger.info("Running MPI analysis for {}", conf[0])
             quadrant_labels = build_labels(quadrants_num=quads)
-            if not "periph" in conf[0]:
-                density_stats = compute_density_per_quadrant(analysis_repo=repo, molecule_type=molecule_type,
-                                                             quadrants_num=quads, quadrant_labels=quadrant_labels,
-                                                             molecule_list=genes, time_points=timepoints,
-                                                             groupby_key=group_key, mpi_sample_size=mpi_sample_size)
-            else:
-                density_stats = compute_density_per_quadrant(analysis_repo=repo, molecule_type=molecule_type,
+            density_stats = compute_density_per_quadrant(analysis_repo=repo, molecule_type=molecule_type,
                                                              quadrants_num=quads, quadrant_labels=quadrant_labels,
                                                              molecule_list=genes, time_points=timepoints,
                                                              groupby_key=group_key, mpi_sample_size=mpi_sample_size,
-                                                             peripheral_flag=True)
+                                                             peripheral_flag=peripheral_flag)
             dfs.append(density_stats)
 
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MTOC_ENRICHMENT'].format(molecule_type=molecule_type)
@@ -101,7 +96,7 @@ if __name__ == '__main__':
             plot.enrichment_violin_plot(density_stats, molecule_type, tgt_fp,
                                         groupby_key=conf[1], limit_threshold=OUTLIERS_THRESHOLD)
             logger.info("Created figure {}", tgt_fp)
-            plot.plot_clusters(molecule_type, density_stats.df)
+            plot.plot_clusters(molecule_type, density_stats.df, peripheral_flag=peripheral_flag)
 
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type=molecule_type)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
@@ -111,4 +106,3 @@ if __name__ == '__main__':
 
         if "original" in conf[0]:
             plot.plot_boxplot_MPI(dfs[0], dfs[1], constants.analysis_config['PROTEINS'], tp_mrna, tp_proteins)
-            logger.info("Created figure {}", tgt_fp)

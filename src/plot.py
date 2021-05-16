@@ -510,15 +510,15 @@ def plot_clusters(molecule_type, all_densities, peripheral_flag=False):
     quadrants = 4
     color_map = {0: 'lightgray', 1: 'lightcoral', 2: 'lightblue'}
     frame = pd.DataFrame(1, index=[0], columns=range(quadrants))
-    groups = all_densities.groupby('Gene')
-    for gene, group in groups:
+    groups = all_densities.groupby(['Gene', 'Timepoint'])
+    for (gene, tp), group in groups:
         densities = np.median(group[['MTOC', "Non MTOC0", "Non MTOC1", "Non MTOC2"]], axis=0)
         fig, ax = plt.subplots(figsize=(8, 8))
         # add mtoc green cirlce for the mtoc contining quadrant
-        mtoc_colors = ['lightseagreen', 'white', 'white' 'white'] # mtoc quadrant first
+        mtoc_colors = ['lightseagreen', 'white', 'white', 'white'] # mtoc quadrant first
         ax.pie(frame.loc[0], colors=mtoc_colors, radius=1.05)
-        clustered_indices = np.argwhere(densities > np.mean(densities) + np.std(densities)).flatten()
-        underclusstered_indices = np.argwhere(densities < np.mean(densities) - np.std(densities)).flatten()
+        clustered_indices = np.argwhere(densities > 1.05).flatten()
+        underclusstered_indices = np.argwhere(densities < 0.9).flatten()
         categorical_densities = np.zeros(quadrants)
         categorical_densities[clustered_indices] = 1
         categorical_densities[underclusstered_indices] = 2
@@ -528,13 +528,14 @@ def plot_clusters(molecule_type, all_densities, peripheral_flag=False):
                            'linestyle': 'dashed', 'antialiased': True})
         if peripheral_flag:
             colors = ['whitesmoke'] * 8 # no density is meaured within the cytoplasm > peripheral_fraction_thershold
-            ax.pie(frame.loc[0], colors=colors, radius=0.7,
+            ax.pie(frame.loc[0], colors=colors, radius=0.8,
                    wedgeprops={'edgecolor': 'darkgray', 'linewidth': 1,
                                'linestyle': 'dashed', 'antialiased': True})
-        white_circle = plt.Circle((0, 0), 0.4, color='white', linewidth=0)
+        white_circle = plt.Circle((0, 0), 0.3, color='white', linewidth=0)
         ax.add_patch(white_circle)
 
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_DENSITY_MAP'].format(gene=gene,
+                                                                                            timepoint=tp,
                                                                                             molecule_type=molecule_type)
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)

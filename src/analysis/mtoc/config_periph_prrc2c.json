@@ -1,9 +1,9 @@
 {
   "PNG_IMAGES_MIME_TYPE": "image/png",
   "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/mtoc/output",
-  "FIGURE_NAME_FORMAT_PERIPH_MPI": "{molecule_type}_prrc2c_peripheral_MPI.png",
-  "FIGURE_NAME_FORMAT_MTOC_PERIPH_ENRICHMENT": "{molecule_type}_prrc2c_peripheral_MTOC_enrichment.png",
-  "FIGURE_NAME_FORMAT_PERIPH_DENSITY_MAP": "{molecule_type}_{gene}_{timepoint}_prrc2c_peripheral_density_map.png",
+  "FIGURE_NAME_FORMAT_MPI": "{molecule_type}_prrc2c_peripheral_MPI.png",
+  "FIGURE_NAME_FORMAT_MTOC_ENRICHMENT": "{molecule_type}_prrc2c_peripheral_MTOC_enrichment.png",
+  "FIGURE_NAME_FORMAT_DENSITY_MAP": "{molecule_type}_{gene}_{timepoint}_prrc2c_peripheral_density_map.png",
   "MPI_SUB_SAMPLE_SIZE": 100,
   "PERIPHERAL_FRACTION_THRESHOLD": 30,
   "NUM_CONTOURS": 100,
