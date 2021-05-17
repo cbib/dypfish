@@ -3,16 +3,17 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
+import time
+
+import numpy as np
+from loguru import logger
+
+import constants
+import helpers
+import plot
+from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
-
-import time
-import constants
-import plot
-import helpers
-import numpy as np
-from image_set import ImageSet
-from loguru import logger
 
 
 def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4):

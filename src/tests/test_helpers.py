@@ -81,3 +81,10 @@ class TestHelpers(TestCase):
         points2 = helpers.random_points_in_sphere(center, radius, 400)
         entropy2 = helpers.compute_entropy(points2, k=15, norm='euclidean')
         self.assertLess(entropy1, entropy2) # increases with volume
+
+    def test_roll_densities_mtoc_array(self):
+        arr = np.array([[1, 0], [2, 0], [3, 1], [4, 0],
+                        [11, 0], [12, 1], [13, 0], [14, 0]])
+        result = helpers.roll_densities_mtoc_array(arr, slices=2)
+        self.assertEqual(result[0, 1], 1)
+        self.assertEqual(result[4, 1], 1)

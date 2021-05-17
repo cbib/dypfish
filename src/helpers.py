@@ -398,6 +398,20 @@ def random_points_in_sphere(center, radius, num_points) -> np.ndarray:
     return p
 
 
+def roll_densities_mtoc_array(densities, slices=3):
+    '''
+    Given a 2d numpy array with densities for all slices, where
+    first column contains densities and second column encods the mtoc containing quadrants,
+    roll all the slices so that the mtoc containing quadrant is the first for all slices
+    '''
+    slices = np.split(densities, slices)
+    for idx, slice in enumerate(slices):
+        mtoc_quadrant = np.argwhere(slice[:,1] == 1)[0][0]
+        slice = np.roll(slice, -mtoc_quadrant, 0)
+        slices[idx] = slice
+    return np.vstack(slices)
+
+
 def compute_entropy(x, k=1, norm='max', min_dist=0.):
     """
     Estimates the entropy H of a random variable x (in nats) based on

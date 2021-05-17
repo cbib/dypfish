@@ -69,8 +69,7 @@ class ImageWithIntensities(Image):
     def compute_signal_from_periphery(self) -> np.ndarray:
         """
          np.ndarray of floats (total intensity for each distance percentage from the periphery)
-         normalization is the responsibility of the caller
-         """
+        """
         intensities = np.multiply(self.get_intensities(), self.get_cytoplasm_mask())
         cell_mask_distance_map = self.get_cell_mask_distance_map()
         intensities_sums = np.zeros(constants.analysis_config['NUM_CONTOURS'])

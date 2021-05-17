@@ -22,27 +22,50 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
     def is_a(repo: Repository, path: str):
         return Image3d.is_a(repo, path) and ImageWithIntensities.is_a(repo, path)
 
+    def compute_cytoplasmic_intensities(self):
+        intensities = self.get_intensities()
+        cytoplasm_mask = self.get_cytoplasm_mask()
+        height_map = self.adjust_height_map()
+        cytoplasm_mask[height_map == 0.5] = 0
+        cytoplasmic_intensities = np.multiply(intensities, cytoplasm_mask)
+        return cytoplasmic_intensities
+
     def compute_cytoplasmic_density(self):
         # compute signal density of the cytoplasm
         cytoplasmic_intensity_count = self.compute_cytoplasmic_total_intensity()
         cytoplasmic_volume = self.compute_cytoplasmic_volume()
         return cytoplasmic_intensity_count / cytoplasmic_volume
 
-    def compute_intensities_normalized_distance_to_nucleus(self, quartile=.68) -> float:
+    def compute_signal_from_periphery(self) -> np.ndarray:
+        """
+         np.ndarray of floats (total intensity for each distance percentage from the periphery)
+         Does not take into the account intensities where the height_map was adjusted
+         """
+        cytoplasm_mask = self.get_cytoplasm_mask()
+        cytoplasm_mask[self.adjust_height_map() == 0.5] = 0
+        intensities = np.multiply(self.get_intensities(), cytoplasm_mask)
+        cell_mask_distance_map = self.get_cell_mask_distance_map()
+        intensities_sums = np.zeros(constants.analysis_config['NUM_CONTOURS'])
+        for i in range(0, constants.analysis_config['NUM_CONTOURS']):
+            intensities_sums[i] = intensities[cell_mask_distance_map <= i + 1].sum()
+        return intensities_sums
+
+    def compute_intensities_normalized_distance_to_nucleus(self, quantile=.68) -> float:
         height_map = self.get_cytoplasm_height_map()
         IF = self.compute_cytoplasmic_intensities()
         mean_signal = np.mean(IF[IF > 0])
-        peaks = np.argwhere(IF > mean_signal * 1.8) # arbitrary value
+        peaks = np.argwhere(IF > mean_signal + np.std(IF))
         peaks_z = np.array([height_map[p[0], p[1]] // 2 for p in peaks])
         peaks = np.hstack((peaks, peaks_z[:, None])).astype(int)
         dists = self.compute_cytoplasmic_coordinates_peripheral_distance(peaks)
         valid_dists = dists[~np.isnan(dists)]
-        dists = constants.analysis_config['NUM_CONTOURS'] - valid_dists
-        assert np.all(dists >= 0), "Negative distance to nucleus"
-        if len(dists) == 0:
-            normalized_dist_to_nucleus = dists
+        dists_from_nucleus = constants.analysis_config['NUM_CONTOURS'] - valid_dists
+        assert np.all(dists_from_nucleus >= 0), "Negative distance to nucleus"
+        if len(dists_from_nucleus) == 0:
+            normalized_dist_to_nucleus = -1
+            logger.warning("Invalid centrality for {}", self._path)
         else:
-            normalized_dist_to_nucleus = np.quantile(dists, quartile) / constants.analysis_config['NUM_CONTOURS']
+            normalized_dist_to_nucleus = np.quantile(dists_from_nucleus, quantile) / constants.analysis_config['NUM_CONTOURS']
 
         return normalized_dist_to_nucleus
 

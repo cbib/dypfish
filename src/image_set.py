@@ -9,6 +9,8 @@ import tqdm
 from loguru import logger
 
 import constants
+import helpers
+from image import Image, ImageWithMTOC
 from image3d import Image3d, Image3dMultiNucleus
 from image3dWithIntensities import Image3dWithIntensities, Image3dWithIntensitiesAndMTOC
 from image3dWithSpots import Image3dWithSpots, Image3dWithSpotsAndMTOC
@@ -19,7 +21,6 @@ from imageWithSpotsAndIntensities import ImageWithSpotsAndIntensitiesAndMTOC, Im
 from imageWithZlines import imageMultiNucleusWithSpotsAndZlines, ImageMultiNucleus, imageWithSpotsAndZlines, \
     ImageMultiNucleusWithSpots
 from repository import Repository
-from image import Image, ImageWithMTOC
 
 
 class ImageSet(object):
@@ -271,7 +272,7 @@ class ImageSet(object):
         return [image.compute_degree_of_clustering() for image in self.images]
 
     def compute_normalised_quadrant_densities(self, quadrants_num=4, peripheral_flag=False,
-                                              stripes=3, stripes_flag = False) -> np.array:
+                                              stripes=1, stripes_flag=False) -> np.array:
         """
         computes normalized densities per slice (quadrant by default) for all images
         """
@@ -281,9 +282,8 @@ class ImageSet(object):
             mdmq = image.get_or_compute_quadrant_densities(quadrants_num, peripheral_flag, stripes, stripes_flag)
             mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
             if (mdmq[:,0].sum() > 0):
-                # the mtoc containing quadrant first
-                mtoc_quadrant_position = np.argwhere(mdmq[:, 1] == 1)[0][0]
-                mdmq = np.roll(mdmq, -mtoc_quadrant_position, 0)
+                # just in case, make sure that the mtoc containing quadrant is always first
+                mdmq = helpers.roll_densities_mtoc_array(mdmq, slices=stripes)
                 assert (mdmq[0, 1] == 1)
                 all_densities = np.append(all_densities, mdmq, axis=0)
             else:

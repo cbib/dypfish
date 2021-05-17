@@ -41,16 +41,6 @@ class TestImageSet(TestCase):
                 self.assertEqual(image.get_spots().shape[1], 3)
             self.assertEqual(image.get_intensities().shape, (512, 512))
 
-    # major bottleneck identified in draw polygon in 2D
-    def test_compute_spots_signal_from_periphery(self):
-        image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
-        self.assertEqual(len(image_set.images), 5, "Expected 5 images")
-        peripheral_signals = image_set.compute_signal_from_periphery()
-        self.assertEqual(peripheral_signals.shape, (5, 100))
-        spots_counts = [img.compute_cytoplasmic_total_spots() for img in image_set.images]
-        self.assertTrue(np.all(peripheral_signals[:,99] == np.array(spots_counts)))
-        self.assertAlmostEqual(peripheral_signals.sum(), 20166.0)
-
     def test_compute_areas_from_periphery(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/3h/'])
         self.assertEqual(len(image_set.images), 5, "Expected 5 images")
@@ -60,15 +50,24 @@ class TestImageSet(TestCase):
         self.assertTrue(np.allclose(peripheral_areas[:,99], np.array(cytoplasmic_areas)))
         self.assertAlmostEqual(peripheral_areas.sum(), 630578.8507560815, places=5)
 
-    def test_compute_areas_from_periphery(self):
+    def test_compute_volumes_from_periphery(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/3h/'])
         self.assertEqual(len(image_set.images), 5, "Expected 5 images")
         peripheral_volumes = image_set.compute_volumes_from_periphery()
         self.assertEqual(peripheral_volumes.shape, (5, 100))
         cytoplasmic_volumes = [img.compute_cytoplasmic_volume() for img in image_set.images]
-        self.assertTrue(np.allclose(peripheral_volumes[:,99], np.array(cytoplasmic_volumes)))
         self.assertTrue(np.allclose(peripheral_volumes[:, 99], np.array(cytoplasmic_volumes)))
         self.assertAlmostEqual(peripheral_volumes.sum(), 121874.96804733, places=5)
+
+    # major bottleneck identified in draw polygon in 2D
+    def test_compute_spots_signal_from_periphery(self):
+        image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
+        self.assertEqual(len(image_set.images), 5, "Expected 5 images")
+        peripheral_signals = image_set.compute_signal_from_periphery()
+        self.assertEqual(peripheral_signals.shape, (5, 100))
+        spots_counts = [img.compute_cytoplasmic_total_spots() for img in image_set.images]
+        self.assertTrue(np.all(peripheral_signals[:, 99] == np.array(spots_counts)))
+        self.assertAlmostEqual(peripheral_signals.sum(), 20166.0)
 
     def test_compute_intensities_signal_from_periphery(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/4h/'])
@@ -77,7 +76,7 @@ class TestImageSet(TestCase):
         cytoplasmic_intensities = [img.compute_cytoplasmic_total_intensity() for img in image_set.images]
         self.assertEqual(peripheral_signals.shape, (5, 100))
         self.assertTrue(np.allclose(peripheral_signals[:, 99], np.array(cytoplasmic_intensities)))
-        self.assertAlmostEqual(peripheral_signals.sum(), 134197801037.0)
+        self.assertAlmostEqual(peripheral_signals.sum(), 29384734352.0)
 
     def test_compute_cytoplasmic_spots_fractions_per_periphery(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/3h/'])
@@ -96,7 +95,7 @@ class TestImageSet(TestCase):
         peripheral_fractions = image_set.compute_cytoplasmic_intensities_fractions_per_periphery()
         self.assertEqual(peripheral_fractions.shape, (5, 100))
         self.assertTrue(np.all(peripheral_fractions[:, 99] == 1))
-        self.assertAlmostEqual(peripheral_fractions.sum(), 248.3452712285, places=5)
+        self.assertAlmostEqual(peripheral_fractions.sum(), 126.65345873037, places=5)
 
     def test_compute_cytoplasmic_spots_counts(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
@@ -128,8 +127,8 @@ class TestImageSet(TestCase):
         res = image_set.compute_normalised_quadrant_densities()
         mtoc_density = res[res[:, 1] == 1].sum() / len(res[res[:, 1] == 1])
         non_mtoc_density = res[res[:, 1] == 0].sum() / len(res[res[:, 1] == 0])
-        self.assertAlmostEqual(mtoc_density, 1.97429363850617, places=3)
-        self.assertAlmostEqual(non_mtoc_density, 1.07003349383537, places=3)
+        self.assertAlmostEqual(mtoc_density, 1.98375276421, places=3)
+        self.assertAlmostEqual(non_mtoc_density, 1.0445809579196, places=3)
 
     def test_mtoc_is_in_leading_edge(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
@@ -151,14 +150,14 @@ class TestImageSet(TestCase):
     def test_compute_cytoplasmic_intensities_centrality(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/3h/'])
         result = np.sort(image_set.compute_cytoplasmic_intensities_centrality())
-        self.assertAlmostEqual(np.sum(result), 4.16, places=2)
-        self.assertAlmostEqual(result[1], 0.77, places=5)
+        self.assertAlmostEqual(np.sum(result), 3.89, places=2)
+        self.assertAlmostEqual(result[1], 0.73, places=5)
 
     def test_compute_intensities_cytoplasmic_spread(self):
         image_set = ImageSet(self.repo, path_list=['protein/arhgdia/2h/'])
         result = np.sort(image_set.compute_intensities_cytoplasmic_spread())
-        self.assertAlmostEqual(result.sum(), 3.06543402682, places=5)
-        self.assertAlmostEqual(result[1], 0.60985583417, places=5)
+        self.assertAlmostEqual(result.sum(), 3.0812597654, places=5)
+        self.assertAlmostEqual(result[1], 0.611584381, places=5)
 
     def test_compute_surface_corrected_nm(self):
         logger.error("child class functions not tested?")
@@ -194,20 +193,20 @@ class TestImageSet(TestCase):
         num_images = image_set.__sizeof__()
         self.assertEqual(num_images, image_set.__sizeof__())
         self.assertAlmostEqual(result1[result1[:, 1] == 1][:, 0].sum() / num_images,
-                               1.252835778, places=5)  # MTOC quadrant density
+                               1.098770606, places=5)  # MTOC quadrant density
         self.assertAlmostEqual(result1[result1[:, 1] == 0][:, 0].sum() / (num_images * 7),
-                               1.268422859, places=5)  # non MTOC quadtant density
+                               0.865466580, places=5)  # non MTOC quadtant density
         result2 = image_set.compute_normalised_quadrant_densities(quadrants_num=8, stripes=3, stripes_flag=True)
         self.assertAlmostEqual(result2[result2[:, 1] == 1][:, 0].sum() / (3 * num_images),
-                               1.677230542, places=5)  # MTOC quadrant density
+                               0.9803183396, places=5)  # MTOC quadrant density
         self.assertAlmostEqual(result2[result2[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3),
-                               1.6165734289, places=5)  # non MTOC quadtant density
+                               0.6801687989, places=5)  # non MTOC quadtant density
         result3 = image_set.compute_normalised_quadrant_densities(quadrants_num=8, peripheral_flag=True,
                                                                   stripes=3, stripes_flag=True)
         self.assertAlmostEqual(result3[result3[:, 1] == 1][:, 0].sum() / (3 * num_images),
-                               2.366784594, places=5)  # MTOC quadrant density
+                               0.126123087, places=5)  # MTOC quadrant density
         self.assertAlmostEqual(result3[result3[:, 1] == 0][:, 0].sum() / (num_images * 7 * 3),
-                               2.139003827, places=5)  # non MTOC quadtant density
+                               0.011356787, places=5)  # non MTOC quadtant density
 
     def test_compute_zline_distance(self):
         self.skipTest("Skipping for inefficiency reasons")

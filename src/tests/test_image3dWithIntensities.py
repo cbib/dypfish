@@ -34,11 +34,24 @@ class TestImage3dWithIntensities(TestCase):
 
     def test_compute_cytoplasmic_density(self):
         result = self.img.compute_cytoplasmic_density()
-        self.assertAlmostEqual(result, 2065083.4523325, places=5)
+        self.assertAlmostEqual(result, 1771979.4115436368, places=5)
 
     def test_compute_intensities_normalized_cytoplasmic_spread(self):
         spread = self.img.compute_intensities_normalized_cytoplasmic_spread()
-        self.assertAlmostEqual(spread, 0.609855834172, places=5)
+        self.assertAlmostEqual(spread, 0.611584381061, places=5)
+
+    def test_compute_cytoplasmic_intensities(self):
+        result = self.img.compute_cytoplasmic_intensities()
+        self.assertEqual(result.sum(), 1178283127.0)
+
+    def test_compute_signal_from_periphery(self):
+        peripheral_intensities = self.img.compute_signal_from_periphery()
+        self.assertEqual(peripheral_intensities.shape[0], 100)
+        # test an arbitrary value
+        self.assertEqual(peripheral_intensities[10], 22178801.0)
+        self.assertTrue(all(
+            peripheral_intensities[i] <= peripheral_intensities[i + 1] for i in range(len(peripheral_intensities) - 1)))
+        self.assertAlmostEqual(peripheral_intensities.sum(), 50951395310.0)
 
     def test_compute_clustering_indices(self):
         logger.error("This function is not tested")
