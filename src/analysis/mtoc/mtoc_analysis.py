@@ -48,11 +48,11 @@ def compute_density_per_quadrant(analysis_repo, molecule_type, groupby_key, quad
 
 configurations = [
     ["src/analysis/mtoc/config_original.json", "Gene", [4, 4]],
-   # ["src/analysis/mtoc/config_nocodazole_arhgdia.json", "Gene", [4, 4]],
-   # ["src/analysis/mtoc/config_nocodazole_pard3.json", "Gene", [4, 4]],
-   # ["src/analysis/mtoc/config_prrc2c.json", "Timepoint", [4, 4]],
-   # ["src/analysis/mtoc/config_periph_original.json", "Gene", [4, 4]],
-   # ["src/analysis/mtoc/config_periph_prrc2c.json", "Timepoint", [4, 4]]
+    ["src/analysis/mtoc/config_nocodazole_arhgdia.json", "Gene", [4, 4]],
+    ["src/analysis/mtoc/config_nocodazole_pard3.json", "Gene", [4, 4]],
+    ["src/analysis/mtoc/config_prrc2c.json", "Timepoint", [4, 4]],
+    ["src/analysis/mtoc/config_periph_original.json", "Gene", [4, 4]],
+    ["src/analysis/mtoc/config_periph_prrc2c.json", "Timepoint", [4, 4]]
 ]
 
 # TODO use this info when building the DensityStats objects
