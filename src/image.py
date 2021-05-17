@@ -211,6 +211,7 @@ class ImageWithMTOC(Image):
     def get_quadrants_and_slices_densities(self, quadrants_num=4, stripes=3, stripes_flag=True):
         return self.compute_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=False,
                                                stripes=stripes, stripes_flag=stripes_flag)
+        return value
 
     @helpers.checkpoint_decorator(PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX, dtype=np.float)
     def get_peripheral_quadrants_and_slices_densities(self, quadrants_num=4, peripheral_flag=True,

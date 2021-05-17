@@ -4,7 +4,6 @@
   "FIGURE_NAME_FORMAT_CS": "{gene}_original_colocalization_score.png",
   "FIGURE_NAME_FORMAT_CS_HISTOGRAM": "original_colocalization_score.png",
   "MPI_SUB_SAMPLE_SIZE": 400,
-  "PERIPHERAL_FRACTION_THRESHOLD": 30,
   "NUM_CONTOURS": 100,
   "MAX_CELL_RADIUS": 300,
   "DET_TOLERANCE": 0.00000001,

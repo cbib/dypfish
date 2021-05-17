@@ -541,6 +541,7 @@ def plot_clusters(molecule_type, all_densities, peripheral_flag=False):
                               tgt_image_name)
         plt.savefig(tgt_fp)
         logger.info("Created density map figure for {} {} at {}", gene, molecule_type, tgt_fp)
+        plt.close()
 
 
 def plot_fine_grained_clusters(molecule_type, all_densities):
@@ -559,11 +560,11 @@ def plot_fine_grained_clusters(molecule_type, all_densities):
     genes = list(all_densities.keys())
     for gene in genes:
         all_segments = pd.DataFrame(0, index=timepoints, columns=range(slices * quadrants))
-        fig, ax = plt.subplots(figsize=(8, 8))
         # add mtoc green cirlce for the mtoc contining quadrant
         mtoc_colors = ['lightseagreen'] ; mtoc_colors.extend(['white'] * 7) # mtoc quadrant always first
-        ax.pie(frame.loc[0], colors=mtoc_colors, radius=1.55)
         for tp_num, tp in enumerate(timepoints):
+            fig, ax = plt.subplots(figsize=(8, 8))
+            ax.pie(frame.loc[0], colors=mtoc_colors, radius=1.55)
             densities = all_densities[gene][tp_num]
             clustered_indices = np.argwhere(densities > np.mean(densities) + np.std(densities)).flatten()
             underclusstered_indices = np.argwhere(densities < np.mean(densities) - np.std(densities)).flatten()
@@ -585,4 +586,5 @@ def plot_fine_grained_clusters(molecule_type, all_densities):
                                   tgt_image_name)
             plt.savefig(tgt_fp)
             logger.info("Created clusters figure for {} {} at {}: {}", gene, molecule_type, tp, tgt_fp)
+            plt.close()
 
