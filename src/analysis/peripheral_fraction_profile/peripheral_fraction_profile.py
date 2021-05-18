@@ -20,7 +20,7 @@ from image_set import ImageSet
 from path import global_root_dir
 
 
-def build_mrna_peripheral_fraction_profiles(analysis_repo, normalisation_gene=None):
+def build_mrna_peripheral_fraction_profiles(analysis_repo, normalisation_gene):
     genes= constants.analysis_config['MRNA_GENES']
     gene2m_fractions = {}
     for gene in genes:
@@ -29,7 +29,7 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo, normalisation_gene=No
         gene2m_fractions[gene] = np.median(peripheral_fractions, axis=0)
 
     # normalized by gapdh profile
-    if normalisation_gene:
+    if normalisation_gene != 'None':
         for gene in genes:
             gene2m_fractions[gene]  = gene2m_fractions[gene] / gene2m_fractions[normalisation_gene]
 
@@ -102,8 +102,10 @@ configurations = [
      ["arhgdia_control", "arhgdia_cytod"]],
     ["src/analysis/peripheral_fraction_profile/config_prrc2c.json",
      ['arhgdia/control', "arhgdia/prrc2c_depleted"]],
-    ["src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json", ["arhgdia", "arhgdia_nocodazole"]],
-     ["src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json", ["pard3", "pard3_nocodazole"]]
+    ["src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json",
+     ["arhgdia", "arhgdia_nocodazole"]],
+    ["src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json",
+     ["pard3", "pard3_nocodazole"]]
 ]
 
 if __name__ == '__main__':
@@ -115,7 +117,8 @@ if __name__ == '__main__':
         repo = open_repo()
         if "original" in conf[0]:
             logger.info("Peripheral fraction profile for the mRNA original data")
-            medians = build_mrna_peripheral_fraction_profiles(repo, normalisation_gene="gapdh")
+            normalisation_gene = constants.analysis_config['NORMALISATION_GENE']
+            medians = build_mrna_peripheral_fraction_profiles(repo, normalisation_gene=normalisation_gene)
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
