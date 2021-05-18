@@ -161,7 +161,6 @@ def bar_profile(data, figname, plot_colors):
     ax.set_xticklabels(["" for i in range(0, len(data))])
     plt.savefig(figname, format='png')
     plt.close()
-    logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
 def violin_profile(dictionary, tgt_fp, xlabels, rotation=0, annot=False):
@@ -405,8 +404,10 @@ def enrichment_violin_plot(density_stats: DensityStats, molecule_type, figname,
         xlabels = constants.analysis_config['MRNA_GENES_LABEL'][:4]
     sns_violinplot(dd, my_pal, figname, xlabels, x=groupby_key, hue=dd['Quadrants'], rotation=45)
 
-def profile(profiles, genes, num_contours, figname):
+def profile(profiles, figname):
+    num_contours = constants.analysis_config['NUM_CONTOURS']
     plot_colors = constants.analysis_config['PLOT_COLORS']
+    genes = constants.dataset_config['MRNA_GENES']
     fig = plt.figure(figsize=(15, 10))
     ax = fig.add_subplot(111)
     ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
@@ -416,8 +417,10 @@ def profile(profiles, genes, num_contours, figname):
     plt.yticks(fontsize=30)
     plt.xticks(fontsize=30)
     plt.xticks([w for w in range(0, num_contours + 2, 10)])
+    # we do not plot the first 8%
     for i, gene in enumerate(genes):
-        plt.plot(np.arange(num_contours), profiles[gene], color=plot_colors[i], linewidth=3, label=genes)
+        fractions_to_plot = profiles[gene][7:]
+        plt.plot(range(7, num_contours), fractions_to_plot, color=plot_colors[i], linewidth=3, label=genes)
     plt.savefig(figname)
     plt.close()
 
@@ -547,7 +550,7 @@ def plot_clusters(molecule_type, all_densities, peripheral_flag=False):
 def plot_fine_grained_clusters(molecule_type, all_densities):
     '''
     Plots density / cluster maps for fixed quantisation (8 quadrants, 3 stripes)
-    will not work if quantisation was done with different values
+    will not work if quantization was done with different values
     '''
     slices, quadrants = 3, 8
     if molecule_type == 'mrna':
@@ -555,10 +558,16 @@ def plot_fine_grained_clusters(molecule_type, all_densities):
     else:
         timepoints = constants.dataset_config['TIMEPOINTS_PROTEIN']
 
-    color_map = {0: 'lightgray', 1: 'lightcoral', 2: 'lightblue'}
+    plot_colors = constants.analysis_config["PLOT_COLORS"]
+    color_scales = constants.analysis_config["COLOR_SCALES"]
     frame = pd.DataFrame(1, index=[0], columns=range(quadrants))
     genes = list(all_densities.keys())
-    for gene in genes:
+    for gene, gene_color, scales in zip(genes, plot_colors, color_scales):
+        if gene != 'rab13' : continue
+        #color_map = {0: 'lightgray', 1: 'lightcoral', 2: 'lightblue'}
+        color_map = {0: helpers.colorscale(gene_color, scales[0]),
+                     1: helpers.colorscale(gene_color, scales[1]),
+                     2: helpers.colorscale(gene_color, scales[2])}
         all_segments = pd.DataFrame(0, index=timepoints, columns=range(slices * quadrants))
         # add mtoc green cirlce for the mtoc contining quadrant
         mtoc_colors = ['lightseagreen'] ; mtoc_colors.extend(['white'] * 7) # mtoc quadrant always first

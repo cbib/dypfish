@@ -6,12 +6,11 @@ import itertools
 import math
 import pathlib
 from typing import List
-
 import numpy as np
 from colormap import rgb2hex
 from numpy import matlib
 from scipy import stats
-from scipy.spatial import cKDTree
+from scipy.spatial import cKDTree, distance
 from scipy.special import gamma, digamma
 from scipy.special import gammainc
 
@@ -306,12 +305,71 @@ def get_forward_timepoints(mrna_timepoints: list, protein_timepoints: list) -> n
                 fwd_interactions[x, y] = 1
     return fwd_interactions
 
-def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein):
+def make_categorical(arr):
+    '''
+    In a density array replaces values by 0, 1, 2
+    0 : within the std, 1 > std, 2 < std
+    '''
+    categorical_arr = np.zeros(arr.shape[0])
+    clustered_indices = np.argwhere(arr > np.mean(arr) + np.std(arr)).flatten()
+    underclusstered_indices = np.argwhere(arr < np.mean(arr) - np.std(arr)).flatten()
+    categorical_arr[clustered_indices] = 1
+    categorical_arr[underclusstered_indices] = 2
+    return categorical_arr
+
+def get_neighbors(p, exclude_p=False, shape=None):
+    ndim = len(p)
+    # generate an (m, ndims) array containing all strings over the alphabet {0, 1, 2}:
+    offset_idx = np.indices((3,) * ndim).reshape(ndim, -1).T
+    # use these to index into np.array([-1, 0, 1]) to get offsets
+    offsets = np.r_[-1, 0, 1].take(offset_idx)
+    # optional: exclude offsets of 0, 0, ..., 0 (i.e. p itself)
+    if exclude_p:
+        offsets = offsets[np.any(offsets, 1)]
+
+    neighbours = p + offsets    # apply offsets to p
+
+    # optional: exclude out-of-bounds indices
+    if shape is not None:
+        valid = np.all(neighbours < np.array(shape), axis=1) & (neighbours[:,0] >= 0)
+        neighbours = neighbours[valid]
+
+    return neighbours
+
+def neighboring_protein_values(mrna, protein, stripes, quadrants):
+    '''
+    For each indices i,j in the mrna density vector, collect protein value
+    from the protein densities vector in the direct neighborhood of i,j and
+    closest in value to the mrna density at this index
+    '''
+    mrna_stripes = mrna.reshape((stripes, quadrants))
+    protein_stripes = protein.reshape((stripes, quadrants))
+    padded_stripes = np.pad(protein_stripes, (1, 1), mode='wrap')
+    padded_stripes[0, :] = -1 ; padded_stripes[padded_stripes.shape[0]-1, :] = -1
+    all_neighbours = {}
+    for i, j in itertools.product(range(1, stripes+1), range(1, quadrants+1)) :
+        neighbors_idx = get_neighbors(np.r_[i,j], shape=padded_stripes.shape)
+        neighbors = padded_stripes[tuple(neighbors_idx.T)]
+        all_neighbours[(i-1,j-1)] = neighbors[neighbors != -1]
+
+    protein_nearest_neighbours = []
+    for i, j in itertools.product(range(stripes), range(quadrants)):
+        protein_vals = all_neighbours[(i,j)]
+        idx = (np.abs(protein_vals - mrna_stripes[i,j])).argmin()
+        protein_nearest_neighbours.append(protein_vals[idx])
+
+    return np.array(protein_nearest_neighbours).astype(int)
+
+
+def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna,
+                                   timepoint_num_protein, stripes, quadrants):
     num_mrna_tp, num_protein_tp = len(timepoint_num_mrna), len(timepoint_num_protein)
     correlations = np.zeros((num_mrna_tp, num_protein_tp))
     for i, j in itertools.product(range(num_mrna_tp), range(num_protein_tp)):
-        correlations[i, j] = np.abs(stats.pearsonr(mrna_data[i], protein_data[j])[0]) # negative slope corr same value as positive
-
+        categorical_mrna = make_categorical(mrna_data[i])
+        categorical_protein = make_categorical(protein_data[j])
+        neighbouring_protein = neighboring_protein_values(categorical_mrna, categorical_protein, stripes, quadrants)
+        correlations[i, j] = stats.pearsonr(categorical_mrna, neighbouring_protein)[0]
     fwd_indices = get_forward_timepoints(timepoint_num_mrna, timepoint_num_protein)
     fwd_correlations = correlations[fwd_indices == 1].flatten()
     other_correlations = correlations[fwd_indices == 0].flatten()

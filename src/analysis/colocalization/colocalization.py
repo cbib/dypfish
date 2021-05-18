@@ -44,9 +44,9 @@ def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4, pe
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
     ["src/analysis/colocalization/config_original.json"],
-    ["src/analysis/colocalization/config_original_periph.json"],
-    ["src/analysis/colocalization/config_nocodazole_arhgdia.json"],
-    ["src/analysis/colocalization/config_nocodazole_pard3.json"]
+ #   ["src/analysis/colocalization/config_original_periph.json"],
+  #  ["src/analysis/colocalization/config_nocodazole_arhgdia.json"],
+  #  ["src/analysis/colocalization/config_nocodazole_pard3.json"]
 ]
 
 # Figure 5D Analysis Colocalization Score (CS) for original data (5 figures)
@@ -66,14 +66,14 @@ if __name__ == '__main__':
         mrna_densities = compute_relative_densities(repo, 'mrna', quadrants_num=8, peripheral_flag=peripheral_flag)
         prot_densities = compute_relative_densities(repo, 'protein', quadrants_num=8, peripheral_flag=peripheral_flag)
 
-        css, p_vals = [], {}
+        css, results = [], {}
         for gene in constants.analysis_config['PROTEINS']:
             cs, p, ranking = helpers.calculate_colocalization_score(mrna_densities[gene], prot_densities[gene],
                                                                     constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                                    constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'])
+                                                                    constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
+                                                                    stripes=3, quadrants=8)
             css.append(cs)
-            p_vals[gene] = p
-            print("gene: ", gene, " p-values (random permutation test): ", p)
+            results[gene] = [cs, p]
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS'].format(gene=gene)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
@@ -85,4 +85,5 @@ if __name__ == '__main__':
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS_HISTOGRAM']
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
         plot.bar_profile(css, tgt_fp, constants.analysis_config['PLOT_COLORS'])
-        logger.info("Colocalization score p-values are: {}", p_vals)
+        logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
+        logger.info("Colocalization scores and p-values are: {}", results)

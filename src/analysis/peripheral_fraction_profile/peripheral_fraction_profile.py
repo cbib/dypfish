@@ -58,8 +58,6 @@ def build_histogram_peripheral_fraction(analysis_repo, molecule_type, keyorder, 
         CI[gene] = [lower, higher]
         gene2fractions[gene] = gene2fractions[gene][:, fraction]
 
-    print(keyorder)
-
     fractions = collections.OrderedDict(sorted(gene2fractions.items(), key=lambda i: keyorder.index(i[0])))
     medians = collections.OrderedDict(sorted(medians.items(), key=lambda i: keyorder.index(i[0])))
     erros = collections.OrderedDict(sorted(erros.items(), key=lambda i: keyorder.index(i[0])))
@@ -117,12 +115,11 @@ if __name__ == '__main__':
         repo = open_repo()
         if "original" in conf[0]:
             logger.info("Peripheral fraction profile for the mRNA original data")
-            medians = build_mrna_peripheral_fraction_profiles(repo)
+            medians = build_mrna_peripheral_fraction_profiles(repo, normalisation_gene="gapdh")
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
-            plot.profile(medians, constants.dataset_config['MRNA_GENES'],
-                         constants.analysis_config['NUM_CONTOURS'], figname=tgt_fp)
+            plot.profile(medians, figname=tgt_fp)
             logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
             logger.info("Peripheral fraction histogram for mRNA the original data")

@@ -5,6 +5,7 @@
 import pathlib
 
 import tqdm
+from loguru import logger
 
 import constants
 import plot
@@ -39,6 +40,7 @@ if __name__ == '__main__':
                     nm = imageset.compute_surface_corrected_nm()
                     nms.append(nm)
                 plot.bar_profile(nms, tgt_fp, plot_colors[i])
+                logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
         else:
             timepoint = '3h'
             nms = []
@@ -48,3 +50,4 @@ if __name__ == '__main__':
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_VOLUME']
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
                 plot.bar_profile(nms, tgt_fp, plot_colors)
+                logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
