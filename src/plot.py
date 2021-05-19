@@ -563,7 +563,7 @@ def plot_fine_grained_clusters(molecule_type, all_densities):
     frame = pd.DataFrame(1, index=[0], columns=range(quadrants))
     genes = list(all_densities.keys())
     for gene, gene_color, scales in zip(genes, plot_colors, color_scales):
-        if gene != 'rab13' : continue
+        #if gene != 'rab13' : continue
         #color_map = {0: 'lightgray', 1: 'lightcoral', 2: 'lightblue'}
         color_map = {0: helpers.colorscale(gene_color, scales[0]),
                      1: helpers.colorscale(gene_color, scales[1]),
