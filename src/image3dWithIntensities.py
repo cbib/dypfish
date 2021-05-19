@@ -100,7 +100,7 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         cell_mask = self.get_cell_mask()
         IF = IF.astype(float) * cell_mask
         # TODO in VO we do not multiply by pixels_in_slice ???
-        nuw = (np.sum(cell_mask[:, :] == 1))  # * pixels_in_slice  # whole surface of the cell
+        nuw = self.compute_cell_area()  # whole surface of the cell
         my_lambda = float(np.sum(IF)) / float(nuw)  # volumic density
         k = self.ripley_k_random_measure_2D(IF, my_lambda, nuw)
         k_sim = np.zeros((constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"],
