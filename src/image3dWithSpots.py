@@ -83,8 +83,12 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         center = np.array([nucleus_centroid[0], nucleus_centroid[1], nucleus_centroid_z])
         radius = self.compute_cell_diameter() // 2
         random_spots = helpers.random_points_in_sphere(center, radius, num_spots*factor).astype(int)
-        random_spots_constrained_z = random_spots[(random_spots[:,2] >= 0) &
-                                                  (random_spots[:,2] < max_height)]
+        random_spots_constrained_x = random_spots[(random_spots[:, 0] >= 1) &
+                                                  (random_spots[:, 0] < height_map.shape[0])]
+        random_spots_constrained_y = random_spots_constrained_x[(random_spots_constrained_x[:, 1] >= 1) &
+                                                                (random_spots_constrained_x[:, 1] < height_map.shape[0])]
+        random_spots_constrained_z = random_spots_constrained_y[(random_spots_constrained_y[:, 2] >= 0) &
+                                                                (random_spots_constrained_y[:, 2] < max_height)]
         cytoplasm_mask = [self.is_in_cytoplasm(s[::-1]) for s in random_spots_constrained_z[:,0:2]]
         random_spots_in_cytoplasm = random_spots_constrained_z[cytoplasm_mask]
         slices_mask = slices[random_spots_in_cytoplasm[:, 0],
@@ -107,11 +111,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
                     constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], self._path)
         spots = self.get_cytoplasmic_spots()
         n_spots = len(spots)
-        pixels_in_slice = numexpr.evaluate(constants.dataset_config["PIXELS_IN_SLICE"]).item()
-
-        cell_mask_slices = self.get_cell_mask_slices()
-        nuw = np.sum(cell_mask_slices == 1) * pixels_in_slice  # whole volume of the cell
-        # TODO try instead of the previous 2 line : nuw = self.compute_cell_volume()
+        nuw = self.compute_cell_volume()
         my_lambda = float(n_spots) / float(nuw)  # spot's volumic density
 
         k = self.ripley_k_point_process(nuw=nuw, my_lambda=my_lambda)  # TODO : first call for _all_ spots while the subsequent only for those in the height_map
