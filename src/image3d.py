@@ -242,7 +242,7 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         slices_per_stripe = np.floor(100.0 / stripes)  # number of isolines per stripe
         if peripheral_flag:
-            slices_per_stripe = np.floor(constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"] / stripes)
+           slices_per_stripe = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"] // stripes
         arr = np.empty((0, 2), float)
         for stripe_num in range(1, stripes + 1):
             stripe_mask = (cell_mask_dist_map > (stripe_num - 1) * slices_per_stripe) & \

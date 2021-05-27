@@ -89,13 +89,13 @@ class TestHelpers(TestCase):
         self.assertEqual(result[0, 1], 1)
         self.assertEqual(result[4, 1], 1)
 
-    def test_neighboring_protein_values(self):
+    def test_neighboring_protein_values_full(self):
         mrna = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
         protein = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
-        result = helpers.neighboring_protein_values(mrna, protein, stripes=3, quadrants=4)
+        result = helpers.neighboring_protein_values_full(mrna, protein, stripes=3, quadrants=4)
         self.assertTrue(np.all(result == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]))
         mrna = np.array([2, 2, 6, 6, 11, 11, 3, 3, 1, 1, 10, 9])
-        result = helpers.neighboring_protein_values(mrna, protein, stripes=3, quadrants=4)
+        result = helpers.neighboring_protein_values_full(mrna, protein, stripes=3, quadrants=4)
         self.assertTrue(np.all(result == [2, 2, 6, 7, 12, 11, 3, 3, 5, 5, 10, 9]))
 
     def test_make_categorical(self):
@@ -103,3 +103,12 @@ class TestHelpers(TestCase):
         categorical_arr = helpers.make_categorical(arr)
         self.assertEqual((categorical_arr == 1).sum(), 2)
         self.assertEqual((categorical_arr == 2).sum(), 2)
+
+    def test_neighboring_protein_values_periphery(self):
+        mrna = np.array([1, 2, 3, 4, 5, 6])
+        protein = np.array([1, 2, 3, 4, 5, 6])
+        result = helpers.neighboring_protein_values_periphery(mrna, protein)
+        self.assertTrue(np.all(result == [1, 2, 3, 4, 5, 6]))
+        protein = np.array([0, 1, 2, 1, 5, 2])
+        result = helpers.neighboring_protein_values_periphery(mrna, protein)
+        self.assertTrue(np.all(result == [1, 2, 2, 5, 5, 5]))

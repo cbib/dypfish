@@ -80,7 +80,6 @@ configurations = [
      ['arhgdia/control', "arhgdia/prrc2c_depleted"]]
 ]
 
-
 def build_plots(analysis_repo, conf, annot=False):
     for molecule_type, molecules in zip(["mrna", "protein"], ['MRNA_GENES', 'PROTEINS']):
         if "original" in conf[0]:

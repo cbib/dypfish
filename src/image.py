@@ -3,6 +3,7 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import math
+import warnings
 from typing import List
 
 import numpy as np
@@ -20,7 +21,6 @@ from constants import MTOC_LEADING_EDGE_SUFFIX
 from constants import MTOC_POSITION_PATH_SUFFIX
 from constants import NUCLEUS_CENTROID_PATH_SUFFIX
 from constants import NUCLEUS_MASK_PATH_SUFFIX
-from constants import PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX
 from constants import PERIPHERAL_QUADRANT_DENSITIES_PATH_SUFFIX
 from constants import QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX
 from constants import QUADRANT_DENSITIES_PATH_SUFFIX
@@ -213,12 +213,6 @@ class ImageWithMTOC(Image):
                                                stripes=stripes, stripes_flag=stripes_flag)
         return value
 
-    @helpers.checkpoint_decorator(PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX, dtype=np.float)
-    def get_peripheral_quadrants_and_slices_densities(self, quadrants_num=4, peripheral_flag=True,
-                                                      stripes=3, stripes_flag=True):
-        return self.compute_quadrant_densities(quadrants_num=quadrants_num, peripheral_flag=peripheral_flag,
-                                               stripes=stripes, stripes_flag=stripes_flag)
-
     def get_or_compute_quadrant_densities(self, quadrants_num=4, peripheral_flag=False, stripes=3, stripes_flag=False):
         if (not peripheral_flag) and (not stripes_flag):
             density_per_quadrant = self.get_quadrants_densities(quadrants_num)
@@ -227,8 +221,9 @@ class ImageWithMTOC(Image):
         if (not peripheral_flag) and stripes_flag:
             density_per_quadrant = self.get_quadrants_and_slices_densities(quadrants_num, stripes, stripes_flag)
         if peripheral_flag and stripes_flag:
-            density_per_quadrant = self.get_peripheral_quadrants_and_slices_densities(quadrants_num, peripheral_flag,
-                                                                                      stripes, stripes_flag)
+            warnings.warn("Subdividing the periphery in stripes not expected")
+            density_per_quadrant = self.compute_quadrant_densities(quadrants_num, peripheral_flag,
+                                                                   stripes, stripes_flag)
         return density_per_quadrant
 
     def compute_quadrant_densities(self, quadrants_num=4, peripheral_flag=False, stripes=1, stripes_flag=False) -> np.ndarray:

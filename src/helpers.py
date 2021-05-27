@@ -7,12 +7,14 @@ import math
 import pathlib
 from typing import List
 import numpy as np
+import pandas as pd
 from colormap import rgb2hex
 from numpy import matlib
 from scipy import stats
-from scipy.spatial import cKDTree, distance
+from scipy.spatial import cKDTree
 from scipy.special import gamma, digamma
 from scipy.special import gammainc
+import statsmodels.formula.api as smf
 
 import constants
 from path import global_root_dir
@@ -338,7 +340,7 @@ def get_neighbors(p, exclude_p=False, shape=None):
 
 def neighboring_protein_values(mrna, protein, stripes, quadrants):
     '''
-    For each indices i,j in the mrna density vector, collect protein value
+    For each pair of indices i,j in the mrna density vector, collect protein value
     from the protein densities vector in the direct neighborhood of i,j and
     closest in value to the mrna density at this index
     '''
@@ -361,22 +363,52 @@ def neighboring_protein_values(mrna, protein, stripes, quadrants):
     return np.array(protein_nearest_neighbours).astype(int)
 
 
+def neighboring_protein_values_periphery(mrna, protein):
+     protein_nearest_neighbours = []
+     for i, val in enumerate(mrna):
+         indices = range(i - 1, i + 2)
+         neighbourhood = protein.take(indices, mode='wrap')
+         idx = (np.abs(neighbourhood - val).argmin())
+         protein_nearest_neighbours.append(neighbourhood[idx])
+
+     return np.array(protein_nearest_neighbours).astype(int)
+
+
+def quantile_regression(categorical_mrna, categorical_protein):
+    data = pd.DataFrame(columns=['mrna', 'protein'])
+    data['mrna'] = categorical_mrna
+    data['protein'] = categorical_protein
+    mod = smf.quantreg('mrna ~ protein', data)
+    res = mod.fit(q=.5)
+    return res.prsquared
+
+
 def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna,
-                                   timepoint_num_protein, stripes, quadrants):
+                                   timepoint_num_protein, peripheral_flag, stripes, quadrants):
     num_mrna_tp, num_protein_tp = len(timepoint_num_mrna), len(timepoint_num_protein)
     correlations = np.zeros((num_mrna_tp, num_protein_tp))
     for i, j in itertools.product(range(num_mrna_tp), range(num_protein_tp)):
         categorical_mrna = make_categorical(mrna_data[i])
         categorical_protein = make_categorical(protein_data[j])
-        neighbouring_protein = neighboring_protein_values(categorical_mrna, categorical_protein, stripes, quadrants)
-        correlations[i, j] = stats.pearsonr(categorical_mrna, neighbouring_protein)[0]
+        if not peripheral_flag:
+            neighbouring_protein = neighboring_protein_values(categorical_mrna, categorical_protein,
+                                                                   stripes, quadrants)
+            correlations[i, j] = stats.pearsonr(categorical_mrna, neighbouring_protein)[0]
+        else:
+            neighbouring_protein = neighboring_protein_values_periphery(categorical_mrna[0:quadrants],
+                                                                        categorical_protein[0:quadrants])
+            if (not np.all(categorical_mrna == neighbouring_protein)):
+                correlations[i, j] = stats.pearsonr(categorical_mrna[0:quadrants],
+                                                    neighbouring_protein[0:quadrants])[0]
+            else:  # neighbour-based approach failed, this is a hack
+                correlations[i, j] = (categorical_mrna == categorical_protein).sum() / len(categorical_mrna)
+
     fwd_indices = get_forward_timepoints(timepoint_num_mrna, timepoint_num_protein)
     fwd_correlations = correlations[fwd_indices == 1].flatten()
     other_correlations = correlations[fwd_indices == 0].flatten()
     ranks = stats.rankdata(correlations).reshape(correlations.shape[0], correlations.shape[1])
-    stat, pval = stats.mannwhitneyu(fwd_correlations,
-                                    other_correlations, use_continuity=False)
-    cs = a12(list(other_correlations), list(fwd_correlations)) # effect size
+    stat, pval = stats.mannwhitneyu(fwd_correlations, other_correlations, use_continuity=False)
+    cs = a12(list(fwd_correlations), list(other_correlations)) # effect size
 
     return cs, pval, ranks
 
@@ -429,16 +461,16 @@ def colorscale(hexstr, scalefactor):
 
 def a12(lst1, lst2, rev=True):
   '''
-    Non-parametric hypothesis testing using Vargha and Delaney's A12 statistic
-    how often is x in lst1 more than y in lst2?
+    Non-parametric hypothesis testing using Vargha and Delaney's A12 statistic:
+    how often is x in lst1 greater than y in lst2?
   '''
   more = same = 0.0
   for x in lst1:
     for y in lst2:
-      if   x==y : same += 1
-      elif rev     and x > y : more += 1
-      elif not rev and x < y : more += 1
-  return (more + 0.5*same)  / (len(lst1)*len(lst2))
+      if x==y: same += 1
+      elif rev     and x > y: more += 1
+      elif not rev and x < y: more += 1
+  return (more + 0.5*same) / (len(lst1)*len(lst2))
 
 
 def random_points_in_sphere(center, radius, num_points) -> np.ndarray:

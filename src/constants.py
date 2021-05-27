@@ -35,7 +35,6 @@ CLUSTERING_INDICES_PATH_SUFFIX = '/clustering_index'
 QUADRANT_DENSITIES_PATH_SUFFIX = '/quadrant_densities'
 PERIPHERAL_QUADRANT_DENSITIES_PATH_SUFFIX = '/peripheral_quadrant_densities'
 QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX = '/quadrant_and_slice_densities'
-PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX = '/peripheral_quadrant_and_slice_densities'
 
 def init_config(analysis_config_js_path):
     global analysis_config
