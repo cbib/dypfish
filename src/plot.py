@@ -167,6 +167,9 @@ def violin_profile(dictionary, tgt_fp, xlabels, rotation=0, annot=False):
     genes = list(dictionary.keys())
     dd = pd.DataFrame({k: pd.Series(v).astype(float)
                        for k, v in dictionary.items()}).melt().dropna().rename(columns={"variable": "gene"})
+
+
+
     my_pal = {}
     for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(genes)]):
         my_pal[genes[i]] = color

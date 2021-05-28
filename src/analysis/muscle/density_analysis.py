@@ -28,7 +28,7 @@ genes = ['actn2-mature', 'gapdh-mature', 'actn2-immature']
 for g in genes:
     [gene, timepoint] = g.split("-")
     image_set = ImageSet(analysis_repo, [f"{'mrna'}/{gene}/{timepoint}/"])
-    nuc_dist, nucs_dist, cell_masks, nucs_pos = image_set.compute_cell_mask_between_nucleus_centroid()
+    nuc_dist, nucs_dist, cell_masks, nucs_pos = image_set.compute_cell_mask_between_nucleus_centroids()
 
     # compute histogram mod
     hx, hy, _ = plt.hist(nuc_dist)
