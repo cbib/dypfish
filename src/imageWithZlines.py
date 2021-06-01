@@ -153,7 +153,6 @@ class imageMultiNucleusWithSpotsAndZlines(ImageMultiNucleusWithSpots):
             raise AttributeError("Incorrect format for image %s" % image_path)
 
     def get_z_lines_masks(self):
-        assert False, "This function is not tested"
         descriptor = self._path + ZLINES_PATH_SUFFIX
         if not self._repository.is_include(self._path, descriptor):
             raise LookupError("No zlines for image %s" % self._path)
@@ -169,7 +168,6 @@ class imageMultiNucleusWithSpotsAndZlines(ImageMultiNucleusWithSpots):
         return self.compute_minimal_z_line_distance(z_line_spacing)
 
     def compute_minimal_z_line_distance(self, z_line_spacing):
-        assert False, "This function is not tested"
         spots = self.get_spots()
         z_lines = self.get_z_lines_masks()
         image_spots_min_distance = np.zeros(len(spots))
