@@ -81,13 +81,13 @@ def bar_profile_median_timepoints(df: pd.DataFrame, palette, figname, fixed_ysca
               loc='bottom',
               bbox=[0.0, -0.3, 1, .28])
     plt.subplots_adjust(bottom=0.28)
-    fig.savefig(figname, format='png')
+    fig.savefig(figname, format='png', dpi=600)
     plt.close()
     logger.info("Generated image at {}", str(figname).split("analysis/")[1])
 
 
 def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
-                       confidence_interval=None, annot=False, test='t-test_ind', data_to_annot={}):
+                       confidence_interval=None, annot=False, test='t-test_ind', data_to_annot={}, ylabel=""):
     """
     Plot a barplot for each gene with height given by medians, error bars defined by err
     and confidence intervals by CI; CI is a dictionary with keys = genes
@@ -110,7 +110,7 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
         add_annot(data_to_annot, all_genes, ax, test)
 
     ax.set_xlabel("", fontsize=15)
-    ax.set_ylabel("", fontsize=10)
+    ax.set_ylabel(ylabel, fontsize=10)
     ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
     plt.yticks(fontsize=20)
     plt.xticks(fontsize=10)
@@ -136,7 +136,7 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
         ax.set_xticks([])
 
     ax.set_xlim(-0.5, len(ind) - 0.5)
-    fig.savefig(figname)
+    fig.savefig(figname,format ='png', dpi=600)
     plt.close()
 
 
@@ -152,14 +152,14 @@ def bar_profile(data, figname, plot_colors):
     ax.bar(x_component, data, bar_width, color=plot_colors)
 
     # Search for ymin and y max
-    y_max = np.float(np.max(data)) + (np.float(np.nanmin(data)) / 10)
-    y_min = np.float(np.nanmin(data)) - (np.float(np.nanmin(data)) / 5)
-    plt.ylim([y_min, y_max])
+    #y_max = np.float(np.max(data)) + (np.float(np.nanmin(data)) / 10)
+    #y_min = np.float(np.nanmin(data)) - (np.float(np.nanmin(data)) / 5)
+    #plt.ylim([y_min, y_max])
 
     ax.set_xticks(x_component)
     ax.set_xlim(-0.5, len(data) - 0.5)
     ax.set_xticklabels(["" for i in range(0, len(data))])
-    plt.savefig(figname, format='png')
+    plt.savefig(figname, format='png', dpi=600)
     plt.close()
 
 
@@ -168,7 +168,9 @@ def violin_profile(dictionary, tgt_fp, xlabels, rotation=0, annot=False):
     dd = pd.DataFrame({k: pd.Series(v).astype(float)
                        for k, v in dictionary.items()}).melt().dropna().rename(columns={"variable": "gene"})
 
-
+    # Remove possible outliers that stretch the violin
+    outliers = helpers.detect_outliers(np.array(dd["value"]), 3)
+    dd = dd[~np.isin(dd["value"], outliers)]
 
     my_pal = {}
     for i, color in enumerate(constants.analysis_config['PLOT_COLORS'][0:len(genes)]):
@@ -220,7 +222,7 @@ def sns_barplot(dd, my_pal, figname, x="Timepoint", y="MPI", hue="Molecule_type"
     plt.yticks(fontsize=20)
     plt.xticks(fontsize=20)
     ax.set_xticklabels(x_labels)
-    fig.savefig(figname)
+    fig.savefig(figname, dpi=600)
     plt.close()
 
 
@@ -241,7 +243,7 @@ def sns_linear_regression(data_1, data_2, color, graph_file_path_name, order=1):
 def sns_violinplot(dd, my_pal, figname, plot_xlabels, x="Gene", y='value',
                    hue=None, no_legend=True, rotation=0, annot=False):
     fig = plt.figure(figsize=(10, 10))
-    ax = sns.violinplot(x=x, y=y, data=dd, hue=hue, palette=my_pal, cut=0)
+    ax = sns.violinplot(x=x, y=y, data=dd, hue=hue, palette=my_pal)
     gene_list = constants.analysis_config['MRNA_GENES']
     if annot:
         box_pairs = []
@@ -263,7 +265,7 @@ def sns_violinplot(dd, my_pal, figname, plot_xlabels, x="Gene", y='value',
     plt.gcf().subplots_adjust(bottom=0.2, left=0.2)
     if no_legend:
         ax.legend_.remove()
-    fig.savefig(figname, format='png')
+    fig.savefig(figname, format='png', dpi=600)
     plt.close()
 
 
@@ -275,7 +277,7 @@ def sns_boxplot(dd, my_pal, figname, x="Gene", y="value"):
     box.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
     box.tick_params(right=False, top=False, direction='inout', length=8, width=3, colors='black')
     plt.yticks(fontsize=15)
-    fig.savefig(figname, format='png')
+    fig.savefig(figname, format='png', dpi=600)
     plt.close()
 
 
@@ -365,7 +367,7 @@ def sns_barplot(dd, my_pal, figname, y="MPI", err="err"):
     plt.yticks(fontsize=20)
     plt.xticks(fontsize=20)
     ax.set_xticklabels(x_labels)
-    fig.savefig(figname)
+    fig.savefig(figname, dpi=600)
     plt.close()
 
 
@@ -395,7 +397,7 @@ def enrichment_violin_plot(density_stats: DensityStats, molecule_type, figname,
     dd = dd[~np.isin(dd["value"], outliers)]
     dd.dropna(inplace=True)
     # apply log scale
-    if (log):
+    if log:
         dd['value'] = dd['value'].apply(np.log2)
     # Choose color palette
     my_pal = {"MTOC": "#66b2ff", "Non MTOC": "#1a8cff"}
@@ -424,7 +426,7 @@ def profile(profiles, figname):
     for i, gene in enumerate(genes):
         fractions_to_plot = profiles[gene][7:]
         plt.plot(range(7, num_contours), fractions_to_plot, color=plot_colors[i], linewidth=3, label=genes)
-    plt.savefig(figname)
+    plt.savefig(figname, dpi=600)
     plt.close()
 
 
@@ -442,7 +444,7 @@ def plot_figure(total_mads_arhgdia, total_mads_arhgdia_cultured, figname):
     plt.plot(np.mean(total_mads_arhgdia, axis=0), color='blue')
     plt.plot(np.mean(total_mads_arhgdia_cultured, axis=0), color='black')
     ax.set_xlim(0, len(total_mads_arhgdia[0]))
-    plt.savefig(figname)
+    plt.savefig(figname, dpi=600)
     plt.close()
 
 
@@ -459,7 +461,7 @@ def spline_graph(grid_mat, figname, band_n=100):
     plt.plot(x_mrna, m_y_new)
     ax.set_ylim((0, 12))
     ax.set_xlim((0, band_n - 1))
-    plt.savefig(figname)
+    plt.savefig(figname, dpi=600)
     plt.close()
 
 
@@ -474,7 +476,7 @@ def heatmap(grid_mat, figname, band_n=100):
     ax.set_xticks(major_ticks)
     plt.imshow(grid_mat, cmap='coolwarm', aspect=band_n / 3)
     plt.ylim((0, 0.4))
-    plt.savefig(figname)
+    plt.savefig(figname, dpi=600)
     plt.close()
 
 
@@ -490,7 +492,7 @@ def plot_heatmap(ranking, gene, figname, size=4,
     myyticklabels = ytickslabel
     ax.yaxis.set(ticks=np.arange(0.5, size + 0.5, 1), ticklabels=myyticklabels)
     ax.set_title(gene)
-    plt.savefig(figname)
+    plt.savefig(figname, dpi=600)
     plt.close()
 
 
@@ -545,7 +547,7 @@ def plot_clusters(molecule_type, all_densities, peripheral_flag=False):
                                                                                             molecule_type=molecule_type)
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                               tgt_image_name)
-        plt.savefig(tgt_fp)
+        plt.savefig(tgt_fp, dpi=600)
         logger.info("Created density map figure for {} {} at {}", gene, molecule_type, tgt_fp)
         plt.close()
 
@@ -596,7 +598,7 @@ def plot_fine_grained_clusters(molecule_type, all_densities):
                                                                                        timepoint=tp)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
-            plt.savefig(tgt_fp)
+            plt.savefig(tgt_fp, dpi=600)
             logger.info("Created clusters figure for {} {} at {}: {}", gene, molecule_type, tp, tgt_fp)
             plt.close()
 

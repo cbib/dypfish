@@ -78,6 +78,7 @@ def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors
     else:
         xlabels = constants.analysis_config['PROTEINS_LABEL']
 
+
     # generate the bar profile plot
     plot.bar_profile_median(medians, errors, 'mrna', xlabels, tgt_fp, confidence_interval=CI,
                             annot=annotations, data_to_annot=fractions)
