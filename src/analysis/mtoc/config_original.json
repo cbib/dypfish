@@ -1,7 +1,7 @@
 {
   "PNG_IMAGES_MIME_TYPE": "image/png",
   "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/mtoc/output",
-  "FIGURE_NAME_FORMAT_MPI": "{molecule_type}_original_dynamic_MPI.png",
+  "FIGURE_NAME_FORMAT_MPI": "{molecule_type}_original_MPI.png",
   "FIGURE_NAME_FORMAT_DYNAMIC_MPI": "{gene}_original_MPI.png",
   "FIGURE_NAME_FORMAT_MTOC_ENRICHMENT": "{molecule_type}_original_MTOC_enrichment.png",
   "FIGURE_NAME_FORMAT_DENSITY_MAP": "{molecule_type}_{gene}_{timepoint}_original_density_map.png",
