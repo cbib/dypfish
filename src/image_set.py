@@ -276,8 +276,6 @@ class ImageSet(object):
         """
         computes normalized densities per slice (quadrant by default) for all images
         """
-        logger.info(stripes)
-        logger.info(quadrants_num)
         all_densities = np.empty((0, 2), float)
         for image in tqdm.tqdm(self.images, desc="Images"):
             cytoplasmic_density = image.compute_cytoplasmic_density()
@@ -307,7 +305,7 @@ class ImageSet(object):
         return [image.mtoc_is_in_leading_edge() for image in self.images]
 
     def compute_spots_peripheral_distance(self):
-        return np.array([image.compute_spots_peripheral_distance() for image in self.images])
+        return np.array([image.get_cytoplasmic_spots_peripheral_distance() for image in self.images])
 
     def compute_zline_distance(self, z_line_spacing):
         image: imageMultiNucleusWithSpotsAndZlines

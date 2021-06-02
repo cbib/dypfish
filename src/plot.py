@@ -169,7 +169,7 @@ def violin_profile(dictionary, tgt_fp, xlabels, rotation=0, annot=False):
                        for k, v in dictionary.items()}).melt().dropna().rename(columns={"variable": "gene"})
 
     # Remove possible outliers that stretch the violin
-    outliers = helpers.detect_outliers(np.array(dd["value"]), 3)
+    outliers = helpers.detect_outliers(np.array(dd["value"]), 2.5)
     dd = dd[~np.isin(dd["value"], outliers)]
 
     my_pal = {}
