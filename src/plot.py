@@ -62,7 +62,7 @@ def bar_profile_median_timepoints(df: pd.DataFrame, palette, figname, fixed_ysca
     ax.bar(index, mrna["d_of_c"], bar_width, yerr=mrna["error"], color=palette["mrna"], error_kw=dict(elinewidth=6, ecolor='black'))
     ax.bar(index + bar_width, protein["d_of_c"], bar_width, yerr=protein["error"], color=palette["protein"], error_kw=dict(elinewidth=6, ecolor='black'))
 
-    plt.ylim([0, fixed_yscale])
+    #plt.ylim([0, fixed_yscale])
     ax.set_xlabel("", fontsize=15)
     ax.set_ylabel("", fontsize=15)
     ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)

@@ -53,8 +53,8 @@ def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4, pe
 configurations = [
     ["src/analysis/colocalization/config_original.json"],
     ["src/analysis/colocalization/config_original_periph.json"],
-    #["src/analysis/colocalization/config_nocodazole_arhgdia.json"],
-    #["src/analysis/colocalization/config_nocodazole_pard3.json"]
+    ["src/analysis/colocalization/config_nocodazole_arhgdia.json"],
+    ["src/analysis/colocalization/config_nocodazole_pard3.json"]
 ]
 
 # Figure 5D Analysis Colocalization Score (CS) for original data (5 figures)
