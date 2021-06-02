@@ -408,6 +408,7 @@ def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna,
     fwd_correlations = correlations[fwd_indices == 1].flatten()
     other_correlations = correlations[fwd_indices == 0].flatten()
     ranks = stats.rankdata(correlations, method='ordinal').reshape(correlations.shape[0], correlations.shape[1])
+    print(correlations)
     stat, pval = stats.mannwhitneyu(fwd_correlations, other_correlations, use_continuity=False)
     cs = a12(list(fwd_correlations), list(other_correlations)) # effect size
 
