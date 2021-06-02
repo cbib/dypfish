@@ -19,7 +19,7 @@
   "MIN_SNR": 1,
   "PLOT_COLORS":["#0A3950", "#A1BA6D","#1E95BB"],
   "MOLECULE_TYPES": ["mrna"],
-  "MRNA_GENES" : ["actn2", "gapdh"],
+  "MRNA_GENES" : ["actn2-mature", "gapdh-mature", "actn2-immature"],
   "TIMEPOINTS_MRNA":["immature", "mature"],
   "TIMEPOINTS_NUM_PROTEIN":[2, 3, 5],
   "TIMEPOINTS_NUM_MRNA":[2, 3, 5],
