@@ -24,6 +24,7 @@ def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4, pe
         stripes_flag = False; stripes = 1
     else:
         stripes_flag = True
+
     if molecule_type == 'mrna':
         timepoints = constants.dataset_config['TIMEPOINTS_MRNA']
     else:
