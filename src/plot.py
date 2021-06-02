@@ -412,7 +412,7 @@ def enrichment_violin_plot(density_stats: DensityStats, molecule_type, figname,
 def profile(profiles, figname):
     num_contours = constants.analysis_config['NUM_CONTOURS']
     plot_colors = constants.analysis_config['PLOT_COLORS']
-    genes = constants.dataset_config['MRNA_GENES']
+    genes = constants.analysis_config['MRNA_GENES']
     fig = plt.figure(figsize=(15, 10))
     ax = fig.add_subplot(111)
     ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
