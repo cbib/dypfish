@@ -285,8 +285,7 @@ class ImageSet(object):
             logger.info("quadrants_num {}", quadrants_num)
             logger.info("stripes {}", stripes)
             vec_len = quadrants_num * stripes
-            assert(vec_len == mdmq.shape[0]),\
-                f"Precomputed quadrants are the wrong shape {quadrants_num} != {mdmq.shape[0]}"
+            assert(vec_len == mdmq.shape[0]), f"Precomputed quadrants are the wrong shape {vec_len} != {mdmq.shape[0]}"
             mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
             if mdmq[:,0].sum() > 0:
                 # just in case, make sure that the mtoc containing quadrant is always first
