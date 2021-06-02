@@ -33,7 +33,7 @@ def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4, pe
         median_densities, gene_clusters = [], []
         for timepoint in timepoints:
             image_set = ImageSet(analysis_repo, [molecule_type + "/{0}/{1}/".format(gene, timepoint)])
-            arr = image_set.compute_normalised_quadrant_densities(quadrants_num=quadrants_num * stripes,
+            arr = image_set.compute_normalised_quadrant_densities(quadrants_num=quadrants_num,
                                                                   peripheral_flag=peripheral_flag,
                                                                   stripes=stripes, stripes_flag=stripes_flag)
             num_images = arr.shape[0] // (quadrants_num * stripes)

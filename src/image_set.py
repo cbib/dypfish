@@ -280,7 +280,7 @@ class ImageSet(object):
         for image in tqdm.tqdm(self.images, desc="Images"):
             cytoplasmic_density = image.compute_cytoplasmic_density()
             mdmq = image.get_or_compute_quadrant_densities(quadrants_num, peripheral_flag, stripes, stripes_flag)
-            assert(quadrants_num == mdmq.shape[0]),\
+            assert(quadrants_num * stripes == mdmq.shape[0]),\
                 f"Precomputed quadrants are the wrong shape {quadrants_num} != {mdmq.shape[0]}"
             mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
             if (mdmq[:,0].sum() > 0):
