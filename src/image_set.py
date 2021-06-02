@@ -276,6 +276,8 @@ class ImageSet(object):
         """
         computes normalized densities per slice (quadrant by default) for all images
         """
+        logger.info(stripes)
+        logger.info(quadrants_num)
         all_densities = np.empty((0, 2), float)
         for image in tqdm.tqdm(self.images, desc="Images"):
             cytoplasmic_density = image.compute_cytoplasmic_density()
