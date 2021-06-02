@@ -409,7 +409,7 @@ def enrichment_violin_plot(density_stats: DensityStats, molecule_type, figname,
         xlabels = constants.analysis_config['MRNA_GENES_LABEL'][:4]
     sns_violinplot(dd, my_pal, figname, xlabels, x=groupby_key, hue=dd['Quadrants'], rotation=45)
 
-def profile(profiles, figname):
+def profile(profiles, figname, keep=7):
     num_contours = constants.analysis_config['NUM_CONTOURS']
     plot_colors = constants.analysis_config['PLOT_COLORS']
     genes = constants.analysis_config['MRNA_GENES']
@@ -424,9 +424,9 @@ def profile(profiles, figname):
     plt.xticks([w for w in range(0, num_contours + 2, 10)])
     # we do not plot the first 8%
     for i, gene in enumerate(genes):
-        fractions_to_plot = profiles[gene][7:]
-        plt.plot(range(7, num_contours), fractions_to_plot, color=plot_colors[i], linewidth=3, label=genes)
-    plt.savefig(figname, dpi=600)
+        fractions_to_plot = profiles[i][keep:]
+        plt.plot(range(keep, len(profiles[i])), fractions_to_plot, color=plot_colors[i], linewidth=3, label=genes)
+    plt.savefig(figname)
     plt.close()
 
 

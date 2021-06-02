@@ -54,4 +54,4 @@ tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(roo
 all_median_profiles.append(df_mature.loc[0].values)
 all_median_profiles.append(df_mature.loc[1].values)
 all_median_profiles.append(df_immature.loc[0].values)
-profile(all_median_profiles, tgt_fp)
+profile(all_median_profiles, tgt_fp, keep=0)
