@@ -3,6 +3,7 @@
   "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/clustering/output",
   "FIGUES_CLUSTERS_FORMAT": "{gene}_{molecule}_{timepoint}_clusters.png",
   "NUM_CONTOURS": 100,
+  "MAX_CELL_RADIUS": 300,
   "STRIPE_NUM": 3,
   "SPOTS_MIN": 50,
   "MIN_SPOTS_NUM_IN_CYTOPLASM": 10,
