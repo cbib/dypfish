@@ -62,8 +62,7 @@ class TestImage3dWithIntensities(TestCase):
 
     def test_ripley_k_random_measure_2d(self):
         IF = self.img.get_intensities()
-        test_k = np.array([[2.53917575e+04, 1.26888405e+05, 3.29580740e+05, 7.33753607e+05, 1.23718579e+06]])
         nuw = (np.sum(self.img.get_cell_mask()[:, :] == 1))  # * pixels_in_slice  # whole surface of the cell
         my_lambda = float(np.sum(IF)) / float(nuw)  # volumic density
         K = self.img.ripley_k_random_measure_2D(IF, my_lambda, nuw)
-        self.assertAlmostEqual(np.sum(K[0:5]), np.sum(test_k), places=2)
+        self.assertAlmostEqual(np.sum(K[0:5]), 4098723.3606293784, places=2)
