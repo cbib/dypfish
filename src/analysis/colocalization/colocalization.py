@@ -26,8 +26,6 @@ def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4, pe
     else:
         stripes_flag = True
 
-    logger.info(stripes)
-    logger.info(quadrants_num)
     if molecule_type == 'mrna':
         timepoints = constants.dataset_config['TIMEPOINTS_MRNA']
     else:
@@ -70,7 +68,6 @@ if __name__ == '__main__':
         repo = helpers.open_repo()
         peripheral_flag = "periph" in conf[0]
         stripes = constants.analysis_config["STRIPE_NUM"]
-        logger.info(stripes)
         mrna_densities = compute_relative_densities(repo, 'mrna', quadrants_num=8, peripheral_flag=peripheral_flag)
         prot_densities = compute_relative_densities(repo, 'protein', quadrants_num=8, peripheral_flag=peripheral_flag)
 
