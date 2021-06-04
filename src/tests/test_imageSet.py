@@ -17,6 +17,7 @@ from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
 
+
 class TestImageSet(TestCase):
     def setUp(self) -> None:
         self.h5_sample_path = pathlib.Path(path.global_example_data, "basic.h5")
@@ -47,8 +48,8 @@ class TestImageSet(TestCase):
         peripheral_areas = image_set.compute_areas_from_periphery()
         self.assertEqual(peripheral_areas.shape, (5, 100))
         cytoplasmic_areas = [img.compute_cell_area() - img.compute_nucleus_area() for img in image_set.images]
-        self.assertTrue(np.allclose(peripheral_areas[:,99], np.array(cytoplasmic_areas)))
-        self.assertAlmostEqual(peripheral_areas.sum(), 630578.8507560815, places=5)
+        self.assertTrue(np.allclose(peripheral_areas[:, 99], np.array(cytoplasmic_areas)))
+        self.assertAlmostEqual(peripheral_areas.sum(), 142574.96909927676, places=5)
 
     def test_compute_volumes_from_periphery(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/3h/'])
@@ -105,7 +106,7 @@ class TestImageSet(TestCase):
     def test_compute_degree_of_clustering(self):
         logger.error("This function has not been tested with cytoplasmic spots and new random spots")
         self.fail()
-        self.skipTest() # skipping because not tested, see above
+        self.skipTest()  # skipping because not tested, see above
         np.random.seed(0)
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         clustering_indices = image_set.compute_degree_of_clustering()

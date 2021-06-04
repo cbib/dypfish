@@ -47,25 +47,19 @@ class TestImage3dWithSpots(TestCase):
         self.assertAlmostEqual(spread, 16.334849331, places=5)
 
     def test_clustering_index_point_process(self):
-        logger.error("was not tested with cytoplasmic spots and new random spots")
-        self.fail()
         np.random.seed(0)
         h_star = self.img.compute_clustering_indices()
         self.assertEqual(len(h_star), 300)
-        self.assertAlmostEqual(h_star.sum(), 289.98034888178876)  # might not work since random
+        self.assertAlmostEqual(h_star.sum(), 1213.3690684555136)  # might not work since random
 
     def test_ripley_k_point_process(self):
-        logger.error("Function was not tested with cytoplasmic spots and the new random spots")
-        self.fail()
         K = self.img.ripley_k_point_process(nuw=1158349.7249999999, my_lambda=0.00018819877563315348)
-        self.assertAlmostEqual(K.sum(), 234044508.31346154, places=3)
+        self.assertAlmostEqual(K.sum(), 110417705.92985436, places=3)
         self.assertEqual(K.shape, (300,))
 
     def test_compute_degree_of_clustering(self):
-        logger.error("was not tested with cytoplasmic spots and new random spots")
-        self.fail()
         np.random.seed(0)
-        self.assertAlmostEqual(self.img.compute_degree_of_clustering(), 71.93654959822, places=5)
+        self.assertAlmostEqual(self.img.compute_degree_of_clustering(), 915.3690684555138, places=5)
 
     def test_compute_mrna_density(self):
         mrna_density = self.img.compute_cytoplasmic_density()

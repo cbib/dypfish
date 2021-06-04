@@ -55,8 +55,10 @@ class TestImage3dWithIntensities(TestCase):
         self.assertAlmostEqual(peripheral_intensities.sum(), 50951395310.0)
 
     def test_compute_clustering_indices(self):
-        logger.error("This function is not tested")
-        self.fail()
+        h_star = self.img.compute_clustering_indices()
+        self.assertEqual(len(h_star), 300)
+        self.assertTrue(173000 <= h_star.sum() <= 174000)
+        #self.assertAlmostEqual(h_star.sum(), 173386.84215012786, places=1)  # might not work since random
 
     def test_ripley_k_random_measure_2d(self):
         IF = self.img.get_intensities()
