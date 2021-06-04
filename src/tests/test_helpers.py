@@ -8,13 +8,12 @@ import helpers
 import mpi_calculator
 import constants
 import path
-import math
 import numpy as np
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
 
 
-class Test(TestCase):
+class TestHelpers(TestCase):
     def test_compute_statistics_random_h_star(self):
         a = np.array([[0.51, 0.13, 0.7, 0.01, 1.9],
                       [0.4, 1.54, 0.3, 0.2, 0.8],
@@ -32,17 +31,11 @@ class Test(TestCase):
         self.assertEqual(result[0], 0)
         self.assertEqual(result[1], 1)
 
-        # nucleus_centroid = [252.98498233215548, 219.89697438162545]
-        # mtoc_position = [264.97736786466726, 199.7548042583913]
-        # degree = 10
-        # result = helpers.rotate_point(self, nucleus_centroid, mtoc_position, degree)
-        # self.assertEqual(result[0], 268)
-        # self.assertEqual(result[1], 202)
-
     def test_slope_from_points(self):
         point1 = np.array([0, 0])
         point2 = np.array([1, 1])
         result = helpers.slope_from_points(self, point1, point2)
+        self.assertEqual(result, 1.0)
         self.assertEqual(np.degrees(np.arctan(1)), 45.0)
 
         rotate_point = np.array([268.0, 202.0])
@@ -75,6 +68,47 @@ class Test(TestCase):
         self.assertEqual(h, 57)
 
     def test_sem(self):
-        a = np.array([0, 0.1, 0,3, 0.001, 10])
+        a = np.array([0, 0.1, 0, 3, 0.001, 10])
         sem = helpers.sem(a)
         self.assertAlmostEqual(sem, 1.49447, places=5)
+
+    def test_compute_entropy(self):
+        center = np.array([5, 5, 5])
+        radius = 3
+        points1 = helpers.random_points_in_sphere(center, radius, 400)
+        entropy1 = helpers.compute_entropy(points1, k=15, norm='euclidean')
+        radius = 5
+        points2 = helpers.random_points_in_sphere(center, radius, 400)
+        entropy2 = helpers.compute_entropy(points2, k=15, norm='euclidean')
+        self.assertLess(entropy1, entropy2)  # increases with volume
+
+    def test_roll_densities_mtoc_array(self):
+        arr = np.array([[1, 0], [2, 0], [3, 1], [4, 0],
+                        [11, 0], [12, 1], [13, 0], [14, 0]])
+        result = helpers.roll_densities_mtoc_array(arr, slices=2)
+        self.assertEqual(result[0, 1], 1)
+        self.assertEqual(result[4, 1], 1)
+
+    def test_neighboring_protein_values_full(self):
+        mrna = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        protein = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        result = helpers.neighboring_protein_values_full(mrna, protein, stripes=3, quadrants=4)
+        self.assertTrue(np.all(result == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]))
+        mrna = np.array([2, 2, 6, 6, 11, 11, 3, 3, 1, 1, 10, 9])
+        result = helpers.neighboring_protein_values_full(mrna, protein, stripes=3, quadrants=4)
+        self.assertTrue(np.all(result == [2, 2, 6, 7, 12, 11, 3, 3, 5, 5, 10, 9]))
+
+    def test_make_categorical(self):
+        arr = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        categorical_arr = helpers.make_categorical(arr)
+        self.assertEqual((categorical_arr == 1).sum(), 2)
+        self.assertEqual((categorical_arr == 2).sum(), 2)
+
+    def test_neighboring_protein_values_periphery(self):
+        mrna = np.array([1, 2, 3, 4, 5, 6])
+        protein = np.array([1, 2, 3, 4, 5, 6])
+        result = helpers.neighboring_protein_values_periphery(mrna, protein)
+        self.assertTrue(np.all(result == [1, 2, 3, 4, 5, 6]))
+        protein = np.array([0, 1, 2, 1, 5, 2])
+        result = helpers.neighboring_protein_values_periphery(mrna, protein)
+        self.assertTrue(np.all(result == [1, 2, 2, 5, 5, 5]))

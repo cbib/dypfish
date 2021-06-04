@@ -2,21 +2,23 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
+import itertools
 import math
 import pathlib
 from typing import List
-
+import numpy as np
+import pandas as pd
 from colormap import rgb2hex
 from numpy import matlib
-import numpy as np
-from scipy.stats import *
-import pandas as pd
-import itertools
-import constants
 from scipy import stats
+from scipy.spatial import cKDTree
+from scipy.special import gamma, digamma
+from scipy.special import gammainc
+import statsmodels.formula.api as smf
+
+import constants
 from path import global_root_dir
 from repository import H5RepositoryWithCheckpoint
-from mpi_calculator import DensityStats
 
 
 def checkpoint_decorator(path, dtype):
@@ -35,6 +37,15 @@ def checkpoint_decorator(path, dtype):
         return wrapper
 
     return real_checkpoint_decorator
+
+
+def open_repo():
+    dataset_root_fp = pathlib.Path(
+        constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
+    primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
+    secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
+    repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
+    return repo
 
 
 def volume_coeff():
@@ -117,7 +128,7 @@ def unit_circle(size, r) -> np.ndarray:
 def median_confidence_interval(a: np.array, cutoff=.95):
     ''' cutoff is the significance level as a decimal between 0 and 1'''
     a = np.sort(a)
-    factor = norm.ppf((1+cutoff)/2)
+    factor = stats.norm.ppf((1+cutoff)/2)
     factor *= math.sqrt(len(a)) # avoid doing computation twice
 
     lix = int(0.5*(len(a)-factor)) + 1
@@ -238,107 +249,6 @@ def detect_outliers(data, threshold=3):
             outliers.append(x)
     return outliers
 
-
-def open_repo():
-    dataset_root_fp = pathlib.Path(
-        constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
-    primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])
-    secondary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['SECONDARY_FILE_NAME'])
-    repo = H5RepositoryWithCheckpoint(repo_path=primary_fp, secondary_repo_path=secondary_fp)
-    return repo
-
-
-####Colocalization score PART
-
-def reindex_quadrant_mask(quad_mask, mtoc_quad, quad_num=4):
-    df = pd.DataFrame(quad_mask)
-    df = df.applymap(lambda x: x - mtoc_quad + 1 if x >= mtoc_quad else (x + quad_num - mtoc_quad + 1 if x > 0 else 0))
-    quad_mask = np.array(df)
-    return quad_mask
-
-
-def permutations(orig_list):
-    if not isinstance(orig_list, list):
-        orig_list = list(orig_list)
-    yield orig_list
-    if len(orig_list) == 1:
-        return
-    for n in sorted(orig_list):
-        new_list = orig_list[:]
-        pos = new_list.index(n)
-        del (new_list[pos])
-        new_list.insert(0, n)
-        for resto in permutations(new_list[1:]):
-            if new_list[:1] + resto != orig_list:
-                yield new_list[:1] + resto
-
-
-def using_indexed_assignment(x):
-    "https://stackoverflow.com/a/5284703/190597 (Sven Marnach)"
-    result = np.empty(len(x), dtype=int)
-    temp = x.argsort()
-    return temp +1
-
-
-def permutations_test(interactions, fwdints, matrix_size=4, permutation_num=1000):
-    fwdints = fwdints.astype(bool)
-    vals = interactions.flatten()
-
-    indx = using_indexed_assignment(vals)
-    indx_matrix = np.array(indx.reshape((matrix_size, matrix_size)))
-    ranking = indx_matrix.copy()
-
-    flat = interactions.copy().flatten()
-    rs0 = np.sum(interactions[fwdints[:]])
-    rs1 = np.sum(indx_matrix[fwdints[:] == 0])
-    rs = []
-    for perm in range(permutation_num):
-        np.random.shuffle(flat)
-        _matrix = flat.reshape((matrix_size, matrix_size))
-        rs.append(np.sum(_matrix[fwdints[:]]))
-
-    count = 0
-    for score in rs :
-        if score > rs0:
-            count += 1
-    p = float(count / float(len(rs)))
-    stat = rs1
-    return p, stat, ranking
-
-
-def pearsoncorr(vec1, vec2):
-    mu1 = np.mean(vec1)
-    mu2 = np.mean(vec2)
-    vec1b = vec1 - mu1
-    vec2b = vec2 - mu2
-    val = np.mean(vec1b * vec2b) / (np.std(vec1) * np.std(vec2))
-    return val
-
-
-def get_forward_interactions(mrna_timepoints, protein_timepoints):
-    X = len(mrna_timepoints)
-    Y = len(protein_timepoints)
-    fwd_interactions = np.zeros((X, Y))
-    for x in range(X):
-        for y in range(Y):
-            if protein_timepoints[y] > mrna_timepoints[x]:
-                fwd_interactions[x, y] = 1
-    return fwd_interactions
-
-
-
-##### muscle data helpers functions
-
-def get_quantized_grid(q, Qx, Qy):
-    tmp_x = np.array(np.arange(Qx))
-    tmp_y = np.array(np.arange(Qy))
-    qxs = matlib.repmat(tmp_x.transpose(), 1, Qx)
-    qys = matlib.repmat(tmp_y, Qy, 1)
-    qxs = np.kron(qxs, np.ones((q, q)))
-    qys = np.kron(qys, np.ones((q, q)))
-    return qxs, qys
-
-
 def reduce_z_line_mask(z_lines, spots):
     cpt_z = 1
     z_lines_idx = []
@@ -382,23 +292,126 @@ def build_density_by_stripe(spots_reduced, z_lines, cell_mask, band_n=100):
     return grid_mat
 
 
-def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna, timepoint_num_protein, permutation_num=1000):
-    S1 = get_forward_interactions(timepoint_num_mrna, timepoint_num_protein)
-    interactions = np.zeros((len(timepoint_num_mrna), len(timepoint_num_protein)))
-    for i in range(len(timepoint_num_mrna)):
-        for j in range(len(timepoint_num_protein)):
-            interactions[i, j] = stats.pearsonr(list(mrna_data[i]), list(protein_data[j]))[0]
-    (p, stat, ranking) = permutations_test(interactions, S1, matrix_size=len(timepoint_num_mrna), permutation_num=permutation_num)
-    if len(timepoint_num_mrna)==4:
-        #TODO if matrix 4 * 4
-        #tis = (stat -15 ) / 106.0
-        tis = (stat -36 ) / 64.0
-        #tis = (100 - stat) / 64.0
-    else:
-        # TODO if matrix 2 * 2
-        tis = (stat - 1 ) / 8.0
+def get_forward_timepoints(mrna_timepoints: list, protein_timepoints: list) -> np.array:
+    '''
+    Given two lists of timepoints (numerical values), computes pairs
+    where protein measurement happened at a later timepoint than mrna measurement
+    returns a 2D numpy array where 1 is for protein_timepoint > mrna_timepoint
+    '''
+    X = len(mrna_timepoints)
+    Y = len(protein_timepoints)
+    fwd_interactions = np.zeros((X, Y))
+    for x in range(X):
+        for y in range(Y):
+            if protein_timepoints[y] > mrna_timepoints[x]:
+                fwd_interactions[x, y] = 1
+    return fwd_interactions
 
-    return tis, p, ranking
+def make_categorical(arr):
+    '''
+    In a density array replaces values by 0, 1, 2
+    0 : within the std, 1 > std, 2 < std
+    '''
+    categorical_arr = np.zeros(arr.shape[0])
+    clustered_indices = np.argwhere(arr > np.mean(arr) + np.std(arr)).flatten()
+    underclusstered_indices = np.argwhere(arr < np.mean(arr) - np.std(arr)).flatten()
+    categorical_arr[clustered_indices] = 1
+    categorical_arr[underclusstered_indices] = 2
+    return categorical_arr
+
+def get_neighbors(p, exclude_p=False, shape=None):
+    ndim = len(p)
+    # generate an (m, ndims) array containing all strings over the alphabet {0, 1, 2}:
+    offset_idx = np.indices((3,) * ndim).reshape(ndim, -1).T
+    # use these to index into np.array([-1, 0, 1]) to get offsets
+    offsets = np.r_[-1, 0, 1].take(offset_idx)
+    # optional: exclude offsets of 0, 0, ..., 0 (i.e. p itself)
+    if exclude_p:
+        offsets = offsets[np.any(offsets, 1)]
+
+    neighbours = p + offsets    # apply offsets to p
+
+    # optional: exclude out-of-bounds indices
+    if shape is not None:
+        valid = np.all(neighbours < np.array(shape), axis=1) & (neighbours[:,0] >= 0)
+        neighbours = neighbours[valid]
+
+    return neighbours
+
+def neighboring_protein_values(mrna, protein, stripes, quadrants):
+    '''
+    For each pair of indices i,j in the mrna density vector, collect protein value
+    from the protein densities vector in the direct neighborhood of i,j and
+    closest in value to the mrna density at this index
+    '''
+    mrna_stripes = mrna.reshape((stripes, quadrants))
+    protein_stripes = protein.reshape((stripes, quadrants))
+    padded_stripes = np.pad(protein_stripes, (1, 1), mode='wrap')
+    padded_stripes[0, :] = -1 ; padded_stripes[padded_stripes.shape[0]-1, :] = -1
+    all_neighbours = {}
+    for i, j in itertools.product(range(1, stripes+1), range(1, quadrants+1)) :
+        neighbors_idx = get_neighbors(np.r_[i,j], shape=padded_stripes.shape)
+        neighbors = padded_stripes[tuple(neighbors_idx.T)]
+        all_neighbours[(i-1,j-1)] = neighbors[neighbors != -1]
+
+    protein_nearest_neighbours = []
+    for i, j in itertools.product(range(stripes), range(quadrants)):
+        protein_vals = all_neighbours[(i,j)]
+        idx = (np.abs(protein_vals - mrna_stripes[i,j])).argmin()
+        protein_nearest_neighbours.append(protein_vals[idx])
+
+    return np.array(protein_nearest_neighbours).astype(int)
+
+
+def neighboring_protein_values_periphery(mrna, protein):
+     protein_nearest_neighbours = []
+     for i, val in enumerate(mrna):
+         indices = range(i - 1, i + 2)
+         neighbourhood = protein.take(indices, mode='wrap')
+         idx = (np.abs(neighbourhood - val).argmin())
+         protein_nearest_neighbours.append(neighbourhood[idx])
+
+     return np.array(protein_nearest_neighbours).astype(int)
+
+
+def quantile_regression(categorical_mrna, categorical_protein):
+    data = pd.DataFrame(columns=['mrna', 'protein'])
+    data['mrna'] = categorical_mrna
+    data['protein'] = categorical_protein
+    mod = smf.quantreg('mrna ~ protein', data)
+    res = mod.fit(q=.5)
+    return res.prsquared
+
+
+def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna,
+                                   timepoint_num_protein, peripheral_flag, stripes, quadrants):
+    num_mrna_tp, num_protein_tp = len(timepoint_num_mrna), len(timepoint_num_protein)
+    correlations = np.zeros((num_mrna_tp, num_protein_tp))
+    for i, j in itertools.product(range(num_mrna_tp), range(num_protein_tp)):
+        categorical_mrna = make_categorical(mrna_data[i])
+        categorical_protein = make_categorical(protein_data[j])
+        if not peripheral_flag:
+            neighbouring_protein = neighboring_protein_values(categorical_mrna, categorical_protein,
+                                                                   stripes, quadrants)
+            correlations[i, j] = stats.pearsonr(categorical_mrna, neighbouring_protein)[0]
+        else:
+            neighbouring_protein = neighboring_protein_values_periphery(categorical_mrna[0:quadrants],
+                                                                        categorical_protein[0:quadrants])
+            if (not np.all(categorical_mrna == neighbouring_protein)):
+                correlations[i, j] = stats.pearsonr(categorical_mrna[0:quadrants],
+                                                    neighbouring_protein[0:quadrants])[0]
+            else:  # neighbour-based approach failed, this is a hack
+                correlations[i, j] = (categorical_mrna == categorical_protein).sum() / len(categorical_mrna)
+
+
+    fwd_indices = get_forward_timepoints(timepoint_num_mrna, timepoint_num_protein)
+    fwd_correlations = correlations[fwd_indices == 1].flatten()
+    other_correlations = correlations[fwd_indices == 0].flatten()
+    ranks = stats.rankdata(correlations, method='ordinal').reshape(correlations.shape[0], correlations.shape[1])
+    stat, pval = stats.mannwhitneyu(fwd_correlations, other_correlations, use_continuity=False)
+    cs = a12(list(fwd_correlations), list(other_correlations)) # effect size
+
+    return cs, pval, ranks
 
 
 # Stability analysis part
@@ -446,3 +459,98 @@ def colorscale(hexstr, scalefactor):
     b = clamp(b * scalefactor)
 
     return "#%02x%02x%02x" % (r, g, b)
+
+def a12(lst1, lst2, rev=True):
+  '''
+    Non-parametric hypothesis testing using Vargha and Delaney's A12 statistic:
+    how often is x in lst1 greater than y in lst2?
+  '''
+  more = same = 0.0
+  for x in lst1:
+    for y in lst2:
+      if x==y: same += 1
+      elif rev     and x > y: more += 1
+      elif not rev and x < y: more += 1
+  return (more + 0.5*same) / (len(lst1)*len(lst2))
+
+
+def random_points_in_sphere(center, radius, num_points) -> np.ndarray:
+    '''
+    Generate num_points random points within a shpere with center in center
+    center is a numpy array
+    '''
+    r = radius
+    ndim = center.size
+    x = np.random.normal(size=(num_points, ndim))
+    ssq = np.sum(x**2,axis=1)
+    fr = r * gammainc(ndim/2, ssq/2) ** (1/ndim)/np.sqrt(ssq)
+    frtiled = np.tile(fr.reshape(num_points, 1), (1, ndim))
+    p = center + np.multiply(x, frtiled)
+    return p
+
+
+def roll_densities_mtoc_array(densities, slices=3):
+    '''
+    Given a 2d numpy array with densities for all slices, where
+    first column contains densities and second column encods the mtoc containing quadrants,
+    roll all the slices so that the mtoc containing quadrant is the first for all slices
+    '''
+    slices = np.split(densities, slices)
+    for idx, slice in enumerate(slices):
+        mtoc_quadrant = np.argwhere(slice[:,1] == 1)[0][0]
+        slice = np.roll(slice, -mtoc_quadrant, 0)
+        slices[idx] = slice
+    return np.vstack(slices)
+
+
+def compute_entropy(x, k=1, norm='max', min_dist=0.):
+    """
+    Estimates the entropy H of a random variable x (in nats) based on
+    the kth-nearest neighbour distances between point samples.
+    Implementation credits: Paul Brodersen
+    @reference:
+    Kozachenko, L., & Leonenko, N. (1987). Sample estimate of the entropy of a random vector.
+    Problemy Peredachi Informatsii, 23(2), 9–16.
+    Arguments:
+    ----------
+    x: (n, d) ndarray
+        n samples from a d-dimensional multivariate distribution
+    k: int (default 1)
+        kth nearest neighbour to use in density estimate;
+        imposes smoothness on the underlying probability distribution
+    norm: 'euclidean' or 'max'
+        p-norm used when computing k-nearest neighbour distances
+    min_dist: float (default 0.)
+        minimum distance between data points;
+        smaller distances will be capped using this value
+    Returns:
+    --------
+    h: float
+        entropy H(X)
+    """
+
+    n, d = x.shape
+
+    if norm == 'max': # max norm:
+        p = np.inf
+        log_c_d = 0 # volume of the d-dimensional unit ball
+    elif norm == 'euclidean': # euclidean norm
+        p = 2
+        log_c_d = (d/2.) * np.log(np.pi) -np.log(gamma(d/2. +1))
+    else:
+        raise NotImplementedError("Variable 'norm' either 'max' or 'euclidean'")
+
+    kdtree = cKDTree(x)
+
+    # query all points -- k+1 as query point also in initial set
+    distances, _ = kdtree.query(x, k + 1, eps=0, p=p)
+    distances = distances[:, -1]
+
+    # enforce non-zero distances
+    distances[distances < min_dist] = min_dist
+
+    sum_log_dist = np.sum(np.log(2*distances)) # where did the 2 come from? radius -> diameter
+    h = -digamma(k) + digamma(n) + log_c_d + (d / float(n)) * sum_log_dist
+
+    return h
+

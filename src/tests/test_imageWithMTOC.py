@@ -4,13 +4,12 @@
 
 import pathlib
 from unittest import TestCase
-import matplotlib.pyplot as plt
-import numpy as np
+
 import constants
 import helpers
-from repository import H5Repository, H5RepositoryWithCheckpoint
-from image import Image, ImageWithMTOC
 import path
+from image import ImageWithMTOC
+from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
 
@@ -59,10 +58,10 @@ class TestImageWithMTOC(TestCase):
         nucleus_centroid = [5, 5]
         mtoc_position = [5, 2]
 
-        quadrant_mask = self.img.compute_quadrant_mask(degree=45, slices_num=4, nucleus_centroid=nucleus_centroid,
-                                                       image_width=11, image_height=11, cell_mask=cell_mask,
-                                                       mtoc_position=mtoc_position)
+        quadrant_mask = self.img.rotate_quadrant_mask(degree=45, slices_num=4, nucleus_centroid=nucleus_centroid,
+                                                      image_width=11, image_height=11, cell_mask=cell_mask,
+                                                      mtoc_position=mtoc_position)
         self.assertEqual(quadrant_mask.sum(), 179)
 
-        quadrant_mask = self.img.compute_quadrant_mask(degree=45, slices_num=4)
+        quadrant_mask = self.img.rotate_quadrant_mask(degree=45, slices_num=4)
         self.assertEqual(quadrant_mask.sum(), 133618)

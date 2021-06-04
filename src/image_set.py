@@ -2,20 +2,25 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import sys
-from typing import List
+from typing import List, Union
+
+import numpy as np
 import tqdm
 from loguru import logger
-import numpy as np
-import pandas as pd
+
 import constants
-import scipy.stats as stats
+import helpers
+from image import Image, ImageWithMTOC
+from image3d import Image3d, Image3dMultiNucleus
+from image3dWithIntensities import Image3dWithIntensities, Image3dWithIntensitiesAndMTOC
+from image3dWithSpots import Image3dWithSpots, Image3dWithSpotsAndMTOC
+from imageWithIntensities import ImageWithIntensities, ImageWithIntensitiesAndMTOC
+from imageWithSpots import ImageWithSpots, ImageWithSpotsAndMTOC
+from imageWithSpotsAndIntensities import ImageWithSpotsAndIntensitiesAndMTOC, Image3dWithSpotsAndIntensitiesAndMTOC, \
+    Image3dMultiNucleusWithSpots, ImageWithSpotsAndIntensities
+from imageWithZlines import imageMultiNucleusWithSpotsAndZlines, ImageMultiNucleus, imageWithSpotsAndZlines, \
+    ImageMultiNucleusWithSpots
 from repository import Repository
-from image import ImageWithSpots, ImageWithIntensities, ImageWithMTOC, \
-    ImageWithSpotsAndIntensities, ImageWithSpotsAndMTOC, ImageWithSpotsAndIntensitiesAndMTOC, \
-    ImageWithIntensitiesAndMTOC, ImageMultiNucleus, ImageMultiNucleusWithSpots, imageWithSpotsAndZlines, imageMultiNucleusWithSpotsAndZlines
-from image3d import Image3d, Image3dWithSpots, Image3dWithIntensities, \
-    Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC, Image3dWithSpotsAndIntensitiesAndMTOC, Image3dMultiNucleus, Image3dMultiNucleusWithSpots
 
 
 class ImageSet(object):
@@ -52,20 +57,18 @@ class ImageSet(object):
             # TODO : Refactor, test and debug the logical branching
             #logger.debug("creating Image for {} ",p)
             if force2D:
-                if has_spots:
-                    img = ImageWithSpots(self._repository, p)
-                elif has_intensities:
-                    img = ImageWithIntensities(self._repository, p)
-                elif is_with_spots_and_MTOC:
-                    img = ImageWithSpotsAndMTOC(self._repository, p)
-                elif is_with_spots_and_MTOC:
-                    img = ImageWithSpotsAndMTOC(self._repository, p)
-                    if has_intensities:
-                        img = ImageWithSpotsAndIntensitiesAndMTOC(self._repository, p)
-                elif is_with_spots_and_intensities_and_MTOC:
+                if is_with_spots_and_intensities_and_MTOC:
                     img = ImageWithSpotsAndIntensitiesAndMTOC(self._repository, p)
                 elif has_spots and has_intensities:
                     img = ImageWithSpotsAndIntensities(self._repository, p)
+                elif is_with_spots_and_MTOC:
+                    img = ImageWithSpotsAndMTOC(self._repository, p)
+                elif is_with_intensities_and_MTOC:
+                    img = ImageWithIntensitiesAndMTOC(self._repository, p)
+                elif has_spots:
+                    img = ImageWithSpots(self._repository, p)
+                elif has_intensities:
+                    img = ImageWithIntensities(self._repository, p)
                 elif has_spots_and_zlines:
                     img = imageWithSpotsAndZlines(self._repository, p)
                 elif has_spots_multi_nucleus:
@@ -75,7 +78,7 @@ class ImageSet(object):
                 else:
                     raise NotImplemented("Couldn't deduce type for image %s" % p)
             else:
-                if  is_3d_spots_multi_nucleus:
+                if is_3d_spots_multi_nucleus:
                     img = Image3dMultiNucleusWithSpots(self._repository, p)
                 elif is_3d_multi_nucleus:
                     img = Image3dMultiNucleus(self._repository, p)
@@ -130,17 +133,11 @@ class ImageSet(object):
                              constants.analysis_config['MAX_SPOT_NUM'])
                 continue
 
-            # # TODO: should we fix it? this is a hack
-            # if is_3d and np.sum(img.get_height_map()) < constants.analysis_config['MIN_HEIGHT_MAP_AREA']:
-            #     logger.debug("Image has bad height map {}", img._path)
-            #     continue
-
             if has_intensities and img.signal_to_noise() < constants.analysis_config['MIN_SNR']:
                 logger.debug("Insufficient signal to noise ratio for image {}", img._path)
                 continue
 
             self.images.append(img)
-            #logger.debug("Image type : {} ", img.__class__.__name__)
 
         logger.info("Initialized image set from {} with {} images", path_list, len(self.images))
 
@@ -150,196 +147,163 @@ class ImageSet(object):
     def get_images(self):
         return self.images
 
-    # TODO : change this function's name !!!
-    def compute_histogram_spots_peripheral_fraction(self):
-        arr = []
-        for image in tqdm.tqdm(self.images, desc="Images"):
-            spots_peripheral_distance = image.get_spots_peripheral_distance()
-            peripheral_profile = np.zeros(100)
-            for i in range(0, 100):
-                peripheral_profile[i] = float(len(np.where(spots_peripheral_distance <= (i + 1))[0])) / float(
-                    len(spots_peripheral_distance))
-            arr.append(peripheral_profile)
+    def compute_spots_fractions_per_periphery(self):
+        all_signals = self.compute_signal_from_periphery()
+        image: ImageWithIntensities
+        spot_counts = [len(image.get_spots()) for image in self.images]
+        return np.array(all_signals) / np.array(spot_counts)[:, None]
+
+    def compute_cytoplasmic_spots_fractions_per_periphery(self, force2D=False):
+        all_signals = self.compute_signal_from_periphery()
+        image: ImageWithSpots
+        cytoplasmic_densities = [image.compute_cytoplasmic_density() for image in self.images]
+        if force2D:
+            all_determinants = self.compute_areas_from_periphery()
+        else:
+            all_determinants = self.compute_volumes_from_periphery()
+        return np.divide(np.array(all_signals), np.array(all_determinants)) / np.array(cytoplasmic_densities)[:, None]
+
+    def compute_intensities_fractions_per_periphery(self):
+        all_signals = self.compute_signal_from_periphery()
+        image: ImageWithIntensities
+        intensities_counts = [np.multiply(image.get_intensities(), image.get_cell_mask()).sum()
+                              for image in self.images]
+        return np.array(all_signals) / np.array(intensities_counts)[:, None]
+
+    def compute_cytoplasmic_intensities_fractions_per_periphery(self):
+        all_signals = self.compute_signal_from_periphery()
+        image: ImageWithIntensities
+        intensities_counts = [image.compute_cytoplasmic_intensities().sum() for image in self.images]
+        return np.array(all_signals) / np.array(intensities_counts)[:, None]
+
+    def compute_signal_from_periphery(self):
+        arr = np.zeros((self.__sizeof__(), constants.analysis_config['NUM_CONTOURS']))
+        image: Union[ImageWithSpots, ImageWithIntensities]
+        for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
+            arr[image_num] = image.compute_signal_from_periphery()
         return arr
 
-    # TODO why here are counts and for intensities fractions ?
-    # TODO why here it is not normalized and for intensities it is ?
-    def compute_histogram_spots_peripheral_counts(self):
-        arr = []
-        for image in tqdm.tqdm(self.images, desc="Images"):
-            spots_peripheral_distance = image.get_spots_peripheral_distance()
-            arr.append(len(spots_peripheral_distance[spots_peripheral_distance <=
-                                                     constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']]) / len(
-                spots_peripheral_distance))
+    def compute_areas_from_periphery(self):
+        arr = np.zeros((self.__sizeof__(), 100))
+        image: Image
+        for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
+            arr[image_num] = image.compute_areas_from_periphery()
         return arr
 
-    # TODO this only compute in 2D  ??????
-    def compute_histogram_intensities_peripheral_fractions(self):
-        arr = []
-        image: Image3dWithIntensitiesAndMTOC
-        for image in tqdm.tqdm(self.images, desc="Images"):
-            cell_mask = image.get_cell_mask()
-            intensities = image.get_intensities()
-            # TODO this line below not present in V1, we have to add it to reproduce nocodazole protein peripheral fraction results
-            # intensities = np.multiply(intensities, cell_mask)
-            cytoplasmic_intensity = intensities[
-                image.get_nucleus_mask() == 0].sum()  # TODO : should be = image.get_cytoplasmic_total_intensity()
-            peripheral_intensities = image.compute_peripheral_intensities()
-            peripheral_intensities = peripheral_intensities[constants.analysis_config[
-                'PERIPHERAL_FRACTION_THRESHOLD']] / cytoplasmic_intensity
-            arr.append(peripheral_intensities)
+    def compute_volumes_from_periphery(self):
+        arr = np.zeros((self.__sizeof__(), 100))
+        image: Image3d
+        for image_num, image in tqdm.tqdm(enumerate(self.images), desc="Images", total=self.__sizeof__()):
+            arr[image_num] = image.get_volumes_from_periphery()
         return arr
 
     def compute_cytoplasmic_spots_counts(self) -> List[int]:
-        """
-        was previously compute_cytoplasmic_total
-        :return:
-        """
         cytoplasmic_spots_counts = []
         image: ImageWithSpots
         for image in self.images:
-            cytoplasmic_spots_counts.append(image.get_cytoplasmic_total_spots())
+            cytoplasmic_spots_counts.append(image.compute_cytoplasmic_total_spots())
         return cytoplasmic_spots_counts
 
     def compute_cytoplasmic_intensities(self) -> List[float]:
-        """
-        was previously compute_cytoplasmic_total
-        :return:
-        """
         total_cytoplasmic_intensities = []
         image: ImageWithIntensities
         for image in self.images:
-            total_cytoplasmic_intensities.append(image.get_cytoplasmic_total_intensity())
+            total_cytoplasmic_intensities.append(image.compute_cytoplasmic_total_intensity())
         return total_cytoplasmic_intensities
 
-    def compute_spots_cytoplasmic_spread(self) -> List[float]:
-        cytoplasmic_spread_list = []
-        image: Image3dWithSpots
+    def compute_cytoplasmic_spots_centrality(self) -> List[float]:
+        centralities = np.array([])
+        image: Union[ImageWithSpots, Image3dWithSpots]
         for image in self.images:
-            cytoplasmic_spread_list.append(image.compute_spots_cytoplasmic_spread())
-        return cytoplasmic_spread_list
+            centralities = np.append(centralities,
+                                     image.compute_spots_normalized_distance_to_nucleus(quantile=.5))
+        valid_centralities = centralities[~np.isnan(centralities)]
+        if len(valid_centralities) < len(centralities):
+            logger.warning("spots out of hull for {} images out of {}",
+                           len(centralities)-len(valid_centralities), self.__sizeof__())
+        l = len(valid_centralities[valid_centralities > 1])
+        if l > 0:
+            logger.debug("normalized distance to centroid is > 1 for {} images out of {}", l, self.__sizeof__())
+        return valid_centralities
+
+    def compute_cytoplasmic_spots_spread(self) -> np.ndarray:
+        '''
+        Computes entropy of the spatial distribution of cytoplasmic spots using
+        Kozachenko-Leonenko entropy estimate. Returns an array wihth entropy values for each image
+        '''
+        spots_spread = np.array([])
+        image: Union[ImageWithSpots, Image3dWithSpots]
+        for image in self.images:
+            spots_spread = np.append(spots_spread, image.compute_spots_cytoplasmic_spread_entropy())
+        spots_spread = spots_spread[spots_spread != float('inf')]
+
+        return spots_spread
+
+    def compute_cytoplasmic_intensities_centrality(self) -> List[float]:
+        centralities = np.array([])
+        image: Union[ImageWithIntensities, Image3dWithIntensities]
+        for image in self.images:
+            centralities = np.append(centralities,
+                                     image.compute_intensities_normalized_distance_to_nucleus(quantile=.5))
+
+        valid_centralities = centralities[~np.isnan(centralities)]
+        if len(valid_centralities) < len(centralities):
+            logger.warning("intensity spread > 1 for {} images out of {}",
+                           len(centralities) - len(valid_centralities), self.__sizeof__())
+        l = len(centralities[centralities>1])
+        if l > 0:
+            logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
+                            l, self.__sizeof__())
+        return valid_centralities
 
     def compute_intensities_cytoplasmic_spread(self) -> List[float]:
-        cytoplasmic_spread_list = []
-        image: Image3dWithIntensities
+        spreads = np.array([])
+        image: Union[ImageWithIntensities, Image3dWithIntensities]
         for image in self.images:
-            cytoplasmic_spread_list.append(image.compute_intensities_cytoplasmic_spread())
-        return cytoplasmic_spread_list
+            spreads = np.append(spreads, image.compute_intensities_normalized_cytoplasmic_spread())
+        l = len(spreads[spreads > 1])
+        if l > 0:
+            logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
+                           l, self.__sizeof__())
+        return spreads
 
     def compute_degree_of_clustering(self):
-        image: Image3dWithSpots
+        image: Union[ImageWithSpots, Image3dWithSpots]
         return [image.compute_degree_of_clustering() for image in self.images]
 
-    def compute_mtoc_dependent_degree_of_clustering(self):
-        image: Image3dWithSpotsAndMTOC
-        return [image.compute_degree_of_clustering() for image in self.images if image.mtoc_is_in_leading_edge()]
-
-    def compute_normalised_quadrant_densities(self, quadrant_labels: list,
-                                              mtoc_quadrant_label='MTOC', quadrants_num=4) -> dict:
+    def compute_normalised_quadrant_densities(self, quadrants_num=4, peripheral_flag=False,
+                                              stripes=1, stripes_flag=False) -> np.array:
         """
-        builds a dictionary of densities per slice (quadrant by default) for all images
-        The dictionary's keys are the quadrant_labels + mtoc_quadrant_label
+        computes normalized densities per slice (quadrant by default) for all images
         """
-        if quadrants_num != len(quadrant_labels) + 1:
-            raise RuntimeError("Quandrants number quadrants_num and total labels number have to be the same")
-
-        gene_dict = {key: list([]) for key in quadrant_labels + [mtoc_quadrant_label]}
-        mtoc_count = 0
+        all_densities = np.empty((0, 2), float)
         for image in tqdm.tqdm(self.images, desc="Images"):
             cytoplasmic_density = image.compute_cytoplasmic_density()
-            mdmq = image.get_quadrants_densities(quadrants_num)
+            mdmq = image.get_or_compute_quadrant_densities(quadrants_num, peripheral_flag, stripes, stripes_flag)
+            vec_len = quadrants_num * stripes
+            assert(vec_len == mdmq.shape[0]), f"Precomputed quadrants are the wrong shape {vec_len} != {mdmq.shape[0]}"
             mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
-            # add MTOC density (flag 1 in mdmq)
-            if (mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0] > np.median(mdmq[:, 0][np.where(mdmq[:, 1] == 0)])):
-                mtoc_count = mtoc_count + 1
-            gene_dict[mtoc_quadrant_label].append(mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0])
-            # add non MTOC densities
-            for label, val in zip(quadrant_labels, mdmq[:, 0][np.where(mdmq[:, 1] == 0)]):
-                gene_dict[label].append(val)
+            if mdmq[:,0].sum() > 0:
+                # just in case, make sure that the mtoc containing quadrant is always first
+                mdmq = helpers.roll_densities_mtoc_array(mdmq, slices=stripes)
+                assert (mdmq[0, 1] == 1)
+                all_densities = np.append(all_densities, mdmq, axis=0)
+            else:
+                logger.info("Densities too low in {}", image._path)
 
-        logger.debug("\nMTOC enrichment {} out of {} ; relative {} \n", mtoc_count, len(self.images),
-                     mtoc_count / len(self.images))
-        return gene_dict
-
-    def compute_peripheral_normalised_quadrant_densities(self, quadrant_labels: list,
-                                                         mtoc_quadrant_label='MTOC', quadrants_num=4) -> dict:
-        """
-        builds a dictionary of densities per slice (quadrant by default) for all images
-        The dictionary's keys are the quadrant_labels + mtoc_quadrant_label
-        """
-        if quadrants_num != len(quadrant_labels) + 1:
-            raise RuntimeError("Quandrants number quadrants_num and total labels number have to be the same")
-
-        gene_dict = {key: list([]) for key in quadrant_labels + [mtoc_quadrant_label]}
-        mtoc_count = 0
-        for image in tqdm.tqdm(self.images, desc="Images"):
-            try:
-                peripheral_fraction_threshold = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-                if "/mrna/pard3/" in image._path:
-                    peripheral_fraction_threshold = 50;
-                cytoplasmic_density = image.compute_cytoplasmic_density()
-                mdmq = image.get_peripheral_quadrants_densities(quadrants_num,
-                                                                peripheral_fraction_threshold=peripheral_fraction_threshold)
-                mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
-                # add MTOC density (flag 1 in mdmq)
-                if (mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0] > np.median(mdmq[:, 0][np.where(mdmq[:, 1] == 0)])):
-                    mtoc_count = mtoc_count + 1
-                gene_dict[mtoc_quadrant_label].append(mdmq[:, 0][np.where(mdmq[:, 1] == 1)][0])
-                # add non MTOC densities
-                for label, val in zip(quadrant_labels, mdmq[:, 0][np.where(mdmq[:, 1] == 0)]):
-                    gene_dict[label].append(val)
-            except RuntimeError as rte:
-                print(rte)
-
-        logger.debug("\nMTOC enrichment {} out of {} ; relative {} \n", mtoc_count, len(self.images),
-                     mtoc_count / len(self.images))
-        return gene_dict
-
-    def compute_normalized_quadrant_and_slice_densities(self, quadrants_num=4, stripes=3):
-        """
-        build an array of densities per slices (quadrant by default) for all images
-        the array size is an n * m array where n is the number of images and m the number of slices.
-        For each image, the first slice is the one that contains the MTOC.
-        """
-        arr = np.zeros((len(self.images), stripes * quadrants_num))
-        for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
-            try:
-                cytoplasmic_density = image.compute_cytoplasmic_density()
-                arr[i, :] = image.get_quadrants_and_slices_densities(quadrants_num, stripes)
-                arr[i, :] = arr[i, :] / cytoplasmic_density
-            except RuntimeError as rte:
-                print(rte)
-        return arr
-
-    def compute_peripheral_normalized_quadrant_and_slice_densities(self, quadrants_num=4, stripes=3):
-        """
-        build an array of densities per slices (quadrant by default) for all images
-        the array size is an n * m array where n is the number of images and m the number of slices.
-        For each image, the first slice is the one that contains the MTOC.
-        """
-        arr = np.zeros((len(self.images), stripes * quadrants_num))
-        for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
-            try:
-                peripheral_density=image.compute_peripheral_density()
-                arr[i, :] = image.get_peripheral_quadrants_and_slices_densities(quadrants_num, stripes)
-                arr[i, :] = arr[i, :] / peripheral_density
-            except RuntimeError as rte:
-                print(rte)
-        return arr
+        mtoc_num = all_densities[all_densities[:,1] == 1][:,1].sum()
+        non_mtoc_num = len(all_densities[all_densities[:,1]==0][:,1])
+        logger.debug("\nMTOC density {} and non MTOC density {} per element (quadrant or slice)",
+                     all_densities[all_densities[:,1] == 1][:,0].sum() / mtoc_num,
+                     all_densities[all_densities[:,1] == 0][:,0].sum() / non_mtoc_num)
+        return all_densities
 
     def mtoc_is_in_leading_edge(self):
         image: ImageWithMTOC
         return [image.mtoc_is_in_leading_edge() for image in self.images]
 
-    def compute_cytoplasmic_density(self):
-        return [image.compute_cytoplasmic_density() for image in self.images]
-
     def compute_spots_peripheral_distance(self):
-        return np.array([image.get_spots_peripheral_distance() for image in self.images])
-
-    # def compute_spots_peripheral_distance_2D(self):
-    #     image: ImageWithSpotsAndMTOC
-    #     return np.array([image.get_spots_peripheral_distance() for image in self.images])
+        return np.array([image.get_cytoplasmic_spots_peripheral_distance() for image in self.images])
 
     def compute_zline_distance(self, z_line_spacing):
         image: imageMultiNucleusWithSpotsAndZlines
@@ -355,7 +319,6 @@ class ImageSet(object):
 
     # Implements equation 17 (supplemental)of padovan-merhar et al. 2015
     def compute_volume_corrected_nm(self):
-        #image: ImageMultiNucleusWithSpots
         cell_volume= [image.compute_cell_volume() for image in self.images]
         transcount = [len(image.get_spots()) for image in self.images]
         coeffs = np.polyfit(cell_volume, transcount, 1)
@@ -383,7 +346,7 @@ class ImageSet(object):
         nm = (variance_mrnas - variance_expected_mrnas) / exp_mrnas
         return nm
 
-    def compute_cell_mask_between_nucleus_centroid(self):
+    def compute_cell_mask_between_nucleus_centroids(self):
         image: imageMultiNucleusWithSpotsAndZlines
         nuc_dist = []
         nucs_pos = []

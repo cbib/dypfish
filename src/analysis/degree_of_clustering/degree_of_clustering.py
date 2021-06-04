@@ -10,6 +10,7 @@ import numpy as np
 import helpers
 from helpers import open_repo
 from image_set import ImageSet
+from loguru import logger
 # this should be called as soon as possible
 from path import global_root_dir
 
@@ -38,6 +39,28 @@ def compute_degree_of_clustering(genes_list, analysis_repo, molecule_type):
     return gene2_degree_of_clustering, gene2median_degree_of_clustering, gene2error_degree_of_clustering, gene2confidence_interval
 
 
+def plot_bar_profile_median_and_violin(molecule_type, median_d_of_c, d_of_c,
+                                       errors, confidence_interval):
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+
+    if molecule_type=='mrna':
+        xlabels = constants.analysis_config['MRNA_GENES_LABEL']
+    else:
+        xlabels = constants.analysis_config['PROTEINS_LABEL']
+
+    # generate the bar profile plot
+    plot.bar_profile_median(median_d_of_c, errors.values(), molecule_type, xlabels,
+                            tgt_fp, confidence_interval, annot=False, data_to_annot=None)
+    logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
+
+    # generate violin plot image
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type)
+    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                          tgt_image_name)
+    plot.violin_profile(d_of_c, tgt_fp, xlabels, rotation=0, annot=False)
+
 ''' 
 Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5) for original
 Figure 2E right panel: plots the log protein degree of clustering normalized by log(0.01) for original
@@ -57,11 +80,10 @@ configurations = [
      ['arhgdia/control', "arhgdia/prrc2c_depleted"]]
 ]
 
-
 def build_plots(analysis_repo, conf, annot=False):
     for molecule_type, molecules in zip(["mrna", "protein"], ['MRNA_GENES', 'PROTEINS']):
-        if conf[0] == "src/analysis/degree_of_clustering/config_original.json":
-            annot = False
+        if "original" in conf[0]:
+            annotate = False
         genes_list = constants.dataset_config[molecules]
         d_of_c, median_d_of_c, err, confidence_interval = compute_degree_of_clustering(genes_list, analysis_repo, molecule_type=molecule_type)
         # sort everything in the same way for plotting
@@ -71,30 +93,7 @@ def build_plots(analysis_repo, conf, annot=False):
 
         err = collections.OrderedDict(sorted(err.items(), key=lambda i: keyorder.index(i[0])))
         confidence_interval = collections.OrderedDict(sorted(confidence_interval.items(), key=lambda i: keyorder.index(i[0])))
-        xlabels = constants.analysis_config['MRNA_GENES_LABEL'] if molecule_type == 'mrna' else constants.analysis_config['MRNA_GENES_LABEL'][:4]
-
-        # generate bar plot image
-        tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
-        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                              tgt_image_name)
-        plot.bar_profile_median(median_d_of_c,
-                                err.values(),
-                                molecule_type,
-                                xlabels,
-                                tgt_fp,
-                                confidence_interval.values(),
-                                annot=annot,
-                                data_to_annot=d_of_c
-                                )
-
-        # generate violin plot image
-        tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type)
-        tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-        if molecule_type == 'mrna':
-            xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-        else:
-            xlabels = constants.analysis_config['PROTEINS_LABEL']
-        plot.violin_profile(d_of_c, tgt_fp, xlabels, rotation=0, annot=annot)
+        plot_bar_profile_median_and_violin(molecule_type, median_d_of_c, d_of_c, err, confidence_interval)
 
 
 if __name__ == '__main__':

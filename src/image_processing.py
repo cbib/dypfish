@@ -39,7 +39,6 @@ def compute_nucleus_and_cytoplasm_line_segments(nucleus_mask: np.ndarray, cytopl
     return nucleus_segment, cytoplasm_segment
 
 
-# TODO : + 1 differences with the old code part of the reason cell_distance_map is wrong at the periphery
 def compute_edge_points(nucleus_segment: np.ndarray, cytoplasm_segment: np.ndarray) -> (int, int):
     """
     Given line segments, return points that fall on the nucleus and on the cytoplasm edges
@@ -60,12 +59,12 @@ def compute_edge_points(nucleus_segment: np.ndarray, cytoplasm_segment: np.ndarr
     return nucleus_edge_point, cytoplasm_edge_point
 
 
-def compute_contour_points(nucleus_mask, nucleus_centroid, cytoplasm_mask, num_contours=None, max_cell_radius=None,
-                           image_width=None, image_height=None) -> np.ndarray:
+def compute_contour_points(nucleus_mask, nucleus_centroid, cytoplasm_mask, num_contours=None,
+                           max_cell_radius=None, image_width=None, image_height=None) -> np.ndarray:
     """
-    Computes contours within the cytoplasm that form concentric isolines between the nucleus and the cytoplasm periphery
-    Each contour is defined as (x,y) coordinates of 360 points
-    :return: an array with coordinates of points for each of num_contours contours
+    Computes contours within the cytoplasm that form concentric isolines between the nucleus
+    and the cytoplasm periphery. Each contour is defined as (x,y) coordinates of 360 points
+    Returns an array with coordinates of points for each of num_contours contours
     """
     num_contours = num_contours or constants.analysis_config['NUM_CONTOURS']
     contour_points = np.zeros((360, num_contours, 2))
@@ -105,16 +104,14 @@ def compute_cell_mask_distance_map(nucleus_mask, cytoplasm_mask, contour_points,
     cell_mask_distance_map = np.zeros((cytoplasm_mask.shape[0], cytoplasm_mask.shape[1]), dtype=np.int)
     for index in range(num_contours):
         if index == 0:
-            peripheral_mask = nucleus_mask  # TODO : should be cytoplasm_mask
+            peripheral_mask = cytoplasm_mask
         else:
             contour_num = num_contours - index
             peripheral_mask = create_mask(contour_points[:, contour_num, 1], contour_points[:, contour_num, 0],
                                           (cytoplasm_mask.shape[0], cytoplasm_mask.shape[1]))
-            peripheral_mask &= cytoplasm_truth_mask  # np.multiply(peripheral_mask, cytoplasm_mask)
-        cell_mask_distance_map[
-            (peripheral_mask == 1)] = index + 1  # TODO : to fit with the old code, but should be index
+            peripheral_mask &= cytoplasm_truth_mask
+        cell_mask_distance_map[(peripheral_mask == 1)] = index + 1
 
-    cell_mask_distance_map[(cytoplasm_mask == 0)] = 0
     return cell_mask_distance_map
 
 
@@ -129,8 +126,29 @@ def compute_all_distances_to_nucleus_centroid(nucleus_centroid: np.ndarray, imag
         raise IndexError("Implemented only for images with IMAGE_WIDTH == IMAGE_HEIGHT, {} != {}", image_width,
                          image_height)
 
-    # meshgrid version, different from V0 but gives same results
     i, j = np.meshgrid(np.arange(image_height), np.arange(image_width))
     dist = np.sqrt((i - nucleus_centroid[0]) ** 2 + (j - nucleus_centroid[1]) ** 2)
 
     return dist
+
+def compute_all_distances_to_nucleus_centroid3d(heightmap: np.ndarray, nucleus_centroid: np.ndarray,
+                                                image_width=None, image_height=None) -> np.ndarray:
+    """
+    Compute distances within the cytoplasm between all points and nucleus_centroid in a
+    IMAGE_WIDTH x IMAGE_HEIGHT x cytoplasm_height matrix (max height of the cytoplasm)
+    """
+    image_width = image_width or constants.dataset_config['IMAGE_WIDTH']
+    image_height = image_height or constants.dataset_config['IMAGE_HEIGHT']
+    cytoplsam_height = np.max(heightmap)
+    nucleus_centroid_z = heightmap[nucleus_centroid[0], nucleus_centroid[1]] // 2
+    if image_width != image_height:
+        raise IndexError("Implemented only for images with IMAGE_WIDTH == IMAGE_HEIGHT, {} != {}",
+                         image_width, image_height)
+
+    i, j, k = np.meshgrid(np.arange(image_height), np.arange(image_width), np.arange(cytoplsam_height))
+    dist = np.sqrt((j - nucleus_centroid[0]) ** 2 +
+                   (i - nucleus_centroid[1]) ** 2 +
+                   (k - nucleus_centroid_z) ** 2)
+
+    return dist
+

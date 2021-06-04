@@ -2,194 +2,163 @@
 # -*- coding: utf-8 -*-
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
-import pathlib
-import pprint as pp
+# This analysis will produce incoherent results if PERIPHERAL_FRACTION value provided in
+# the analysis_config.json file goes beyond the cytoplasm and within the nucleus
 
+import collections
+import pathlib
+
+import numpy as np
 from loguru import logger
 
 import constants
+import helpers
 import plot
-import pandas as pd
-import numpy as np
-from repository import H5RepositoryWithCheckpoint
-from image_set import ImageSet
 from helpers import open_repo
+from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
-import helpers
 
 
-def plot_mrna_peripheral_fraction_profiles(analysis_repo):
-    gene2profile_mrna_periph_fraction = []
-    for gene in constants.analysis_config['MRNA_GENES']:
+def build_mrna_peripheral_fraction_profiles(analysis_repo, normalisation_gene):
+    genes= constants.analysis_config['MRNA_GENES']
+    gene2m_fractions = {}
+    for gene in genes:
         image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene])
-        gene2profile_mrna_periph_fraction.append(
-            np.average(image_set.compute_histogram_spots_peripheral_fraction(), axis=0))
-    # generate image
+        peripheral_fractions = image_set.compute_cytoplasmic_spots_fractions_per_periphery()
+        gene2m_fractions[gene] = np.median(peripheral_fractions, axis=0)
 
     # normalized by gapdh profile
-    gene2profile_mrna_periph_fraction = gene2profile_mrna_periph_fraction / np.matlib.repmat(
-        gene2profile_mrna_periph_fraction[2], len(constants.dataset_config['MRNA_GENES']), 1)
+    if normalisation_gene != 'None':
+        for gene in genes:
+            gene2m_fractions[gene]  = gene2m_fractions[gene] / gene2m_fractions[normalisation_gene]
 
+    fractions = collections.OrderedDict(sorted(gene2m_fractions.items(), key=lambda i: keyorder.index(i[0])))
+    return fractions
+
+
+def build_histogram_peripheral_fraction(analysis_repo, molecule_type, keyorder, force2D=False):
     fraction = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
-    plot.profile(gene2profile_mrna_periph_fraction, constants.dataset_config['MRNA_GENES'],
-                 constants.analysis_config['NUM_CONTOURS'], figname=tgt_fp)
-    logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
+    gene2fractions, medians, erros, CI = {}, {}, {}, {}
+    if molecule_type == 'mrna':
+        genes = constants.analysis_config['MRNA_GENES']
+    else:
+        genes = constants.analysis_config['PROTEINS']
+    for gene in genes:
+        image_set = ImageSet(analysis_repo, ['{0}/{1}/'.format(molecule_type, gene)], force2D=force2D)
+        if molecule_type == 'mrna':
+            gene2fractions[gene] = image_set.compute_cytoplasmic_spots_fractions_per_periphery(force2D=force2D)
+        else:
+            gene2fractions[gene] = image_set.compute_cytoplasmic_intensities_fractions_per_periphery()
+
+        median_pfractions = np.median(gene2fractions[gene], axis=0)
+        medians[gene] = median_pfractions[fraction]
+        erros[gene] = helpers.sem(median_pfractions, factor=0)
+        lower, higher = helpers.median_confidence_interval(median_pfractions)
+        CI[gene] = [lower, higher]
+        gene2fractions[gene] = gene2fractions[gene][:, fraction]
+
+    fractions = collections.OrderedDict(sorted(gene2fractions.items(), key=lambda i: keyorder.index(i[0])))
+    medians = collections.OrderedDict(sorted(medians.items(), key=lambda i: keyorder.index(i[0])))
+    erros = collections.OrderedDict(sorted(erros.items(), key=lambda i: keyorder.index(i[0])))
+    CI = collections.OrderedDict(sorted(CI.items(), key=lambda i: keyorder.index(i[0])))
+
+    return medians, fractions, erros, CI
 
 
-# TODO : code redundancy below
-def plot_mrna_histogram_peripheral_fraction(analysis_repo, annot=False, force2D=False):
-    gene2mrna_periph_fraction = {}
-    gene2median_mrna_periph_fraction = {}
-    gene2error = {}
-    gene2confidence_interval = {}
-    for gene in constants.analysis_config['MRNA_GENES']:
-        image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene], force2D=force2D)
-        gene2mrna_periph_fraction[gene] = image_set.compute_histogram_spots_peripheral_counts()
-        gene2median_mrna_periph_fraction[gene] = np.median(gene2mrna_periph_fraction[gene])
-        gene2error[gene] = helpers.sem(gene2mrna_periph_fraction[gene], factor=0)
-        lower, higher = helpers.median_confidence_interval(gene2mrna_periph_fraction[gene])
-        gene2confidence_interval[gene] = [lower, higher]
-    # generate bar plot image
+def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors, CI, annotations):
     fraction = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_HISTOGRAM_FORMAT'].format(molecule_type="mrna", fraction=fraction)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-
-    xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-    plot.bar_profile_median(gene2median_mrna_periph_fraction,
-                            gene2error.values(),
-                            'mrna',
-                            xlabels,
-                            tgt_fp,
-                            gene2confidence_interval.values(),
-                            annot=annot,
-                            data_to_annot=gene2mrna_periph_fraction
-                            )
-
-    # generate violin plot image
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type="mrna", fraction=fraction)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-    xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-    plot.violin_profile(gene2mrna_periph_fraction, tgt_fp, xlabels, annot=annot)
-
-
-def plot_mrna_intensity_histogram_peripheral_fraction(analysis_repo, annot=False):
-    '''
-    Specific call to compute_histogram_intensities_peripheral_fractions for IF data treated as FISH.
-    '''
-    gene2protein_periph_fraction = {}
-    gene2median_protein_periph_fraction = {}
-    gene2error = {}
-    gene2confidence_interval = {}
-    for gene in constants.analysis_config['PROTEINS']:
-        image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene])
-        gene2protein_periph_fraction[gene] = image_set.compute_histogram_intensities_peripheral_fractions()
-        gene2median_protein_periph_fraction[gene] = np.median(gene2protein_periph_fraction[gene])
-        gene2error[gene] = helpers.sem(gene2protein_periph_fraction[gene], factor=0)
-        lower, higher = helpers.median_confidence_interval(gene2protein_periph_fraction[gene])
-        gene2confidence_interval[gene] = [lower, higher]
-    logger.debug("Intensities fractions {}", gene2protein_periph_fraction)
-    # generate image
-    fraction = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna", fraction=fraction)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
-                          tgt_image_name)
-    xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-    plot.bar_profile_median(gene2median_protein_periph_fraction,
-                            gene2error.values(),
-                            'mrna',
-                            xlabels,
-                            tgt_fp,
-                            gene2confidence_interval.values(),
-                            annot=annot,
-                            data_to_annot=gene2protein_periph_fraction
-                            )
-
-    # generate violin plot image
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type="mrna", fraction=fraction)
-    tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-    xlabels = constants.analysis_config['MRNA_GENES_LABEL']
-    plot.violin_profile(gene2protein_periph_fraction, tgt_fp, xlabels, annot=annot)
-
-
-def plot_protein_histogram_peripheral_fraction(analysis_repo, annot=False):
-    gene2protein_periph_fraction = {}
-    gene2median_protein_periph_fraction = {}
-    gene2error = {}
-    gene2confidence_interval = {}
-    for gene in constants.analysis_config['PROTEINS']:
-        image_set = ImageSet(analysis_repo, ['protein/%s/' % gene])
-        gene2protein_periph_fraction[gene] = image_set.compute_histogram_intensities_peripheral_fractions()
-        gene2median_protein_periph_fraction[gene] = np.median(gene2protein_periph_fraction[gene])
-        gene2error[gene] = helpers.sem(gene2protein_periph_fraction[gene], factor=0)
-        lower, higher = helpers.median_confidence_interval(gene2protein_periph_fraction[gene])
-        gene2confidence_interval[gene] = [lower, higher]
-
-    # generate image
-    fraction = constants.analysis_config['PERIPHERAL_FRACTION_THRESHOLD']
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="protein", fraction=fraction)
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_HISTOGRAM_FORMAT'].format(molecule_type=molecule_type,
+                                                                                      fraction=fraction)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
 
-    xlabels = constants.analysis_config['PROTEINS_LABEL']
-    plot.bar_profile_median(gene2median_protein_periph_fraction,
-                            gene2error.values(),
-                            'protein',
-                            xlabels,
-                            tgt_fp,
-                            gene2confidence_interval.values(),
-                            annot=annot,
-                            data_to_annot=gene2protein_periph_fraction
-                            )
+    if molecule_type=='mrna':
+        xlabels = constants.analysis_config['MRNA_GENES_LABEL']
+    else:
+        xlabels = constants.analysis_config['PROTEINS_LABEL']
 
-    # generate violin plot image
-    tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type="protein",
+
+    # generate the bar profile plot
+    plot.bar_profile_median(medians, errors, 'mrna', xlabels, tgt_fp, confidence_interval=CI,
+                            annot=annotations, data_to_annot=fractions)
+    logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
+
+    # generate the violin plot
+    tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type,
                                                                                    fraction=fraction)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
-
-    xlabels = constants.analysis_config['PROTEINS_LABEL']
-    plot.violin_profile(gene2protein_periph_fraction, tgt_fp, xlabels, annot=annot)
+    plot.violin_profile(fractions, tgt_fp, xlabels, annot=annotations)
+    logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
 
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
-    ["src/analysis/peripheral_fraction_profile/config_original.json", ['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']],
-    ["src/analysis/peripheral_fraction_profile/config_chx.json", ['arhgdia', 'arhgdia_CHX', 'pard3', 'pard3_CHX']],
-    ["src/analysis/peripheral_fraction_profile/config_cytod.json", ["arhgdia", "cytod+"]],
-    ["src/analysis/peripheral_fraction_profile/config_prrc2c.json", ['arhgdia/control', "arhgdia/prrc2c_depleted"]],
-    ["src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"]],
-    ["src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"]]
+    ["src/analysis/peripheral_fraction_profile/config_original.json",
+     ['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']],
+    ["src/analysis/peripheral_fraction_profile/config_chx.json",
+     ['arhgdia', 'arhgdia_CHX', 'pard3', 'pard3_CHX']],
+    ["src/analysis/peripheral_fraction_profile/config_cytod.json",
+     ["arhgdia_control", "arhgdia_cytod"]],
+    ["src/analysis/peripheral_fraction_profile/config_prrc2c.json",
+     ['arhgdia/control', "arhgdia/prrc2c_depleted"]],
+    ["src/analysis/peripheral_fraction_profile/config_nocodazole_arhgdia.json",
+     ["arhgdia", "arhgdia_nocodazole"]],
+    ["src/analysis/peripheral_fraction_profile/config_nocodazole_pard3.json",
+     ["pard3", "pard3_nocodazole"]]
 ]
 
-# TODO recuperer commentaires indiquant nom de figure généré, le passer en argument des fonctions de plot
 if __name__ == '__main__':
     for conf in configurations:
         stat_annotations = False
         conf_full_path = pathlib.Path(global_root_dir, conf[0])
         constants.init_config(analysis_config_js_path=conf_full_path)
+        keyorder = conf[1]
         repo = open_repo()
         if "original" in conf[0]:
             logger.info("Peripheral fraction profile for the mRNA original data")
-            plot_mrna_peripheral_fraction_profiles(repo)
+            normalisation_gene = constants.analysis_config['NORMALISATION_GENE']
+            medians = build_mrna_peripheral_fraction_profiles(repo, normalisation_gene=normalisation_gene)
+            tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
+            tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
+                                  tgt_image_name)
+            plot.profile(medians, figname=tgt_fp)
+            logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
+
             logger.info("Peripheral fraction histogram for mRNA the original data")
-            plot_mrna_histogram_peripheral_fraction(repo, annot=stat_annotations)
-        elif "chx" in conf[0]:
-            logger.info("Peripheral fraction for the protein CHX data")
-            plot_protein_histogram_peripheral_fraction(repo, annot=stat_annotations)
-            logger.info("Peripheral fraction for the mRNA CHX data")
-            plot_mrna_intensity_histogram_peripheral_fraction(repo, annot=stat_annotations)
-        elif "nocodazole" in conf[0]:
-            logger.info("2D Peripheral fraction for the mRNA nocodazole data")
-            plot_mrna_histogram_peripheral_fraction(repo, annot=stat_annotations, force2D=True)
-            logger.info("Peripheral fraction for the mRNA nocodazole data")
-            plot_protein_histogram_peripheral_fraction(repo, annot=stat_annotations)
-        else:
-            logger.info("Peripheral fraction for the prrc2c data")
-            plot_mrna_histogram_peripheral_fraction(repo, annot=stat_annotations)
-            plot_protein_histogram_peripheral_fraction(repo, annot=stat_annotations)
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna',
+                                                                              keyorder=keyorder)
+            plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
 
+        if "chx" in conf[0]:
+            logger.info("Peripheral fraction histograms for CHX data")
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein',
+                                                                              keyorder=keyorder)
+            plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
+            # this analysis is done in 2D
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein',
+                                                                              keyorder=keyorder)
+            plot_bar_profile_median_and_violin(molecule_type='protein', medians=medians, fractions=fractions,
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
 
+        if "nocodazole" in conf[0] or 'cytod' in conf[0]:
+            logger.info("2D Peripheral fraction histograms")
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna',
+                                                                              force2D=True, keyorder=keyorder)
+            plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions = fractions,
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein', force2D=True, keyorder=keyorder)
+            plot_bar_profile_median_and_violin(molecule_type='protein', medians=medians, fractions=fractions,
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
+
+        if 'prrc2c' in conf[0]:
+            logger.info("Peripheral fraction histograms for prcc2c data")
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna', keyorder=keyorder)
+            plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein', keyorder=keyorder)
+            plot_bar_profile_median_and_violin(molecule_type='protein', medians=medians, fractions=fractions,
+                                               errors=err.values(), CI=CI, annotations=stat_annotations)

@@ -3,16 +3,16 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 import constants
 import helpers
-from plot import spline_graph, heatmap
+import plot
 from image_set import ImageSet
 from path import global_root_dir
 from repository import H5RepositoryWithCheckpoint
-import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
-#matplotlib.use('TkAgg')
 
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/muscle/config_muscle.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
@@ -28,7 +28,7 @@ genes = ['actn2-mature', 'gapdh-mature', 'actn2-immature']
 for g in genes:
     [gene, timepoint] = g.split("-")
     image_set = ImageSet(analysis_repo, [f"{'mrna'}/{gene}/{timepoint}/"])
-    nuc_dist, nucs_dist, cell_masks, nucs_pos = image_set.compute_cell_mask_between_nucleus_centroid()
+    nuc_dist, nucs_dist, cell_masks, nucs_pos = image_set.compute_cell_mask_between_nucleus_centroids()
 
     # compute histogram mod
     hx, hy, _ = plt.hist(nuc_dist)
@@ -65,13 +65,13 @@ for g in genes:
                     image=str(band_n) + im._path.replace("/", "_") + "_" + str(mask_count))
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                       tgt_image_name)
-                spline_graph(grid_mat, tgt_fp, band_n)
+                plot.spline_graph(grid_mat, tgt_fp, band_n)
 
                 # heatmap density by band_n
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_HEATMAP'].format(
                     image=str(band_n) + im._path.replace("/", "_") + "_" + str(mask_count))
                 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                       tgt_image_name)
-                heatmap(grid_mat, tgt_fp, band_n)
+                plot.heatmap(grid_mat, tgt_fp, band_n)
                 mask_count += 1
         image_counter += 1

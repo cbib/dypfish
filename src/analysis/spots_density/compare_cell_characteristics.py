@@ -3,16 +3,17 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-from loguru import logger
-import constants
+
 import pandas as pd
-from plot import sns_boxplot, sns_linear_regression
-from image_set import ImageSet
+from loguru import logger
+
+import constants
+import plot
 from helpers import open_repo
+from image_set import ImageSet
 from path import global_root_dir
-from repository import H5RepositoryWithCheckpoint
 
-
+f
 def compute_cells_area(_gene, analysis_repo, gene_label):
     dict_Cell_area = {"Gene": [], "value": []}
     image_set = ImageSet(analysis_repo, [f"{'mrna'}/{_gene}/{'3h'}/"])
@@ -70,15 +71,15 @@ if __name__ == '__main__':
 
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_BOXPLOT'].format(model="cell_area")
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-        sns_boxplot(df_cell_area, my_pal, tgt_fp)
+        plot.sns_boxplot(df_cell_area, my_pal, tgt_fp)
 
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_BOXPLOT'].format(model="nucleus_area")
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-        sns_boxplot(df_nucleus_area, my_pal, tgt_fp)
+        plot.sns_boxplot(df_nucleus_area, my_pal, tgt_fp)
 
         logger.info("transcript total count by cell area comparison for arhgdia et arhgdia_cultured data")
         for i, gene in enumerate(genes):
             dict_transcript_by_cell_area = compute_transcript_by_cell_area(repo, gene, timepoints[i])
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT'].format(cell_type=genes[i])
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-            sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2)
+            plot.sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2)

@@ -3,14 +3,11 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-import warnings
 from unittest import TestCase
-
-import numpy as np
 
 import constants
 import path
-from image3d import Image3dWithSpotsAndMTOC
+from image3dWithSpots import Image3dWithSpotsAndMTOC
 from repository import H5RepositoryWithCheckpoint
 
 constants.init_config(analysis_config_js_path=path.test_config_path)
@@ -28,39 +25,57 @@ class TestImage3dWithSpotsAndMTOC(TestCase):
 
     def test_compute_cytoplasmic_density(self):
         result = self.img.compute_cytoplasmic_density()
-        self.assertEqual(0.1284945413733293, result)
+        self.assertAlmostEqual(result, 0.15130537974, places = 5)
 
     def test_compute_density_per_quadrant(self):
-        quadrant_mask = self.img.compute_quadrant_mask(45, 4)
+        quadrant_mask = self.img.rotate_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-        height_map = self.img.adjust_height_map()
-        result = self.img.compute_density_per_quadrant(mtoc_quad, quadrant_mask, height_map)
+        result = self.img.compute_density_per_quadrant(mtoc_quad, quadrant_mask)
 
         self.assertEqual(result.shape, (4, 2))
-        self.assertAlmostEqual(result[1, 0], 0.09460885056155734, places=3)
-        self.assertAlmostEqual(result[:, 0].sum(), 0.4123945214579857, places=3)
+        self.assertAlmostEqual(result[1, 0], 0.14302640487, places=3)
+        self.assertAlmostEqual(result[:, 0].sum(), 0.581722549, places=5)
         self.assertEqual(result[:, 1].sum(), 1.0)
-
-    def test_split_in_quadrants(self):
-        warnings.warn(
-            "test_compute_max_density_MTOC_quadrant test not well tested",
-            RuntimeWarning
-        )
-        test_array = np.array([(0.12947032, 0.), (0.15919367, 0.), (0.06432269, 0.), (0.17692811, 1.)])
-        # was : [[1.37964585, 1], [0.96665656, 0], [1.26909676, 0], [0.61669439, 0]]
-        results = self.img.split_in_quadrants()
-        self.assertEqual(np.shape(results), np.shape(test_array))
-        self.assertAlmostEqual(np.sum(results[:,0].sum()), np.sum(test_array[:,0].sum()), places=7)
 
     def test_compute_peripheral_density_per_quadrant(self):
-        quadrant_mask = self.img.compute_quadrant_mask(45, 4)
+        quadrant_mask = self.img.rotate_quadrant_mask(45, 4)
         mtoc_position = self.img.get_mtoc_position()
         mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
-        height_map = self.img.adjust_height_map()
-        result = self.img.compute_peripheral_density_per_quadrant(mtoc_quad, quadrant_mask, height_map)
+        result = self.img.compute_peripheral_density_per_quadrant(mtoc_quad, quadrant_mask)
 
         self.assertEqual(result.shape, (4, 2))
-        self.assertAlmostEqual(result[1, 0], 0.039297451478886344, places=3)
-        self.assertAlmostEqual(result[:, 0].sum(), 0.30302693927917035, places=3)
+        self.assertAlmostEqual(result[1, 0], 0.038688114278, places=3)
+        self.assertAlmostEqual(result[:, 0].sum(), 0.2975568527, places=3)
         self.assertEqual(result[:, 1].sum(), 1.0)
+
+    def test_compute_quadrant_densities(self):
+        result1 = self.img.compute_quadrant_densities()
+        self.assertAlmostEqual(result1[:, 0].sum(), 0.55953169002, places=3)
+        self.assertEqual(result1[3, 1], 1)
+        result2 = self.img.compute_quadrant_densities(peripheral_flag=True)
+        self.assertAlmostEqual(result2[:, 0].sum(), 0.35643142195, places=5)
+        self.assertEqual(result2[2, 1], 1)
+        result3 = self.img.compute_quadrant_densities(peripheral_flag=False, stripes=3, stripes_flag=True)
+        self.assertAlmostEqual(result3[:, 0].sum(), 1.58483360221, places=5)
+        self.assertEqual(result3[4, 1], 1)
+        result4 = self.img.compute_quadrant_densities(peripheral_flag=True, stripes=3, stripes_flag=True)
+        self.assertAlmostEqual(result4[:, 0].sum(), 0.64644654746, places=5)
+        self.assertEqual(result4[4, 1], 1)
+
+    def test_compute_density_per_quadrant_and_slices(self):
+        quadrant_mask = self.img.rotate_quadrant_mask(45, 4)
+        mtoc_position = self.img.get_mtoc_position()
+        mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
+        result = self.img.compute_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
+        self.assertAlmostEqual(result[:,0].sum(), 1.60735010357, places=5)
+        self.assertAlmostEqual(result[:,1].sum(), 3)
+        self.assertAlmostEqual(result[3,0], 0.0587812456522, places=5)
+
+    def test_compute_peripheral_density_per_quadrant_and_slices(self):
+        quadrant_mask = self.img.rotate_quadrant_mask(45, 4)
+        mtoc_position = self.img.get_mtoc_position()
+        mtoc_quad = quadrant_mask[mtoc_position[1], mtoc_position[0]]
+        result = self.img.compute_peripheral_density_per_quadrant_and_slices(mtoc_quad, quadrant_mask, stripes=3, quadrants_num=4)
+        self.assertAlmostEqual(result[:,0].sum(), 0.6377685832)
+        self.assertAlmostEqual(result[7,0], 0.104579207920)

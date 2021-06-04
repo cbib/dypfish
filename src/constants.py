@@ -22,35 +22,19 @@ NUCLEUS_CENTROID_PATH_SUFFIX = "/nucleus_centroid"
 MTOC_POSITION_PATH_SUFFIX = '/mtoc_position'
 MTOC_LEADING_EDGE_SUFFIX = '/mtoc_is_in_leading_edge'
 
-# secondary basic image descriptors
-NUCLEUS_AREA_PATH_SUFFIX = "/nucleus_area"
-CELL_AREA_PATH_SUFFIX = "/cell_area"
+# secondary image descriptors
 CELL_MASK_DISTANCE_PATH_SUFFIX = '/cell_mask_distance_map'
-SPOTS_PERIPHERAL_DISTANCE_2D_PATH_SUFFIX = '/spots_peripheral_distance_2D'
 CYTOPLASMIC_SPOTS_PATH_SUFFIX = '/cytoplasmic_spots'
-PERIPHERAL_SPOTS_PATH_SUFFIX = '/peripheral_spots'
-CYTOPLASMIC_SPOT_COUNT_PATH_SUFFIX = '/cytoplasmic_spot_count'
-PERIPHERAL_SPOT_COUNT_PATH_SUFFIX = '/peripheral_spot_count'
-TOTAL_INTENSITY_PATH_SUFFIX = '/total_intensity'
-CELL_TOTAL_INTENSITY_PATH_SUFFIX = '/cell_total_intensity'
-CYTOPLASMIC_TOTAL_INTENSITY_PATH_SUFFIX = '/cytoplasmic_total_intensity'
-PERIPHERAL_TOTAL_INTENSITY_PATH_SUFFIX = '/peripheral_total_intensity'
-CYTOPLASMIC_INTENSITIES_PATH_SUFFIX = '/cytoplasmic_intensities'
-PERIPHERAL_INTENSITIES_PATH_SUFFIX = '/peripheral_intensities'
+CYTOPLASMIC_SPOTS_PERIPHERAL_DISTANCE_PATH_SUFFIX = '/cytoplasmic_spots_peripheral_distance'
 QUADRANT_MASK_PATH_SUFFIX = '/quadrant_mask'
-
-# 3d image descriptors
 HEIGHT_MAP_PATH_SUFFIX = '/height_map'
 ZERO_LEVEL_PATH_SUFFIX = '/zero_level'
-NUCLEUS_VOLUME_PATH_SUFFIX = "/nucleus_volume"
 CELL_MASK_SLICES_PATH_SUFFIX = '/cell_mask_slices'
-CELL_VOLUME_PATH_SUFFIX = "/cell_volume"
-SPOTS_PERIPHERAL_DISTANCE_3D_PATH_SUFFIX = '/spots_peripheral_distance_3D'
+VOLUMES_FROM_PERIPHERY_PATH_SUFFIX = "/volumes_from_periphery"
 CLUSTERING_INDICES_PATH_SUFFIX = '/clustering_index'
 QUADRANT_DENSITIES_PATH_SUFFIX = '/quadrant_densities'
 PERIPHERAL_QUADRANT_DENSITIES_PATH_SUFFIX = '/peripheral_quadrant_densities'
 QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX = '/quadrant_and_slice_densities'
-PERIPHERAL_QUADRANT_AND_SLICE_DENSITIES_PATH_SUFFIX = '/peripheral_quadrant_and_slice_densities'
 
 def init_config(analysis_config_js_path):
     global analysis_config

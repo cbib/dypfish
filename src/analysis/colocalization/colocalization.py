@@ -3,61 +3,56 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-import pprint as pp
-import pandas as pd
-from loguru import logger
 import time
-import constants
-import plot
-from plot import compute_heatmap
-import helpers
-from helpers import calculate_colocalization_score, open_repo
+
 import numpy as np
-from repository import H5RepositoryWithCheckpoint
+from loguru import logger
+
+import constants
+import helpers
+import plot
 from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
-import itertools
-import matplotlib.pyplot as plt
+from plot import plot_heatmap
 
 
-def compute_protein_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=4):
-    protein_cs_dict = {}
+def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4, peripheral_flag=False):
+    densities = {}
     stripes = constants.analysis_config['STRIPE_NUM']
-    for g in constants.analysis_config['PROTEINS']:
-        prot_median = []
-        for timepoint in constants.dataset_config['TIMEPOINTS_PROTEIN']:
-            image_set = ImageSet(analysis_repo, ["protein/{0}/{1}/".format(g, timepoint)])
-            arr = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=quadrants_num,
-                                                                            stripes=stripes)
-            mrna_tp_df = pd.DataFrame(arr)
-            prot_median.append(mrna_tp_df.mean(axis=0).values)
-        protein_cs_dict[g] = prot_median
+    if peripheral_flag:
+        stripes_flag = False
+        stripes = 1
+    else:
+        stripes_flag = True
 
-    return protein_cs_dict
+    if molecule_type == 'mrna':
+        timepoints = constants.dataset_config['TIMEPOINTS_MRNA']
+    else:
+        timepoints = constants.dataset_config['TIMEPOINTS_PROTEIN']
 
+    for gene in constants.analysis_config['PROTEINS']:
+        median_densities, gene_clusters = [], []
+        for timepoint in timepoints:
+            image_set = ImageSet(analysis_repo, [molecule_type + "/{0}/{1}/".format(gene, timepoint)])
+            arr = image_set.compute_normalised_quadrant_densities(quadrants_num=quadrants_num,
+                                                                  peripheral_flag=peripheral_flag,
+                                                                  stripes=stripes, stripes_flag=stripes_flag)
+            num_images = arr.shape[0] // (quadrants_num * stripes)
+            aligned_densities = arr[:, 0].reshape(num_images, quadrants_num * stripes)
+            median_densities_per_slice = np.nanmedian(aligned_densities, axis=0)
+            median_densities.append(median_densities_per_slice)
+        densities[gene] = median_densities
 
-def compute_mrna_relative_density_per_quadrants_and_slices(analysis_repo, quadrants_num=4):
-    _mrna_cs_dict = {}
-    stripes = constants.analysis_config['STRIPE_NUM']
-    for g in constants.analysis_config['MRNA_GENES']:
-        mrna_median = []
-        for timepoint in constants.dataset_config['TIMEPOINTS_MRNA']:
-            image_set = ImageSet(analysis_repo, ["mrna/{0}/{1}/".format(g, timepoint)])
-            arr = image_set.compute_normalized_quadrant_and_slice_densities(quadrants_num=quadrants_num,
-                                                                            stripes=stripes)
-            mrna_tp_df = pd.DataFrame(arr)
-            mrna_median.append(mrna_tp_df.mean(axis=0).values)
-        _mrna_cs_dict[g] = mrna_median
-
-    return _mrna_cs_dict
+    return densities
 
 
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
-    ["src/analysis/colocalization/config_original.json", [],10000]
-    #["src/analysis/colocalization/config_nocodazole_arhgdia.json", ["arhgdia", "Nocodazole+"], 24],
-    #["src/analysis/colocalization/config_nocodazole_pard3.json", ["pard3", "Nocodazole+"], 24]
+    ["src/analysis/colocalization/config_original.json"],
+    ["src/analysis/colocalization/config_original_periph.json"],
+    ["src/analysis/colocalization/config_nocodazole_arhgdia.json"],
+    ["src/analysis/colocalization/config_nocodazole_pard3.json"]
 ]
 
 # Figure 5D Analysis Colocalization Score (CS) for original data (5 figures)
@@ -70,35 +65,32 @@ if __name__ == '__main__':
         logger.info("Colocalization Score")
         conf_full_path = pathlib.Path(global_root_dir, conf[0])
         constants.init_config(analysis_config_js_path=conf_full_path)
-        repo = open_repo()
+        repo = helpers.open_repo()
+        peripheral_flag = "periph" in conf[0]
+        stripes = constants.analysis_config["STRIPE_NUM"]
+        mrna_densities = compute_relative_densities(repo, 'mrna', quadrants_num=8, peripheral_flag=peripheral_flag)
+        prot_densities = compute_relative_densities(repo, 'protein', quadrants_num=8, peripheral_flag=peripheral_flag)
 
-        # Use annot=True if you want to add stats annotation in plots
-        mrna_cs_dict = compute_mrna_relative_density_per_quadrants_and_slices(repo, quadrants_num=8)
-        prot_cs_dict = compute_protein_relative_density_per_quadrants_and_slices(repo, quadrants_num=8)
-
-        css = []
-        p_vals = []
+        css, results = [], {}
         for gene in constants.analysis_config['PROTEINS']:
-            mrna_list = mrna_cs_dict[gene]
-            prot_list = prot_cs_dict[gene]
-
-            (cs, p, ranking) = calculate_colocalization_score(mrna_list,
-                                                              prot_list,
-                                                              constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
-                                                              constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
-                                                              permutation_num=conf[2]
-                                                              )
+            cs, p, ranking = helpers.calculate_colocalization_score(mrna_densities[gene], prot_densities[gene],
+                                                                    constants.dataset_config['TIMEPOINTS_NUM_MRNA'],
+                                                                    constants.dataset_config['TIMEPOINTS_NUM_PROTEIN'],
+                                                                    peripheral_flag, stripes=stripes, quadrants=8)
             css.append(cs)
-            p_vals.append(p)
-            print("gene: ", gene, " p-values (random permutation test): ", p)
+            results[gene] = [cs, p]
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS'].format(gene=gene)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
-            if len(conf[1]) == 0:
-                compute_heatmap(ranking, gene, tgt_fp)
+            if "original" in conf[0]:
+                plot_heatmap(ranking, gene, tgt_fp)
+                logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
             else:
-                compute_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
+                plot_heatmap(ranking, gene, tgt_fp, size=2, xtickslabel=['3h', '5h'], ytickslabel=['3h', '5h'])
+                logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
+
         tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_CS_HISTOGRAM']
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
         plot.bar_profile(css, tgt_fp, constants.analysis_config['PLOT_COLORS'])
-
+        logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
+        logger.info("Colocalization scores and p-values are: {}", results)

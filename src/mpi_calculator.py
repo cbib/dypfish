@@ -7,6 +7,7 @@ from typing import Optional, List, Any
 
 import numpy as np
 import pandas as pd
+from loguru import logger
 from scipy.stats import mannwhitneyu
 
 
@@ -61,8 +62,9 @@ class DensityStats(object):
     def mpi(self):
         mpis, errs = [], []
         grouped_df = self.df.groupby(self.group_key, as_index=False)
-        for k in sorted(grouped_df.groups.keys()):
-            k_grouped_df = grouped_df.get_group(k).copy()
+        for gene in sorted(grouped_df.groups.keys()):
+            logger.info("Running MPI calculation with bootstrap for {}", gene)
+            k_grouped_df = grouped_df.get_group(gene).copy()
             mpi = compute_mpis(
                 k_grouped_df,
                 self.mpi_sample_size,

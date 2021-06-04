@@ -3,15 +3,17 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 
 import pathlib
-import tqdm
-import constants
-from loguru import logger
 from random import *
+
 import numpy as np
-from plot import plot_figure
+import tqdm
+from loguru import logger
+
+import constants
+import helpers
+import plot
 from image_set import ImageSet
 from path import global_root_dir
-from helpers import mean_absolute_deviation, median_absolute_deviation
 from repository import H5RepositoryWithCheckpoint
 
 
@@ -33,17 +35,16 @@ def compute_stability(gene, bootstrap=500, force2D=True):
             rand_idx = randint(0, peripheral_profiles.shape[0] - 1)
             mean_arr = np.mean(arr, axis=0)
             arr_diff = mean_arr - peripheral_profiles[rand_idx, :]
-            mse = mean_absolute_deviation(arr_diff)
+            mse = helpers.mean_absolute_deviation(arr_diff)
             mads.append(mse)
         total_mads.append(mads)
     return total_mads
 
 
-"""
-Figure 1.E 
-Mean Absolute Deviation of Arhgdia mRNA distribution for peripheral fraction descriptors of a randomly selected cell 
-from a pooled average of up to ~40 cells for cultured and micropatterned cells.
-"""
+# Figure 1.E
+# Mean Absolute Deviation of Arhgdia mRNA distribution for peripheral fraction descriptors of a randomly selected cell
+# from a pooled average of up to ~40 cells for cultured and micropatterned cells.
+
 constants.init_config(
     analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/stability/config_original.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
@@ -57,5 +58,5 @@ for gene in constants.analysis_config['MRNA_GENES']:
 
 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT']
 tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-plot_figure(total_mads[0], total_mads[1], tgt_fp)
+plot.plot_figure(total_mads[0], total_mads[1], tgt_fp)
 logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
