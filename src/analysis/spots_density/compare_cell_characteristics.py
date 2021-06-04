@@ -13,7 +13,7 @@ from helpers import open_repo
 from image_set import ImageSet
 from path import global_root_dir
 
-f
+
 def compute_cells_area(_gene, analysis_repo, gene_label):
     dict_Cell_area = {"Gene": [], "value": []}
     image_set = ImageSet(analysis_repo, [f"{'mrna'}/{_gene}/{'3h'}/"])
