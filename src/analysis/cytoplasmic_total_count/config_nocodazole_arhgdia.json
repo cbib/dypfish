@@ -5,6 +5,7 @@
   "FIGURE_NAME_VIOLIN_FORMAT": "nocodazole_arhgdia_{molecule_type}_cytoplasmic_total_count_violin_plot.png",
   "MAX_CELL_RADIUS": 300,
   "MIN_HEIGHT_MAP_AREA": 20000,
+  "MIN_SNR": 1,
   "MIN_SPOT_NUM": 10,
   "MRNA_GENES_LABEL" : ["Arhgdia", "+Nocodazole"],
   "PROTEINS_LABEL" : ["Arhgdia", "+Nocodazole"],
