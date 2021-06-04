@@ -5,6 +5,7 @@
   "FIGURE_NAME_FORMAT_DYNAMIC_MPI": "{gene}_original_MPI.png",
   "FIGURE_NAME_FORMAT_MTOC_ENRICHMENT": "{molecule_type}_original_MTOC_enrichment.png",
   "FIGURE_NAME_FORMAT_DENSITY_MAP": "{molecule_type}_{gene}_{timepoint}_original_density_map.png",
+  "MPI_SUB_SAMPLE_SIZE": 400,
   "STRIPE_NUM": 3,
   "SPOTS_MIN": 50,
   "MIN_SPOTS_NUM_IN_CYTOPLASM": 10,
