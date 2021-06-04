@@ -6,7 +6,6 @@
   "FIGURE_NAME_VIOLIN_FORMAT": "chx_{molecule_type}_degree_of_clustering_violin_plot.png",
   "MAX_CELL_RADIUS": 100,
   "RIPLEY_K_SIMULATION_NUMBER": 20,
-  "STRIPE_NUM": 3,
   "MIN_SPOT_NUM": 10,
   "MIN_HEIGHT_MAP_AREA": 20000,
   "MIN_SNR": 1,
