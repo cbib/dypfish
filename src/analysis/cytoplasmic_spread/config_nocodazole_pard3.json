@@ -7,6 +7,7 @@
   "FIGURE_NAME_CENTRALITY_VIOLIN": "nocodazole_pard3_{molecule_type}_cytoplasmic_centrality_violin_plot.png",
   "NUM_CONTOURS": 100,
   "MIN_SPOT_NUM": 10,
+  "MIN_SNR": 1,
   "MAX_CELL_RADIUS": 300,
   "MIN_HEIGHT_MAP_AREA": 20000,
   "MRNA_GENES_LABEL" : ["Pard3", "+Nocodazole"],
