@@ -4,6 +4,7 @@
   "FIGURE_NAME_FORMAT_GRAPH": "z-line_distance.png",
   "FIGURE_NAME_FORMAT_GRAPH_STRIPE": "density_spline_muscle_cells_{image}.png",
   "FIGURE_NAME_FORMAT_HEATMAP": "heatmap_muscle_cells_{image}.png",
+  "STRIPE_NUM": 20,
   "Z_LINE_SPACING": 15,
   "MIN_SPOT_NUM": 10,
   "MAX_SPOT_NUM": 3000,
