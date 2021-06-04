@@ -4,6 +4,7 @@
   "FIGURE_NAME_FORMAT": "stability_peripheral_fraction_original.png",
   "BOOTSTRAP_MPI": 400,
   "PERIPHERAL_FRACTION_THRESHOLD": 70,
+  "NUM_CONTOURS": 100,
   "MAX_CELL_RADIUS": 300,
   "STRIPE_NUM": 3,
   "MIN_SPOT_NUM": 10,
