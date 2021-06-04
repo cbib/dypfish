@@ -119,7 +119,7 @@ To run the analysis on your own data, first the images have to be preprocessed a
 
 Analysis scripts and corresponding `analysis configuration` files that were used to generate the figures in the DypFISH paper are provided as examples of how the DypFISH library can be used. They are contained in the `src/analysis` directory and are supposed to be run on the data in the provided data archive.
 
-| WARNING: **DypFISH HDF5 files not allow read/write parallel access!! Please do not run more than one analysis at a time**!|
+| WARNING: **DypFISH HDF5 files not allow write parallel access!! Please do not run more than one analysis at a time**!|
 | --- |
 
 ## Your own analysis
