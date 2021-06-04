@@ -61,9 +61,12 @@ class TestimageWithSpotsAndZlines(TestCase):
 
     def test_compute_minimal_z_line_distance(self):
         minimal_z_line_distance = self.img.compute_minimal_z_line_distance()
+        print(minimal_z_line_distance)
         #logger.error("this function is not tested")
         #self.fail()
 
     def test_get_z_lines_masks(self):
-        logger.error("this function is not tested")
+        z_lines_masks = self.img.compute_minimal_z_line_distance()
+        print(z_lines_masks)
+        #logger.error("this function is not tested")
         #self.fail()

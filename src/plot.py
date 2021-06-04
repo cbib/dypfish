@@ -102,9 +102,9 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
     fig, ax = plt.subplots()
 
     # Search for ymin and y max
-    y_max = np.max(medians) + np.nanmin(medians) / 10
-    y_min = 0 # np.float(np.nanmin(list(medians))) - (np.float(np.nanmin(list(medians))) / 5)
-    plt.ylim([y_min, y_max])
+    # y_max = np.max(medians) + np.nanmin(medians) / 10
+    # y_min = 0 # np.float(np.nanmin(list(medians))) - (np.float(np.nanmin(list(medians))) / 5)
+    # plt.ylim([y_min, y_max])
 
     if annot:
         add_annot(data_to_annot, all_genes, ax, test)
