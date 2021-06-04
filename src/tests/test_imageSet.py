@@ -110,9 +110,14 @@ class TestImageSet(TestCase):
         np.random.seed(0)
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         clustering_indices = image_set.compute_degree_of_clustering()
-        self.assertGreater(clustering_indices,
-                           [0, 0, 0, 0, 0])  # TODO : how to better test this: np.random.seed(0) does not seem to work
         self.assertEqual(len(clustering_indices), 5)
+        total_sum = 0
+        for ci in clustering_indices:
+            total_sum += np.sum(ci)
+        print(total_sum)
+        self.assertAlmostEqual(total_sum, 5012.542842389925, places=5)
+        #self.assertGreater(clustering_indices,[0, 0, 0, 0, 0])  # TODO : how to better test this: np.random.seed(0) does not seem to work
+
 
     def test_compute_normalised_quadrant_densities_mrna(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
@@ -161,11 +166,9 @@ class TestImageSet(TestCase):
         self.assertAlmostEqual(result[1], 0.611584381, places=5)
 
     def test_compute_surface_corrected_nm(self):
-        logger.error("child class functions not tested?")
-        self.fail()
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = image_set.compute_surface_corrected_nm()
-        self.assertAlmostEqual(result, 0.089117434154, places=5)
+        self.assertAlmostEqual(result, 0.1010903526279469, places=5)
 
     def test_compute_normalized_quadrant_densities_mrna(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
@@ -225,18 +228,25 @@ class TestImageSet(TestCase):
         self.assertAlmostEqual(np.sum(result), np.sum(test), places=5)
 
     def test_compute_cell_mask_between_nucleus_centroids(self):
-        logger.error("This function has not been tested")
-        self.fail()
+        image_set = ImageSet(self.repo, path_list=['mrna/actn2/immature/'])
+        nuc_dist, nucs_dist, cell_masks, nucs_pos = image_set.compute_cell_mask_between_nucleus_centroids()
+        self.assertEqual([754, 483, 526],nuc_dist)
+        self.assertEqual([[754], [483, 526]], nucs_dist)
+        self.assertEqual([[[110, 864]], [[154, 637], [637, 1163]]], nucs_pos)
+
+        #logger.error("This function has not been tested")
+        #self.fail()
 
     def test_compute_volume_corrected_nm(self):
-        logger.error("This function has not been tested")
-        self.fail()
+        image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
+        vcnm = image_set.compute_volume_corrected_nm()
+        self.assertAlmostEqual(0.029713582957013474, vcnm, places=5)
+
 
     def test_compute_spots_peripheral_distance(self):
-        # logger.error("This function has not been tested")
-        # self.fail()
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         result = image_set.compute_spots_peripheral_distance()
-        print(len(result))
-
-        print(np.sum(result[:]))
+        total_sum=0
+        for res in result:
+            total_sum += np.sum(res)
+        self.assertEqual(total_sum, 20030.0)
