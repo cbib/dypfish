@@ -3,6 +3,7 @@
   "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/colocalization/output",
   "FIGURE_NAME_FORMAT_CS": "{gene}_pard3_nocodazole_colocalization_score.png",
   "FIGURE_NAME_FORMAT_CS_HISTOGRAM": "pard3_nocodazole_colocalization_score.png",
+  "PERIPHERAL_FRACTION_THRESHOLD": 30,
   "NUM_CONTOURS": 100,
   "MAX_CELL_RADIUS": 300,
   "STRIPE_NUM": 3,
