@@ -54,19 +54,15 @@ class TestimageWithSpotsAndZlines(TestCase):
         self.repo.clear()
 
     def test_get_z_lines_masks(self):
+        logger.error("this function test_get_z_lines_masks is not tested")
         z_lines_masks = self.img.get_z_lines_masks()
         print(z_lines_masks)
-        #logger.error("this function is not tested")
-        #self.fail()
+        self.fail()
 
     def test_compute_minimal_z_line_distance(self):
+        logger.error("this function test_compute_minimal_z_line_distance is not tested")
         minimal_z_line_distance = self.img.compute_minimal_z_line_distance(z_line_spacing= 15)
         print(minimal_z_line_distance)
-        #logger.error("this function is not tested")
-        #self.fail()
+        self.fail()
 
-    def test_get_z_lines_masks(self):
-        z_lines_masks = self.img.get_z_lines_masks()
-        print(z_lines_masks)
-        #logger.error("this function is not tested")
-        #self.fail()
+

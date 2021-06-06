@@ -114,7 +114,6 @@ class TestImageSet(TestCase):
         total_sum = 0
         for ci in clustering_indices:
             total_sum += np.sum(ci)
-        print(total_sum)
         self.assertAlmostEqual(total_sum, 5012.542842389925, places=5)
         #self.assertGreater(clustering_indices,[0, 0, 0, 0, 0])  # TODO : how to better test this: np.random.seed(0) does not seem to work
 
