@@ -29,7 +29,6 @@ def compute_density_per_quadrant(analysis_repo, molecule_type, groupby_key, quad
     for molecule in molecule_list:
         for timepoint in time_points:
             density_statictics = {}
-            print(quadrants_num)
             image_set = ImageSet(analysis_repo, [f"{molecule_type}/{molecule}/{timepoint}/"])
             if len(image_set.images) < 5:
                 logger.warning("Image set is small for {}", molecule)
