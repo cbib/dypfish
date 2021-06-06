@@ -424,6 +424,9 @@ def profile(profiles, figname, keep=7):
     plt.xticks([w for w in range(0, num_contours + 2, 10)])
     # we do not plot the first 8%
     for i, gene in enumerate(genes):
+        print(gene)
+        print(i)
+        print(keep)
         fractions_to_plot = profiles[i][keep:]
         plt.plot(range(keep, len(profiles[i])), fractions_to_plot, color=plot_colors[i], linewidth=3, label=genes)
     plt.savefig(figname)

@@ -54,15 +54,23 @@ class TestimageWithSpotsAndZlines(TestCase):
         self.repo.clear()
 
     def test_get_z_lines_masks(self):
-        logger.error("this function test_get_z_lines_masks is not tested")
         z_lines_masks = self.img.get_z_lines_masks()
-        print(z_lines_masks)
-        self.fail()
+        whole_area = 0
+        for z_lines_mask in z_lines_masks:
+            whole_area += np.sum(z_lines_mask)
+        print("z_lines_masks: ", whole_area)
+        self.assertEqual(1137023, whole_area)
+
 
     def test_compute_minimal_z_line_distance(self):
         logger.error("this function test_compute_minimal_z_line_distance is not tested")
         minimal_z_line_distance = self.img.compute_minimal_z_line_distance(z_line_spacing= 15)
-        print(minimal_z_line_distance)
-        self.fail()
+        print(np.sum(minimal_z_line_distance))
+        minimal_z_line_distance_test = [0.10612387, 0.01322199, 0.01043841, 0.01461378, 0.01078636, 0.00904662,
+                                        0.01078636, 0.0118302, 0.00974252, 0.0059151, 0.00382742, 0.0045233,
+                                        0.00243563, 0.00487126, 0.00417537
+                                                 ]
+        self.assertEqual(np.sum(minimal_z_line_distance), np.sum(minimal_z_line_distance_test))
+        #self.fail()
 
 

@@ -229,8 +229,8 @@ class TestImageSet(TestCase):
     def test_compute_cell_mask_between_nucleus_centroids(self):
         image_set = ImageSet(self.repo, path_list=['mrna/actn2/immature/'])
         nuc_dist, nucs_dist, cell_masks, nucs_pos = image_set.compute_cell_mask_between_nucleus_centroids()
-        self.assertEqual(np.sort([754, 483, 526]), np.sort(nuc_dist))
-        self.assertEqual([[754], [483, 526]], nucs_dist)
+        self.assertEqual(np.sum([754, 483, 526]), np.sum(nuc_dist))
+        self.assertEqual(len([754]) + len([483, 526]), len(nucs_dist[0]) + len(nucs_dist[1]))
         self.assertEqual([[[110, 864]], [[154, 637], [637, 1163]]], nucs_pos)
 
         #logger.error("This function has not been tested")
