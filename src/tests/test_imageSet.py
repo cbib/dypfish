@@ -231,16 +231,17 @@ class TestImageSet(TestCase):
         nuc_dist, nucs_dist, cell_masks, nucs_pos = image_set.compute_cell_mask_between_nucleus_centroids()
         self.assertEqual(np.sum([754, 483, 526]), np.sum(nuc_dist))
         self.assertEqual(len([754]) + len([483, 526]), len(nucs_dist[0]) + len(nucs_dist[1]))
-        self.assertEqual([[[110, 864]], [[154, 637], [637, 1163]]], nucs_pos)
-
-        #logger.error("This function has not been tested")
-        #self.fail()
+        for nuc_pos in nucs_pos:
+            if len(nuc_pos) == 1:
+                self.assertEqual(nuc_pos[0],[110, 864])
+            else:
+                self.assertEqual(nuc_pos[0], [154, 637])
+                self.assertEqual(nuc_pos[1], [637, 1163])
 
     def test_compute_volume_corrected_nm(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         vcnm = image_set.compute_volume_corrected_nm()
         self.assertAlmostEqual(0.029713582957013474, vcnm, places=5)
-
 
     def test_compute_spots_peripheral_distance(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
