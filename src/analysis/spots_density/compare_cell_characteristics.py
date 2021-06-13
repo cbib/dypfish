@@ -77,10 +77,22 @@ if __name__ == '__main__':
         tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
         plot.sns_boxplot(df_nucleus_area, my_pal, tgt_fp)
 
+        # logger.info("transcript total count by cell area comparison for arhgdia et arhgdia_cultured data")
+        # for i, gene in enumerate(genes):
+        #     dict_transcript_by_cell_area = compute_transcript_by_cell_area(repo, gene, timepoints[i])
+        #     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT'].format(cell_type=genes[i])
+        #     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
+        #     #plot.sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2)
+        #     plot.sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp)
+        #
         logger.info("transcript total count by cell area comparison for arhgdia et arhgdia_cultured data")
-        for i, gene in enumerate(genes):
-            dict_transcript_by_cell_area = compute_transcript_by_cell_area(repo, gene, timepoints[i])
+        for gene, timepoints, i in zip(genes, [['2h', '3h', '4h'], ['1h', '3h']], [0,1]):
+            transcript_by_cell_area = compute_transcript_by_cell_area(repo, gene, timepoints)
+            if gene == 'arhgdia':
+                outliers = helpers.detect_outliers(transcript_by_cell_area['total_transcript'], threshold=1.8)
+                transcript_by_cell_area = transcript_by_cell_area[~np.isin(transcript_by_cell_area["total_transcript"], outliers)]
+                transcript_by_cell_area.dropna(inplace=True)
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT'].format(cell_type=genes[i])
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-            #plot.sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2)
-            plot.sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp)
+            plot.sns_linear_regression(transcript_by_cell_area["cell_area"], transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2)
+            logger.info("Generated image at {}", tgt_fp)
