@@ -103,20 +103,20 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         return random_spots_in_slices[0:num_spots]
 
     def add_spots_in_3d_cells_by_slice(self,
+                                       nucleus_centroid,
                                        spots_num=100,
                                        slices=10,
                                        radius=180,
                                        _distance_from_centroid=120) -> np.ndarray:
         cpt = 0
-        height_map = self.get_height_map()
         _spots = np.zeros((spots_num * slices, 3))
         for n_slice in range(slices):
             for i in range(spots_num):
-                _spots[cpt, 0] = np.random.uniform(256.0 - radius, 256.0 + radius)
-                _spots[cpt, 1] = np.random.uniform(256.0 - radius, 256.0 + radius)
+                _spots[cpt, 0] = np.random.uniform(nucleus_centroid[0] - radius, nucleus_centroid[1] + radius)
+                _spots[cpt, 1] = np.random.uniform(nucleus_centroid[0] - radius, nucleus_centroid[1] + radius)
                 _spots[cpt, 2] = n_slice
                 cpt += 1
-            radius -= slope
+            radius -= 10
 
         return _spots
 
@@ -149,7 +149,8 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         # simulate RIPLEY_K_SIMULATION_NUMBER lists of random spots and run ripley_k
         for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):
             #random_spots = self.compute_random_cytoplasmic_spots_in_slices(len(spots), factor=30)
-            random_spots = self.compute_random_3D_spots()
+            #random_spots = self.compute_random_3D_spots()
+            random_spots = self.add_spots_in_3d_cells_by_slice(self.get_nucleus_centroid())
             tmp_k = self.ripley_k_point_process(spots=random_spots, nuw=nuw, my_lambda=my_lambda).flatten()
             k_sim[t] = tmp_k
 
