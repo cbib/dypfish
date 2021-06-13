@@ -230,6 +230,7 @@ def sns_linear_regression(data_1, data_2, color, graph_file_path_name, order=1):
     sns.set(style="white", color_codes=True)
     annot_kws = {'prop': {'family': 'monospace', 'weight': 'bold', 'size': 8}}
     res1 = stats.pearsonr(data_1, data_2)
+    print(res1)
     sns.set(font_scale=1)
     sns_plot_regression = sns.jointplot(x=np.log(data_1), y=np.log(data_2), order=order, kind='reg',
                                         x_estimator=np.mean, color=color)
