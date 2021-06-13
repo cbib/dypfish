@@ -102,6 +102,13 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
         return random_spots_in_slices[0:num_spots]
 
+    def compute_random_spots_in_slices(self):
+        n_spots = len(self.get_spots())
+        slices = self.get_cell_mask_slices()
+        x, y, z = np.where(slices == 1)
+        idx = np.random.randint(0, len(x), n_spots)  # we chose random indices
+        return np.vstack((x[idx], y[idx], z[idx])).T
+
     def add_spots_in_3d_cells_by_slice(self,
                                        nucleus_centroid,
                                        spots_num=50,
@@ -122,16 +129,6 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         return _spots
 
 
-    def compute_random_3D_spots(self): #
-        # simulate n list of random spots
-        cell_mask = self.get_cell_mask()
-        n_spots = len(self.get_spots())
-        self.get_height_map()
-        x, y, z = np.where(self.get_height_map() > 1)
-        # x, y = np.where(cell_mask == 1)
-        idx = np.random.randint(0, len(x), n_spots)  # we chose random indices
-        return np.vstack((x[idx], y[idx], z[idx])).T
-
     def compute_clustering_indices(self) -> np.ndarray:
         """
         Point process Ripley-K computation in 3D for spheres of radius r < MAX_CELL_RADIUS
@@ -150,7 +147,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         # simulate RIPLEY_K_SIMULATION_NUMBER lists of random spots and run ripley_k
         for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):
             #random_spots = self.compute_random_cytoplasmic_spots_in_slices(len(spots), factor=30)
-            #random_spots = self.compute_random_3D_spots()
+            #random_spots = self.compute_random_spots_in_slices()
             random_spots = self.add_spots_in_3d_cells_by_slice(self.get_nucleus_centroid())
             tmp_k = self.ripley_k_point_process(spots=random_spots, nuw=nuw, my_lambda=my_lambda).flatten()
             k_sim[t] = tmp_k
