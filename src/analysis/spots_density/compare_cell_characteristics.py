@@ -33,7 +33,7 @@ def compute_nuclei_area(_gene, analysis_repo, gene_label):
 def compute_transcript_by_cell_area(analysis_repo, _gene, _timepoints):
     transcript_by_cell_area = {"total_transcript": [], "cell_area": []}
     for timepoint in _timepoints:
-        image_set = ImageSet(analysis_repo, [f"{'mrna'}/{_gene}/{timepoint}/"])
+        image_set = ImageSet(analysis_repo, [f"{'mrna'}/{_gene}/{timepoint}/"], force2D=True)
         [transcript_by_cell_area["total_transcript"].append(image.compute_cytoplasmic_total_spots()) for image in image_set.get_images()]
         [transcript_by_cell_area["cell_area"].append(image.compute_cell_area()) for image in image_set.get_images()]
     return transcript_by_cell_area
