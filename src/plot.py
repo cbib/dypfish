@@ -236,7 +236,7 @@ def sns_linear_regression(data_1, data_2, color, graph_file_path_name, order=1):
     sns_plot_regression.ax_marg_x.set_xlim(6, 8)
     phantom, = sns_plot_regression.ax_joint.plot([], [], linestyle="", alpha=0)
     {0:.3g}
-    sns_plot_regression.ax_joint.legend([phantom], ['pearsonr={0:.3g}, R' + chr(0x00B2) + '={:.3g}, p={:.2E}'.format(res1[0], res1[0] ** 2, res1[1])], **annot_kws)
+    sns_plot_regression.ax_joint.legend([phantom], ['pearsonr={:.3g}, R' + chr(0x00B2) + '={:.3g}, p={:.2E}'.format(res1[0], res1[0] ** 2, res1[1])], **annot_kws)
     #sns_plot_regression.ax_joint.legend([phantom], [f'pearsonr={res1[0]}, R' + chr(0x00B2) + f'={res1[0] ** 2}, p={res1[1]}'], **annot_kws)
 
     sns_plot_regression.savefig(graph_file_path_name, format="png")
