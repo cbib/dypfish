@@ -139,6 +139,8 @@ class ImageWithSpots(Image):
         K = K * (1 / (my_lambda ** 2 * nuw))
         return K
 
+
+
     def compute_random_spots(self): # TODO : not tested
         # simulate n list of random spots
         cell_mask = self.get_cell_mask()

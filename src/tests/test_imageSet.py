@@ -106,15 +106,15 @@ class TestImageSet(TestCase):
     def test_compute_degree_of_clustering(self):
         # logger.error("This function has not been tested with cytoplasmic spots and new random spots")
         # self.fail()
-        self.skipTest("not found the good test")  # skipping because not tested, see above
-        np.random.seed(0)
+        #self.skipTest("not found the good test")  # skipping because not tested, see above
+        #np.random.seed(0)
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         clustering_indices = image_set.compute_degree_of_clustering()
         self.assertEqual(len(clustering_indices), 5)
         total_sum = 0
         for ci in clustering_indices:
             total_sum += np.sum(ci)
-        self.assertAlmostEqual(total_sum, 5012.542842389925, places=5)
+        self.assertAlmostEqual(total_sum, 5441.811370073432, places=5)
         #self.assertGreater(clustering_indices,[0, 0, 0, 0, 0])  # TODO : how to better test this: np.random.seed(0) does not seem to work
 
 
@@ -212,7 +212,6 @@ class TestImageSet(TestCase):
                                0.011356787, places=5)  # non MTOC quadtant density
 
     def test_compute_zline_distance(self):
-        self.skipTest("Skipping for inefficiency reasons")
         image_set = ImageSet(self.repo, path_list=['mrna/actn2/immature/'])
         result = image_set.compute_zline_distance(20)
         test = [[0.24374599, 0.03463759, 0.0365619, 0.0436177, 0.03207184,

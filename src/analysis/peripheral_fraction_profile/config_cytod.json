@@ -5,7 +5,7 @@
   "FIGURE_NAME_HISTOGRAM_FORMAT": "cytod_{molecule_type}_peripheral_count_histogram{fraction}.png",
   "FIGURE_NAME_VIOLIN_FORMAT": "cytod_{molecule_type}_peripheral_count_violin_plot{fraction}.png",
   "MPI_SUB_SAMPLE_SIZE": 100,
-  "PERIPHERAL_FRACTION_THRESHOLD": 30,
+  "PERIPHERAL_FRACTION_THRESHOLD": 10,
   "NUM_CONTOURS": 100,
   "MAX_CELL_RADIUS": 300,
   "DET_TOLERANCE": 0.00000001,
