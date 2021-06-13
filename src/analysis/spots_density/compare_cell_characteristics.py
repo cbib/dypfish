@@ -82,4 +82,5 @@ if __name__ == '__main__':
             dict_transcript_by_cell_area = compute_transcript_by_cell_area(repo, gene, timepoints[i])
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT'].format(cell_type=genes[i])
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-            plot.sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2)
+            #plot.sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2)
+            plot.sns_linear_regression(dict_transcript_by_cell_area["cell_area"], dict_transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp)
