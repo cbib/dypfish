@@ -104,8 +104,8 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
     def add_spots_in_3d_cells_by_slice(self,
                                        nucleus_centroid,
-                                       spots_num=100,
-                                       slices=10,
+                                       spots_num=50,
+                                       slices=8,
                                        radius=180,
                                        _distance_from_centroid=120) -> np.ndarray:
         cpt = 0
@@ -114,6 +114,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
             for i in range(spots_num):
                 _spots[cpt, 0] = np.random.uniform(nucleus_centroid[0] - radius, nucleus_centroid[1] + radius)
                 _spots[cpt, 1] = np.random.uniform(nucleus_centroid[0] - radius, nucleus_centroid[1] + radius)
+                #_spots[cpt, 2] = np.random.uniform(1, slices)
                 _spots[cpt, 2] = n_slice
                 cpt += 1
             radius -= 10
