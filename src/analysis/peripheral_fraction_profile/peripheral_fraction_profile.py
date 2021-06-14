@@ -114,7 +114,7 @@ configurations = [
 
 if __name__ == '__main__':
     for conf in configurations:
-        stat_annotations = False
+        stat_annotations = True
         conf_full_path = pathlib.Path(global_root_dir, conf[0])
         constants.init_config(analysis_config_js_path=conf_full_path)
         keyorder = conf[1]
