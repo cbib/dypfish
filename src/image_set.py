@@ -269,7 +269,12 @@ class ImageSet(object):
 
     def compute_degree_of_clustering(self):
         image: Union[ImageWithSpots, Image3dWithSpots]
-        return [image.compute_degree_of_clustering() for image in self.images]
+        tmp_d_of_c=[image.compute_degree_of_clustering() for image in self.images]
+        d_of_c=[]
+        for d in tmp_d_of_c:
+            if d != 0.0001:
+                d_of_c.append(d)
+        return d_of_c
 
     def compute_normalised_quadrant_densities(self, quadrants_num=4, peripheral_flag=False,
                                               stripes=1, stripes_flag=False) -> np.array:
@@ -283,7 +288,7 @@ class ImageSet(object):
             vec_len = quadrants_num * stripes
             assert(vec_len == mdmq.shape[0]), f"Precomputed quadrants are the wrong shape {vec_len} != {mdmq.shape[0]}"
             mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
-            if mdmq[:,0].sum() > 0:
+            if mdmq[:, 0].sum() > 0:
                 # just in case, make sure that the mtoc containing quadrant is always first
                 mdmq = helpers.roll_densities_mtoc_array(mdmq, slices=stripes)
                 assert (mdmq[0, 1] == 1)

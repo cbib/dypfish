@@ -15,9 +15,11 @@ from image_set import ImageSet
 # this should be called as soon as possible
 from path import global_root_dir
 
+
 def mean_column(group):
     group["d_of_c"] = group["d_of_c"].apply(np.median)
     return group
+
 
 data = [{'beta_actin': [0.5, 1, 0.8, 1, 1], 'arhgdia': [1, 1, 1.5, 1, 1],
          'gapdh': [1, 0.9, 0.7, 0.7, 1], 'pard3': [0.8, 1, 0.8, 1.2, 1]},
@@ -49,7 +51,6 @@ def plot_dynamic_barplot(analysis_repo):
                 lower, higher = helpers.median_confidence_interval(degree_of_clustering)
                 df = df.append({"Molecule": molecule, "Timepoint": tp, "error": err, "CI": [lower, higher],
                                 "d_of_c": degree_of_clustering}, ignore_index=True)
-
         df = df.sort_values('Timepoint')
         df = df.groupby('Molecule').apply(mean_column)
         my_pal = {"mrna": str(plot_colors[i]), "protein": str(color_variant(plot_colors[i], +80))}

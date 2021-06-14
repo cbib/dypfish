@@ -73,17 +73,18 @@ Figure S2D right panel: plots the log protein degree of clustering normalized by
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
     ["src/analysis/degree_of_clustering/config_original.json",
-     ['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']],
-    ["src/analysis/degree_of_clustering/config_chx.json",
-     ['arhgdia', 'arhgdia_CHX', 'pard3', 'pard3_CHX']],
-    ["src/analysis/degree_of_clustering/config_prrc2c.json",
-     ['arhgdia/control', "arhgdia/prrc2c_depleted"]]
+     ['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']]
+    # ["src/analysis/degree_of_clustering/config_chx.json",
+    #  ['arhgdia', 'arhgdia_CHX', 'pard3', 'pard3_CHX']],
+    # ["src/analysis/degree_of_clustering/config_prrc2c.json",
+    #  ['arhgdia/control', "arhgdia/prrc2c_depleted"]]
 ]
 
 def build_plots(analysis_repo, conf, annot=False):
     for molecule_type, molecules in zip(["mrna", "protein"], ['MRNA_GENES', 'PROTEINS']):
         if "original" in conf[0]:
             annotate = False
+
         genes_list = constants.dataset_config[molecules]
         d_of_c, median_d_of_c, err, confidence_interval = compute_degree_of_clustering(genes_list, analysis_repo, molecule_type=molecule_type)
         # sort everything in the same way for plotting

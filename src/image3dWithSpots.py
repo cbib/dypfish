@@ -146,9 +146,9 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
         # simulate RIPLEY_K_SIMULATION_NUMBER lists of random spots and run ripley_k
         for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):
-            #random_spots = self.compute_random_cytoplasmic_spots_in_slices(len(spots), factor=30)
+            random_spots = self.compute_random_cytoplasmic_spots_in_slices(len(spots), factor=100)
             #random_spots = self.compute_random_spots_in_slices()
-            random_spots = self.add_spots_in_3d_cells_by_slice(self.get_nucleus_centroid())
+            #random_spots = self.add_spots_in_3d_cells_by_slice(self.get_nucleus_centroid())
             tmp_k = self.ripley_k_point_process(spots=random_spots, nuw=nuw, my_lambda=my_lambda).flatten()
             k_sim[t] = tmp_k
 
