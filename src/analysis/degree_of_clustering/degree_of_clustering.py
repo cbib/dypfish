@@ -52,14 +52,14 @@ def plot_bar_profile_median_and_violin(molecule_type, median_d_of_c, d_of_c,
 
     # generate the bar profile plot
     plot.bar_profile_median(median_d_of_c, errors.values(), molecule_type, xlabels,
-                            tgt_fp, confidence_interval, annot=False, data_to_annot=None)
+                            tgt_fp, confidence_interval, annot=True, data_to_annot=None)
     logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
     # generate violin plot image
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
-    plot.violin_profile(d_of_c, tgt_fp, xlabels, rotation=0, annot=False)
+    plot.violin_profile(d_of_c, tgt_fp, xlabels, rotation=0, annot=True)
 
 ''' 
 Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5) for original

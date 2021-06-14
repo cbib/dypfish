@@ -83,8 +83,7 @@ def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors
 
 
     # generate the bar profile plot
-    plot.bar_profile_median(medians, errors, 'mrna', xlabels, tgt_fp, confidence_interval=CI,
-                            annot=annotations, data_to_annot=fractions)
+    #plot.bar_profile_median(medians, errors, 'mrna', xlabels, tgt_fp, confidence_interval=CI,annot=annotations, data_to_annot=fractions)
     logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
     # generate the violin plot
