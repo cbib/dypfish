@@ -270,7 +270,7 @@ class ImageSet(object):
     def compute_degree_of_clustering(self):
         image: Union[ImageWithSpots, Image3dWithSpots]
         tmp_d_of_c=[image.compute_degree_of_clustering() for image in self.images]
-        d_of_c=[]
+        d_of_c = []
         for d in tmp_d_of_c:
             if d != 0.0001:
                 d_of_c.append(d)
