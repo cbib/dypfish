@@ -66,8 +66,6 @@ class TestImage3dWithSpots(TestCase):
         self.assertAlmostEqual(mrna_density, 0.15130537974, places=5)
 
     def test_compute_random_cytoplasmic_spots_in_slices(self):
-        #logger.error("needs checking that the spots coordinates order is coherent with the rest of the code")
-        #self.fail()
         np.random.seed(0)
         random_spots = self.img.compute_random_cytoplasmic_spots_in_slices(100)
         self.assertTrue(np.all([self.img.is_in_cytoplasm(s[::-1]) for s in random_spots[:,0:2]]))

@@ -104,10 +104,6 @@ class TestImageSet(TestCase):
         self.assertEqual(sorted(spots_counts), [33, 68, 71, 73, 153])
 
     def test_compute_degree_of_clustering(self):
-        # logger.error("This function has not been tested with cytoplasmic spots and new random spots")
-        # self.fail()
-        #self.skipTest("not found the good test")  # skipping because not tested, see above
-        #np.random.seed(0)
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         clustering_indices = image_set.compute_degree_of_clustering()
         self.assertEqual(len(clustering_indices), 5)
