@@ -72,7 +72,7 @@ Figure S2D right panel: plots the log protein degree of clustering normalized by
 
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
-    # ["src/analysis/degree_of_clustering/config_original.json",['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']],
+    ["src/analysis/degree_of_clustering/config_original.json",['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']],
     ["src/analysis/degree_of_clustering/config_chx.json",
      ['arhgdia', 'arhgdia_CHX', 'pard3', 'pard3_CHX']],
     ["src/analysis/degree_of_clustering/config_prrc2c.json",

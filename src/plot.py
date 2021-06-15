@@ -93,6 +93,7 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
     and confidence intervals by CI; CI is a dictionary with keys = genes
     test: a string (t-test_ind, t-test_welch, t-test_paired, etc)
     """
+    test='Mann-Whitney-ls'
     # Define plot variables
     all_genes = list(data_median.keys())
     medians = list(data_median.values())
