@@ -63,7 +63,7 @@ Add the src directory to the Python path:
 Matplotlib targets many different use cases and output formats.
 DypFISH uses non-interactive backend AGG (PNG output - high quality images using the Anti-Grain Geometry engine)
 
-Setting the MPLBACKEND environment variable
+Set the MPLBACKEND environment variable:
 
 `export MPLBACKEND="Agg"`
 
