@@ -10,7 +10,6 @@ from scipy.interpolate import interp1d
 import constants
 from mpi_calculator import DensityStats
 from path import global_root_dir
-
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns

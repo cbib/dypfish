@@ -6,7 +6,7 @@
   "MIN_SPOT_NUM": 10,
   "MAX_SPOT_NUM": 2000,
   "MIN_HEIGHT_MAP_AREA": 20000,
-  "TIMEPOINTS" : [["2h", "3h", "4h", "5h"],["1h", "3h"]],
+  "TIMEPOINTS" : [["2h", "3h", "4h"],["1h", "3h"]],
   "MRNA_GENES_LABEL" : ["Micropatterned cells", "Standard cells"],
   "MRNA_GENES" : ["arhgdia", "arhgdia_cultured"],
   "PROTEINS" : ["arhgdia", "arhgdia_cultured"],
