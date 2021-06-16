@@ -62,7 +62,7 @@ def bar_profile_median_timepoints(df: pd.DataFrame, palette, figname, fixed_ysca
     ax.bar(index, mrna["d_of_c"], bar_width, yerr=mrna["error"], color=palette["mrna"], error_kw=dict(elinewidth=6, ecolor='black'))
     ax.bar(index + bar_width, protein["d_of_c"], bar_width, yerr=protein["error"], color=palette["protein"], error_kw=dict(elinewidth=6, ecolor='black'))
 
-    #plt.ylim([0, fixed_yscale])
+    # plt.ylim([0, fixed_yscale])
     ax.set_xlabel("", fontsize=15)
     ax.set_ylabel("", fontsize=15)
     ax.yaxis.grid(which="major", color='black', linestyle='-', linewidth=0.25)
@@ -93,7 +93,7 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
     and confidence intervals by CI; CI is a dictionary with keys = genes
     test: a string (t-test_ind, t-test_welch, t-test_paired, etc)
     """
-    test='Mann-Whitney-ls'
+    test = 'Mann-Whitney-ls'
     # Define plot variables
     all_genes = list(data_median.keys())
     medians = list(data_median.values())
@@ -137,7 +137,7 @@ def bar_profile_median(data_median, err, molecule_type, plot_xlabels, figname,
         ax.set_xticks([])
 
     ax.set_xlim(-0.5, len(ind) - 0.5)
-    fig.savefig(figname,format ='png', dpi=600)
+    fig.savefig(figname, format='png', dpi=600)
     plt.close()
 
 
@@ -153,9 +153,9 @@ def bar_profile(data, figname, plot_colors):
     ax.bar(x_component, data, bar_width, color=plot_colors)
 
     # Search for ymin and y max
-    #y_max = np.float(np.max(data)) + (np.float(np.nanmin(data)) / 10)
-    #y_min = np.float(np.nanmin(data)) - (np.float(np.nanmin(data)) / 5)
-    #plt.ylim([y_min, y_max])
+    # y_max = np.float(np.max(data)) + (np.float(np.nanmin(data)) / 10)
+    # y_min = np.float(np.nanmin(data)) - (np.float(np.nanmin(data)) / 5)
+    # plt.ylim([y_min, y_max])
 
     ax.set_xticks(x_component)
     ax.set_xlim(-0.5, len(data) - 0.5)
@@ -238,7 +238,7 @@ def sns_linear_regression(data_1, data_2, color, graph_file_path_name, order=1):
     sns_plot_regression.ax_marg_x.set_xlim(6, 8)
     phantom, = sns_plot_regression.ax_joint.plot([], [], linestyle="", alpha=0)
 
-    #sns_plot_regression.ax_joint.legend([phantom], ['pearsonr={0:.3g}, R' + chr(0x00B2) + '={:.3g}, p={:.2E}'.format(res1[0], res1[0] ** 2, res1[1])], **annot_kws)
+    # sns_plot_regression.ax_joint.legend([phantom], ['pearsonr={0:.3g}, R' + chr(0x00B2) + '={:.3g}, p={:.2E}'.format(res1[0], res1[0] ** 2, res1[1])], **annot_kws)
     sns_plot_regression.ax_joint.legend([phantom], [f'R' + chr(0x00B2) + f'={round(res1[0] ** 2, 2)}, p={res1[1]}'], **annot_kws)
 
     sns_plot_regression.savefig(graph_file_path_name, format="png")
@@ -413,6 +413,7 @@ def enrichment_violin_plot(density_stats: DensityStats, molecule_type, figname,
         xlabels = constants.analysis_config['MRNA_GENES_LABEL'][:4]
     sns_violinplot(dd, my_pal, figname, xlabels, x=groupby_key, hue=dd['Quadrants'], rotation=45)
 
+
 def profile(profiles, figname, keep=7, step=10):
     num_contours = constants.analysis_config['NUM_CONTOURS']
     plot_colors = constants.analysis_config['PLOT_COLORS']
@@ -428,7 +429,7 @@ def profile(profiles, figname, keep=7, step=10):
     plt.xticks([w for w in range(0, num_contours + 2, step)])
     # we do not plot the first 8%
     for i, gene in enumerate(genes):
-        if keep==0:
+        if keep == 0:
             fractions_to_plot = profiles[i][keep:]
         else:
             fractions_to_plot = profiles[gene][keep:]
@@ -531,7 +532,7 @@ def plot_clusters(molecule_type, all_densities, peripheral_flag=False):
         densities = np.median(group[['MTOC', "Non MTOC0", "Non MTOC1", "Non MTOC2"]], axis=0)
         fig, ax = plt.subplots(figsize=(8, 8))
         # add mtoc green cirlce for the mtoc contining quadrant
-        mtoc_colors = ['lightseagreen', 'white', 'white', 'white'] # mtoc quadrant first
+        mtoc_colors = ['lightseagreen', 'white', 'white', 'white']  # mtoc quadrant first
         ax.pie(frame.loc[0], colors=mtoc_colors, radius=1.05)
         clustered_indices = np.argwhere(densities > 1.05).flatten()
         underclusstered_indices = np.argwhere(densities < 0.9).flatten()
@@ -543,7 +544,7 @@ def plot_clusters(molecule_type, all_densities, peripheral_flag=False):
                wedgeprops={'edgecolor': 'darkgray', 'linewidth': 1,
                            'linestyle': 'dashed', 'antialiased': True})
         if peripheral_flag:
-            colors = ['whitesmoke'] * 8 # no density is meaured within the cytoplasm > peripheral_fraction_thershold
+            colors = ['whitesmoke'] * 8  # no density is meaured within the cytoplasm > peripheral_fraction_thershold
             ax.pie(frame.loc[0], colors=colors, radius=0.8,
                    wedgeprops={'edgecolor': 'darkgray', 'linewidth': 1,
                                'linestyle': 'dashed', 'antialiased': True})
@@ -576,14 +577,15 @@ def plot_fine_grained_clusters(molecule_type, all_densities):
     frame = pd.DataFrame(1, index=[0], columns=range(quadrants))
     genes = list(all_densities.keys())
     for gene, gene_color, scales in zip(genes, plot_colors, color_scales):
-        #if gene != 'rab13' : continue
-        #color_map = {0: 'lightgray', 1: 'lightcoral', 2: 'lightblue'}
+        # if gene != 'rab13' : continue
+        # color_map = {0: 'lightgray', 1: 'lightcoral', 2: 'lightblue'}
         color_map = {0: helpers.colorscale(gene_color, scales[0]),
                      1: helpers.colorscale(gene_color, scales[1]),
                      2: helpers.colorscale(gene_color, scales[2])}
         all_segments = pd.DataFrame(0, index=timepoints, columns=range(slices * quadrants))
         # add mtoc green cirlce for the mtoc contining quadrant
-        mtoc_colors = ['lightseagreen'] ; mtoc_colors.extend(['white'] * 7) # mtoc quadrant always first
+        mtoc_colors = ['lightseagreen'];
+        mtoc_colors.extend(['white'] * 7)  # mtoc quadrant always first
         for tp_num, tp in enumerate(timepoints):
             fig, ax = plt.subplots(figsize=(8, 8))
             ax.pie(frame.loc[0], colors=mtoc_colors, radius=1.55)
@@ -592,21 +594,20 @@ def plot_fine_grained_clusters(molecule_type, all_densities):
             underclusstered_indices = np.argwhere(densities < np.mean(densities) - np.std(densities)).flatten()
             all_segments.loc[tp][clustered_indices] = 1
             all_segments.loc[tp][underclusstered_indices] = 2
-            for slice_num in range(slices): # slices go in order
-                radius = 1.5 - slice_num / slices # 1.5 - 1.2 - 0.9
-                colors = [color_map[cat] for cat in all_segments.loc[tp][slice_num * quadrants : (slice_num+1) * quadrants]]
+            for slice_num in range(slices):  # slices go in order
+                radius = 1.5 - slice_num / slices  # 1.5 - 1.2 - 0.9
+                colors = [color_map[cat] for cat in all_segments.loc[tp][slice_num * quadrants: (slice_num + 1) * quadrants]]
                 ax.pie(frame.loc[0], colors=colors, radius=radius,
-                       wedgeprops={"edgecolor":"darkgray", 'linewidth': 1,
+                       wedgeprops={"edgecolor": "darkgray", 'linewidth': 1,
                                    'linestyle': 'dashed', 'antialiased': True})
             white_circle = plt.Circle((0, 0), 0.5, color='white', linewidth=0)
             ax.add_patch(white_circle)
 
             tgt_image_name = constants.analysis_config['FIGUES_CLUSTERS_FORMAT'].format(gene=gene,
-                                                                                       molecule=molecule_type,
-                                                                                       timepoint=tp)
+                                                                                        molecule=molecule_type,
+                                                                                        timepoint=tp)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
             plt.savefig(tgt_fp, dpi=600)
             logger.info("Created clusters figure for {} {} at {}: {}", gene, molecule_type, tp, tgt_fp)
             plt.close()
-

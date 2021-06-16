@@ -62,7 +62,7 @@ class Image3d(Image):
             mask = self.get_cell_mask()
 
         height_diff = int(np.max(height_map)) - self.get_zero_level()
-        height_map[np.where(height_map > self.get_zero_level())] -= height_diff # TODO possibly zero_level+1
+        height_map[np.where(height_map > self.get_zero_level())] -= height_diff  # TODO possibly zero_level+1
         height_map[(mask == 1) & (height_map == 0)] = 0.5
         return height_map
 
@@ -73,7 +73,7 @@ class Image3d(Image):
         return np.array(self._repository.get(descriptor))
 
     @helpers.checkpoint_decorator(CELL_MASK_SLICES_PATH_SUFFIX, dtype=np.float)
-    def get_cell_mask_slices(self) :
+    def get_cell_mask_slices(self):
         return self.compute_cell_mask_slices()
 
     def compute_cell_mask_slices(self, height_map=None, zero_level=None,
@@ -86,18 +86,18 @@ class Image3d(Image):
         are in the inversed relationship with the corresponding slice index
         """
         if height_map is None: height_map = self.adjust_height_map()
-        #zero_level = zero_level or self.get_zero_level()
+        # zero_level = zero_level or self.get_zero_level()
         max_height = np.max(height_map).astype(int)
         image_width = image_width or constants.dataset_config["IMAGE_WIDTH"]
         image_height = image_height or constants.dataset_config["IMAGE_HEIGHT"]
 
         # Create binary cell masks per slice
-        slice_masks = np.zeros((image_width, image_height, max_height+1)) #zero_level+1))
-        for slice_num in range(0, slice_masks.shape[2]): # we take the bottom slice but it is adjusted
+        slice_masks = np.zeros((image_width, image_height, max_height + 1))  # zero_level+1))
+        for slice_num in range(0, slice_masks.shape[2]):  # we take the bottom slice but it is adjusted
             slice_mask = np.array(height_map, copy=True)
-            slice_mask[height_map < slice_num+1] = 0
-            slice_mask[height_map >= slice_num+0.5] = 1 # the 0.5 is because of the adjustment
-            slice_masks[:, :, slice_num] = slice_mask # 0 slice the largest
+            slice_mask[height_map < slice_num + 1] = 0
+            slice_mask[height_map >= slice_num + 0.5] = 1  # the 0.5 is because of the adjustment
+            slice_masks[:, :, slice_num] = slice_mask  # 0 slice the largest
         return slice_masks
 
     def get_peripheral_cell_volume(self, peripheral_threshold=None):
@@ -126,7 +126,7 @@ class Image3d(Image):
                     constants.analysis_config['NUM_CONTOURS'], self._path)
         volumes = np.zeros(constants.analysis_config['NUM_CONTOURS'])
         for i in range(0, constants.analysis_config['NUM_CONTOURS']):
-            volumes[i] = self.compute_peripheral_cell_volume(peripheral_threshold=i+1)
+            volumes[i] = self.compute_peripheral_cell_volume(peripheral_threshold=i + 1)
         return volumes
 
     def compute_cell_volume(self):
@@ -153,10 +153,10 @@ class Image3d(Image):
         return cytoplasm_volume * helpers.volume_coeff()
 
     def compute_peripheral_volume(self):
-         peripheral_cell_volume = self.compute_peripheral_cell_volume()
-         if (peripheral_cell_volume <= 0):
-             raise (RuntimeError, "peripheral area has inconsistent volumes for image %s" % self._path)
-         return peripheral_cell_volume
+        peripheral_cell_volume = self.compute_peripheral_cell_volume()
+        if (peripheral_cell_volume <= 0):
+            raise (RuntimeError, "peripheral area has inconsistent volumes for image %s" % self._path)
+        return peripheral_cell_volume
 
     def compute_median_cytoplasmic_distance_from_nucleus3d(self, dsAll) -> float:
         '''
@@ -167,10 +167,10 @@ class Image3d(Image):
         distances = np.array([])
         slices = self.get_cell_mask_slices()
         for slice_num in range(0, slices.shape[2]):
-            if slice_num >= dsAll.shape[2]: continue # should not happen, just in case
-            slice_mask = slices[:,:,slice_num]
-            slice_mask = slice_mask * cytoplasm_mask # not very precise since it is not propagarted through slices
-            slice_distances = np.multiply(dsAll[:,:,slice_num], slice_mask)
+            if slice_num >= dsAll.shape[2]: continue  # should not happen, just in case
+            slice_mask = slices[:, :, slice_num]
+            slice_mask = slice_mask * cytoplasm_mask  # not very precise since it is not propagarted through slices
+            slice_distances = np.multiply(dsAll[:, :, slice_num], slice_mask)
             distances = np.append(distances, slice_distances[slice_distances > 0])
 
         return np.median(distances), np.max(distances)
@@ -201,7 +201,7 @@ class Image3d(Image):
                     area_ratio = slice_area / cell_area
                     old_periph_distance = peripheral_distance_map[c[1], c[0]]
                     new_periph_distance = math.sqrt(area_ratio) * old_periph_distance
-                    if (new_periph_distance > old_periph_distance): # coordinate falls out of the slice
+                    if (new_periph_distance > old_periph_distance):  # coordinate falls out of the slice
                         distances = np.append(distances, np.nan)
                     else:
                         distances = np.append(distances, int(np.around(new_periph_distance)))
@@ -242,7 +242,7 @@ class Image3dWithMTOC(Image3d, ImageWithMTOC):
         cell_mask_dist_map = self.get_cell_mask_distance_map()
         slices_per_stripe = np.floor(100.0 / stripes)  # number of isolines per stripe
         if peripheral_flag:
-           slices_per_stripe = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"] // stripes
+            slices_per_stripe = constants.analysis_config["PERIPHERAL_FRACTION_THRESHOLD"] // stripes
         arr = np.empty((0, 2), float)
         for stripe_num in range(1, stripes + 1):
             stripe_mask = (cell_mask_dist_map > (stripe_num - 1) * slices_per_stripe) & \
@@ -308,4 +308,3 @@ class Image3dMultiNucleus(Image3d):
             return peripheral_cell_volume / len(self.get_multiple_nucleus_centroid()) * helpers.volume_coeff()
         else:
             return peripheral_cell_volume * helpers.volume_coeff()
-

@@ -42,8 +42,7 @@ def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4):
     return densities
 
 
-# Figure S5B panel : Clustering density map (1 by timpoints)
-
+# Figure S5B panel : Clustering density maps (1 by genes and timepoints)
 
 if __name__ == '__main__':
     np.random.seed(int(round(time.time())))
@@ -56,4 +55,3 @@ if __name__ == '__main__':
     plot.plot_fine_grained_clusters('mrna', mrna_densities)
     prot_densities = compute_relative_densities(repo, 'protein', quadrants_num=8)
     plot.plot_fine_grained_clusters('protein', prot_densities)
-

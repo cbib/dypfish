@@ -21,7 +21,7 @@ from path import global_root_dir
 
 
 def build_mrna_peripheral_fraction_profiles(analysis_repo, normalisation_gene='None'):
-    genes= constants.analysis_config['MRNA_GENES']
+    genes = constants.analysis_config['MRNA_GENES']
     gene2m_fractions = {}
     for gene in genes:
         image_set = ImageSet(analysis_repo, ['mrna/%s/' % gene])
@@ -31,7 +31,7 @@ def build_mrna_peripheral_fraction_profiles(analysis_repo, normalisation_gene='N
     # normalized by gapdh profile
     if normalisation_gene != 'None':
         for gene in genes:
-            gene2m_fractions[gene]  = gene2m_fractions[gene] / gene2m_fractions[normalisation_gene]
+            gene2m_fractions[gene] = gene2m_fractions[gene] / gene2m_fractions[normalisation_gene]
 
     fractions = collections.OrderedDict(sorted(gene2m_fractions.items(), key=lambda i: keyorder.index(i[0])))
     return fractions
@@ -76,14 +76,13 @@ def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
 
-    if molecule_type=='mrna':
+    if molecule_type == 'mrna':
         xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     else:
         xlabels = constants.analysis_config['PROTEINS_LABEL']
 
-
     # generate the bar profile plot
-    #plot.bar_profile_median(medians, errors, 'mrna', xlabels, tgt_fp, confidence_interval=CI,annot=annotations, data_to_annot=fractions)
+    plot.bar_profile_median(medians, errors, 'mrna', xlabels, tgt_fp, confidence_interval=CI, annot=annotations, data_to_annot=fractions)
     logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
     # generate the violin plot
@@ -141,12 +140,14 @@ if __name__ == '__main__':
         if "original" in conf[0]:
             logger.info("Peripheral fraction profile for the mRNA original data")
             normalisation_gene = constants.analysis_config['NORMALISATION_GENE']
-            #medians = build_mrna_peripheral_fraction_profiles(repo, normalisation_gene=normalisation_gene)
+            medians = build_mrna_peripheral_fraction_profiles(repo, normalisation_gene=normalisation_gene)
             medians = build_mrna_peripheral_fraction_profiles(repo)
+
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
             plot.profile(medians, figname=tgt_fp)
+
             logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
             logger.info("Peripheral fraction histogram for mRNA the original data")
@@ -157,7 +158,7 @@ if __name__ == '__main__':
 
         if "chx" in conf[0]:
             logger.info("Peripheral fraction histograms for CHX data")
-            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna',keyorder=keyorder, force2D=True, mRNAFromContinuousSignal=True)
+            medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna', keyorder=keyorder, force2D=True, mRNAFromContinuousSignal=True)
             plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
                                                errors=err.values(), CI=CI, annotations=stat_annotations)
             # this analysis is done in 2D
@@ -170,7 +171,7 @@ if __name__ == '__main__':
             logger.info("2D Peripheral fraction histograms")
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='mrna',
                                                                               force2D=True, keyorder=keyorder)
-            plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions = fractions,
+            plot_bar_profile_median_and_violin(molecule_type='mrna', medians=medians, fractions=fractions,
                                                errors=err.values(), CI=CI, annotations=stat_annotations)
             medians, fractions, err, CI = build_histogram_peripheral_fraction(repo, molecule_type='protein', force2D=True, keyorder=keyorder)
             plot_bar_profile_median_and_violin(molecule_type='protein', medians=medians, fractions=fractions,

@@ -26,15 +26,15 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
 
     def compute_cytoplasmic_spots(self) -> np.ndarray:
         spots = self.get_spots()
-        max_height = np.max(self.adjust_height_map()) # TODO this is a hack
+        max_height = np.max(self.adjust_height_map())  # TODO this is a hack
         mask = [self.is_in_cytoplasm(s[0:2][::-1]) for s in spots]  # TODO check coordinate coherency for spots
         cytoplasmic_spots = spots[mask]
-        cytoplasmic_spots = cytoplasmic_spots[cytoplasmic_spots[:,2] <= max_height]
+        cytoplasmic_spots = cytoplasmic_spots[cytoplasmic_spots[:, 2] <= max_height]
         logger.info("Keeping {} cytoplasmic spots out of {} for {}",
                     len(cytoplasmic_spots), len(spots), self._path)
         return np.asarray(cytoplasmic_spots, dtype=int)
 
-    def compute_cytoplasmic_spots_peripheral_distance(self)  -> np.ndarray:
+    def compute_cytoplasmic_spots_peripheral_distance(self) -> np.ndarray:
         """
         Perform the computation in pseudo 3D using the height map
         Return an array of distances, values are np.nan if the spots is out of cytoplasm
@@ -82,52 +82,25 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         nucleus_centroid_z = height_map[nucleus_centroid[0], nucleus_centroid[1]] // 2
         center = np.array([nucleus_centroid[0], nucleus_centroid[1], nucleus_centroid_z])
         radius = self.compute_cell_diameter() // 2
-        random_spots = helpers.random_points_in_sphere(center, radius, num_spots*factor).astype(int)
+        random_spots = helpers.random_points_in_sphere(center, radius, num_spots * factor).astype(int)
         random_spots_constrained_x = random_spots[(random_spots[:, 0] >= 1) &
                                                   (random_spots[:, 0] < height_map.shape[0])]
         random_spots_constrained_y = random_spots_constrained_x[(random_spots_constrained_x[:, 1] >= 1) &
                                                                 (random_spots_constrained_x[:, 1] < height_map.shape[0])]
         random_spots_constrained_z = random_spots_constrained_y[(random_spots_constrained_y[:, 2] >= 0) &
                                                                 (random_spots_constrained_y[:, 2] < max_height)]
-        cytoplasm_mask = [self.is_in_cytoplasm(s[::-1]) for s in random_spots_constrained_z[:,0:2]]
+        cytoplasm_mask = [self.is_in_cytoplasm(s[::-1]) for s in random_spots_constrained_z[:, 0:2]]
         random_spots_in_cytoplasm = random_spots_constrained_z[cytoplasm_mask]
         slices_mask = slices[random_spots_in_cytoplasm[:, 0],
                              random_spots_in_cytoplasm[:, 1],
                              random_spots_in_cytoplasm[:, 2]]
         random_spots_in_slices = random_spots_in_cytoplasm[slices_mask == 1]
 
-        if (random_spots_in_slices.shape[0] < num_spots): # 100 times has not been enough
+        if (random_spots_in_slices.shape[0] < num_spots):  # 100 times has not been enough
             logger.warning("Was not able to generate {} random spots in {}", num_spots, self._path)
             return random_spots_in_slices
 
         return random_spots_in_slices[0:num_spots]
-
-    def compute_random_spots_in_slices(self):
-        n_spots = len(self.get_spots())
-        slices = self.get_cell_mask_slices()
-        x, y, z = np.where(slices == 1)
-        idx = np.random.randint(0, len(x), n_spots)  # we chose random indices
-        return np.vstack((x[idx], y[idx], z[idx])).T
-
-    def add_spots_in_3d_cells_by_slice(self,
-                                       nucleus_centroid,
-                                       spots_num=50,
-                                       slices=8,
-                                       radius=180,
-                                       _distance_from_centroid=120) -> np.ndarray:
-        cpt = 0
-        _spots = np.zeros((spots_num * slices, 3))
-        for n_slice in range(slices):
-            for i in range(spots_num):
-                _spots[cpt, 0] = np.random.uniform(nucleus_centroid[0] - radius, nucleus_centroid[1] + radius)
-                _spots[cpt, 1] = np.random.uniform(nucleus_centroid[0] - radius, nucleus_centroid[1] + radius)
-                #_spots[cpt, 2] = np.random.uniform(1, slices)
-                _spots[cpt, 2] = n_slice
-                cpt += 1
-            radius -= 10
-
-        return _spots
-
 
     def compute_clustering_indices(self) -> np.ndarray:
         """
@@ -147,8 +120,6 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         # simulate RIPLEY_K_SIMULATION_NUMBER lists of random spots and run ripley_k
         for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):
             random_spots = self.compute_random_cytoplasmic_spots_in_slices(len(spots), factor=100)
-            #random_spots = self.compute_random_spots_in_slices()
-            #random_spots = self.add_spots_in_3d_cells_by_slice(self.get_nucleus_centroid())
             tmp_k = self.ripley_k_point_process(spots=random_spots, nuw=nuw, my_lambda=my_lambda).flatten()
             k_sim[t] = tmp_k
 
@@ -165,7 +136,7 @@ class Image3dWithSpots(Image3d, ImageWithSpots):
         h_star = self.get_clustering_indices()
         d_of_c = np.array(h_star[h_star > 1] - 1).sum()
         if int(d_of_c) == 0:
-            return 0.0001 # TODO this is a hack so that a downstream log does not fail
+            return 0.0001  # TODO this is a hack so that a downstream log does not fail
 
         return d_of_c
 
@@ -225,4 +196,3 @@ class Image3dWithSpotsAndMTOC(Image3dWithMTOC, Image3dWithSpots):
             raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
 
         return density_per_quadrant
-

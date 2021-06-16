@@ -40,26 +40,27 @@ def compute_degree_of_clustering(genes_list, analysis_repo, molecule_type):
 
 
 def plot_bar_profile_median_and_violin(molecule_type, median_d_of_c, d_of_c,
-                                       errors, confidence_interval):
+                                       errors, confidence_interval, annot=False):
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type=molecule_type)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
 
-    if molecule_type=='mrna':
+    if molecule_type == 'mrna':
         xlabels = constants.analysis_config['MRNA_GENES_LABEL']
     else:
         xlabels = constants.analysis_config['PROTEINS_LABEL']
 
     # generate the bar profile plot
     plot.bar_profile_median(median_d_of_c, errors.values(), molecule_type, xlabels,
-                            tgt_fp, confidence_interval, annot=True, data_to_annot=d_of_c)
+                            tgt_fp, confidence_interval, annot=annot, data_to_annot=d_of_c)
     logger.info("Generated image at {}", str(tgt_fp).split("analysis/")[1])
 
     # generate violin plot image
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type=molecule_type)
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
-    #plot.violin_profile(d_of_c, tgt_fp, xlabels, rotation=0, annot=True)
+    plot.violin_profile(d_of_c, tgt_fp, xlabels, rotation=0, annot=annot)
+
 
 ''' 
 Figure 3D left panel: plots the log mRNA degree of clustering for original data
@@ -73,17 +74,18 @@ Figure S2E  log mRNA degree of clustering for CHX
 
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
-    #["src/analysis/degree_of_clustering/config_original.json",['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']],
+    ["src/analysis/degree_of_clustering/config_original.json", ['beta_actin', 'arhgdia', 'gapdh', 'pard3', 'pkp4', 'rab13']],
     ["src/analysis/degree_of_clustering/config_chx.json",
      ['arhgdia', 'arhgdia_CHX', 'pard3', 'pard3_CHX']],
     ["src/analysis/degree_of_clustering/config_prrc2c.json",
      ['arhgdia/control', "arhgdia/prrc2c_depleted"]]
 ]
 
+
 def build_plots(analysis_repo, conf, annot=False):
     for molecule_type, molecules in zip(["mrna", "protein"], ['MRNA_GENES', 'PROTEINS']):
         if "original" in conf[0]:
-            annotate = False
+            annot = False
 
         genes_list = constants.dataset_config[molecules]
         d_of_c, median_d_of_c, err, confidence_interval = compute_degree_of_clustering(genes_list, analysis_repo, molecule_type=molecule_type)
@@ -94,7 +96,7 @@ def build_plots(analysis_repo, conf, annot=False):
 
         err = collections.OrderedDict(sorted(err.items(), key=lambda i: keyorder.index(i[0])))
         confidence_interval = collections.OrderedDict(sorted(confidence_interval.items(), key=lambda i: keyorder.index(i[0])))
-        plot_bar_profile_median_and_violin(molecule_type, median_d_of_c, d_of_c, err, confidence_interval)
+        plot_bar_profile_median_and_violin(molecule_type, median_d_of_c, d_of_c, err, confidence_interval, annot=annot)
 
 
 if __name__ == '__main__':
@@ -103,4 +105,4 @@ if __name__ == '__main__':
         constants.init_config(analysis_config_js_path=conf_full_path)
         repo = open_repo()
         # Use annot=True if you want to add stats annotation in your figures
-        build_plots(repo, conf, annot=True)
+        build_plots(repo, conf, annot=False)

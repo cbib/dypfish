@@ -125,24 +125,26 @@ def unit_circle(size, r) -> np.ndarray:
 
     return m.astype(int)
 
+
 def median_confidence_interval(a: np.array, cutoff=.95):
     ''' cutoff is the significance level as a decimal between 0 and 1'''
     a = np.sort(a)
-    factor = stats.norm.ppf((1+cutoff)/2)
-    factor *= math.sqrt(len(a)) # avoid doing computation twice
+    factor = stats.norm.ppf((1 + cutoff) / 2)
+    factor *= math.sqrt(len(a))  # avoid doing computation twice
 
-    lix = int(0.5*(len(a)-factor)) + 1
-    uix = int(0.5*(1+len(a)+factor)) + 1
+    lix = int(0.5 * (len(a) - factor)) + 1
+    uix = int(0.5 * (1 + len(a) + factor)) + 1
 
     return a[lix], a[uix]
+
 
 def sem(a: np.array, factor=3) -> float:
     """
     sem in presence of extreme outliers (very skewed distribution), factor = 0 gives standard behaviour
     """
     if factor > 0:
-        limit = factor*np.std(a)
-        a = a[(a < np.mean(a)+limit) & (a > np.mean(a)-limit)]
+        limit = factor * np.std(a)
+        a = a[(a < np.mean(a) + limit) & (a > np.mean(a) - limit)]
     return stats.sem(a, ddof=0)
 
 
@@ -210,7 +212,7 @@ def compute_statistics_random_h_star_2d(h_sim: np.ndarray, max_cell_radius=None,
 
 
 def compute_h_star_2d(h: np.ndarray, synth5: List[int], synth50: List[int], synth95: List[int],
-                   max_cell_radius=None) -> np.ndarray:
+                      max_cell_radius=None) -> np.ndarray:
     """
     Compute delta between .95 percentile and .5 percentile; between .5 percentile and .05 percentile
     Fill the h_star array accordingly
@@ -226,6 +228,7 @@ def compute_h_star_2d(h: np.ndarray, synth5: List[int], synth50: List[int], synt
     h_star[h_star == - np.inf] = 0
     h_star[h_star == np.inf] = 0
     return h_star
+
 
 def color_variant(hex_color, brightness_offset=1):
     """ takes a color like #87c95f and produces a lighter or darker variant """
@@ -249,6 +252,7 @@ def detect_outliers(data, threshold=3):
             outliers.append(x)
     return outliers
 
+
 def reduce_z_line_mask(z_lines, spots):
     cpt_z = 1
     z_lines_idx = []
@@ -259,10 +263,12 @@ def reduce_z_line_mask(z_lines, spots):
         cpt_z += 1
     return z_lines_idx
 
+
 def compute_minimal_distance(segment_summed):
     for i in range(15):
         if segment_summed[i] != 0:
             return i
+
 
 def keep_cell_mask_spots(spots, cell_mask):
     new_spots_list = []
@@ -307,6 +313,7 @@ def get_forward_timepoints(mrna_timepoints: list, protein_timepoints: list) -> n
                 fwd_interactions[x, y] = 1
     return fwd_interactions
 
+
 def make_categorical(arr):
     '''
     In a density array replaces values by 0, 1, 2
@@ -319,6 +326,7 @@ def make_categorical(arr):
     categorical_arr[underclusstered_indices] = 2
     return categorical_arr
 
+
 def get_neighbors(p, exclude_p=False, shape=None):
     ndim = len(p)
     # generate an (m, ndims) array containing all strings over the alphabet {0, 1, 2}:
@@ -329,14 +337,15 @@ def get_neighbors(p, exclude_p=False, shape=None):
     if exclude_p:
         offsets = offsets[np.any(offsets, 1)]
 
-    neighbours = p + offsets    # apply offsets to p
+    neighbours = p + offsets  # apply offsets to p
 
     # optional: exclude out-of-bounds indices
     if shape is not None:
-        valid = np.all(neighbours < np.array(shape), axis=1) & (neighbours[:,0] >= 0)
+        valid = np.all(neighbours < np.array(shape), axis=1) & (neighbours[:, 0] >= 0)
         neighbours = neighbours[valid]
 
     return neighbours
+
 
 def neighboring_protein_values(mrna, protein, stripes, quadrants):
     '''
@@ -347,31 +356,32 @@ def neighboring_protein_values(mrna, protein, stripes, quadrants):
     mrna_stripes = mrna.reshape((stripes, quadrants))
     protein_stripes = protein.reshape((stripes, quadrants))
     padded_stripes = np.pad(protein_stripes, (1, 1), mode='wrap')
-    padded_stripes[0, :] = -1 ; padded_stripes[padded_stripes.shape[0]-1, :] = -1
+    padded_stripes[0, :] = -1;
+    padded_stripes[padded_stripes.shape[0] - 1, :] = -1
     all_neighbours = {}
-    for i, j in itertools.product(range(1, stripes+1), range(1, quadrants+1)) :
-        neighbors_idx = get_neighbors(np.r_[i,j], shape=padded_stripes.shape)
+    for i, j in itertools.product(range(1, stripes + 1), range(1, quadrants + 1)):
+        neighbors_idx = get_neighbors(np.r_[i, j], shape=padded_stripes.shape)
         neighbors = padded_stripes[tuple(neighbors_idx.T)]
-        all_neighbours[(i-1,j-1)] = neighbors[neighbors != -1]
+        all_neighbours[(i - 1, j - 1)] = neighbors[neighbors != -1]
 
     protein_nearest_neighbours = []
     for i, j in itertools.product(range(stripes), range(quadrants)):
-        protein_vals = all_neighbours[(i,j)]
-        idx = (np.abs(protein_vals - mrna_stripes[i,j])).argmin()
+        protein_vals = all_neighbours[(i, j)]
+        idx = (np.abs(protein_vals - mrna_stripes[i, j])).argmin()
         protein_nearest_neighbours.append(protein_vals[idx])
 
     return np.array(protein_nearest_neighbours).astype(int)
 
 
 def neighboring_protein_values_periphery(mrna, protein):
-     protein_nearest_neighbours = []
-     for i, val in enumerate(mrna):
-         indices = range(i - 1, i + 2)
-         neighbourhood = protein.take(indices, mode='wrap')
-         idx = (np.abs(neighbourhood - val).argmin())
-         protein_nearest_neighbours.append(neighbourhood[idx])
+    protein_nearest_neighbours = []
+    for i, val in enumerate(mrna):
+        indices = range(i - 1, i + 2)
+        neighbourhood = protein.take(indices, mode='wrap')
+        idx = (np.abs(neighbourhood - val).argmin())
+        protein_nearest_neighbours.append(neighbourhood[idx])
 
-     return np.array(protein_nearest_neighbours).astype(int)
+    return np.array(protein_nearest_neighbours).astype(int)
 
 
 def quantile_regression(categorical_mrna, categorical_protein):
@@ -392,7 +402,7 @@ def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna,
         categorical_protein = make_categorical(protein_data[j])
         if not peripheral_flag:
             neighbouring_protein = neighboring_protein_values(categorical_mrna, categorical_protein,
-                                                                   stripes, quadrants)
+                                                              stripes, quadrants)
             correlations[i, j] = stats.pearsonr(categorical_mrna, neighbouring_protein)[0]
         else:
             neighbouring_protein = neighboring_protein_values_periphery(categorical_mrna[0:quadrants],
@@ -403,13 +413,12 @@ def calculate_colocalization_score(mrna_data, protein_data, timepoint_num_mrna,
             else:  # neighbour-based approach failed, this is a hack
                 correlations[i, j] = (categorical_mrna == categorical_protein).sum() / len(categorical_mrna)
 
-
     fwd_indices = get_forward_timepoints(timepoint_num_mrna, timepoint_num_protein)
     fwd_correlations = correlations[fwd_indices == 1].flatten()
     other_correlations = correlations[fwd_indices == 0].flatten()
     ranks = stats.rankdata(correlations, method='ordinal').reshape(correlations.shape[0], correlations.shape[1])
     stat, pval = stats.mannwhitneyu(fwd_correlations, other_correlations, use_continuity=False)
-    cs = a12(list(fwd_correlations), list(other_correlations)) # effect size
+    cs = a12(list(fwd_correlations), list(other_correlations))  # effect size
 
     return cs, pval, ranks
 
@@ -423,6 +432,7 @@ def mean_absolute_deviation(data, axis=None):
 def median_absolute_deviation(data, axis=None):
     return np.median(np.absolute(data - np.median(data, axis)), axis)
 
+
 # color helper
 
 def clamp(val, minimum=0, maximum=255):
@@ -431,6 +441,7 @@ def clamp(val, minimum=0, maximum=255):
     if val > maximum:
         return maximum
     return int(val)
+
 
 def colorscale(hexstr, scalefactor):
     """
@@ -460,18 +471,22 @@ def colorscale(hexstr, scalefactor):
 
     return "#%02x%02x%02x" % (r, g, b)
 
+
 def a12(lst1, lst2, rev=True):
-  '''
-    Non-parametric hypothesis testing using Vargha and Delaney's A12 statistic:
-    how often is x in lst1 greater than y in lst2?
-  '''
-  more = same = 0.0
-  for x in lst1:
-    for y in lst2:
-      if x==y: same += 1
-      elif rev     and x > y: more += 1
-      elif not rev and x < y: more += 1
-  return (more + 0.5*same) / (len(lst1)*len(lst2))
+    '''
+      Non-parametric hypothesis testing using Vargha and Delaney's A12 statistic:
+      how often is x in lst1 greater than y in lst2?
+    '''
+    more = same = 0.0
+    for x in lst1:
+        for y in lst2:
+            if x == y:
+                same += 1
+            elif rev and x > y:
+                more += 1
+            elif not rev and x < y:
+                more += 1
+    return (more + 0.5 * same) / (len(lst1) * len(lst2))
 
 
 def random_points_in_sphere(center, radius, num_points) -> np.ndarray:
@@ -482,8 +497,8 @@ def random_points_in_sphere(center, radius, num_points) -> np.ndarray:
     r = radius
     ndim = center.size
     x = np.random.normal(size=(num_points, ndim))
-    ssq = np.sum(x**2,axis=1)
-    fr = r * gammainc(ndim/2, ssq/2) ** (1/ndim)/np.sqrt(ssq)
+    ssq = np.sum(x ** 2, axis=1)
+    fr = r * gammainc(ndim / 2, ssq / 2) ** (1 / ndim) / np.sqrt(ssq)
     frtiled = np.tile(fr.reshape(num_points, 1), (1, ndim))
     p = center + np.multiply(x, frtiled)
     return p
@@ -497,7 +512,7 @@ def roll_densities_mtoc_array(densities, slices=3):
     '''
     slices = np.split(densities, slices)
     for idx, slice in enumerate(slices):
-        mtoc_quadrant = np.argwhere(slice[:,1] == 1)[0][0]
+        mtoc_quadrant = np.argwhere(slice[:, 1] == 1)[0][0]
         slice = np.roll(slice, -mtoc_quadrant, 0)
         slices[idx] = slice
     return np.vstack(slices)
@@ -531,12 +546,12 @@ def compute_entropy(x, k=1, norm='max', min_dist=0.):
 
     n, d = x.shape
 
-    if norm == 'max': # max norm:
+    if norm == 'max':  # max norm:
         p = np.inf
-        log_c_d = 0 # volume of the d-dimensional unit ball
-    elif norm == 'euclidean': # euclidean norm
+        log_c_d = 0  # volume of the d-dimensional unit ball
+    elif norm == 'euclidean':  # euclidean norm
         p = 2
-        log_c_d = (d/2.) * np.log(np.pi) -np.log(gamma(d/2. +1))
+        log_c_d = (d / 2.) * np.log(np.pi) - np.log(gamma(d / 2. + 1))
     else:
         raise NotImplementedError("Variable 'norm' either 'max' or 'euclidean'")
 
@@ -549,8 +564,7 @@ def compute_entropy(x, k=1, norm='max', min_dist=0.):
     # enforce non-zero distances
     distances[distances < min_dist] = min_dist
 
-    sum_log_dist = np.sum(np.log(2*distances)) # where did the 2 come from? radius -> diameter
+    sum_log_dist = np.sum(np.log(2 * distances))  # where did the 2 come from? radius -> diameter
     h = -digamma(k) + digamma(n) + log_c_d + (d / float(n)) * sum_log_dist
 
     return h
-

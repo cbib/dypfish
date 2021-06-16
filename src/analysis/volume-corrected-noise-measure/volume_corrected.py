@@ -38,7 +38,7 @@ if __name__ == '__main__':
         molecule_type = 'mrna'
         plot_colors = constants.analysis_config['PLOT_COLORS']
         if "original" in conf[0]:
-            # Figure S1.B The volume-corrected noise measure (Padovan-Merhar et al., 2015) across time for 6 mRNAs was compared.
+            # The volume-corrected noise measure (Padovan-Merhar et al., 2015) across time for 6 mRNAs was compared.
             for i, gene in enumerate(tqdm.tqdm(constants.dataset_config['MRNA_GENES'], desc="Genes")):
                 nms = []
                 tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_BARPLOT'].format(gene=gene)

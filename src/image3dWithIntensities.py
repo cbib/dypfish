@@ -72,7 +72,7 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
     def compute_intensities_normalized_cytoplasmic_spread(self):
         IF = self.compute_cytoplasmic_intensities()
         height_map = self.adjust_height_map(cytoplasm=True)
-        IF = np.multiply(IF, height_map) # factoring in the 3D
+        IF = np.multiply(IF, height_map)  # factoring in the 3D
         cytoplasm_mask = self.get_cytoplasm_mask()
 
         # Calculate the spread of signal peaks
@@ -120,7 +120,6 @@ class Image3dWithIntensities(Image3d, ImageWithIntensities):
         return helpers.compute_h_star_2d(h, synth5, synth50, synth95)
 
 
-
 class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
 
     @staticmethod
@@ -152,4 +151,3 @@ class Image3dWithIntensitiesAndMTOC(Image3dWithMTOC, Image3dWithIntensities):
             raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
 
         return density_per_quadrant
-

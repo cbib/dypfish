@@ -62,8 +62,6 @@ configurations = [
 # Figure 7F bottom left Colocalization Score (CS) for pard3 data
 # Figure 7F bottom right Colocalization Score (CS) for nocodazole pard3 data
 
-
-
 if __name__ == '__main__':
     np.random.seed(int(round(time.time())))
     for conf in configurations:

@@ -18,6 +18,7 @@ from constants import CYTOPLASMIC_SPOTS_PATH_SUFFIX
 from constants import CLUSTERING_INDICES_PATH_SUFFIX
 from constants import CYTOPLASMIC_SPOTS_PERIPHERAL_DISTANCE_PATH_SUFFIX
 
+
 class ImageWithSpots(Image):
     """ Represents an image with identified spots (e.g. from FISH), has to have spots descriptor """
 
@@ -76,7 +77,7 @@ class ImageWithSpots(Image):
         returns an array of int
         """
         spots = self.get_cytoplasmic_spots()
-        distances = self.compute_cytoplasmic_coordinates_peripheral_distance(spots[:,0:2])
+        distances = self.compute_cytoplasmic_coordinates_peripheral_distance(spots[:, 0:2])
         return distances
 
     def compute_cytoplasmic_total_spots(self):
@@ -105,8 +106,8 @@ class ImageWithSpots(Image):
         cytoplasmic_spots = self.get_cytoplasmic_spots()[:, 0:2]
         mu_x = cytoplasmic_spots[:, 0].sum() / len(cytoplasmic_spots)
         mu_y = cytoplasmic_spots[:, 1].sum() / len(cytoplasmic_spots)
-        sd = math.sqrt( np.sum((cytoplasmic_spots[:, 0] - mu_x) ** 2) / len(cytoplasmic_spots)+
-                           np.sum((cytoplasmic_spots[:, 1] - mu_y) ** 2) / len(cytoplasmic_spots) )
+        sd = math.sqrt(np.sum((cytoplasmic_spots[:, 0] - mu_x) ** 2) / len(cytoplasmic_spots) +
+                       np.sum((cytoplasmic_spots[:, 1] - mu_y) ** 2) / len(cytoplasmic_spots))
         d = pairwise_distances(cytoplasmic_spots, metric='euclidean')
         return sd / np.median(d[d != 0])
 
@@ -139,9 +140,7 @@ class ImageWithSpots(Image):
         K = K * (1 / (my_lambda ** 2 * nuw))
         return K
 
-
-
-    def compute_random_spots(self): # TODO : not tested
+    def compute_random_spots(self):  # TODO : not tested
         # simulate n list of random spots
         cell_mask = self.get_cell_mask()
         n_spots = len(self.get_spots())
@@ -183,7 +182,7 @@ class ImageWithSpots(Image):
         h_star = self.get_clustering_indices()
         d_of_c = np.array(h_star[h_star > 1] - 1).sum()
         if int(d_of_c) == 0:
-            return 0.0001 # TODO this is a hack so that a downstream log does not fail
+            return 0.0001  # TODO this is a hack so that a downstream log does not fail
 
         return d_of_c
 
@@ -227,4 +226,3 @@ class ImageWithSpotsAndMTOC(ImageWithMTOC, ImageWithSpots):
                     np.sum(cell_mask[quadrant_mask == quad_num + 1]) * surface_coeff)
 
         return density_per_quadrant
-

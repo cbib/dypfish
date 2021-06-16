@@ -22,19 +22,17 @@ class ImageWithSpotsAndIntensitiesAndMTOC(ImageWithSpotsAndMTOC, ImageWithIntens
         return ImageWithSpotsAndMTOC.is_a(repo, path) and ImageWithIntensitiesAndMTOC.is_a(repo, path)
 
 
-
 class Image3dWithSpotsAndIntensitiesAndMTOC(Image3dWithSpotsAndMTOC, Image3dWithIntensitiesAndMTOC):
     @staticmethod
     def is_a(repo: Repository, path: str):
         return Image3dWithSpotsAndMTOC.is_a(repo, path) and Image3dWithIntensitiesAndMTOC.is_a(repo, path)
 
 
-
 class Image3dMultiNucleusWithSpots(Image3dMultiNucleus, Image3dWithSpots):
     """
     Represents an image with identified spots (e.g. from FISH), has to have spots descriptor
     """
+
     @staticmethod
     def is_a(repo: Repository, path: str):
         return Image3dMultiNucleus.is_a(repo, path) and Image3dWithSpots.is_a(repo, path)
-

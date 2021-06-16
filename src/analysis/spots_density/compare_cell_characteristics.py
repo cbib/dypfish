@@ -81,7 +81,7 @@ if __name__ == '__main__':
         plot.sns_boxplot(df_nucleus_area, my_pal, tgt_fp)
 
         logger.info("transcript total count by cell area comparison for arhgdia et arhgdia_cultured data")
-        for gene, timepoints, i in zip(genes, [constants.analysis_config['TIMEPOINTS'][0], constants.analysis_config['TIMEPOINTS'][1]], [0,1]):
+        for gene, timepoints, i in zip(genes, [constants.analysis_config['TIMEPOINTS'][0], constants.analysis_config['TIMEPOINTS'][1]], [0, 1]):
             transcript_by_cell_area = compute_transcript_by_cell_area(repo, gene, timepoints)
             if gene == 'arhgdia':
                 outliers = helpers.detect_outliers(transcript_by_cell_area['total_transcript'], threshold=1.8)

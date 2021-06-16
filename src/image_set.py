@@ -55,7 +55,7 @@ class ImageSet(object):
             is_3d_spots_multi_nucleus = Image3dMultiNucleusWithSpots.is_a(self._repository, p)
             is_with_spots_and_MTOC = ImageWithSpotsAndMTOC.is_a(self._repository, p)
             # TODO : Refactor, test and debug the logical branching
-            #logger.debug("creating Image for {} ",p)
+            # logger.debug("creating Image for {} ",p)
             if force2D:
                 if is_with_spots_and_intensities_and_MTOC:
                     img = ImageWithSpotsAndIntensitiesAndMTOC(self._repository, p)
@@ -220,7 +220,7 @@ class ImageSet(object):
         valid_centralities = centralities[~np.isnan(centralities)]
         if len(valid_centralities) < len(centralities):
             logger.warning("spots out of hull for {} images out of {}",
-                           len(centralities)-len(valid_centralities), self.__sizeof__())
+                           len(centralities) - len(valid_centralities), self.__sizeof__())
         l = len(valid_centralities[valid_centralities > 1])
         if l > 0:
             logger.debug("normalized distance to centroid is > 1 for {} images out of {}", l, self.__sizeof__())
@@ -250,10 +250,10 @@ class ImageSet(object):
         if len(valid_centralities) < len(centralities):
             logger.warning("intensity spread > 1 for {} images out of {}",
                            len(centralities) - len(valid_centralities), self.__sizeof__())
-        l = len(centralities[centralities>1])
+        l = len(centralities[centralities > 1])
         if l > 0:
             logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
-                            l, self.__sizeof__())
+                         l, self.__sizeof__())
         return valid_centralities
 
     def compute_intensities_cytoplasmic_spread(self) -> List[float]:
@@ -264,12 +264,12 @@ class ImageSet(object):
         l = len(spreads[spreads > 1])
         if l > 0:
             logger.debug("normalized distance to centroid is > 1 for {} images out of {}",
-                           l, self.__sizeof__())
+                         l, self.__sizeof__())
         return spreads
 
     def compute_degree_of_clustering(self):
         image: Union[ImageWithSpots, Image3dWithSpots]
-        tmp_d_of_c=[image.compute_degree_of_clustering() for image in self.images]
+        tmp_d_of_c = [image.compute_degree_of_clustering() for image in self.images]
         d_of_c = []
         for d in tmp_d_of_c:
             if d != 0.0001:
@@ -286,7 +286,7 @@ class ImageSet(object):
             cytoplasmic_density = image.compute_cytoplasmic_density()
             mdmq = image.get_or_compute_quadrant_densities(quadrants_num, peripheral_flag, stripes, stripes_flag)
             vec_len = quadrants_num * stripes
-            assert(vec_len == mdmq.shape[0]), f"Precomputed quadrants are the wrong shape {vec_len} != {mdmq.shape[0]}"
+            assert (vec_len == mdmq.shape[0]), f"Precomputed quadrants are the wrong shape {vec_len} != {mdmq.shape[0]}"
             mdmq[:, 0] = mdmq[:, 0] / cytoplasmic_density
             if mdmq[:, 0].sum() > 0:
                 # just in case, make sure that the mtoc containing quadrant is always first
@@ -296,11 +296,11 @@ class ImageSet(object):
             else:
                 logger.info("Densities too low in {}", image._path)
 
-        mtoc_num = all_densities[all_densities[:,1] == 1][:,1].sum()
-        non_mtoc_num = len(all_densities[all_densities[:,1]==0][:,1])
+        mtoc_num = all_densities[all_densities[:, 1] == 1][:, 1].sum()
+        non_mtoc_num = len(all_densities[all_densities[:, 1] == 0][:, 1])
         logger.debug("\nMTOC density {} and non MTOC density {} per element (quadrant or slice)",
-                     all_densities[all_densities[:,1] == 1][:,0].sum() / mtoc_num,
-                     all_densities[all_densities[:,1] == 0][:,0].sum() / non_mtoc_num)
+                     all_densities[all_densities[:, 1] == 1][:, 0].sum() / mtoc_num,
+                     all_densities[all_densities[:, 1] == 0][:, 0].sum() / non_mtoc_num)
         return all_densities
 
     def mtoc_is_in_leading_edge(self):
@@ -315,7 +315,7 @@ class ImageSet(object):
         total_profile = []
         image_counter = 0
         for i, image in enumerate(tqdm.tqdm(self.images, desc="Images")):
-            z_line_distance_profile=image.get_minimal_z_line_distance(z_line_spacing)
+            z_line_distance_profile = image.get_minimal_z_line_distance(z_line_spacing)
             total_profile.append(z_line_distance_profile)
             image_counter += 1
         total_profile = np.array(total_profile).reshape((image_counter, z_line_spacing))
@@ -324,7 +324,7 @@ class ImageSet(object):
 
     # Implements equation 17 (supplemental)of padovan-merhar et al. 2015
     def compute_volume_corrected_nm(self):
-        cell_volume= [image.compute_cell_volume() for image in self.images]
+        cell_volume = [image.compute_cell_volume() for image in self.images]
         transcount = [len(image.get_spots()) for image in self.images]
         coeffs = np.polyfit(cell_volume, transcount, 1)
         a = coeffs[1]

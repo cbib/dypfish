@@ -86,7 +86,7 @@ class ImageWithIntensities(Image):
         IF = self.compute_cytoplasmic_intensities()
         mean_signal = np.mean(IF[IF > 0])
         peaks = np.argwhere(IF > mean_signal * 2)
-        dists = constants.analysis_config['NUM_CONTOURS'] - self.compute_cytoplasmic_coordinates_peripheral_distance(peaks[:,[1,0]]) # inverted wrt spots coordinates
+        dists = constants.analysis_config['NUM_CONTOURS'] - self.compute_cytoplasmic_coordinates_peripheral_distance(peaks[:, [1, 0]])  # inverted wrt spots coordinates
         assert np.all(dists >= 0), "Negative distance to nucleus"
         if len(dists) == 0:
             logger.debug("Empty cytoplasmic coordinates peripheral distance for {}", self._path)
@@ -95,7 +95,6 @@ class ImageWithIntensities(Image):
             normalized_dist_to_nucleus = np.quantile(dists, quantile) / constants.analysis_config['NUM_CONTOURS']
 
         return normalized_dist_to_nucleus
-
 
     def compute_intensities_normalized_cytoplasmic_spread(self):
         IF = self.compute_cytoplasmic_intensities()
@@ -132,7 +131,7 @@ class ImageWithIntensities(Image):
         h_star = self.get_clustering_indices()
         d_of_c = np.array(h_star[h_star > 1] - 1).sum()
         if int(d_of_c) == 0:
-            return 0.0001 # TODO this is a hack so that a downstream log does not fail
+            return 0.0001  # TODO this is a hack so that a downstream log does not fail
 
         return d_of_c
 
@@ -154,6 +153,7 @@ class ImageWithIntensities(Image):
         k = self.ripley_k_random_measure_2D(IF, my_lambda, nuw)
         k_sim = np.zeros(
             (constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"], constants.analysis_config["MAX_CELL_RADIUS"]))
+
         # simulate RIPLEY_K_SIMULATION_NUMBER list of random intensities and run ripley_k
         indsAll = np.where(cell_mask[:, :] == 1)
         for t in tqdm.tqdm(range(constants.analysis_config["RIPLEY_K_SIMULATION_NUMBER"]), desc="Simulations"):
@@ -205,4 +205,3 @@ class ImageWithIntensitiesAndMTOC(ImageWithMTOC, ImageWithIntensities):
             raise (RuntimeError, "error in the MTOC quadrant detection for image %s" % self._path)
 
         return density_per_quadrant
-

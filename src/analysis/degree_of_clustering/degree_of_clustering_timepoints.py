@@ -27,6 +27,7 @@ data = [{'beta_actin': [0.5, 1, 0.8, 1, 1], 'arhgdia': [1, 1, 1.5, 1, 1],
          'gapdh': [1, 0.5, 1, 0.6, 0.8], 'pard3': [0.8, 0.8, 1, 0.6, 0.7]}]
 factor = pd.DataFrame(data, index=['mrna', 'protein'])
 
+
 def plot_dynamic_barplot(analysis_repo):
     '''
     Formats the data and calls the plotting function
@@ -39,14 +40,14 @@ def plot_dynamic_barplot(analysis_repo):
     all_timepoints = np.sort(list(set(tp_mrna) | set(tp_proteins)))
     for i, gene in enumerate(constants.analysis_config['PROTEINS']):
         df = pd.DataFrame(columns=["Molecule", "Timepoint", "d_of_c", "error", "CI"])
-        for molecule, timepoints in zip(["mrna", "protein"],[tp_mrna, tp_proteins]):
+        for molecule, timepoints in zip(["mrna", "protein"], [tp_mrna, tp_proteins]):
             for j, tp in enumerate(all_timepoints):
                 if tp not in timepoints:
                     df = df.append({"Molecule": molecule, "Timepoint": tp, "error": 0, "CI": [0, 0],
                                     "d_of_c": 0}, ignore_index=True)
                     continue
                 image_set = ImageSet(analysis_repo, ["{0}/{1}/{2}/".format(molecule, gene, tp)])
-                degree_of_clustering = np.log(image_set.compute_degree_of_clustering()) #* factor[gene][molecule][j]
+                degree_of_clustering = np.log(image_set.compute_degree_of_clustering())  # * factor[gene][molecule][j]
                 err = helpers.sem(degree_of_clustering, factor=6)
                 lower, higher = helpers.median_confidence_interval(degree_of_clustering)
                 df = df.append({"Molecule": molecule, "Timepoint": tp, "error": err, "CI": [lower, higher],
@@ -64,11 +65,11 @@ def plot_dynamic_barplot(analysis_repo):
 # Figure 3.E Top right Dynamic profile of degree of clustering for arhgdia original data
 # Figure 3.E bottom left Dynamic profile of degree of clustering for gapdh original data
 # Figure 3.E bottom right Dynamic profile of degree of clustering for pard3 original data
+
 configurations = [
     ["src/analysis/degree_of_clustering/config_original.json", "", "", ""]
 ]
 
-# # Figure 2F  : Dynamic profile of degree of clustering for original data, both mRNA and proteins
 if __name__ == '__main__':
     for conf in configurations:
         conf_full_path = pathlib.Path(global_root_dir, conf[0])

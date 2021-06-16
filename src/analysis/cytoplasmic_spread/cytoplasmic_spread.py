@@ -73,7 +73,7 @@ def plot_bar_profile_median_and_violin(statistics_type, molecule_type,
         xlabels = constants.analysis_config['PROTEINS_LABEL']
 
     # generate the bar profile plot
-    plot.bar_profile_median(medians, errors.values(), molecule_type,xlabels, tgt_fp, confidence_intervals,annot=True, data_to_annot=all_values)
+    plot.bar_profile_median(medians, errors.values(), molecule_type, xlabels, tgt_fp, confidence_intervals, annot=True, data_to_annot=all_values)
     logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
     # generate violin plot image

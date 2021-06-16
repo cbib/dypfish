@@ -89,7 +89,7 @@ def calculate_mpi(mtoc: list, quadrants: list, use_mean=False) -> MTOCPolarityIn
     npos = sum(x > 0 for x in adjusted_mtoc)
     mpi = ((float(npos) / len(adjusted_mtoc)) * 2) - 1
     # TODO it's just for displaying
-    if (mpi == 0.0):
+    if mpi == 0.0:
         mpi = 0.01
     statistic, p = mannwhitneyu(mtoc, quadrants, alternative='two-sided')
     return MTOCPolarityIndex(index=mpi, pvalue=p)
@@ -117,7 +117,7 @@ def compute_mpis(df, mpi_sub_sample_size, quadrant_labels, mtoc_quadrant_label='
     Compute both the bootstrapped (random) and the non-random MTOC Polarity Indices
     """
     mtoc = df[mtoc_quadrant_label].values
-    nonmtoc = list((df[quadrant_labels].values).flatten())
+    nonmtoc = list(df[quadrant_labels].values).flatten()
     mpi = calculate_mpi(mtoc, nonmtoc, use_mean=use_mean)
     mpi.errs = [calculate_random_mpi(mtoc, nonmtoc, mpi_sub_sample_size) for _ in range(bootstrap_num)]
 

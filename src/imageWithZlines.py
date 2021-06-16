@@ -65,7 +65,7 @@ class imageWithSpotsAndZlines(ImageWithSpots):
                         y = int(round(spot[1] + point * y_slope))
                         line[point, 0] = x
                         line[point, 1] = y
-                        if (x >= 0 and x < z_line_mask.shape[1] and y >= 0 and y < z_line_mask.shape[0]):
+                        if x >= 0 and x < z_line_mask.shape[1] and y >= 0 and y < z_line_mask.shape[0]:
                             z_line_segment[point] = z_line_mask[y, x]
                             total_segment[degree, point] = z_line_mask[y, x]
                         else:

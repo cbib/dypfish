@@ -75,7 +75,7 @@ class Image(object):
         distance_map = self.get_cell_mask_distance_map()
         areas = np.zeros(constants.analysis_config['NUM_CONTOURS'])
         for i in range(constants.analysis_config['NUM_CONTOURS']):
-            areas[i] = cytoplasm_mask[(distance_map <= i+1)].sum() * helpers.surface_coeff()
+            areas[i] = cytoplasm_mask[(distance_map <= i + 1)].sum() * helpers.surface_coeff()
         return areas
 
     @helpers.checkpoint_decorator(CYTOPLASM_MASK_PATH_SUFFIX, float)
@@ -234,11 +234,11 @@ class ImageWithMTOC(Image):
         The anchor for the computation is the MTOC containing quadrant.
         Returns an array with the density values per quadrant (and slice) and associated MTOC flags
         """
-        if not quadrants_num in [2, 3, 4, 5, 6, 8, 9]:  # just in case
+        if quadrants_num not in [2, 3, 4, 5, 6, 8, 9]:  # just in case
             raise (RuntimeError, "Unexpected number of quadrants %i" % quadrants_num)
 
         max_density = 0.0
-        quadrants_max_MTOC_density = np.zeros((quadrants_num*stripes, 2))
+        quadrants_max_MTOC_density = np.zeros((quadrants_num * stripes, 2))
         mtoc_position = self.get_mtoc_position()
 
         degree_span = 360 // quadrants_num
@@ -257,7 +257,7 @@ class ImageWithMTOC(Image):
             if peripheral_flag and stripes_flag:
                 density_per_quadrant = self.compute_peripheral_density_per_quadrant_and_slices(mtoc_quad_num, quadrant_mask,
                                                                                                stripes, quadrants_num)
-            mtoc_density = density_per_quadrant[density_per_quadrant[:,1] == 1][:,0].sum()
+            mtoc_density = density_per_quadrant[density_per_quadrant[:, 1] == 1][:, 0].sum()
             if mtoc_density > max_density:
                 max_density = mtoc_density
                 quadrants_max_MTOC_density = density_per_quadrant

@@ -131,6 +131,7 @@ def compute_all_distances_to_nucleus_centroid(nucleus_centroid: np.ndarray, imag
 
     return dist
 
+
 def compute_all_distances_to_nucleus_centroid3d(heightmap: np.ndarray, nucleus_centroid: np.ndarray,
                                                 image_width=None, image_height=None) -> np.ndarray:
     """
@@ -151,4 +152,3 @@ def compute_all_distances_to_nucleus_centroid3d(heightmap: np.ndarray, nucleus_c
                    (k - nucleus_centroid_z) ** 2)
 
     return dist
-
