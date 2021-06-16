@@ -59,7 +59,7 @@ class DensityStats(object):
             mtoc_quadrant_label=self.mtoc_quadrant_label
         )
 
-    def mpi(self):
+    def mpi(self, use_mean=False):
         mpis, errs = [], []
         grouped_df = self.df.groupby(self.group_key, as_index=False)
         for gene in sorted(grouped_df.groups.keys()):
@@ -68,7 +68,7 @@ class DensityStats(object):
             mpi = compute_mpis(
                 k_grouped_df,
                 self.mpi_sample_size,
-                self.quadrant_labels, self.mtoc_quadrant_label)
+                self.quadrant_labels, self.mtoc_quadrant_label, use_mean=use_mean)
             mpis.append(mpi.index)
             errs.append(mpi.compute_error())
         return mpis, errs
@@ -77,12 +77,15 @@ class DensityStats(object):
         return self.df[self.mtoc_quadrant_label] / self.df[self.quadrant_labels].mean(axis=1)
 
 
-def calculate_mpi(mtoc: list, quadrants: list) -> MTOCPolarityIndex:
+def calculate_mpi(mtoc: list, quadrants: list, use_mean=False) -> MTOCPolarityIndex:
     """
     Given two lists of floats, calculate the MTOC Polarity Index
     It represents the number of times the mtoc list values are greater than those in the other quadrants
     """
-    adjusted_mtoc = mtoc - np.median(quadrants)  # TODO : why nanmedian and not just median?
+    if use_mean:
+        adjusted_mtoc = mtoc - np.mean(quadrants)  # TODO : why nanmedian and not just median?
+    else:
+        adjusted_mtoc = mtoc - np.median(quadrants)  # TODO : why nanmedian and not just median?
     npos = sum(x > 0 for x in adjusted_mtoc)
     mpi = ((float(npos) / len(adjusted_mtoc)) * 2) - 1
     # TODO it's just for displaying
@@ -109,13 +112,13 @@ def calculate_random_mpi(mtoc, quadrants, mpi_sub_sample_size) -> MTOCPolarityIn
 
 
 def compute_mpis(df, mpi_sub_sample_size, quadrant_labels, mtoc_quadrant_label='MTOC',
-                 bootstrap_num=100) -> MTOCPolarityIndex:
+                 bootstrap_num=100, use_mean=False) -> MTOCPolarityIndex:
     """
     Compute both the bootstrapped (random) and the non-random MTOC Polarity Indices
     """
     mtoc = df[mtoc_quadrant_label].values
     nonmtoc = list((df[quadrant_labels].values).flatten())
-    mpi = calculate_mpi(mtoc, nonmtoc)
+    mpi = calculate_mpi(mtoc, nonmtoc, use_mean=use_mean)
     mpi.errs = [calculate_random_mpi(mtoc, nonmtoc, mpi_sub_sample_size) for _ in range(bootstrap_num)]
 
     return mpi

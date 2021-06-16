@@ -375,9 +375,9 @@ def sns_barplot(dd, my_pal, figname, y="MPI", err="err"):
     plt.close()
 
 
-def plot_MPI(density_stats: DensityStats, molecule_type, figname):
+def plot_MPI(density_stats: DensityStats, molecule_type, figname, use_mean=False):
     labels = density_stats.make_labels()
-    mpis, errs = density_stats.mpi()
+    mpis, errs = density_stats.mpi(use_mean=use_mean)
     gene_2_mpis = {}
     for i in range(len(labels)):
         gene_2_mpis[labels[i]] = np.float(mpis[i])

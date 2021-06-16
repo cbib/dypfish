@@ -110,6 +110,9 @@ if __name__ == '__main__':
         dfs = []
         for genes, timepoints, molecule_type, quads, in zip([mrna_genes, proteins], [tp_mrna, tp_proteins],
                                                             ["mrna", "protein"], conf[2]):
+            use_mean = False
+            if 'prrc2c' in conf[0]:
+                use_mean = True
             logger.info("Running MPI analysis for {}", conf[0])
             quadrant_labels = build_labels(quadrants_num=quads)
             density_stats = compute_density_per_quadrant(analysis_repo=repo, molecule_type=molecule_type,
@@ -129,7 +132,7 @@ if __name__ == '__main__':
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_MPI'].format(molecule_type=molecule_type)
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                                   tgt_image_name)
-            plot.plot_MPI(density_stats, molecule_type, tgt_fp)
+            plot.plot_MPI(density_stats, molecule_type, tgt_fp, use_mean=False)
             logger.info("Created figure {}", tgt_fp)
 
         if "original" in conf[0]:
