@@ -95,6 +95,26 @@ def plot_bar_profile_median_and_violin(molecule_type, medians, fractions, errors
     logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
 
+# Figure 3.A Peripheral fraction profile for the mRNA original data normalized by Gapdh
+# Figure 3.F Peripheral fraction histograms for protein CHX data (30%)
+# Figure 7C top left panel : Peripheral fraction histograms for mRNA arhgdia and arhgdia nocodazole
+# Figure 7C top right panel : Peripheral fraction histograms for protein arhgdia and arhgdia nocodazole
+# Figure 7C bottom left panel : Peripheral fraction histograms for mRNA pard3 and pard3 nocodazole
+# Figure 7C bottom right panel : Peripheral fraction histograms for protein pard3 and pard3 nocodazole
+# Figure S2A Peripheral fraction profile for the mRNA original data
+# Figure S2C top Peripheral fraction histograms for mRNA original data (10%)
+# Figure S2C bottom Peripheral fraction histograms for mRNA original data (30%)
+# Figure S2D top left Peripheral fraction histograms for mRNA CHX data (10%)
+# Figure S2D top right Peripheral fraction histograms for mRNA  CHX data (30%)
+# Figure S2D bottom left Peripheral fraction histograms for protein CHX data (10%)
+# Figure S4C top left panel : Peripheral fraction histograms for mRNA prrc2c data (10%)
+# Figure S4C top right panel : Peripheral fraction histograms for protein prrc2c data (10%)
+# Figure S4C bottom left panel : Peripheral fraction histograms for mRNA prrc2c data (30%)
+# Figure S4C bottom right panel : Peripheral fraction histograms for protein prrc2c data (30%)
+# Figure S6C left panel : Peripheral fraction histograms for mRNA cytod data (30%)
+# Figure S6C right panel : Peripheral fraction histograms for protein cytod data (30%)
+
+
 # configurations contain the order in which the degree of clustering is plotted
 configurations = [
     ["src/analysis/peripheral_fraction_profile/config_original.json",

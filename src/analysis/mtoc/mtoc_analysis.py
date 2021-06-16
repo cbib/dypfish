@@ -64,10 +64,35 @@ group_keys = {
     "src/analysis/mtoc/config_periph_prrc2c.json": ['Gene', 'Timepoint']
 }
 
-# figure 3B left/right mRNA/protein MTOC cytoplasmic enrichment for original data (violin plot)
-# figure 3C mRNA/protein cytoplasmic MPI
-# figure 4C top/bottom mRNA/protein MTOC cytoplasmic enrichment for prrc2c (violin plot)
-# figure 3D (2 figures) and S3D (dynamic cytoplasmic MPI) (2 figures)
+# figure 4B left mRNA MTOC cytoplasmic enrichment for original data (violin plot)
+# figure 4B right protein MTOC cytoplasmic enrichment for original data (violin plot)
+# figure 4C left mRNA cytoplasmic MPI
+# figure 4C right protein cytoplasmic MPI
+# figure 4D left dynamic cytoplasmic MPI for Arhgdia original data
+# figure 4D right dynamic cytoplasmic MPI for Pard3 original data
+# figure 5C top left mRNA MTOC cytoplasmic enrichment for prrc2c (violin plot)
+# figure 5C top right mRNA cytoplasmic MPI for prrc2c (bar plot)
+# figure 5C bottom left protein MTOC cytoplasmic enrichment for prrc2c (violin plot)
+# figure 5C bottom right protein cytoplasmic MPI for prrc2c (bar plot)
+# figure 7D left mRNA MTOC cytoplasmic enrichment for arhgdia and arhgdia nocodazole
+# figure 7D right mRNA MTOC cytoplasmic enrichment for pard3 and pard3 nocodazole
+# figure 7E top cytoplasmic MPI for arhgdia and arhgdia nocodazole
+# figure 7E bottom cytoplasmic MPI for pard3 and pard3 nocodazole
+# figure S3A left mRNA MTOC peripheral enrichment for original data (violin plot)
+# figure S3A right protein MTOC peripheral enrichment for original data (violin plot)
+# figure S3B left mRNA peripheral MPI for original data (bar plot)
+# figure S3B right protein peripheral MPI for original data (bar plot)
+# figure S3C top left dynamic peripheral MPI for Arhgdia original data
+# figure S3C top right dynamic peripheral MPI for Pard3 original data
+# figure S3C bottom left dynamic peripheral MPI for Beta Actin original data
+# figure S3C bottom right dynamic peripheral MPI for Gapdh original data
+# figure S3D left dynamic cytoplasmic MPI for Beta actin original data
+# figure S3D right dynamic cytoplasmic MPI for Gapdh original data
+# figure S4E top left mRNA MTOC peripheral enrichment for prrc2c (violin plot)
+# figure S4E bottom left protein MTOC peripheral enrichment for prrc2c (violin plot)
+# figure S4E top right mRNA peripheral MPI for prrc2c (bar plot)
+# figure S4E bottom right protein peripheral MPI for prrc2c (bar plot)
+
 
 if __name__ == '__main__':
     for conf in configurations:

@@ -40,15 +40,15 @@ def mrna_cytoplasmic_total_count(analysis_repo, keyorder):
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
-    # plot.bar_profile_median(gene2median_cyto_count,
-    #                         gene2error.values(),
-    #                         'mrna',
-    #                         xlabels,
-    #                         tgt_fp,
-    #                         gene2confidence_interval,
-    #                         annot=True,
-    #                         data_to_annot=gene2cyto_count
-    #                         )
+    plot.bar_profile_median(gene2median_cyto_count,
+                            gene2error.values(),
+                            'mrna',
+                            xlabels,
+                            tgt_fp,
+                            gene2confidence_interval,
+                            annot=True,
+                            data_to_annot=gene2cyto_count
+                            )
 
     # generate violin plot image
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type="mrna")
@@ -81,15 +81,15 @@ def intensities_cytoplasmic_total_count(analysis_repo, keyorder):
     tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="protein")
     tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir),
                           tgt_image_name)
-    # plot.bar_profile_median(gene2median_cyto_count,
-    #                         gene2error.values(),
-    #                         'proteins',
-    #                         xlabels,
-    #                         tgt_fp,
-    #                         gene2confidence_interval,
-    #                         annot=True,
-    #                         data_to_annot=gene2cyto_count
-    #                         )
+    plot.bar_profile_median(gene2median_cyto_count,
+                            gene2error.values(),
+                            'proteins',
+                            xlabels,
+                            tgt_fp,
+                            gene2confidence_interval,
+                            annot=True,
+                            data_to_annot=gene2cyto_count
+                            )
 
     # generate violin plot image
     tgt_image_name = constants.analysis_config['FIGURE_NAME_VIOLIN_FORMAT'].format(molecule_type="protein")
@@ -100,10 +100,14 @@ def intensities_cytoplasmic_total_count(analysis_repo, keyorder):
 
 
 ''' 
-Figure 4A bottom panel: arhgdia and arhgdia prrc2c cytoplasmic total count
-Figure S6A top panel: arhgdia and arhgdia nocodazole cytoplasmic total count
-Figure S6A bottom panel: pard3 and pard3 nocodazole cytoplasmic total count
-Figure S6A bottom panel: arhgdia and arhgdia CytoD cytoplasmic total count
+Figure 5A left panel: arhgdia and arhgdia prrc2c mRNA cytoplasmic total count
+Figure 5A left panel: arhgdia and arhgdia prrc2c protein cytoplasmic total count
+Figure S6A top left panel: arhgdia and arhgdia nocodazole mRNA cytoplasmic total count
+Figure S6A top right panel: arhgdia and arhgdia nocodazole protein cytoplasmic total count
+Figure S6A middle left panel: pard3 and pard3 nocodazole mRNA cytoplasmic total count
+Figure S6A middle right panel: arhgdia and arhgdia CytoD protein cytoplasmic total count
+Figure S6A bottom left panel: arhgdia cytod mRNA cytoplasmic total count
+Figure S6A bottom right panel: arhgdia cytod protein cytoplasmic total count
 '''
 
 configurations = [

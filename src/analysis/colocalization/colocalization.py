@@ -54,10 +54,15 @@ configurations = [
     ["src/analysis/colocalization/config_nocodazole_arhgdia.json"],
     ["src/analysis/colocalization/config_nocodazole_pard3.json"]
 ]
+# Figure 6C top Peripheral Colocalization Score (CS) for original data
+# Figure 6C top Cytoplasmic Colocalization Score (CS) for original data
+# Figure 6D Colocalization Score (CS) for original data (4 figures)
+# Figure 7F top left Colocalization Score (CS) for arhgdia data
+# Figure 7F top right Colocalization Score (CS) for nocodazole arhgdia data
+# Figure 7F bottom left Colocalization Score (CS) for pard3 data
+# Figure 7F bottom right Colocalization Score (CS) for nocodazole pard3 data
 
-# Figure 5D Analysis Colocalization Score (CS) for original data (5 figures)
-# Figure 6E Analysis Colocalization Score (CS) for nocodazole arhgdia data (3 figures)
-# Figure 6E Analysis Colocalization Score (CS) for nocodazole pard3 data (3 figures)
+
 
 if __name__ == '__main__':
     np.random.seed(int(round(time.time())))

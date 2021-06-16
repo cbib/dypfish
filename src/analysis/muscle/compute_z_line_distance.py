@@ -27,6 +27,8 @@ def compute_zline_distance(repo, molecule_list, timepoints, z_line_spacing):
     return all_median_profiles
 
 
+# figure 8B mRNA enrichment between z-lines in muscle fibers
+
 constants.init_config(analysis_config_js_path=pathlib.Path(global_root_dir, "src/analysis/muscle/config_muscle.json"))
 dataset_root_fp = pathlib.Path(constants.analysis_config['DATASET_CONFIG_PATH'].format(root_dir=global_root_dir)).parent
 primary_fp = pathlib.Path(dataset_root_fp, constants.dataset_config['PRIMARY_FILE_NAME'])

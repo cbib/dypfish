@@ -60,6 +60,10 @@ def plot_dynamic_barplot(analysis_repo):
         plot.bar_profile_median_timepoints(df, palette=my_pal, figname=tgt_fp, fixed_yscale=15)
 
 
+# Figure 3.E Top left Dynamic profile of degree of clustering for beta-actin original data
+# Figure 3.E Top right Dynamic profile of degree of clustering for arhgdia original data
+# Figure 3.E bottom left Dynamic profile of degree of clustering for gapdh original data
+# Figure 3.E bottom right Dynamic profile of degree of clustering for pard3 original data
 configurations = [
     ["src/analysis/degree_of_clustering/config_original.json", "", "", ""]
 ]

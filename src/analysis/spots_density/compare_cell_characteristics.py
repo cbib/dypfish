@@ -46,10 +46,11 @@ configurations = [
     ["src/analysis/spots_density/config_standard.json", ["arhgdia", "arhgdia_cultured"]]
 ]
 
-# Figure 1.D bottom left (nucleus area) Micropatterned vs Standard
-# Figure 1.D bottom right (cell area) Micropatterned vs Standard
-# Figure 1.D Top left(transcript total count by cell area) Standard cultured cell
-# Figure 1.D Top right(transcript total count by cell area) Micropatterned cultured cell
+# Figure 2.C bottom left (nucleus area) Micropatterned vs Standard
+# Figure 2.C bottom right (cell area) Micropatterned vs Standard
+# Figure 2.C Top left(transcript total count by cell area) Standard cultured cell
+# Figure 2.C Top right(transcript total count by cell area) Micropatterned cultured cell
+
 if __name__ == '__main__':
 
     for conf in configurations:

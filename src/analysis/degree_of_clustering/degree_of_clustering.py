@@ -62,12 +62,13 @@ def plot_bar_profile_median_and_violin(molecule_type, median_d_of_c, d_of_c,
     #plot.violin_profile(d_of_c, tgt_fp, xlabels, rotation=0, annot=True)
 
 ''' 
-Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5) for original
-Figure 2E right panel: plots the log protein degree of clustering normalized by log(0.01) for original
-Figure 2E left panel: plots the log mRNA degree of clustering normalized by log(0.5) for prrc2c
-Figure 4B right panel: plots the log protein degree of clustering normalized by log(0.01) for prrc2c
-Figure 2G : plots the log protein degree of clustering normalized by log(0.01) for CHX
-Figure S2D right panel: plots the log protein degree of clustering normalized by log(0.01) for CHX
+Figure 3D left panel: plots the log mRNA degree of clustering for original data
+Figure 3D right panel: plots the log protein degree of clustering for original data
+Figure 3F : plots the log protein degree of clustering for CHX
+Figure 5B left panel: plots the log mRNA degree of clustering for prrc2c
+Figure 5B right panel: plots the log protein degree of clustering for prrc2c
+Figure S2E  log mRNA degree of clustering for CHX
+
 '''
 
 # configurations contain the order in which the degree of clustering is plotted

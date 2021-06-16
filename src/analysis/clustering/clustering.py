@@ -42,6 +42,9 @@ def compute_relative_densities(analysis_repo, molecule_type, quadrants_num=4):
     return densities
 
 
+# Figure S5B panel : Clustering density map (1 by timpoints)
+
+
 if __name__ == '__main__':
     np.random.seed(int(round(time.time())))
     logger.info("Clustering analysis")

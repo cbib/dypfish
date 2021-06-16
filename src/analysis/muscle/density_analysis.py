@@ -25,6 +25,8 @@ band_n = constants.analysis_config['STRIPE_NUM']
 molecule_type = ['/mrna']
 genes = ['actn2-mature', 'gapdh-mature', 'actn2-immature']
 
+# figure 8C degree of clustering for muscle data
+
 for g in genes:
     [gene, timepoint] = g.split("-")
     image_set = ImageSet(analysis_repo, [f"{'mrna'}/{gene}/{timepoint}/"])

@@ -41,8 +41,7 @@ def compute_stability(gene, bootstrap=500, force2D=True):
     return total_mads
 
 
-# Figure 1.E
-# Mean Absolute Deviation of Arhgdia mRNA distribution for peripheral fraction descriptors of a randomly selected cell
+# Figure 2.D Mean Absolute Deviation of Arhgdia mRNA distribution for peripheral fraction descriptors of a randomly selected cell
 # from a pooled average of up to ~40 cells for cultured and micropatterned cells.
 
 constants.init_config(

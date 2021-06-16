@@ -19,6 +19,15 @@ configurations = [
     ["src/analysis/volume-corrected-noise-measure/config_standard.json"]
 ]
 
+# figure S1B top left volume corrected noise measured for beta-actin original data
+# figure S1B top center volume corrected noise measured for arhgdia original data
+# figure S1B top right volume corrected noise measured for gapdh original data
+# figure S1B bottom left volume corrected noise measured for pard3 original data
+# figure S1B bottom center volume corrected noise measured for pkp4 original data
+# figure S1B bottom right volume corrected noise measured for rab13 original data
+# figure S1C  volume corrected noise measured for standard cultured cells vs micropatterned cells
+
+
 if __name__ == '__main__':
     for conf in configurations:
 

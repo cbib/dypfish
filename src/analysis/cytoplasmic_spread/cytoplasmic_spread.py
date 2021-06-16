@@ -33,13 +33,13 @@ def build_cytoplasmic_statistics(analysis_repo, statistics_type, molecule_type, 
                 gene2stat[gene] = image_set.compute_cytoplasmic_spots_spread()
             else:
                 gene2stat[gene] = image_set.compute_intensities_cytoplasmic_spread()
-        if (statistics_type == 'centrality'):
+        if statistics_type == 'centrality':
             gene2median[gene] = np.mean(gene2stat[gene])
             gene2error[gene] = helpers.sem(gene2stat[gene], factor=0)
             lower, higher = helpers.median_confidence_interval(gene2stat[gene])
             gene2confidence_interval[gene] = [lower, higher]
 
-    if (statistics_type == 'spread'):
+    if statistics_type == 'spread':
         max_entropy = np.max([np.max(gene2stat[k]) for k in gene2stat.keys()])
         for gene in gene2stat.keys():
             gene2stat[gene] = gene2stat[gene] / max_entropy
@@ -73,7 +73,7 @@ def plot_bar_profile_median_and_violin(statistics_type, molecule_type,
         xlabels = constants.analysis_config['PROTEINS_LABEL']
 
     # generate the bar profile plot
-    #plot.bar_profile_median(medians, errors.values(), molecule_type,xlabels, tgt_fp, confidence_intervals,annot=True, data_to_annot=all_values)
+    plot.bar_profile_median(medians, errors.values(), molecule_type,xlabels, tgt_fp, confidence_intervals,annot=True, data_to_annot=all_values)
     logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
     # generate violin plot image
@@ -90,20 +90,23 @@ def plot_bar_profile_median_and_violin(statistics_type, molecule_type,
     logger.info("Generated plot at {}", str(tgt_fp).split("analysis/")[1])
 
 
-# Figure 6B top left panel : mRNA cytoplasmic spread arhgdia and arhgdia nocodazole
-# Figure 6B top right panel : protein cytoplasmic spread arhgdia and arhgdia nocodazole
-# Figure 6B bottom left panel : mRNA cytoplasmic spread pard3 and pard3 nocodazole
-# Figure 6B bottom right panel : protein cytoplasmic spread pard3 and pard3 nocodazole
-# Figure S4D : mRNA cytoplasmic spread arhgdia prrc2c
-# Figure S4D : protein cytoplasmic spread arhgdia prrc2c
-# Figure S6B left: mRNA cytoplasmic spread for cytod
-# Figure S6B right : protein cytoplasmic spread for cytod
-
+# Figure 7B top left panel : mRNA cytoplasmic centrality arhgdia and arhgdia nocodazole
+# Figure 7B top right panel : protein cytoplasmic centrality arhgdia and arhgdia nocodazole
+# Figure 7B bottom left panel : mRNA cytoplasmic centrality pard3 and pard3 nocodazole
+# Figure 7B bottom right panel : protein cytoplasmic centrality pard3 and pard3 nocodazole
+# Figure S4D top left : mRNA cytoplasmic centrality for  prrc2c data
+# Figure S4D top right : mRNA cytoplasmic spread arhgdia prrc2c
+# Figure S4D bottom left: protein cytoplasmic centrality for cytod
+# Figure S4D bottom : protein cytoplasmic spread for cytod
+# Figure S6B top left panel : mRNA cytoplasmic centrality arhgdia and arhgdia cytod
+# Figure S6B top right panel : protein cytoplasmic centrality arhgdia and arhgdia cytod
+# Figure S6B bottom left panel : mRNA cytoplasmic spread arhgdia and arhgdia cytod
+# Figure S6B bottom right panel : protein cytoplasmic spread arhgdia and arhgdia cytod
 
 configurations = [
-    #["src/analysis/cytoplasmic_spread/config_original.json", ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"], "Gene"],
-    #["src/analysis/cytoplasmic_spread/config_nocodazole_arhgdia.json", ["arhgdia", "arhgdia_nocodazole"], "Gene"],
-    #["src/analysis/cytoplasmic_spread/config_nocodazole_pard3.json", ["pard3", "pard3_nocodazole"], "Gene"],
+    ["src/analysis/cytoplasmic_spread/config_original.json", ["beta_actin", "arhgdia", "gapdh", "pard3", "pkp4", "rab13"], "Gene"],
+    ["src/analysis/cytoplasmic_spread/config_nocodazole_arhgdia.json", ["arhgdia", "arhgdia_nocodazole"], "Gene"],
+    ["src/analysis/cytoplasmic_spread/config_nocodazole_pard3.json", ["pard3", "pard3_nocodazole"], "Gene"],
     ["src/analysis/cytoplasmic_spread/config_prrc2c.json", ["arhgdia/control", "arhgdia/prrc2c_depleted"], "Timepoint"],
     ["src/analysis/cytoplasmic_spread/config_cytod.json", ["arhgdia_control", "arhgdia_cytod"], "Gene"]
 ]
