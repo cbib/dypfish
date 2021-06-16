@@ -67,7 +67,7 @@ if __name__ == '__main__':
         logger.info("cell area comparison for arhgdia et arhgdia_cultured 3h data")
         df_cell_area = pd.DataFrame(columns=["Gene", "value"])
         df_nucleus_area = pd.DataFrame(columns=["Gene", "value"])
-        for gene, timepoint, label in zip(genes, ['3h', '3h'], genes_label):
+        for gene, timepoint, label in zip(genes, [constants.analysis_config['TIMEPOINTS'][0][1], constants.analysis_config['TIMEPOINTS'][1][1]], genes_label):
             df_cell_area = pd.concat([df_cell_area, compute_cells_area(gene, repo, label, timepoint)])
             df_nucleus_area = pd.concat([df_nucleus_area, compute_nuclei_area(gene, repo, label, timepoint)])
 
