@@ -50,7 +50,7 @@ class TestImage3dWithSpots(TestCase):
         np.random.seed(0)
         h_star = self.img.compute_clustering_indices()
         self.assertEqual(len(h_star), 300)
-        self.assertAlmostEqual(h_star.sum(), 1213.3690684555136)  # might not work since random
+        self.assertAlmostEqual(h_star.sum(), 35.014805372158634)  # might not work since random
 
     def test_ripley_k_point_process(self):
         K = self.img.ripley_k_point_process(nuw=1158349.7249999999, my_lambda=0.00018819877563315348)
@@ -59,7 +59,7 @@ class TestImage3dWithSpots(TestCase):
 
     def test_compute_degree_of_clustering(self):
         np.random.seed(0)
-        self.assertAlmostEqual(self.img.compute_degree_of_clustering(), 915.3690684555138, places=5)
+        self.assertAlmostEqual(self.img.compute_degree_of_clustering(), 23.95041457661648, places=5)
 
     def test_compute_mrna_density(self):
         mrna_density = self.img.compute_cytoplasmic_density()

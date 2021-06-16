@@ -106,7 +106,7 @@ class TestImageSet(TestCase):
     def test_compute_degree_of_clustering(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         clustering_indices = image_set.compute_degree_of_clustering()
-        self.assertEqual(len(clustering_indices), 5)
+        self.assertEqual(len(clustering_indices), 4)
         total_sum = 0
         for ci in clustering_indices:
             total_sum += np.sum(ci)
