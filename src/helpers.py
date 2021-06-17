@@ -135,6 +135,10 @@ def median_confidence_interval(a: np.array, cutoff=.95):
     lix = int(0.5 * (len(a) - factor)) + 1
     uix = int(0.5 * (1 + len(a) + factor)) + 1
     print(lix, uix)
+    if lix <= 0:
+        lix = 0
+    if uix <= len(a)-1:
+        uix = len(a)-1
     assert (lix <= len(a)-1), "index " + str(lix) + " is out of bound for array of size " + str(len(a))
     assert (uix <= len(a)-1), "index " + str(uix) + " is out of bound for array of size " + str(len(a))
 

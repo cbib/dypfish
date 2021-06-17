@@ -140,7 +140,7 @@ if __name__ == '__main__':
         if "original" in conf[0]:
             logger.info("Peripheral fraction profile for the mRNA original data")
             normalisation_gene = constants.analysis_config['NORMALISATION_GENE']
-            medians = build_mrna_peripheral_fraction_profiles(repo, normalisation_gene=normalisation_gene)
+            #medians = build_mrna_peripheral_fraction_profiles(repo, normalisation_gene=normalisation_gene)
             medians = build_mrna_peripheral_fraction_profiles(repo)
 
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT'].format(molecule_type="mrna")
