@@ -106,6 +106,7 @@ class TestImageSet(TestCase):
     def test_compute_degree_of_clustering(self):
         self.skipTest("Given random, need to find a way to test this function ")
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
+        np.random.seed(4)
         clustering_indices = image_set.compute_degree_of_clustering()
         self.assertEqual(len(clustering_indices), 4)
         total_sum = 0
