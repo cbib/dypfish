@@ -117,7 +117,7 @@ def compute_mpis(df, mpi_sub_sample_size, quadrant_labels, mtoc_quadrant_label='
     Compute both the bootstrapped (random) and the non-random MTOC Polarity Indices
     """
     mtoc = df[mtoc_quadrant_label].values
-    nonmtoc = list(df[quadrant_labels].values).flatten()
+    nonmtoc = list(df[quadrant_labels].values.flatten())
     mpi = calculate_mpi(mtoc, nonmtoc, use_mean=use_mean)
     mpi.errs = [calculate_random_mpi(mtoc, nonmtoc, mpi_sub_sample_size) for _ in range(bootstrap_num)]
 
