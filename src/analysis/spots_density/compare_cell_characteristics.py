@@ -84,7 +84,7 @@ if __name__ == '__main__':
         for gene, timepoints, i in zip(genes, [constants.analysis_config['TIMEPOINTS'][0], constants.analysis_config['TIMEPOINTS'][1]], [0, 1]):
             transcript_by_cell_area = compute_transcript_by_cell_area(repo, gene, timepoints)
             if gene == 'arhgdia':
-                outliers = helpers.detect_outliers(transcript_by_cell_area['total_transcript'], threshold=1.8)
+                outliers = helpers.detect_outliers(transcript_by_cell_area['total_transcript'], threshold=4)
                 transcript_by_cell_area = transcript_by_cell_area[~np.isin(transcript_by_cell_area["total_transcript"], outliers)]
                 transcript_by_cell_area.dropna(inplace=True)
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT'].format(cell_type=genes[i])
