@@ -3,7 +3,7 @@
   "FIGURE_OUTPUT_PATH": "{root_dir}/src/analysis/spots_density/output",
   "FIGURE_NAME_FORMAT_BOXPLOT": "{model}_area_original.png",
   "FIGURE_NAME_FORMAT_PLOT": "{cell_type}_original.png",
-  "MIN_SPOT_NUM": 10,
+  "MIN_SPOT_NUM": 1,
   "MAX_SPOT_NUM": 2000,
   "MIN_HEIGHT_MAP_AREA": 20000,
   "TIMEPOINTS" : [["2h", "3h", "4h"],["1h", "3h"]],
