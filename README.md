@@ -83,7 +83,7 @@ Helpers scripts to (i) setup a virtualenv with all requirements and (ii) run any
 * Place yoursefl in the root directory, then execute: ```sh download_data_test.sh ```
 * When the download is complete execute `export PYTHONPATH=${PYTHONPATH}:$(pwd)/src`
 * To run the test, execute `python -m unittest`
-* Expect ~80 unit tests to be run in ~130seconds.   
+* Expect ~130 unit tests to be run in ~15 minutes.   
 
 
 # Using DypFISH 
