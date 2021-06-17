@@ -134,7 +134,6 @@ def median_confidence_interval(a: np.array, cutoff=.95):
 
     lix = int(0.5 * (len(a) - factor)) + 1
     uix = int(0.5 * (1 + len(a) + factor)) + 1
-    print(lix, uix)
     if lix < 0:
         lix = 0
     if uix > len(a)-1:

@@ -103,7 +103,7 @@ sh download_data_paper.sh
 To run the available analysis on the provided data first execute at DypFISH root folder (see above):
 
 ```sh
-export PYTHONPATH=${PYTHONPATH}:$(pwd)/src
+export PYTHONPATH=${PYTHONPATH}:$(pwd)/src;export MPLBACKEND="Agg"
 ```
 
 Then to execute an analysis such as cytoplasmic spread, execute: 
