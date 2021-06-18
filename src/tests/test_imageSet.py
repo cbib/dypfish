@@ -103,19 +103,6 @@ class TestImageSet(TestCase):
         spots_counts = image_set.compute_cytoplasmic_spots_counts()
         self.assertEqual(sorted(spots_counts), [33, 68, 71, 73, 153])
 
-    def test_compute_degree_of_clustering(self):
-        self.skipTest("Given random, need to find a way to test this function ")
-        image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
-        np.random.seed(4)
-        clustering_indices = image_set.compute_degree_of_clustering()
-        self.assertEqual(len(clustering_indices), 4)
-        total_sum = 0
-        for ci in clustering_indices:
-            total_sum += np.sum(ci)
-        self.assertAlmostEqual(total_sum, 435.89503878482697, places=5)
-        #self.assertGreater(clustering_indices,[0, 0, 0, 0, 0])  # TODO : how to better test this: np.random.seed(0) does not seem to work
-
-
     def test_compute_normalised_quadrant_densities_mrna(self):
         image_set = ImageSet(self.repo, path_list=['mrna/arhgdia/2h/'])
         res = image_set.compute_normalised_quadrant_densities()
