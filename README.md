@@ -44,11 +44,11 @@ If you have Conda install, you can create the dypfish conda environment using dy
 First you need to set the prefix of your conda installation (path to envs directory) in dypfish.yml.
 Then to create the environment: 
 
-`conda env create -f tools/envs/dypfish.yml -p tools/envs/dypfish`
+`conda env create -f tools/envs/dypfish.yml`
 
 Then activate the environment:
 
-`conda activate tools/envs/dypfish`
+`conda activate dypfish`
 
 # Install dependencies via PIP (No conda installation) 
 

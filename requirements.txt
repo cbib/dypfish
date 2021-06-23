@@ -24,4 +24,5 @@ loguru==0.4.0
 numexpr==2.7.0
 easydev==0.9.38
 statannot==0.2.3
+statsmodels==0.12.2
 colormap

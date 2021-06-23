@@ -10,8 +10,9 @@ from scipy.interpolate import interp1d
 import constants
 from mpi_calculator import DensityStats
 from path import global_root_dir
+print(matplotlib.rcParams['backend'])
+matplotlib.use("agg")
 
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import interpolate
