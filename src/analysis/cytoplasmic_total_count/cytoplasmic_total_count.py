@@ -87,7 +87,7 @@ def intensities_cytoplasmic_total_count(analysis_repo, keyorder):
                             xlabels,
                             tgt_fp,
                             gene2confidence_interval,
-                            annot=True,
+                            annot=False,
                             data_to_annot=gene2cyto_count
                             )
 
