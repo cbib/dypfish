@@ -19,7 +19,7 @@
   "PROTEINS_LABEL" : ["Pard3", "+Nocodazole"],
   "MRNA_GENES": ["pard3", "pard3_nocodazole"],
   "PROTEINS": ["pard3", "pard3_nocodazole"],
-  "PLOT_COLORS" : ["#f16c1b", "#f1bc1e"],
+  "PLOT_COLORS" : ["#F16C1B", "#ffd08c"],
   "MIN_SNR": 0,
   "DATASET_CONFIG_PATH": "{root_dir}/data/savulescu/nocodazole/config_pard3.json"
 }
