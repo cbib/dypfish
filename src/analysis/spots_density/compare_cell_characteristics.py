@@ -35,7 +35,7 @@ def compute_nuclei_area(gene, analysis_repo, gene_label, timepoint):
 def compute_transcript_by_cell_area(analysis_repo, gene, timepoints):
     transcript_by_cell_area = {"total_transcript": [], "cell_area": []}
     for timepoint in timepoints:
-        image_set = ImageSet(analysis_repo, [f"{'mrna'}/{gene}/{timepoint}/"], force2D=True)
+        image_set = ImageSet(analysis_repo, [f"{'mrna'}/{gene}/{timepoint}/"], force2D=False)
         [transcript_by_cell_area["total_transcript"].append(image.compute_cytoplasmic_total_spots()) for image in image_set.get_images()]
         [transcript_by_cell_area["cell_area"].append(image.compute_cell_area()) for image in image_set.get_images()]
     return pd.DataFrame(transcript_by_cell_area)
@@ -84,10 +84,13 @@ if __name__ == '__main__':
         for gene, timepoints, i in zip(genes, [constants.analysis_config['TIMEPOINTS'][0], constants.analysis_config['TIMEPOINTS'][1]], [0, 1]):
             transcript_by_cell_area = compute_transcript_by_cell_area(repo, gene, timepoints)
             if gene == 'arhgdia':
-                outliers = helpers.detect_outliers(transcript_by_cell_area['total_transcript'], threshold=1)
+                outliers = helpers.detect_outliers(transcript_by_cell_area['total_transcript'], threshold=1.8)
                 transcript_by_cell_area = transcript_by_cell_area[~np.isin(transcript_by_cell_area["total_transcript"], outliers)]
                 transcript_by_cell_area.dropna(inplace=True)
             tgt_image_name = constants.analysis_config['FIGURE_NAME_FORMAT_PLOT'].format(cell_type=genes[i])
             tgt_fp = pathlib.Path(constants.analysis_config['FIGURE_OUTPUT_PATH'].format(root_dir=global_root_dir), tgt_image_name)
-            plot.sns_linear_regression(transcript_by_cell_area["cell_area"], transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2)
+            if gene == 'arhgdia':
+                plot.sns_linear_regression(transcript_by_cell_area["cell_area"], transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2, ymin=2.4, ymax=5.6)
+            else:
+                plot.sns_linear_regression(transcript_by_cell_area["cell_area"], transcript_by_cell_area["total_transcript"], plot_colors[i], tgt_fp, order=2, ymin=-0.3, ymax=6.2)
             logger.info("Generated image at {}", tgt_fp)
