@@ -110,7 +110,7 @@ Then to execute an analysis such as cytoplasmic spread, execute:
 ```sh 
 python src/analysis/cytoplasmic_spread/cytoplasmic_spread.py`
 ```
-| WARNING: **The clustering and colocalization analyses cannot be run using the same h5 secondary file as for MTOC analysis. For example, if you have already performed MTOC analysis, you need to temporarily move or rename all of your h5 secondary files (from data/savulescu/original/, data/savulescu/cytod/, etc.) prior to run the clustering and colocalization analyses!!**!|
+| WARNING: **The clustering and colocalization analyses cannot be run using the same h5 secondary file as for MTOC analysis. For example, if you have already performed MTOC analysis, you need to temporarily move or rename all of your h5 secondary files prior to running the clustering or colocalization !!**!|
 | --- |
 
 ## Running available analysis on your data
