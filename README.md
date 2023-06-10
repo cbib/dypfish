@@ -39,7 +39,7 @@ Go to the DypFISH root folder
 
 `cd dypfish/`
 
-# Install dependencies via CONDA 
+### Install dependencies via CONDA 
 If you have Conda install, you can create the dypfish conda environment using dypfish.yml
 First you need to set the prefix of your conda installation (path to envs directory) in dypfish.yml.
 Then to create the environment: 
@@ -50,7 +50,7 @@ Then activate the environment:
 
 `conda activate dypfish`
 
-# Install dependencies via PIP (No conda installation) 
+### Install dependencies via PIP (No conda installation) 
 
 If you don't have Conda installed in your system, you can install python dependencies via pip program:
 
