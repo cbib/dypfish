@@ -2,7 +2,7 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 #
 
-wget -P data/ https://zenodo.org/record/5155127/files/original.zip?download=1 https://zenodo.org/record/5155127/files/chx.zip?download=1 https://zenodo.org/record/5155127/files/cytod.zip?download=1 https://zenodo.org/record/5155127/files/muscle.zip?download=1 https://zenodo.org/record/5155127/files/nocodazole.zip?download=1 https://zenodo.org/record/5155127/files/prrc2c.zip?download=1
+wget -P data/ https://zenodo.org/record/5155127/files/original.zip https://zenodo.org/record/5155127/files/chx.zip https://zenodo.org/record/5155127/files/cytod.zip https://zenodo.org/record/5155127/files/muscle.zip https://zenodo.org/record/5155127/files/nocodazole.zip https://zenodo.org/record/5155127/files/prrc2c.zip
 
 unzip data/original.zip -d data/savulescu/
 unzip data/chx.zip -d data/savulescu/
