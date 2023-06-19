@@ -10,7 +10,7 @@ DypFISH library functions take as input the preprocessed images stored in HDF5 f
 
 # Provided datasets
 
-Datasets corresponding to the results presented in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on the [accompanying website](http://dypfish.org).
+Datasets corresponding to the results presented in the manuscript "DypFISH: Dynamic Patterned FISH to Interrogate RNA and Protein Spatial and Temporal Subcellular Distribution" by A. Savulescu et al. are available on [Zenodo](https://zenodo.org/search?page=1&size=20&q=dypfish).
 They should be appropriately placed under the `data` subdirectory, e.g. the `chx` dataset should uncompressed in the `data/savulescu/chx` subfolder.  
 Each subdirectory  in `data` contains a README, configuration files (see explanation below) and will eventually stores all analysis results.
 
@@ -150,9 +150,9 @@ Each image (leafs in the HDF5 file) contains the required basic image descriptor
 * `height_map` and `zero_level` for 3D images
 * `mtoc_position` for the MTOC's coordinates
 
-An example of an HDF5 file `basic.h5` is available for download and should be placed in `data/example_hdf5/`. This file is provided *both* as an example of data formatting and for unit testing of the code. It is part of the downloadable data avalaible on the [dypfish.org](http://dypfish.org).
+An example of an HDF5 file `basic.h5` is available for download and should be placed in `data/example_hdf5/`. This file is provided *both* as an example of data formatting and for unit testing of the code. It is part of the downloadable data avalaible on [Zenodo](https://zenodo.org/record/8026601).
 
-In order to run DypFISH, you need to download the HDF5 representation of images from the website [(data.zip file)](http://dypfish.org/file/zip/data_and_conf.zip), place the zip file in the root directory `dypfish/` and unzip it there. This populates the directory `dypfish/data/` and all the subfolders with HDF5 files and enables running and testing the pipeline. 
+In order to run DypFISH, you need to download the HDF5 representation of images from [Zenodo](https://zenodo.org/record/5155127), place the zip files in the root directory `dypfish/` and unzip it there, or use our script `download_data_paper.sh`. This populates the directory `dypfish/data/` and all the subfolders with HDF5 files and enables running and testing the pipeline. 
 
 If you wish to run the pipeline on your own data, place the HDF5 file in the `dypfish/data/name_of_your_data` directory and modify the analysis scripts to refer to your dataset files.
         
@@ -166,7 +166,7 @@ It should be located in the same directory as the corresponding HDF5 file, and d
 ```
 "SECONDARY_FILE_NAME": "secondary.h5"
 ```
-An full example `example_datasets_config.json` is provided on [dypfish.org](http://dypfish.org) and `configuration files` for the datasets used in the publications are located in the same archive as the HDF5 files.
+An full example `example_datasets_config.json` is provided on [Zenodo](https://zenodo.org/record/8026601) and `configuration files` for the datasets used in the publications are located in the same archive as the HDF5 files.
 
 The `analysis configuration` file  should be located in the same folder as the python analysis script. This file is used to provide the parameters for the analysis scripts. An example of an `analysis confguration` file is provided in the `src/tests` directory, `test_config.json`, and covers the needs of unit testing; `srs/analysis` subfolders contain `analysis configuration` files for the corresponding analysis.
 
