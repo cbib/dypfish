@@ -2,7 +2,7 @@
 # Credits: Benjamin Dartigues, Emmanuel Bouilhol, Hayssam Soueidan, Macha Nikolski
 #
 
-wget -P data/ http://dypfish.org/material-kit-master/file/zip/original.zip http://dypfish.org/material-kit-master/file/zip/chx.zip http://dypfish.org/material-kit-master/file/zip/cytod.zip http://dypfish.org/material-kit-master/file/zip/nocodazole.zip http://dypfish.org/material-kit-master/file/zip/prrc2c.zip http://dypfish.org/material-kit-master/file/zip/muscle.zip
+wget -P data/ https://zenodo.org/record/5155127/files/original.zip https://zenodo.org/record/5155127/files/chx.zip https://zenodo.org/record/5155127/files/cytod.zip https://zenodo.org/record/5155127/files/muscle.zip https://zenodo.org/record/5155127/files/nocodazole.zip https://zenodo.org/record/5155127/files/prrc2c.zip
 
 unzip data/original.zip -d data/savulescu/
 unzip data/chx.zip -d data/savulescu/
